@@ -1,6 +1,7 @@
 import os
 import argparse
 from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from docling.document_converter import DocumentConverter, ImageFormatOption
 from docling.datamodel.base_models import InputFormat
 from docling.datamodel.pipeline_options import PdfPipelineOptions
@@ -16,6 +17,41 @@ def setup_converter():
         }
     )
     return converter
+
+def process_file_wrapper(args):
+    """
+    Wrapper para procesar archivos en paralelo
+    Cada worker crea su propio convertidor para evitar conflictos
+    """
+    file_path, output_dir, skip_existing = args
+    
+    try:
+        # Crear nombre del archivo de salida
+        if output_dir:
+            relative_path = file_path.relative_to(Path(file_path).parts[0])
+            output_file = Path(output_dir) / relative_path.with_suffix('.md')
+            output_file.parent.mkdir(parents=True, exist_ok=True)
+        else:
+            output_file = file_path.with_suffix('.md')
+        
+        # Verificar si ya existe el archivo de salida
+        if skip_existing and output_file.exists():
+            return ('skipped', file_path, None)
+        
+        # Cada worker crea su propio convertidor
+        converter = setup_converter()
+        result = converter.convert(str(file_path))
+        markdown_content = result.document.export_to_markdown()
+        
+        # Guardar el markdown
+        with open(output_file, 'w', encoding='utf-8') as f:
+            f.write(markdown_content)
+        
+        return ('success', file_path, output_file)
+        
+    except Exception as e:
+        return ('error', file_path, str(e))
+
 
 def process_file(file_path, converter, output_dir=None, skip_existing=True):
     """
@@ -61,7 +97,7 @@ def process_file(file_path, converter, output_dir=None, skip_existing=True):
         print(f"✗ Error procesando {file_path}: {str(e)}")
         return False
 
-def process_directory_recursive(directory_path, output_dir=None, extensions=None, skip_existing=True):
+def process_directory_recursive(directory_path, output_dir=None, extensions=None, skip_existing=True, workers=1):
     """
     Recorre recursivamente un directorio y procesa todos los archivos compatibles
     
@@ -70,6 +106,7 @@ def process_directory_recursive(directory_path, output_dir=None, extensions=None
         output_dir: Directorio donde guardar los resultados (opcional)
         extensions: Lista de extensiones a procesar (por defecto: imágenes y PDFs)
         skip_existing: Si True, salta archivos que ya tienen .md generado
+        workers: Número de workers paralelos (1 = secuencial, >1 = paralelo)
     """
     if extensions is None:
         extensions = {'.jpg', '.jpeg', '.png', '.pdf', '.tiff', '.tif', '.bmp'}
@@ -80,38 +117,60 @@ def process_directory_recursive(directory_path, output_dir=None, extensions=None
         print(f"Error: El directorio {directory_path} no existe")
         return
     
-    # Inicializar el convertidor una sola vez
-    print("Inicializando convertidor Docling...")
-    converter = setup_converter()
-    
     # Buscar todos los archivos recursivamente
     all_files = []
     for ext in extensions:
         all_files.extend(directory.rglob(f"*{ext}"))
         all_files.extend(directory.rglob(f"*{ext.upper()}"))
     
-    # Eliminar duplicados
-    all_files = list(set(all_files))
+    # Eliminar duplicados y ordenar
+    all_files = sorted(list(set(all_files)))
     
     if not all_files:
         print(f"No se encontraron archivos con extensiones: {extensions}")
         return
     
-    print(f"\nEncontrados {len(all_files)} archivo(s) para procesar\n")
+    print(f"\nEncontrados {len(all_files)} archivo(s) para procesar")
+    print(f"Modo: {'Paralelo (' + str(workers) + ' workers)' if workers > 1 else 'Secuencial'}\n")
     
-    # Procesar cada archivo
+    # Procesar archivos
     successful = 0
     failed = 0
     skipped = 0
     
-    for file_path in sorted(all_files):
-        result = process_file(file_path, converter, output_dir, skip_existing)
-        if result is True:
-            successful += 1
-        elif result is False:
-            failed += 1
-        else:  # None = skipped
-            skipped += 1
+    if workers > 1:
+        # Procesamiento en paralelo
+        print("Inicializando procesamiento paralelo...")
+        file_args = [(f, output_dir, skip_existing) for f in all_files]
+        
+        with ThreadPoolExecutor(max_workers=workers) as executor:
+            futures = {executor.submit(process_file_wrapper, arg): arg[0] for arg in file_args}
+            
+            for future in as_completed(futures):
+                status, file_path, result = future.result()
+                
+                if status == 'success':
+                    print(f"✓ Guardado: {result}")
+                    successful += 1
+                elif status == 'skipped':
+                    print(f"⊘ Saltando (ya existe): {file_path}")
+                    skipped += 1
+                else:  # error
+                    print(f"✗ Error procesando {file_path}: {result}")
+                    failed += 1
+    else:
+        # Procesamiento secuencial (original)
+        print("Inicializando convertidor Docling...")
+        converter = setup_converter()
+        
+        for file_path in all_files:
+            result = process_file(file_path, converter, output_dir, skip_existing)
+            if result is True:
+                successful += 1
+            elif result is False:
+                failed += 1
+            else:  # None = skipped
+                skipped += 1
     
     # Resumen
     print(f"\n{'='*60}")
@@ -134,6 +193,7 @@ Ejemplos:
   python process_recursive.py files/2025-08         # Procesa carpeta específica
   python process_recursive.py -o output files       # Guarda resultados en carpeta 'output'
   python process_recursive.py --force files         # Reprocesa todo, incluso archivos ya procesados
+  python process_recursive.py -w 4 files/2025-08   # Procesa con 4 workers en paralelo
         '''
     )
     
@@ -157,6 +217,13 @@ Ejemplos:
         help='Forzar reprocesamiento de archivos aunque ya exista el .md'
     )
     
+    parser.add_argument(
+        '-w', '--workers',
+        type=int,
+        default=1,
+        help='Número de workers paralelos (por defecto: 1 = secuencial, >1 = paralelo)'
+    )
+    
     args = parser.parse_args()
     
     print(f"Procesando directorio: {args.directory}")
@@ -164,9 +231,12 @@ Ejemplos:
         print(f"Guardando resultados en: {args.output_dir}")
     if args.force:
         print(f"Modo: Forzar reprocesamiento (--force)")
+    if args.workers > 1:
+        print(f"Workers: {args.workers} (paralelo)")
     
     process_directory_recursive(
         args.directory, 
         output_dir=args.output_dir, 
-        skip_existing=not args.force
+        skip_existing=not args.force,
+        workers=args.workers
     )
