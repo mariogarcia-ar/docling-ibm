@@ -1,10 +1,26 @@
 import os
 import argparse
 from pathlib import Path
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ProcessPoolExecutor, as_completed
+from functools import partial
 from docling.document_converter import DocumentConverter, ImageFormatOption
 from docling.datamodel.base_models import InputFormat
 from docling.datamodel.pipeline_options import PdfPipelineOptions
+
+# Variable global para el convertidor en cada proceso worker
+_converter = None
+
+def init_worker():
+    """Inicializa el convertidor una sola vez por proceso worker"""
+    global _converter
+    if _converter is None:
+        _converter = setup_converter()
+        print(f"Worker {os.getpid()}: Convertidor inicializado")
+
+def get_converter():
+    """Obtiene el convertidor del worker actual"""
+    global _converter
+    return _converter
 
 def setup_converter():
     """Inicializa el convertidor de Docling con OCR habilitado"""
@@ -21,7 +37,7 @@ def setup_converter():
 def process_file_wrapper(args):
     """
     Wrapper para procesar archivos en paralelo
-    Cada worker crea su propio convertidor para evitar conflictos
+    Usa el convertidor ya inicializado del worker (no crea uno nuevo)
     """
     file_path, output_dir, skip_existing = args
     
@@ -38,8 +54,8 @@ def process_file_wrapper(args):
         if skip_existing and output_file.exists():
             return ('skipped', file_path, None)
         
-        # Cada worker crea su propio convertidor
-        converter = setup_converter()
+        # Usar el convertidor ya inicializado del worker
+        converter = get_converter()
         result = converter.convert(str(file_path))
         markdown_content = result.document.export_to_markdown()
         
@@ -139,11 +155,12 @@ def process_directory_recursive(directory_path, output_dir=None, extensions=None
     skipped = 0
     
     if workers > 1:
-        # Procesamiento en paralelo
-        print("Inicializando procesamiento paralelo...")
+        # Procesamiento en paralelo con ProcessPoolExecutor
+        # Cada proceso carga los weights una sola vez al inicio
+        print(f"Inicializando {workers} workers paralelos...")
         file_args = [(f, output_dir, skip_existing) for f in all_files]
         
-        with ThreadPoolExecutor(max_workers=workers) as executor:
+        with ProcessPoolExecutor(max_workers=workers, initializer=init_worker) as executor:
             futures = {executor.submit(process_file_wrapper, arg): arg[0] for arg in file_args}
             
             for future in as_completed(futures):
