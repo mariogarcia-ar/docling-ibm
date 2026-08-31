@@ -17,7 +17,7 @@ def setup_converter():
     )
     return converter
 
-def process_file(file_path, converter, output_dir=None):
+def process_file(file_path, converter, output_dir=None, skip_existing=True):
     """
     Procesa un archivo individual y guarda el resultado
     
@@ -25,12 +25,12 @@ def process_file(file_path, converter, output_dir=None):
         file_path: Ruta del archivo a procesar
         converter: Instancia de DocumentConverter
         output_dir: Directorio donde guardar los resultados (opcional)
+        skip_existing: Si True, salta archivos que ya tienen .md generado
+    
+    Returns:
+        True si se procesó exitosamente, False si hubo error, None si se saltó
     """
     try:
-        print(f"Procesando: {file_path}")
-        result = converter.convert(str(file_path))
-        markdown_content = result.document.export_to_markdown()
-        
         # Crear nombre del archivo de salida
         if output_dir:
             # Mantener estructura de carpetas relativa
@@ -40,6 +40,15 @@ def process_file(file_path, converter, output_dir=None):
         else:
             # Guardar en la misma carpeta que el archivo original
             output_file = file_path.with_suffix('.md')
+        
+        # Verificar si ya existe el archivo de salida
+        if skip_existing and output_file.exists():
+            print(f"⊘ Saltando (ya existe): {file_path}")
+            return None
+        
+        print(f"Procesando: {file_path}")
+        result = converter.convert(str(file_path))
+        markdown_content = result.document.export_to_markdown()
         
         # Guardar el markdown
         with open(output_file, 'w', encoding='utf-8') as f:
@@ -52,7 +61,7 @@ def process_file(file_path, converter, output_dir=None):
         print(f"✗ Error procesando {file_path}: {str(e)}")
         return False
 
-def process_directory_recursive(directory_path, output_dir=None, extensions=None):
+def process_directory_recursive(directory_path, output_dir=None, extensions=None, skip_existing=True):
     """
     Recorre recursivamente un directorio y procesa todos los archivos compatibles
     
@@ -60,6 +69,7 @@ def process_directory_recursive(directory_path, output_dir=None, extensions=None
         directory_path: Directorio raíz a procesar
         output_dir: Directorio donde guardar los resultados (opcional)
         extensions: Lista de extensiones a procesar (por defecto: imágenes y PDFs)
+        skip_existing: Si True, salta archivos que ya tienen .md generado
     """
     if extensions is None:
         extensions = {'.jpg', '.jpeg', '.png', '.pdf', '.tiff', '.tif', '.bmp'}
@@ -92,17 +102,23 @@ def process_directory_recursive(directory_path, output_dir=None, extensions=None
     # Procesar cada archivo
     successful = 0
     failed = 0
+    skipped = 0
     
     for file_path in sorted(all_files):
-        if process_file(file_path, converter, output_dir):
+        result = process_file(file_path, converter, output_dir, skip_existing)
+        if result is True:
             successful += 1
-        else:
+        elif result is False:
             failed += 1
+        else:  # None = skipped
+            skipped += 1
     
     # Resumen
     print(f"\n{'='*60}")
     print(f"Procesamiento completado:")
     print(f"  ✓ Exitosos: {successful}")
+    if skipped > 0:
+        print(f"  ⊘ Saltados: {skipped}")
     print(f"  ✗ Fallidos: {failed}")
     print(f"  Total: {len(all_files)}")
     print(f"{'='*60}")
@@ -117,6 +133,7 @@ Ejemplos:
   python process_recursive.py                        # Procesa 'files' (por defecto)
   python process_recursive.py files/2025-08         # Procesa carpeta específica
   python process_recursive.py -o output files       # Guarda resultados en carpeta 'output'
+  python process_recursive.py --force files         # Reprocesa todo, incluso archivos ya procesados
         '''
     )
     
@@ -134,10 +151,22 @@ Ejemplos:
         help='Directorio donde guardar los archivos .md (por defecto: misma carpeta que los originales)'
     )
     
+    parser.add_argument(
+        '-f', '--force',
+        action='store_true',
+        help='Forzar reprocesamiento de archivos aunque ya exista el .md'
+    )
+    
     args = parser.parse_args()
     
     print(f"Procesando directorio: {args.directory}")
     if args.output_dir:
         print(f"Guardando resultados en: {args.output_dir}")
+    if args.force:
+        print(f"Modo: Forzar reprocesamiento (--force)")
     
-    process_directory_recursive(args.directory, output_dir=args.output_dir)
+    process_directory_recursive(
+        args.directory, 
+        output_dir=args.output_dir, 
+        skip_existing=not args.force
+    )
