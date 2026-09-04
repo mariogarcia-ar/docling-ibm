@@ -3,15 +3,16 @@
 Aplica un prompt "single-shot" (system/user con placeholder {{documento}}) a
 un documento y devuelve el JSON de la respuesta del modelo.
 
-Los templates disponibles están en prompts/:
-    prompts/extraction_prompt.yaml                 - auditoría de comprobantes (JSON anidado)
-    prompts/extraction_key_value_prompt.yaml       - auditoría de comprobantes (JSON plano)
-    prompts/extraction_key_value_generic_prompt.yaml - cualquier tipo de documento (JSON plano)
+Modos disponibles (atajo -M/--mode) y su template en prompts/:
+    aud   -> extraction_invoice_prompt.yaml           - auditoría de comprobantes (JSON anidado)
+    kv    -> extraction_key_value_invoice_prompt.yaml - auditoría de comprobantes (JSON plano)
+    kyg   -> extraction_key_value_generic_prompt.yaml - cualquier tipo de documento (JSON plano)
 
 Uso:
     python extract.py archivo.md
-    python extract.py archivo.md -p prompts/extraction_key_value_prompt.yaml
-    python extract.py archivo.pdf -p prompts/extraction_key_value_generic_prompt.yaml -m qwen2.5vl:3b -o resultado.json
+    python extract.py archivo.md -M kv
+    python extract.py archivo.pdf -M kyg -m qwen2.5vl:3b -o resultado.json
+    python extract.py archivo.md -p prompts/otro_template.yaml   # template custom, sin usar -M
 """
 import argparse
 import json
@@ -23,7 +24,16 @@ import yaml
 
 from ask import DEFAULT_MODEL, ask_ollama, load_document_text
 
-DEFAULT_PROMPT = Path(__file__).parent / "prompts" / "extraction_prompt.yaml"
+PROMPTS_DIR = Path(__file__).parent / "prompts"
+DEFAULT_PROMPT = PROMPTS_DIR / "extraction_invoice_prompt.yaml"
+DEFAULT_MODE = "aud"
+
+# Códigos cortos de --mode -> archivo de template dentro de prompts/
+MODE_PROMPTS = {
+    "aud": "extraction_invoice_prompt.yaml",
+    "kv": "extraction_key_value_invoice_prompt.yaml",
+    "kyg": "extraction_key_value_generic_prompt.yaml",
+}
 
 
 def load_prompt(prompt_path: Path) -> dict:
@@ -55,10 +65,16 @@ def run_extraction(file_path: Path, prompt_path: Path, model: str) -> dict:
 def main():
     parser = argparse.ArgumentParser(description="Extrae información de un documento aplicando un prompt system/user")
     parser.add_argument("file", type=Path, help="Ruta del archivo (documento con OCR) a procesar")
-    parser.add_argument("-p", "--prompt", type=Path, default=DEFAULT_PROMPT, help=f"YAML con system/user (default: {DEFAULT_PROMPT.relative_to(Path(__file__).parent)})")
+    parser.add_argument("-M", "--mode", choices=sorted(MODE_PROMPTS), help=f"Atajo para elegir el template en prompts/ (default: {DEFAULT_MODE}). Ignora -p si se especifica")
+    parser.add_argument("-p", "--prompt", type=Path, help=f"YAML con system/user, ruta completa (default: {DEFAULT_PROMPT.relative_to(Path(__file__).parent)})")
     parser.add_argument("-m", "--model", default=DEFAULT_MODEL, help=f"Modelo de Ollama a usar (default: {DEFAULT_MODEL})")
     parser.add_argument("-o", "--output", type=Path, help="Archivo donde guardar el JSON (default: stdout)")
     args = parser.parse_args()
+
+    if args.mode:
+        args.prompt = PROMPTS_DIR / MODE_PROMPTS[args.mode]
+    elif not args.prompt:
+        args.prompt = DEFAULT_PROMPT
 
     if not args.file.exists():
         print(f"Error: no existe el archivo '{args.file}'", file=sys.stderr)
