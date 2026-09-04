@@ -12,7 +12,7 @@ flowchart LR
     A[Imagen / PDF] -->|process_recursive.py<br/>Docling OCR| B[Markdown .md]
     B -->|extract.py -M aud| D[JSON auditoría anidado]
     B -->|extract.py -M kvi| E2[JSON auditoría plano]
-    B -->|extract.py -M kyg| F[JSON genérico, cualquier documento]
+    B -->|extract.py -M kvg| F[JSON genérico, cualquier documento]
     D -.opcional.-> E[wip/consultar_arca.py<br/>WSCDC/ARCA]
     E2 -.opcional.-> E
 ```
@@ -37,7 +37,7 @@ flowchart LR
 | [process_recursive.py](process_recursive.py) | Convierte recursivamente imágenes/PDFs de `files/` a Markdown usando Docling (OCR), en paralelo con múltiples workers |
 | [run.py](run.py) | Ejemplo mínimo de conversión de un solo archivo con Docling |
 | [ask.py](ask.py) | Hace preguntas sobre un archivo vía Ollama: pregunta puntual, modo interactivo, o extracción progresiva de campos (`--fields`) |
-| [extract.py](extract.py) | Extracción "single-shot": carga un prompt system/user de `prompts/`, llama a Ollama y parsea el JSON de respuesta. El template se elige con `-M/--mode` (`aud`=auditoría anidada, `kv`=auditoría plana, `kyg`=genérico) o con `-p` apuntando a un YAML custom |
+| [extract.py](extract.py) | Extracción "single-shot": carga un prompt system/user de `prompts/`, llama a Ollama y parsea el JSON de respuesta. El template se elige con `-M/--mode` (`aud`=auditoría anidada, `kvi`=auditoría plana, `kvg`=genérico) o con `-p` apuntando a un YAML custom |
 | [questions.yaml](questions.yaml) | Template de campos de control de gastos, preguntados uno por uno en orden (usado por `ask.py --fields` / `wip/extract_template.py`) |
 | `prompts/` | Prompts system/user (YAML) usados por los scripts `extract_*.py` |
 | `wip/` | Scripts/config en desarrollo o de uso opcional: `extract_template.py` (extracción progresiva campo a campo), `consultar_arca.py` (WSCDC/ARCA), `.env`/`.env.example` |
@@ -74,7 +74,7 @@ python wip/extract_template.py archivo.md -o resultado.json
 ```bash
 python extract.py archivo.md -m qwen2.5vl:3b -o auditoria.json     # -M aud (default): JSON anidado
 python extract.py archivo.md -M kvi -o auditoria.json              # JSON plano
-python extract.py archivo.md -M kyg -o resultado.json              # cualquier tipo de documento
+python extract.py archivo.md -M kvg -o resultado.json              # cualquier tipo de documento
 ```
 
 Devuelve un JSON con validación de calidad/legibilidad, datos del emisor, del
