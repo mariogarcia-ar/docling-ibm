@@ -10,10 +10,11 @@ enviar información a servicios externos.
 ```mermaid
 flowchart LR
     A[Imagen / PDF] -->|process_recursive.py<br/>Docling OCR| B[Markdown .md]
-    B -->|ask.py --fields<br/>questions.yaml| C[JSON campo a campo]
-    B -->|extract_invoice.py<br/>extraction_prompt.yaml| D[JSON auditoría completo]
-    C -.opcional.-> E[consultar_arca.py<br/>WSCDC/ARCA]
-    D -.opcional.-> E
+    B -->|extract_invoice.py<br/>prompts/extraction_prompt.yaml| D[JSON auditoría anidado]
+    B -->|extract_key_value_invoice.py<br/>prompts/extraction_key_value_prompt.yaml| E2[JSON auditoría plano]
+    B -->|extract_key_value_generic.py<br/>prompts/*_generic_prompt.yaml| F[JSON genérico, cualquier documento]
+    D -.opcional.-> E[wip/consultar_arca.py<br/>WSCDC/ARCA]
+    E2 -.opcional.-> E
 ```
 
 ## Requisitos
@@ -36,11 +37,13 @@ flowchart LR
 | [process_recursive.py](process_recursive.py) | Convierte recursivamente imágenes/PDFs de `files/` a Markdown usando Docling (OCR), en paralelo con múltiples workers |
 | [run.py](run.py) | Ejemplo mínimo de conversión de un solo archivo con Docling |
 | [ask.py](ask.py) | Hace preguntas sobre un archivo vía Ollama: pregunta puntual, modo interactivo, o extracción progresiva de campos (`--fields`) |
-| [extract_template.py](extract_template.py) | Atajo sobre `ask.py --fields questions.yaml`, pensado para pipelines (imprime solo JSON en stdout) |
-| [questions.yaml](questions.yaml) | Template de campos de control de gastos (tipo de factura, CUIT, importes, categoría, etc.), preguntados uno por uno en orden |
-| [extract_invoice.py](extract_invoice.py) | Extrae y audita un comprobante en una sola llamada al modelo, usando `extraction_prompt.yaml` (system/user) y devuelve el JSON de auditoría completo |
-| [extraction_prompt.yaml](extraction_prompt.yaml) | Prompt system/user con el schema JSON de auditoría (validación, montos, impuestos, reglas de negocio) |
-| [consultar_arca.py](consultar_arca.py) | Constata un comprobante de un tercero contra el WSCDC de ARCA/AFIP (requiere `AFIP_ACCESS_TOKEN` y, opcionalmente, certificado propio) |
+| [extract_common.py](extract_common.py) | Lógica compartida por los scripts `extract_*.py` "single-shot" (carga el prompt system/user, llama a Ollama, parsea el JSON de respuesta) |
+| [extract_invoice.py](extract_invoice.py) | Extrae y audita un comprobante en una sola llamada, usando `prompts/extraction_prompt.yaml` → JSON anidado (`emisor`, `comprobante`, `financiero`, etc.) |
+| [extract_key_value_invoice.py](extract_key_value_invoice.py) | Igual que `extract_invoice.py` pero con `prompts/extraction_key_value_prompt.yaml` → JSON plano (todas las claves al mismo nivel) |
+| [extract_key_value_generic.py](extract_key_value_generic.py) | Igual mecanismo, pero con `prompts/extraction_key_value_generic_prompt.yaml`: no asume tipo de documento, el modelo decide qué claves extraer |
+| [questions.yaml](questions.yaml) | Template de campos de control de gastos, preguntados uno por uno en orden (usado por `ask.py --fields` / `wip/extract_template.py`) |
+| `prompts/` | Prompts system/user (YAML) usados por los scripts `extract_*.py` |
+| `wip/` | Scripts/config en desarrollo o de uso opcional: `extract_template.py` (extracción progresiva campo a campo), `consultar_arca.py` (WSCDC/ARCA), `.env`/`.env.example` |
 | [kill_workers.py](kill_workers.py) / [kill_workers.sh](kill_workers.sh) | Mata procesos/workers huérfanos de `process_recursive.py` |
 | `files/` | Comprobantes originales organizados por mes (`AAAA-MM/`) y carpeta hash, junto a su `.md` generado |
 
