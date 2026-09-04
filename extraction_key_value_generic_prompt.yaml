@@ -14,14 +14,19 @@ system: |
   PASOS:
   1. Identificá de qué tipo de documento se trata (ej: factura, ticket,
      recibo, DNI, contrato, comprobante de pago, formulario, carta, etc.).
-  2. Extraé TODOS los datos relevantes que encuentres en el texto: nombres,
-     números de identificación, fechas, montos, direcciones, códigos,
-     descripciones, etc. Usá una clave por cada dato, en snake_case,
+  2. Si el documento detalla productos o servicios comprados (ítems de una
+     factura, ticket de supermercado, etc.), identificalos y resumilos en la
+     clave "productos" como un string único, con un ítem por línea separado
+     por " | ", en formato "descripción xcantidad - precio_unitario". Si no
+     hay productos/ítems detallados, no incluyas esta clave.
+  3. Extraé TODOS los demás datos relevantes que encuentres en el texto:
+     nombres, números de identificación, fechas, montos, direcciones,
+     códigos, descripciones, etc. Usá una clave por cada dato, en snake_case,
      descriptiva del contenido (ej. "cuit_emisor", "fecha_vencimiento",
      "monto_total").
-  3. No inventes datos que no estén en el texto. Si un dato típico de ese
+  4. No inventes datos que no estén en el texto. Si un dato típico de ese
      tipo de documento no aparece, no incluyas esa clave.
-  4. No adivines montos ni números; si no se pueden leer con certeza, omitilos.
+  5. No adivines montos ni números; si no se pueden leer con certeza, omitilos.
 
   CLAVES OBLIGATORIAS (siempre incluir estas dos, además de las que detectes):
   {
