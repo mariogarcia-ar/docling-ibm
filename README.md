@@ -11,7 +11,7 @@ enviar información a servicios externos.
 flowchart LR
     A[Imagen / PDF] -->|process_recursive.py<br/>Docling OCR| B[Markdown .md]
     B -->|extract.py -M aud| D[JSON auditoría anidado]
-    B -->|extract.py -M kv| E2[JSON auditoría plano]
+    B -->|extract.py -M kvi| E2[JSON auditoría plano]
     B -->|extract.py -M kyg| F[JSON genérico, cualquier documento]
     D -.opcional.-> E[wip/consultar_arca.py<br/>WSCDC/ARCA]
     E2 -.opcional.-> E
@@ -73,7 +73,7 @@ python wip/extract_template.py archivo.md -o resultado.json
 
 ```bash
 python extract.py archivo.md -m qwen2.5vl:3b -o auditoria.json     # -M aud (default): JSON anidado
-python extract.py archivo.md -M kv -o auditoria.json               # JSON plano
+python extract.py archivo.md -M kvi -o auditoria.json              # JSON plano
 python extract.py archivo.md -M kyg -o resultado.json              # cualquier tipo de documento
 ```
 

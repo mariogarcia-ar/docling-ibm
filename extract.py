@@ -5,12 +5,12 @@ un documento y devuelve el JSON de la respuesta del modelo.
 
 Modos disponibles (atajo -M/--mode) y su template en prompts/:
     aud   -> extraction_invoice_prompt.yaml           - auditoría de comprobantes (JSON anidado)
-    kv    -> extraction_key_value_invoice_prompt.yaml - auditoría de comprobantes (JSON plano)
+    kvi   -> extraction_key_value_invoice_prompt.yaml - auditoría de comprobantes (JSON plano)
     kyg   -> extraction_key_value_generic_prompt.yaml - cualquier tipo de documento (JSON plano)
 
 Uso:
     python extract.py archivo.md
-    python extract.py archivo.md -M kv
+    python extract.py archivo.md -M kvi
     python extract.py archivo.pdf -M kyg -m qwen2.5vl:3b -o resultado.json
     python extract.py archivo.md -p prompts/otro_template.yaml   # template custom, sin usar -M
 """
@@ -31,7 +31,7 @@ DEFAULT_MODE = "aud"
 # Códigos cortos de --mode -> archivo de template dentro de prompts/
 MODE_PROMPTS = {
     "aud": "extraction_invoice_prompt.yaml",
-    "kv": "extraction_key_value_invoice_prompt.yaml",
+    "kvi": "extraction_key_value_invoice_prompt.yaml",
     "kyg": "extraction_key_value_generic_prompt.yaml",
 }
 
