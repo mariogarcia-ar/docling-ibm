@@ -1,0 +1,17 @@
+{
+  "tipo_factura": "A",
+  "razon_social_emisor": "CVC SOCIEDAD ANONIMA",
+  "cuit_emisor": "30582215703",
+  "fecha_emision": "17/06/2026",
+  "nro_factura": "00001-00000031",
+  "moneda": "ARS",
+  "subtotal": "16727,27",
+  "impuestos": "IVA: 3512,73\nImpuestos Internos: 0\nPercepciones de Ingresos Brutos: 0\nOtros: 0",
+  "monto_no_gravado": "1840,00",
+  "importe_total_facturado": "20240,00",
+  "categoria_gasto": "Restaurante",
+  "notas": "El gasto corresponde a la compra de un menú del día mediodía en un restaurante. El importe total facturado es de ARS 20240,00 y incluye un recargo de ARS 1840,00.",
+  "cantidad_comensales": "N/A",
+  "cantidad_litros": "N/A",
+  "centro_costo": "N/A"
+}

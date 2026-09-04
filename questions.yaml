@@ -1,0 +1,76 @@
+# Campos de control a extraer de un comprobante/factura, en orden.
+# Cada pregunta se responde en base al documento y, cuando corresponde,
+# también con el contexto de las respuestas previas.
+fields:
+  - key: tipo_factura
+    question: >
+      ¿Cuál es el tipo de factura o comprobante (A, B, C, u Otros)?
+      Si es un boleto/pasaje con código 090 o 099, respondé "Otros Comprobantes".
+      Respondé solo con el tipo.
+
+  - key: razon_social_emisor
+    question: ¿Cuál es la Razón Social del emisor del comprobante?
+
+  - key: cuit_emisor
+    question: ¿Cuál es el CUIT del emisor del comprobante?
+
+  - key: fecha_emision
+    question: ¿Cuál es la fecha de emisión del comprobante? Respondé en formato DD/MM/AAAA.
+
+  - key: nro_factura
+    question: ¿Cuál es el número de factura o comprobante?
+
+  - key: moneda
+    question: >
+      ¿En qué moneda está expresado el comprobante (ARS, USD, u otra)?
+      Si no se indica explícitamente, asumí ARS.
+
+  - key: subtotal
+    question: >
+      ¿Cuál es el subtotal (neto) del comprobante? Si el comprobante tiene
+      impuestos discriminados, es el monto antes de impuestos. Si no hay
+      impuestos discriminados, respondé "N/A".
+
+  - key: impuestos
+    question: >
+      Detallá los impuestos discriminados en el comprobante: IVA, Impuestos
+      Internos, Percepciones de Ingresos Brutos, y Otros. Indicá el monto de
+      cada uno; si alguno no aparece, marcalo como 0.
+
+  - key: monto_no_gravado
+    question: >
+      ¿Hay algún monto no gravado, es decir, un recargo o cargo cobrado por
+      el medio de pago (ej. Mercado Pago) que no figure en la factura del
+      comercio? Si no hay indicios de esto en el documento, respondé "N/A"
+      (este campo suele requerir edición manual).
+
+  - key: importe_total_facturado
+    question: ¿Cuál es el importe total facturado en el comprobante?
+
+  - key: categoria_gasto
+    question: >
+      Según el emisor y el detalle del comprobante, ¿a qué categoría de
+      gasto corresponde (ej. Restaurante, Hospedaje, Combustible,
+      Supermercado, Transporte, etc.)?
+
+  - key: notas
+    question: >
+      Escribí una nota breve aclarando de qué se trata el gasto, en base al
+      contenido del comprobante.
+
+  - key: cantidad_comensales
+    question: >
+      Si el comprobante corresponde a un gasto de restaurante, supermercado
+      u hospedaje, ¿se menciona la cantidad de personas/comensales? Si no
+      se especifica en el documento, respondé "N/A" (campo a completar
+      manualmente por el usuario).
+
+  - key: cantidad_litros
+    question: >
+      Si el comprobante corresponde a un gasto de combustible, ¿cuántos
+      litros se cargaron? Si no aplica o no figura, respondé "N/A".
+
+  - key: centro_costo
+    question: >
+      ¿El comprobante menciona algún Centro de Costo? Si no figura,
+      respondé "N/A" (campo editable manualmente, no usado por aprobadores).

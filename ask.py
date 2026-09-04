@@ -6,6 +6,7 @@ Uso:
     python ask.py archivo.md
     python ask.py archivo.pdf --model qwen2.5vl:3b
     python ask.py archivo.md -q "¿De qué trata el documento?"
+    python ask.py archivo.md --fields questions.yaml --output resultado.json
 """
 import argparse
 import json
@@ -13,6 +14,8 @@ import sys
 import urllib.error
 import urllib.request
 from pathlib import Path
+
+import yaml
 
 OLLAMA_URL = "http://localhost:11434/api/chat"
 DEFAULT_MODEL = "qwen2.5vl:3b"
@@ -66,11 +69,34 @@ def ask_ollama(messages: list[dict], model: str) -> str:
     return body["message"]["content"]
 
 
+def load_fields(fields_path: Path) -> list[dict]:
+    with open(fields_path, encoding="utf-8") as f:
+        data = yaml.safe_load(f)
+    return data["fields"]
+
+
+def run_fields_extraction(messages: list[dict], model: str, fields: list[dict]) -> dict:
+    """Pregunta cada campo en orden, usando el historial de la conversación
+    para que el modelo tenga en cuenta las respuestas previas."""
+    results = {}
+    for field in fields:
+        key = field["key"]
+        question = field["question"]
+        messages.append({"role": "user", "content": question})
+        answer = ask_ollama(messages, model).strip()
+        messages.append({"role": "assistant", "content": answer})
+        results[key] = answer
+        print(f"{key}: {answer}")
+    return results
+
+
 def main():
     parser = argparse.ArgumentParser(description="Responde preguntas sobre un archivo usando Ollama")
     parser.add_argument("file", type=Path, help="Ruta del archivo a consultar")
     parser.add_argument("-m", "--model", default=DEFAULT_MODEL, help=f"Modelo de Ollama a usar (default: {DEFAULT_MODEL})")
     parser.add_argument("-q", "--question", help="Pregunta puntual. Si se omite, entra en modo interactivo")
+    parser.add_argument("-f", "--fields", type=Path, help="YAML con campos a extraer en forma progresiva (ej. questions.yaml)")
+    parser.add_argument("-o", "--output", type=Path, help="Archivo JSON donde guardar los resultados de --fields")
     args = parser.parse_args()
 
     if not args.file.exists():
@@ -91,6 +117,14 @@ def main():
         f"--- DOCUMENTO ---\n{document_text}\n--- FIN DEL DOCUMENTO ---"
     )
     messages = [{"role": "system", "content": system_prompt}]
+
+    if args.fields:
+        fields = load_fields(args.fields)
+        results = run_fields_extraction(messages, args.model, fields)
+        if args.output:
+            args.output.write_text(json.dumps(results, ensure_ascii=False, indent=2), encoding="utf-8")
+            print(f"\nGuardado en '{args.output}'")
+        return
 
     if args.question:
         messages.append({"role": "user", "content": args.question})
