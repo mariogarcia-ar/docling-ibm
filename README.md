@@ -10,9 +10,9 @@ enviar información a servicios externos.
 ```mermaid
 flowchart LR
     A[Imagen / PDF] -->|process_recursive.py<br/>Docling OCR| B[Markdown .md]
-    B -->|extract_invoice.py<br/>prompts/extraction_prompt.yaml| D[JSON auditoría anidado]
-    B -->|extract_key_value_invoice.py<br/>prompts/extraction_key_value_prompt.yaml| E2[JSON auditoría plano]
-    B -->|extract_key_value_generic.py<br/>prompts/*_generic_prompt.yaml| F[JSON genérico, cualquier documento]
+    B -->|extract.py -p prompts/extraction_prompt.yaml| D[JSON auditoría anidado]
+    B -->|extract.py -p prompts/extraction_key_value_prompt.yaml| E2[JSON auditoría plano]
+    B -->|extract.py -p prompts/..._generic_prompt.yaml| F[JSON genérico, cualquier documento]
     D -.opcional.-> E[wip/consultar_arca.py<br/>WSCDC/ARCA]
     E2 -.opcional.-> E
 ```
@@ -37,10 +37,7 @@ flowchart LR
 | [process_recursive.py](process_recursive.py) | Convierte recursivamente imágenes/PDFs de `files/` a Markdown usando Docling (OCR), en paralelo con múltiples workers |
 | [run.py](run.py) | Ejemplo mínimo de conversión de un solo archivo con Docling |
 | [ask.py](ask.py) | Hace preguntas sobre un archivo vía Ollama: pregunta puntual, modo interactivo, o extracción progresiva de campos (`--fields`) |
-| [extract_common.py](extract_common.py) | Lógica compartida por los scripts `extract_*.py` "single-shot" (carga el prompt system/user, llama a Ollama, parsea el JSON de respuesta) |
-| [extract_invoice.py](extract_invoice.py) | Extrae y audita un comprobante en una sola llamada, usando `prompts/extraction_prompt.yaml` → JSON anidado (`emisor`, `comprobante`, `financiero`, etc.) |
-| [extract_key_value_invoice.py](extract_key_value_invoice.py) | Igual que `extract_invoice.py` pero con `prompts/extraction_key_value_prompt.yaml` → JSON plano (todas las claves al mismo nivel) |
-| [extract_key_value_generic.py](extract_key_value_generic.py) | Igual mecanismo, pero con `prompts/extraction_key_value_generic_prompt.yaml`: no asume tipo de documento, el modelo decide qué claves extraer |
+| [extract.py](extract.py) | Extracción "single-shot": carga un prompt system/user de `prompts/`, llama a Ollama y parsea el JSON de respuesta. El template (`-p`) define el resultado: JSON anidado de auditoría, JSON plano, o genérico para cualquier documento |
 | [questions.yaml](questions.yaml) | Template de campos de control de gastos, preguntados uno por uno en orden (usado por `ask.py --fields` / `wip/extract_template.py`) |
 | `prompts/` | Prompts system/user (YAML) usados por los scripts `extract_*.py` |
 | `wip/` | Scripts/config en desarrollo o de uso opcional: `extract_template.py` (extracción progresiva campo a campo), `consultar_arca.py` (WSCDC/ARCA), `.env`/`.env.example` |
@@ -75,9 +72,9 @@ python wip/extract_template.py archivo.md -o resultado.json
 ### 3. Auditoría completa en una sola llamada (JSON estructurado)
 
 ```bash
-python extract_invoice.py archivo.md -m qwen2.5vl:3b -o auditoria.json             # JSON anidado
-python extract_key_value_invoice.py archivo.md -o auditoria.json                  # JSON plano
-python extract_key_value_generic.py archivo.md -o resultado.json                  # cualquier tipo de documento
+python extract.py archivo.md -m qwen2.5vl:3b -o auditoria.json                                              # JSON anidado (default: extraction_prompt.yaml)
+python extract.py archivo.md -p prompts/extraction_key_value_prompt.yaml -o auditoria.json                  # JSON plano
+python extract.py archivo.md -p prompts/extraction_key_value_generic_prompt.yaml -o resultado.json          # cualquier tipo de documento
 ```
 
 Devuelve un JSON con validación de calidad/legibilidad, datos del emisor, del
