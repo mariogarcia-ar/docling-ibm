@@ -18,7 +18,7 @@ import yaml
 
 from ask import DEFAULT_MODEL, ask_ollama, load_document_text
 
-DEFAULT_PROMPT = Path(__file__).parent / "extraction_key_value_generic_prompt.yaml"
+DEFAULT_PROMPT = Path(__file__).parent / "prompts/extraction_key_value_generic_prompt.yaml"
 
 
 def load_prompt(prompt_path: Path) -> dict:
