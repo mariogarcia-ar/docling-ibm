@@ -1,8 +1,17 @@
 #!/usr/bin/env python3
 """
-Lógica compartida por los scripts extract_*.py de extracción "single-shot"
-(un solo prompt system/user con placeholder {{documento}}, la respuesta debe
-ser un JSON). Cada script solo define su template default y la descripción.
+Aplica un prompt "single-shot" (system/user con placeholder {{documento}}) a
+un documento y devuelve el JSON de la respuesta del modelo.
+
+Los templates disponibles están en prompts/:
+    prompts/extraction_prompt.yaml                 - auditoría de comprobantes (JSON anidado)
+    prompts/extraction_key_value_prompt.yaml       - auditoría de comprobantes (JSON plano)
+    prompts/extraction_key_value_generic_prompt.yaml - cualquier tipo de documento (JSON plano)
+
+Uso:
+    python extract.py archivo.md
+    python extract.py archivo.md -p prompts/extraction_key_value_prompt.yaml
+    python extract.py archivo.pdf -p prompts/extraction_key_value_generic_prompt.yaml -m qwen2.5vl:3b -o resultado.json
 """
 import argparse
 import json
@@ -13,6 +22,8 @@ from pathlib import Path
 import yaml
 
 from ask import DEFAULT_MODEL, ask_ollama, load_document_text
+
+DEFAULT_PROMPT = Path(__file__).parent / "prompts" / "extraction_prompt.yaml"
 
 
 def load_prompt(prompt_path: Path) -> dict:
@@ -41,10 +52,10 @@ def run_extraction(file_path: Path, prompt_path: Path, model: str) -> dict:
     return extract_json(respuesta)
 
 
-def main(default_prompt: Path, description: str):
-    parser = argparse.ArgumentParser(description=description)
+def main():
+    parser = argparse.ArgumentParser(description="Extrae información de un documento aplicando un prompt system/user")
     parser.add_argument("file", type=Path, help="Ruta del archivo (documento con OCR) a procesar")
-    parser.add_argument("-p", "--prompt", type=Path, default=default_prompt, help=f"YAML con system/user (default: {default_prompt.name})")
+    parser.add_argument("-p", "--prompt", type=Path, default=DEFAULT_PROMPT, help=f"YAML con system/user (default: {DEFAULT_PROMPT.relative_to(Path(__file__).parent)})")
     parser.add_argument("-m", "--model", default=DEFAULT_MODEL, help=f"Modelo de Ollama a usar (default: {DEFAULT_MODEL})")
     parser.add_argument("-o", "--output", type=Path, help="Archivo donde guardar el JSON (default: stdout)")
     args = parser.parse_args()
@@ -57,7 +68,7 @@ def main(default_prompt: Path, description: str):
         sys.exit(1)
 
     print(f"Cargando '{args.file}'...", file=sys.stderr)
-    print(f"Consultando '{args.model}'...", file=sys.stderr)
+    print(f"Consultando '{args.model}' con prompt '{args.prompt}'...", file=sys.stderr)
     try:
         resultado = run_extraction(args.file, args.prompt, args.model)
     except (ValueError, json.JSONDecodeError) as exc:
@@ -70,3 +81,7 @@ def main(default_prompt: Path, description: str):
         print(f"Guardado en '{args.output}'", file=sys.stderr)
     else:
         print(output_json)
+
+
+if __name__ == "__main__":
+    main()

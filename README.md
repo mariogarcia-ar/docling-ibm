@@ -69,16 +69,18 @@ python kill_workers.py   # o ./kill_workers.sh
 ```bash
 python ask.py archivo.md --fields questions.yaml --output resultado.json
 # o el atajo pensado para pipelines:
-python extract_template.py archivo.md -o resultado.json
+python wip/extract_template.py archivo.md -o resultado.json
 ```
 
 ### 3. Auditoría completa en una sola llamada (JSON estructurado)
 
 ```bash
-python extract_invoice.py archivo.md -m qwen2.5vl:3b -o auditoria.json
+python extract_invoice.py archivo.md -m qwen2.5vl:3b -o auditoria.json             # JSON anidado
+python extract_key_value_invoice.py archivo.md -o auditoria.json                  # JSON plano
+python extract_key_value_generic.py archivo.md -o resultado.json                  # cualquier tipo de documento
 ```
 
-Devuelve un JSON con validación de fraude/calidad, datos del emisor, del
+Devuelve un JSON con validación de calidad/legibilidad, datos del emisor, del
 comprobante, desglose financiero (subtotal, impuestos, monto no gravado) y
 datos específicos del rubro (comensales, litros de combustible).
 
@@ -92,12 +94,12 @@ python ask.py archivo.md -q "¿Cuál es el importe total?"    # pregunta puntual
 ### 5. Constatar un comprobante contra ARCA/AFIP (opcional)
 
 ```bash
-cp .env.example .env   # completar AFIP_ACCESS_TOKEN (gratis en https://app.afipsdk.com)
-python consultar_arca.py --json resultado.json --cae 75082223003046
+cp wip/.env.example wip/.env   # completar AFIP_ACCESS_TOKEN (gratis en https://app.afipsdk.com)
+python wip/consultar_arca.py --json resultado.json --cae 75082223003046
 ```
 
 Sin certificado propio, se puede probar en modo desarrollo con el CUIT público
-`20409378472`. Ver [.env.example](.env.example) para más detalle.
+`20409378472`. Ver [wip/.env.example](wip/.env.example) para más detalle.
 
 ## Notas
 
