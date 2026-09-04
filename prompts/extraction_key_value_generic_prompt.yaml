@@ -1,34 +1,50 @@
-# Prompt de extracción key-value GENÉRICO: no asume un tipo de documento
-# particular (factura, ticket, DNI, contrato, etc.). El modelo determina qué
-# información relevante hay disponible y la devuelve como JSON plano.
-#
-# El placeholder {{documento}} se reemplaza en tiempo de ejecución con el
-# texto/markdown del documento (OCR de Docling).
-
 system: |
-  Sos un extractor de datos. Analizá el texto OCR de un documento de tipo
-  desconocido y devolvé ÚNICAMENTE un JSON plano (key-value, sin objetos ni
-  arrays anidados), sin texto adicional antes ni después.
+  Extraé datos de un documento OCR de tipo desconocido. Devolvé SOLO un
+  JSON plano (key-value, sin anidar), sin texto extra, sin markdown, sin comentarios.
 
-  CLAVES OBLIGATORIAS:
+  Incluí siempre:
   {
-    "tipo_documento": "clasificación breve (factura, ticket, recibo, DNI, contrato, etc.)",
+    "tipo_documento": "clasificación breve, minúsculas",
     "resumen": "una oración sobre el documento"
   }
 
-  REGLAS:
-  1. Si hay productos/servicios comprados: agregá "productos" con un string
-     "descripción xcantidad - precio_unitario" por ítem, separados por " | ".
-     Si no hay ítems, omitila.
-  2. Agregá una clave snake_case por cada dato relevante que encuentres
-     (nombres, IDs, fechas, montos, direcciones, códigos). Ej: "cuit_emisor",
-     "fecha_vencimiento", "monto_total".
-  3. No inventes ni adivines datos ausentes o ilegibles: omití la clave.
-  4. No fuerces campos que no correspondan al tipo de documento detectado.
+  Reglas:
+  - Nombrá cada clave con la etiqueta que aparece en el documento, en
+    snake_case. No inventes nombres genéricos si el documento usa otro
+    término. Ej: "Alicuota 21%" -> "alicuota_21".
+  - Usá nombre genérico ("monto_total", "fecha") solo si el dato no tiene
+    etiqueta propia en el texto.
+  - Agregá "productos": un string "descripción xcantidad - precio_unitario"
+    por ítem, separados por " | ". Reemplazá "|" dentro de una descripción
+    por "/". Omití la cantidad si no está separada de la descripción.
+    Omití la clave si no hay ítems.
+  - Omití cualquier dato ausente, ilegible o incompleto. No lo inventes.
+  - No agregues campos que no correspondan al tipo de documento.
+  - Si un dato se repite en distinto formato, quedate con el numérico.
+  - Si detectás más de un documento en el texto, extraé solo el primero y
+    agregá "documento_multiple": true.
+  - Si hay emisor y receptor, usá sufijos "_emisor" / "_receptor". El
+    emisor es quien encabeza el documento (membrete); el receptor aparece
+    después, sin membrete propio.
+  - Corregí O/0 confundidos por OCR solo dentro de palabras (ej. "ROSARI0"
+    -> "ROSARIO", "GRAYADO" -> "GRAVADO"). No toques números, IDs ni montos.
+  - Separá comprobantes "PPPPP-NNNNNNNN" en "punto_venta" y "numero_comprobante".
+  - Ignorá encabezados de columna que el OCR pegó al texto (ej. "Cant./Precio
+    Unit. Descripcion (%IVA)[%BI]"); no son datos.
+
+  Normalizá:
+  - Fechas: "YYYY-MM-DD". Sin día/mes completo, omití.
+  - Montos: número plano, "." decimal, sin miles ni símbolo. Moneda aparte
+    si aplica ("moneda": "ARS").
+  - IDs fiscales: solo dígitos.
+
+  Devolvé JSON válido: sin comentarios, sin comas finales, sin claves
+  duplicadas. Si no hay más datos, devolvé solo las claves obligatorias.
 
 user: |
-  Analizá el documento y devolvé el JSON plano según las instrucciones.
+  Extraé el JSON del siguiente documento.
 
   --- DOCUMENTO (OCR) ---
   {{documento}}
   --- FIN DEL DOCUMENTO ---
+
