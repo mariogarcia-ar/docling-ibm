@@ -1,84 +1,61 @@
 system: |
-  Determiná hasta tres macro categorías contables de un gasto (ticket,
-  factura o comprobante), a partir del centro de costo ya asignado y el
-  detalle del comprobante. Ordenalas por probabilidad y devolvé SOLO JSON
-  válido, sin texto extra, markdown ni comentarios.
+  Clasificá el gasto en hasta tres macro categorías. Ordenalas por
+  probabilidad y devolvé SOLO JSON válido, sin markdown ni texto extra.
+  No repitas códigos ni inventes opciones.
 
-  Vas a recibir cuatro campos:
-  - centro_costo: código ya asignado (ej. "CC0006"). Determina qué macro
-    categorías son elegibles (ver restricción de MC15 abajo).
-  - proveedor: nombre del comercio/proveedor que emitió el comprobante.
-  - descripcion: concepto o detalle del gasto, ya resumido por rubro
-    dominante si el ticket tenía varios ítems.
-  - monto: importe del gasto.
+  Usá estos datos:
+  - centro_costo: código ya asignado.
+  - proveedor: comercio emisor.
+  - descripcion: rubro o detalle dominante del gasto.
+  - monto: importe total.
 
-  ADVERTENCIA DE ORIGEN: a diferencia de los centros de costo, las macro
-  categorías NO tienen criterios de "Clasificar si / Excluir si" definidos
-  por Scania — solo un objetivo y una lista de conceptos que agrupan. Los
-  criterios de esta tabla son una inferencia a partir de esos dos datos y
-  deben tratarse como borrador sujeto a validación, no como regla cerrada.
+  Aplicá esta tabla:
+  | Código | Macro | Señales principales |
+  |--------|-------|---------------------|
+  | MC01 | RRHH | Uniformes, cursos y asistencia médica del personal. |
+  | MC02 | Movilidad y Representación | Viáticos, viajes, combustible, peajes, regalos y agasajos comerciales. |
+  | MC03 | Marketing y Comercial | Publicidad, promoción, cartelería y merchandising. |
+  | MC04 | Infraestructura y Edificios | Edificios, alquileres, servicios edilicios, limpieza y seguridad edilicia. |
+  | MC05 | Tecnología y Comunicaciones | Software, telefonía, internet, computación y licencias. |
+  | MC06 | Administración y Oficina | Papelería, artículos de escritorio e insumos administrativos genéricos. |
+  | MC07 | Operaciones y Logística | Materiales, insumos, herramientas operativas, fletes y envíos. |
+  | MC08 | Activos y Mantenimiento | Vehículos propios, maquinaria y vehículos en stock. |
+  | MC09 | Servicios Profesionales | Honorarios, asesoramiento y gastos legales. |
+  | MC10 | Impuestos y Tasas | Impuestos, tasas y débitos/créditos bancarios. |
+  | MC11 | Servicios Generales | Servicios sin otra categoría específica. Fallback de servicios. |
+  | MC12 | Seguros | Pólizas y coberturas. |
+  | MC13 | Gastos Financieros | Gastos bancarios, intereses, tarjetas y diferencias de cambio. |
+  | MC14 | Pérdidas y Ajustes | Incobrables, faltantes y gastos no-servicio sin encaje. |
+  | MC15 | Agricultura | Semillas y agroquímicos; usala sólo con centro_costo CC0007. |
 
-  Tabla de macro categorías (código, nombre, objetivo, señales típicas
-  a partir de sus conceptos):
-
-  | Código | Macro Categoría            | Objetivo                                    | Señales típicas (conceptos que agrupa)                                                                 |
-  |--------|-----------------------------|----------------------------------------------|----------------------------------------------------------------------------------------------------------|
-  | MC01   | RRHH                        | Gastos destinados al personal.               | Indumentaria/uniformes de empleados, cursos/capacitaciones al personal, asistencia médica al personal.  |
-  | MC02   | Movilidad y Representación  | Viajes y relaciones comerciales.             | Viáticos, pasajes, combustible/peajes de viaje de negocio, cortesías o regalos a clientes, agasajos.    |
-  | MC03   | Marketing y Comercial       | Publicidad y promoción.                      | Publicidad, pauta, cartelería promocional, merchandising de marca.                                       |
-  | MC04   | Infraestructura y Edificios | Operación y mantenimiento edilicio.          | Mantenimiento de edificio/planta, alquileres, luz/agua/gas, limpieza del local, seguridad edilicia.      |
-  | MC05   | Tecnología y Comunicaciones | Sistemas, hardware y software.               | Suscripciones de software, telefonía/correo/internet, servicios de computación/IT, licencias.            |
-  | MC06   | Administración y Oficina    | Funcionamiento administrativo.               | Papelería, artículos de oficina, insumos administrativos genéricos (no edilicios, no IT).                |
-  | MC07   | Operaciones y Logística     | Operación diaria del negocio.                | Materiales/insumos/herramientas de uso operativo, fletes y envíos.                                       |
-  | MC08   | Activos y Mantenimiento     | Conservación de vehículos y maquinaria.      | Gastos de vehículos propios (no repuestos de reventa), mantenimiento de maquinaria, mantenimiento de vehículos en stock. |
-  | MC09   | Servicios Profesionales     | Honorarios y asesoramiento externo.          | Honorarios de profesionales externos, gastos legales/estudios jurídicos.                                 |
-  | MC10   | Impuestos y Tasas           | Tributos.                                    | Impuestos y tasas municipales/provinciales, Impuesto Ley 25.413 (débitos/créditos bancarios).            |
-  | MC11   | Servicios Generales         | Servicios sin categoría específica.          | Cualquier servicio que no encaje en otra macro. Fallback para servicios.                                 |
-  | MC12   | Seguros                     | Pólizas y coberturas.                        | Primas de seguro, pólizas.                                                                                |
-  | MC13   | Gastos Financieros          | Gastos bancarios e intereses.                | Gastos y comisiones bancarias, comisiones de tarjetas, intereses pagados o de financiación, diferencia de cambio. |
-  | MC14   | Pérdidas y Ajustes          | Ajustes extraordinarios.                     | Incobrables, faltantes de caja, gastos que no encajan en ninguna otra macro. Fallback para gastos no-servicio. |
-  | MC15   | Agricultura                 | Gastos exclusivos del negocio agro.          | Semillas, agroquímicos. SOLO válida si centro_costo = "CC0007".                                          |
-
-  Devolvé hasta tres opciones. Poné primero la clasificación principal,
-  no repitas códigos y no inventes alternativas para completar tres:
+  Devolvé este formato. Poné primero la opción principal y devolvé menos
+  opciones si no existen alternativas razonables:
   {
     "macro_categorias": [
       {
         "macro_categoria": "MCNN",
-        "nombre": "nombre de la macro tal como aparece en la tabla",
+        "nombre": "nombre exacto de la tabla",
         "confianza": "alta | media | baja",
         "criterio_inferido": true,
-        "justificacion": "una oración breve citando qué parte del proveedor o la descripción determinó la macro"
+        "justificacion": "una oración breve basada en proveedor o descripcion"
       }
     ]
   }
 
-  Reglas de clasificación:
-  - "MC15 – Agricultura" solo puede asignarse si "centro_costo" es
-    exactamente "CC0007". Si el gasto parece agropecuario (semillas,
-    agroquímicos) pero centro_costo es otro, NO uses MC15: reclasificá
-    según el resto de la tabla (normalmente MC07 Operaciones y Logística
-    si es insumo operativo, o MC11/MC14 si no hay mejor encaje) y bajá
-    "confianza" a "media", indicando la inconsistencia en "justificacion".
-  - Priorizá términos explícitos del comprobante (rubro del proveedor,
-    palabras del ítem) por sobre inferencias genéricas.
-  - Si el gasto es un servicio y ninguna macro específica aplica con
-    claridad, usá "MC11" (Servicios Generales) como fallback.
-  - Si el gasto NO es un servicio y ninguna macro específica aplica con
-    claridad, usá "MC14" (Pérdidas y Ajustes) como fallback.
-  - No fuerces MC06 (Administración y Oficina) como comodín: solo aplica a
-    insumos de oficina genéricos (papelería, artículos de escritorio), no
-    a cualquier gasto administrativo sin mejor encaje — para eso están
-    MC11/MC14.
-  - Si "proveedor" o "descripcion" no dan ninguna señal específica, devolvé
-    sólo el fallback correspondiente con "confianza": "baja".
+  Aplicá estas reglas:
+  - Buscá primero señales explícitas en descripcion y luego en proveedor.
+  - Priorizá la macro cuya señal coincida mejor con el gasto.
+  - Usá monto sólo para desempatar; no lo uses como señal única.
+  - Usá MC15 sólo si centro_costo es exactamente CC0007.
+  - Si parece agro pero el centro no es CC0007, elegí otra macro y explicá la inconsistencia.
+  - Usá MC11 si el gasto es un servicio sin categoría específica.
+  - Usá MC14 si no es un servicio y no encaja en otra macro.
+  - Usá MC06 sólo para oficina y administración genérica; no la uses como comodín.
+  - Bajá la confianza ante señales débiles o contradictorias.
   - Usá sólo los cinco campos definidos para cada opción.
 
-  Devolvé JSON válido: sin comentarios, sin comas finales, sin claves
-  duplicadas.
-
 user: |
-  Determiná la macro categoría del siguiente gasto.
+  Clasificá el siguiente gasto.
 
   centro_costo: {{centro_costo}}
   proveedor: {{proveedor}}
