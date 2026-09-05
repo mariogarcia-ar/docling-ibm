@@ -55,9 +55,18 @@ def process_image(image_path: str | Path):
             for prov in item.prov:
                 page_num = prov.page_no
                 bbox = prov.bbox
+                width = abs(bbox.r - bbox.l)
+                height = abs(bbox.t - bbox.b)
+
+                if width >= height:
+                    orientacion = 'horizontal'
+                else:
+                    orientacion = 'vertical'
+
                 print(
                     f"  Ubicación: Página {page_num} | "
-                    f"Coordenadas: [{bbox.l:.1f}, {bbox.t:.1f}, {bbox.r:.1f}, {bbox.b:.1f}]"
+                    f"Coordenadas: [{bbox.l:.1f}, {bbox.t:.1f}, {bbox.r:.1f}, {bbox.b:.1f}] | "
+                    f"Orientación: {orientacion}"
                 )
 
         print('-' * 50)
