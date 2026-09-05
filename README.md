@@ -95,7 +95,9 @@ Ollama debe estar disponible en `http://localhost:11434`.
 ## Pipeline de clasificación
 
 `classification_pipeline.py` ejecuta los prompts contables en secuencia para
-cualquier Markdown generado por OCR:
+cualquier Markdown generado por OCR. Acepta un archivo individual o un
+directorio; al recibir un directorio recorre todas sus subcarpetas y procesa
+todos los archivos `.md` encontrados:
 
 1. `01`: devuelve hasta tres centros de costo.
 2. `02`: recibe el primer centro de costo y devuelve hasta tres macro categorías.
@@ -115,15 +117,14 @@ python classification_pipeline.py documento.md \
 El comando anterior genera `documento_classification.json` junto al Markdown.
 
 ```bash
+# Todos los Markdown de una carpeta, de forma recursiva; crea sidecars
+python classification_pipeline.py files/2025-08 \
+	--condicion-impositiva 10_5
+
 # Guardar todos los resultados en un único JSON
-python classification_pipeline.py documento.md \
+python classification_pipeline.py files/2025-08 \
 	--condicion-impositiva 21 \
 	-o classification_results.json
-
-# Todos los Markdown de una carpeta, de forma recursiva
-python classification_pipeline.py files/2025-08 \
-	--condicion-impositiva 10_5 \
-	-o clasificaciones_2025_08.json
 
 # Usar otro modelo de Ollama
 python classification_pipeline.py documento.md \
@@ -153,7 +154,8 @@ Formato resumido del resultado:
 ## Pipeline de extracción
 
 `extraction_pipeline.py` aplica dos prompts independientes al mismo Markdown
-OCR:
+OCR. Acepta un archivo individual o un directorio; al recibir un directorio
+recorre todas sus subcarpetas y procesa todos los archivos `.md` encontrados:
 
 1. `10`: extracción genérica key-value.
 2. `11`: extracción específica de comprobantes y facturas.
@@ -164,7 +166,7 @@ No pasa datos de 10 a 11 ni de 11 a 10. Guarda ambas respuestas separadas.
 # Un documento; crea documento_extraction.json junto al Markdown
 python extraction_pipeline.py documento.md
 
-# Todos los Markdown de una carpeta, de forma recursiva
+# Todos los Markdown de una carpeta, de forma recursiva; crea sidecars
 python extraction_pipeline.py files/2025-08
 
 # Usar otro modelo de Ollama
@@ -189,6 +191,48 @@ Formato resumido:
 ]
 ```
 
+## Pipeline completo
+
+`full_pipeline.py` procesa imágenes o PDFs de principio a fin:
+
+1. Ejecuta OCR y genera el Markdown junto a la imagen.
+2. Aplica 10 y 11 de forma independiente sobre ese Markdown.
+3. Aplica 01, 02 y 03 en secuencia sobre el mismo Markdown.
+
+Los resultados de 10/11 no se pasan a 01/02/03. Sin `-o`, genera un JSON
+`_pipeline.json` junto a cada imagen:
+
+```bash
+# Una imagen
+python full_pipeline.py imagen.jpg
+
+# Una carpeta y todas sus subcarpetas
+python full_pipeline.py files/2025-08
+
+# Elegir orientación y condición impositiva
+python full_pipeline.py files/2025-08 \
+	--orientation horizontal \
+	--condicion-impositiva 21
+
+# Guardar todos los resultados en un único JSON
+python full_pipeline.py files/2025-08 \
+	-o resultados_completos.json
+
+# Ignorar checkpoints y reprocesar OCR y todos los pasos
+python full_pipeline.py files/2025-08 --force
+```
+
+Para una imagen `documento.jpg`, el pipeline genera:
+
+```text
+documento.md
+documento_pipeline.json
+```
+
+El JSON contiene `extracciones` con 10/11 y `clasificacion` con 01/02/03.
+Después de cada etapa se actualiza el archivo `_pipeline.json`, por lo que una
+ejecución interrumpida puede continuar sin repetir los pasos ya completados.
+
 ## Estructura principal
 
 ```text
@@ -196,6 +240,7 @@ ocr_documents.py       # CLI para procesamiento OCR recursivo
 document_extraction.py # Extracción y clasificación con Ollama
 classification_pipeline.py # Pipeline secuencial 01 -> 02 -> 03
 extraction_pipeline.py # Extracciones independientes 10 y 11
+full_pipeline.py       # OCR + extracción 10/11 + clasificación 01/02/03
 lib/converter.py       # Configuración de Docling
 lib/orientation.py     # Orientación, boxes y ordenamiento
 lib/processor.py       # Conversión, workers y recorrido recursivo
