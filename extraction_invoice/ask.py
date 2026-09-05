@@ -53,8 +53,11 @@ def load_document_text(file_path: Path) -> str:
     raise ValueError(f"Extensión no soportada: {suffix}")
 
 
-def ask_ollama(messages: list[dict], model: str) -> str:
-    payload = json.dumps({"model": model, "messages": messages, "stream": False}).encode("utf-8")
+def ask_ollama(messages: list[dict], model: str, json_format: bool = False) -> str:
+    request_payload = {"model": model, "messages": messages, "stream": False}
+    if json_format:
+        request_payload["format"] = "json"
+    payload = json.dumps(request_payload).encode("utf-8")
     request = urllib.request.Request(
         OLLAMA_URL, data=payload, headers={"Content-Type": "application/json"}
     )

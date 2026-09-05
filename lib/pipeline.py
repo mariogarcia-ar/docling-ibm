@@ -57,6 +57,6 @@ def execute_prompt(prompt_path: Path, values: dict[str, str], model: str) -> dic
         {"role": "user", "content": user_prompt},
     ]
     try:
-        return extract_json(ask_ollama(messages, model))
+        return extract_json(ask_ollama(messages, model, json_format=True))
     except (ValueError, json.JSONDecodeError) as error:
         raise ValueError(f"{prompt_path.name}: {error}") from error
