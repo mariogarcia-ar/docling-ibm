@@ -92,11 +92,59 @@ python document_extraction.py files/2025-08 -M 01 -o centros_costos.json
 
 Ollama debe estar disponible en `http://localhost:11434`.
 
+## Pipeline de clasificación
+
+`classification_pipeline.py` ejecuta los prompts contables en secuencia para
+cualquier Markdown generado por OCR:
+
+1. `01`: devuelve hasta tres centros de costo.
+2. `02`: recibe el primer centro de costo y devuelve hasta tres macro categorías.
+3. `03`: recibe la primera macro categoría y devuelve concepto y código final.
+
+El resultado conserva las respuestas de cada paso para su evaluación:
+
+```bash
+# Un documento
+python classification_pipeline.py documento.md \
+	--condicion-impositiva 21 \
+	-o classification_results.json
+
+# Todos los Markdown de una carpeta, de forma recursiva
+python classification_pipeline.py files/2025-08 \
+	--condicion-impositiva 10_5 \
+	-o clasificaciones_2025_08.json
+
+# Usar otro modelo de Ollama
+python classification_pipeline.py documento.md \
+	--model qwen2.5vl:3b \
+	-o resultado.json
+```
+
+La condición impositiva acepta `21`, `10_5`, `27`, `2_5` o
+`exento_no_gravado`. Si un paso falla, el JSON conserva los pasos completados
+y registra el error en el documento correspondiente.
+
+Formato resumido del resultado:
+
+```json
+[
+	{
+		"archivo": "files/2025-08/documento.md",
+		"pasos": {
+			"01_centro_costo": {},
+			"02_macro_categoria": {},
+			"03_concepto_codigo_final": {}
+		}
+	}
+]
+```
+
 ## Estructura principal
 
 ```text
 ocr_documents.py       # CLI para procesamiento OCR recursivo
 document_extraction.py # Extracción y clasificación con Ollama
+classification_pipeline.py # Pipeline secuencial 01 -> 02 -> 03
 lib/converter.py       # Configuración de Docling
 lib/orientation.py     # Orientación, boxes y ordenamiento
 lib/processor.py       # Conversión, workers y recorrido recursivo

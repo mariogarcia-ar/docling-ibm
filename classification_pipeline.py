@@ -113,17 +113,46 @@ def classify_document(document_path: Path, model: str, tax_condition: str):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Clasifica Markdown secuencialmente con los prompts 01, 02 y 03."
+        description="""
+Clasifica uno o varios Markdown en tres pasos contables:
+  01  centros de costo
+  02  macro categorías
+  03  concepto y código final
+
+El primer resultado de cada paso se usa como entrada del siguiente.
+El JSON final conserva las respuestas de los tres pasos para evaluación.
+""",
+        epilog="""
+Ejemplos:
+  python classification_pipeline.py documento.md
+  python classification_pipeline.py documento.md --condicion-impositiva 10_5
+  python classification_pipeline.py files/2025-08 -o resultados.json
+  python classification_pipeline.py files/2025-08 -m qwen2.5vl:3b -o resultados.json
+""",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument("source", type=Path, help="Markdown o carpeta raíz a recorrer")
-    parser.add_argument("-m", "--model", default=DEFAULT_MODEL)
+    parser.add_argument(
+        "source",
+        type=Path,
+        help="Ruta de un Markdown o carpeta raíz; las carpetas se recorren recursivamente",
+    )
+    parser.add_argument(
+        "-m",
+        "--model",
+        default=DEFAULT_MODEL,
+        help=f"Modelo de Ollama (por defecto: {DEFAULT_MODEL})",
+    )
     parser.add_argument(
         "--condicion-impositiva",
         default="21",
         help="Condición para el paso 03: 21, 10_5, 27, 2_5 o exento_no_gravado",
     )
     parser.add_argument(
-        "-o", "--output", type=Path, default=Path("classification_results.json")
+        "-o",
+        "--output",
+        type=Path,
+        default=Path("classification_results.json"),
+        help="JSON de salida (por defecto: classification_results.json)",
     )
     args = parser.parse_args()
 
