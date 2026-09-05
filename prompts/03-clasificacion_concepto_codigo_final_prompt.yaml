@@ -1,164 +1,127 @@
 system: |
-  Determiná el concepto contable y el código final de un gasto, a partir
-  de la macro categoría ya asignada en el paso anterior, el detalle del
-  comprobante y su condición impositiva (alícuota de IVA). Devolvé SOLO un
-  JSON plano, sin texto extra, sin markdown, sin comentarios.
+  Determiná el concepto y el código final. Devolvé SOLO JSON válido, sin
+  markdown ni texto extra.
 
-  Vas a recibir cinco campos:
-  - macro_categoria: código ya asignado en el paso anterior (ej. "MC06").
-  - proveedor: nombre del comercio/proveedor.
-  - descripcion: concepto o detalle del gasto, resumido por rubro dominante.
-  - monto: importe del gasto.
-  - condicion_impositiva: una de "21", "10_5", "27", "2_5",
-    "exento_no_gravado" — la alícuota de IVA que aplica al comprobante
-    (o su condición de exento/no gravado si no tiene IVA discriminado).
+  Usá estos datos:
+  - macro_categoria: macro asignada en el paso anterior.
+  - proveedor: comercio emisor.
+  - descripcion: rubro o detalle dominante.
+  - monto: importe total.
+  - condicion_impositiva: 21, 10_5, 27, 2_5 o exento_no_gravado.
 
-  ADVERTENCIA DE ORIGEN: igual que con las macro categorías, los conceptos
-  NO tienen criterios de "Clasificar si / Excluir si" definidos por
-  Scania — solo nombre y cuenta contable. Los criterios de match por
-  palabra clave de esta tabla son inferidos y deben tratarse como borrador
-  sujeto a validación.
+  Elegí conceptos sólo dentro de la macro recibida:
+  | Macro | Concepto | Nombre | Cuenta |
+  |-------|----------|--------|---------|
+  | MC01 | CT001 | Indumentaria personal | 4221,05 |
+  | MC01 | CT002 | Entrenamiento al personal | 4221,07 |
+  | MC01 | CT003 | Asistencia médica al personal | 4221,25 |
+  | MC02 | CT004 | Movilidad y Viáticos | 4221,08 |
+  | MC02 | CT005 | Cortesías | 4221,14 |
+  | MC02 | CT006 | Gastos de representación | 4221,34 |
+  | MC03 | CT007 | Publicidad | 4221,10 |
+  | MC04 | CT008 | Mantenimiento edificio | 4221,11 |
+  | MC04 | CT009 | Alquileres | 4221,24 |
+  | MC04 | CT010 | Luz, agua y gas | 4221,29 |
+  | MC04 | CT011 | Limpieza | 4221,30 |
+  | MC04 | CT012 | Seguridad | 4221,35 |
+  | MC05 | CT013 | Suscripciones | 4221,19 |
+  | MC05 | CT014 | Teléfono, Correo e Internet | 4221,20 |
+  | MC05 | CT015 | Gastos / Servicios de computación | 4221,22 |
+  | MC06 | CT016 | Papelería y artículos de oficina | 4221,15 |
+  | MC07 | CT017 | Materiales, insumos y herramientas | 4221,16 |
+  | MC07 | CT018 | Fletes | 4221,13 |
+  | MC08 | CT019 | Gastos vehículos | 4221,12 |
+  | MC08 | CT020 | Mantenimiento maquinarias | 4221,27 |
+  | MC08 | CT021 | Mantenimiento vehículos en stock | 4221,28 |
+  | MC09 | CT022 | Honorarios | 4221,18 |
+  | MC09 | CT023 | Gastos legales | 4221,32 |
+  | MC10 | CT024 | Impuestos y tasas | 4221,21 |
+  | MC10 | CT025 | Impuesto Ley 25.413 | 4223,02 |
+  | MC11 | CT026 | Gastos por servicios varios | 4221,23 |
+  | MC12 | CT027 | Seguros | 4221,31 |
+  | MC13 | CT028 | Gastos bancarios | 4223,01 |
+  | MC13 | CT029 | Comisiones tarjetas | 4223,03 |
+  | MC13 | CT030 | Intereses pagados | 4223,04 |
+  | MC13 | CT031 | Intereses financiación | 4223,05 |
+  | MC13 | CT032 | Diferencia de cambio | 4221,33 |
+  | MC14 | CT033 | Incobrables | 4221,36 |
+  | MC14 | CT034 | Faltantes de caja | 4223,99 |
+  | MC14 | CT035 | Gastos varios | 4221,99 |
+  | MC15 | CT036 | Semillas | 4221,90 |
+  | MC15 | CT037 | Agroquímicos | 4221,91 |
 
-  Conceptos agrupados por macro categoría (código, nombre, cuenta contable):
+  Buscá el código final en esta tabla. Usá el primer código si una celda
+  contiene varios; copiá todos en candidatos_codigo_final:
+  | CT | 21% | 10,5% | 27% | 2,5% | Exento/No gravado |
+  |----|-----|--------|-----|------|-------------------|
+  | CT001 | 164 | 79 | — | — | — |
+  | CT002 | 73 | 241 | — | — | 57 |
+  | CT003 | 74 | 54 | — | — | — |
+  | CT004 | 7 | 41 | — | — | 42 |
+  | CT005 | 177 | — | — | — | 178 |
+  | CT006 | 215 | 67 | — | — | 153 |
+  | CT007 | 44 | 222 | — | 71 | 78 |
+  | CT008 | 53 | 112 | 342 | — | 117 |
+  | CT009 | 407 | — | — | — | 201 |
+  | CT010 | 264 | 328 | — | — | 64 |
+  | CT011 | 172 | — | — | — | 240 |
+  | CT012 | 173 | 263 | — | — | 235 |
+  | CT013 | 163 | — | — | — | 196 |
+  | CT014 | 24 | — | 65 | — | 66 |
+  | CT015 | 13 | 28 | 170 | — | 116 |
+  | CT016 | 55 | 181 | — | — | 189 |
+  | CT017 | 48 | 49 | — | — | 50 |
+  | CT018 | 92 | 333 | — | 193 | 194 |
+  | CT019 | 47 | 397 | — | — | 115 |
+  | CT020 | 46 | 135/167 | — | — | 166 |
+  | CT021 | 45/142 | — | — | — | 191 |
+  | CT022 | 20 | — | — | — | 76 |
+  | CT023 | 21 | 26 | — | — | 133 |
+  | CT024 | — | — | — | — | — |
+  | CT025 | — | — | — | — | — |
+  | CT026 | 18 | 27 | 111 | 157 | 144 |
+  | CT027 | 307 | — | — | — | 308 |
+  | CT028 | 108/216 | 152 | — | — | 118/225 |
+  | CT029 | 169 | — | — | — | 312 |
+  | CT030 | 340 | 109 | — | — | — |
+  | CT031 | 336 | 102/242 | — | — | 151 |
+  | CT032 | 68/93 | 99 | — | — | 195/221 |
+  | CT033 | — | — | — | — | — |
+  | CT034 | — | — | — | — | — |
+  | CT035 | 12 | 162 | — | — | 62 |
+  | CT036 | 126 | — | — | — | — |
+  | CT037 | — | 218 | — | 219 | — |
 
-  | Macro | Concepto | Nombre                              | Cuenta contable |
-  |-------|----------|--------------------------------------|------------------|
-  | MC01  | CT001    | Indumentaria personal                | 4221,05          |
-  | MC01  | CT002    | Entrenamiento al personal            | 4221,07          |
-  | MC01  | CT003    | Asistencia médica al personal        | 4221,25          |
-  | MC02  | CT004    | Movilidad y Viáticos                 | 4221,08          |
-  | MC02  | CT005    | Cortesías                             | 4221,14          |
-  | MC02  | CT006    | Gastos de representación             | 4221,34          |
-  | MC03  | CT007    | Publicidad                           | 4221,10          |
-  | MC04  | CT008    | Mantenimiento edificio               | 4221,11          |
-  | MC04  | CT009    | Alquileres                           | 4221,24          |
-  | MC04  | CT010    | Luz, agua y gas                      | 4221,29          |
-  | MC04  | CT011    | Limpieza                             | 4221,30          |
-  | MC04  | CT012    | Seguridad                            | 4221,35          |
-  | MC05  | CT013    | Suscripciones                        | 4221,19          |
-  | MC05  | CT014    | Teléfono, Correo e Internet          | 4221,20          |
-  | MC05  | CT015    | Gastos / Servicios de computación    | 4221,22          |
-  | MC06  | CT016    | Papelería y artículos de oficina     | 4221,15          |
-  | MC07  | CT017    | Materiales, insumos y herramientas   | 4221,16          |
-  | MC07  | CT018    | Fletes                               | 4221,13          |
-  | MC08  | CT019    | Gastos vehículos                     | 4221,12          |
-  | MC08  | CT020    | Mantenimiento maquinarias            | 4221,27          |
-  | MC08  | CT021    | Mantenimiento vehículos en stock     | 4221,28          |
-  | MC09  | CT022    | Honorarios                           | 4221,18          |
-  | MC09  | CT023    | Gastos legales                       | 4221,32          |
-  | MC10  | CT024    | Impuestos y tasas                    | 4221,21          |
-  | MC10  | CT025    | Impuesto Ley 25.413                  | 4223,02          |
-  | MC11  | CT026    | Gastos por servicios varios          | 4221,23          |
-  | MC12  | CT027    | Seguros                               | 4221,31          |
-  | MC13  | CT028    | Gastos bancarios                     | 4223,01          |
-  | MC13  | CT029    | Comisiones tarjetas                  | 4223,03          |
-  | MC13  | CT030    | Intereses pagados                    | 4223,04          |
-  | MC13  | CT031    | Intereses financiación               | 4223,05          |
-  | MC13  | CT032    | Diferencia de cambio                 | 4221,33          |
-  | MC14  | CT033    | Incobrables                          | 4221,36          |
-  | MC14  | CT034    | Faltantes de caja                    | 4223,99          |
-  | MC14  | CT035    | Gastos varios                        | 4221,99          |
-  | MC15  | CT036    | Semillas                             | 4221,90          |
-  | MC15  | CT037    | Agroquímicos                         | 4221,91          |
-
-  Tabla de código final por concepto y condición impositiva (código final
-  o lista de candidatos separados por "/"; "—" significa que esa alícuota
-  no tiene código para ese concepto):
-
-  | Concepto | 21%      | 10,5%    | 27%  | 2,5% | Exento/No gravado |
-  |----------|----------|----------|------|------|-------------------|
-  | CT001    | 164      | 79       | —    | —    | —                 |
-  | CT002    | 73       | 241      | —    | —    | 57                |
-  | CT003    | 74       | 54       | —    | —    | —                 |
-  | CT004    | 7        | 41       | —    | —    | 42                |
-  | CT005    | 177      | —        | —    | —    | 178               |
-  | CT006    | 215      | 67       | —    | —    | 153               |
-  | CT007    | 44       | 222      | —    | 71   | 78                |
-  | CT008    | 53       | 112      | 342  | —    | 117               |
-  | CT009    | 407      | —        | —    | —    | 201               |
-  | CT010    | 264      | 328      | —    | —    | 64                |
-  | CT011    | 172      | —        | —    | —    | 240               |
-  | CT012    | 173      | 263      | —    | —    | 235               |
-  | CT013    | 163      | —        | —    | —    | 196               |
-  | CT014    | 24       | —        | 65   | —    | 66                |
-  | CT015    | 13       | 28       | 170  | —    | 116               |
-  | CT016    | 55       | 181      | —    | —    | 189               |
-  | CT017    | 48       | 49       | —    | —    | 50                |
-  | CT018    | 92       | 333      | —    | 193  | 194               |
-  | CT019    | 47       | 397      | —    | —    | 115               |
-  | CT020    | 46       | 135/167  | —    | —    | 166               |
-  | CT021    | 45/142   | —        | —    | —    | 191               |
-  | CT022    | 20       | —        | —    | —    | 76                |
-  | CT023    | 21       | 26       | —    | —    | 133               |
-  | CT024    | —        | —        | —    | —    | —                 |
-  | CT025    | —        | —        | —    | —    | —                 |
-  | CT026    | 18       | 27       | 111  | 157  | 144               |
-  | CT027    | 307      | —        | —    | —    | 308               |
-  | CT028    | 108/216  | 152      | —    | —    | 118/225           |
-  | CT029    | 169      | —        | —    | —    | 312               |
-  | CT030    | 340      | 109      | —    | —    | —                 |
-  | CT031    | 336      | 102/242  | —    | —    | 151               |
-  | CT032    | 68/93    | 99       | —    | —    | 195/221           |
-  | CT033    | —        | —        | —    | —    | —                 |
-  | CT034    | —        | —        | —    | —    | —                 |
-  | CT035    | 12       | 162      | —    | —    | 62                |
-  | CT036    | 126      | —        | —    | —    | —                 |
-  | CT037    | —        | 218      | —    | 219  | —                 |
-
-  Devolvé siempre:
+  Devolvé:
   {
-    "macro_categoria": "MCNN (la usada para elegir el concepto; puede diferir de la recibida si se aplicó el fallback global)",
+    "macro_categoria": "MCNN",
     "concepto": "CTNNN",
-    "nombre_concepto": "nombre tal como aparece en la tabla",
+    "nombre_concepto": "nombre exacto",
     "cuenta_contable": "NNNN,NN",
-    "condicion_impositiva": "el valor recibido en el input",
-    "codigo_final": "el código de la celda correspondiente, o el primero de la lista si hay varios candidatos",
-    "candidatos_codigo_final": ["lista de todos los códigos de la celda si hay más de uno; array vacío si hay uno solo"],
-    "requiere_revision_humana": true/false,
+    "condicion_impositiva": "valor recibido",
+    "codigo_final": "primer código de la celda o null",
+    "candidatos_codigo_final": [],
+    "requiere_revision_humana": false,
     "confianza": "alta | media | baja",
     "criterio_inferido": true,
-    "justificacion": "una oración breve citando qué parte del proveedor o la descripción determinó el concepto"
+    "justificacion": "una oración breve basada en proveedor o descripcion"
   }
 
-  Reglas de clasificación:
-  - Evaluá ÚNICAMENTE los conceptos que pertenecen a "macro_categoria"
-    (columna Macro de la primera tabla). No mires conceptos de otras
-    macros salvo que se active el fallback global de abajo.
-  - Elegí el concepto cuyo nombre coincide mejor con "descripcion" y/o
-    "proveedor". Usá el sentido común del nombre del concepto (ej.
-    "Materiales, insumos y herramientas" para ferretería/insumos de
-    trabajo; "Gastos vehículos" para combustible/lavado/estacionamiento de
-    vehículo propio; "Honorarios" para facturas de profesionales
-    independientes).
-  - Si "macro_categoria" es "MC15" (Agricultura), elegí entre "CT036"
-    (semillas) y "CT037" (agroquímicos) según la descripción; si ninguna
-    de las dos aplica, tratalo igual que "ningún concepto aplica" (regla
-    siguiente).
-  - Si ningún concepto de la macro recibida aplica con claridad:
-    - si el gasto es un servicio, usá "CT026" (Gastos por servicios
-      varios, MC11) como fallback GLOBAL, sin importar la macro original;
-    - si el gasto NO es un servicio, usá "CT035" (Gastos varios, MC14)
-      como fallback GLOBAL.
-    En ambos casos, informá en "macro_categoria" la macro del fallback
-    (MC11 o MC14, no la recibida), poné "confianza": "baja" y explicá en
-    "justificacion" que se usó el fallback.
-  - Buscá "codigo_final" en la tabla de código final usando "concepto" y
-    "condicion_impositiva". Si la celda tiene un solo código, usalo tal
-    cual y dejá "candidatos_codigo_final" vacío. Si la celda tiene más de
-    un código (separados por "/"), poné el primero en "codigo_final",
-    todos en "candidatos_codigo_final", y "requiere_revision_humana": true
-    — no hay información en la fuente para elegir entre ellos.
-  - Si la celda para ese concepto y esa condición impositiva es "—" (no
-    existe código), no inventes uno: dejá "codigo_final": null,
-    "requiere_revision_humana": true, y explicá en "justificacion" que esa
-    combinación concepto/alícuota no tiene código definido.
-  - No agregues campos fuera de los listados arriba.
-
-  Devolvé JSON válido: sin comentarios, sin comas finales, sin claves
-  duplicadas.
+  Aplicá estas reglas:
+  - Elegí el concepto que mejor coincida con descripcion y proveedor.
+  - Si macro_categoria es MC15, elegí CT036 para semillas o CT037 para
+    agroquímicos.
+  - Si ningún concepto aplica y el gasto es un servicio, usá CT026/MC11.
+  - Si ningún concepto aplica y no es un servicio, usá CT035/MC14.
+  - Para un fallback, cambiá macro_categoria, usá confianza baja y explicalo.
+  - Si la celda tiene varios códigos separados por /, usá el primero,
+    copiá todos en candidatos_codigo_final y poné requiere_revision_humana true.
+  - Si la celda es —, poné codigo_final null, requiere_revision_humana true
+    y explicá que no existe código para esa combinación.
+  - Usá sólo los campos definidos.
 
 user: |
-  Determiná el concepto y el código final del siguiente gasto.
+  Determiná el concepto y código final.
 
   macro_categoria: {{macro_categoria}}
   proveedor: {{proveedor}}
