@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Script para eliminar workers huérfanos de process_recursive.py
+# Script para eliminar workers huérfanos de ocr_documents.py
 
-echo "Buscando procesos de process_recursive.py..."
+echo "Buscando procesos de ocr_documents.py..."
 
 # Buscar proceso principal
-MAIN_PIDS=$(ps aux | grep "process_recursive.py" | grep -v grep | awk '{print $2}')
+MAIN_PIDS=$(ps aux | grep "ocr_documents.py" | grep -v grep | awk '{print $2}')
 
 # Buscar workers de multiprocessing
 WORKER_PIDS=$(ps aux | grep "multiprocessing.spawn" | grep -v grep | awk '{print $2}')
@@ -44,7 +44,7 @@ echo ""
 echo "✓ Limpieza completada"
 
 # Verificar que no queden procesos
-REMAINING=$(ps aux | grep -E "process_recursive.py|multiprocessing" | grep -v grep | grep -v "kill_workers.sh")
+REMAINING=$(ps aux | grep -E "ocr_documents.py|multiprocessing" | grep -v grep | grep -v "kill_workers.sh")
 if [ -z "$REMAINING" ]; then
     echo "✓ Todos los procesos fueron eliminados exitosamente"
 else

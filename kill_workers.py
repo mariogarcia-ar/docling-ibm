@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Script para eliminar workers huérfanos de process_recursive.py
+Script para eliminar workers huérfanos de ocr_documents.py
 Uso: python kill_workers.py
 """
 
@@ -19,7 +19,7 @@ def get_process_list():
         return []
 
 def find_pids():
-    """Encuentra los PIDs de procesos relacionados con process_recursive.py"""
+    """Encuentra los PIDs de procesos relacionados con ocr_documents.py"""
     processes = get_process_list()
     
     main_pids = []
@@ -32,7 +32,7 @@ def find_pids():
             continue
         
         # Buscar proceso principal
-        if 'process_recursive.py' in line:
+        if 'ocr_documents.py' in line:
             parts = line.split()
             if len(parts) > 1:
                 main_pids.append(parts[1])
@@ -75,7 +75,7 @@ def kill_processes(pids, label):
     return killed
 
 def main():
-    print("Buscando procesos de process_recursive.py...\n")
+    print("Buscando procesos de ocr_documents.py...\n")
     
     main_pids, worker_pids, tracker_pids = find_pids()
     

@@ -28,7 +28,7 @@ def load_document_text(file_path: Path) -> str:
 
     Si el archivo ya es texto (.md, .txt) se lee directamente.
     Si es un formato convertible (pdf, imagen, etc.) se usa Docling
-    para extraer el markdown, tal como en process_recursive.py.
+    para extraer el markdown, tal como en ocr_documents.py.
     """
     suffix = file_path.suffix.lower()
 
