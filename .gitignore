@@ -2,6 +2,8 @@ files/
 .env
 certs/
 
+*.tar.gz
+
 # Python
 __pycache__/
 *.py[cod]
