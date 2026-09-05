@@ -242,6 +242,7 @@ def export_orientation_text(doc, selected_orientation):
         boxes.append({
             'text': text,
             'left': min(bbox.l, bbox.r),
+            'center_x': (bbox.l + bbox.r) / 2,
             'center_y': (bbox.t + bbox.b) / 2,
         })
 
@@ -249,23 +250,40 @@ def export_orientation_text(doc, selected_orientation):
         return f"No se encontraron textos en orientación {selected_orientation}.\n"
 
     line_tolerance = 25.0
+    is_horizontal = selected_orientation == 'horizontal'
+    line_coordinate = 'center_y' if is_horizontal else 'center_x'
+    line_sort_reverse = is_horizontal
+    item_sort_key = 'left' if is_horizontal else 'center_y'
     lines = []
-    for box in sorted(boxes, key=lambda value: -value['center_y']):
+    for box in sorted(
+        boxes,
+        key=lambda value: value[line_coordinate],
+        reverse=line_sort_reverse,
+    ):
         line = min(
             lines,
-            key=lambda candidate: abs(candidate['center_y'] - box['center_y']),
+            key=lambda candidate: abs(candidate['coordinate'] - box[line_coordinate]),
             default=None,
         )
-        if line is None or abs(line['center_y'] - box['center_y']) > line_tolerance:
-            lines.append({'center_y': box['center_y'], 'boxes': [box]})
+        if line is None or abs(line['coordinate'] - box[line_coordinate]) > line_tolerance:
+            lines.append({'coordinate': box[line_coordinate], 'boxes': [box]})
             continue
 
         line['boxes'].append(box)
-        line['center_y'] = sum(item['center_y'] for item in line['boxes']) / len(line['boxes'])
+        line['coordinate'] = sum(
+            item[line_coordinate] for item in line['boxes']
+        ) / len(line['boxes'])
 
-    lines.sort(key=lambda line: -line['center_y'])
+    lines.sort(key=lambda line: line['coordinate'], reverse=line_sort_reverse)
     return '\n'.join(
-        ' | '.join(box['text'] for box in sorted(line['boxes'], key=lambda box: box['left']))
+        ' | '.join(
+            box['text']
+            for box in sorted(
+                line['boxes'],
+                key=lambda box: box[item_sort_key],
+                reverse=not is_horizontal,
+            )
+        )
         for line in lines
     ) + '\n'
 
