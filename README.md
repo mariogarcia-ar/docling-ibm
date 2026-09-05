@@ -103,8 +103,19 @@ cualquier Markdown generado por OCR:
 
 El resultado conserva las respuestas de cada paso para su evaluación:
 
+Sin `-o`, crea un archivo `_classification.json` junto a cada Markdown.
+Con `-o`, guarda todos los resultados en un único JSON.
+
 ```bash
 # Un documento
+python classification_pipeline.py documento.md \
+	--condicion-impositiva 21
+```
+
+El comando anterior genera `documento_classification.json` junto al Markdown.
+
+```bash
+# Guardar todos los resultados en un único JSON
 python classification_pipeline.py documento.md \
 	--condicion-impositiva 21 \
 	-o classification_results.json
@@ -150,18 +161,18 @@ OCR:
 No pasa datos de 10 a 11 ni de 11 a 10. Guarda ambas respuestas separadas.
 
 ```bash
-# Un documento
-python extraction_pipeline.py documento.md \
-	-o extraction_results.json
+# Un documento; crea documento_extraction.json junto al Markdown
+python extraction_pipeline.py documento.md
 
 # Todos los Markdown de una carpeta, de forma recursiva
-python extraction_pipeline.py files/2025-08 \
-	-o extracciones_2025_08.json
+python extraction_pipeline.py files/2025-08
 
 # Usar otro modelo de Ollama
-python extraction_pipeline.py documento.md \
-	--model qwen2.5vl:3b \
-	-o resultado.json
+python extraction_pipeline.py documento.md --model qwen2.5vl:3b
+
+# Opcional: guardar todos los resultados en un único JSON
+python extraction_pipeline.py files/2025-08 \
+	-o extracciones_2025_08.json
 ```
 
 Formato resumido:

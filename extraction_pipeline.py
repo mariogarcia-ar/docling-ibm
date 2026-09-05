@@ -40,6 +40,11 @@ def extract_document(document_path: Path, model: str) -> dict:
     return result
 
 
+def sidecar_output(document_path: Path) -> Path:
+    """Devuelve la ruta del JSON junto al Markdown procesado."""
+    return document_path.with_name(f"{document_path.stem}_extraction.json")
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="""
@@ -74,8 +79,7 @@ Ejemplos:
         "-o",
         "--output",
         type=Path,
-        default=Path("extraction_results.json"),
-        help="JSON de salida (por defecto: extraction_results.json)",
+        help="JSON agregado; sin esta opción crea un JSON junto a cada Markdown",
     )
     args = parser.parse_args()
 
@@ -94,7 +98,16 @@ Ejemplos:
             })
             print(f"Error en '{document_path}': {error}", file=sys.stderr)
 
-    write_results(args.output, results)
+    if args.output:
+        write_results(args.output, results)
+    else:
+        for result in results:
+            output_path = sidecar_output(Path(result["archivo"]))
+            output_path.write_text(
+                json.dumps(result, ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
+            print(f"Guardado: {output_path}", file=sys.stderr)
 
 
 if __name__ == "__main__":

@@ -40,6 +40,11 @@ def primary_macro_category(step_02: dict) -> str:
     return options[0]["macro_categoria"]
 
 
+def sidecar_output(document_path: Path) -> Path:
+    """Devuelve la ruta del JSON junto al Markdown procesado."""
+    return document_path.with_name(f"{document_path.stem}_classification.json")
+
+
 def classify_document(document_path: Path, model: str, tax_condition: str):
     description = load_document_text(document_path)
     base_values = {
@@ -102,7 +107,8 @@ El JSON final conserva las respuestas de los tres pasos para evaluación.
 Ejemplos:
   python classification_pipeline.py documento.md
   python classification_pipeline.py documento.md --condicion-impositiva 10_5
-  python classification_pipeline.py files/2025-08 -o resultados.json
+    python classification_pipeline.py files/2025-08
+    python classification_pipeline.py files/2025-08 -o resultados.json
   python classification_pipeline.py files/2025-08 -m qwen2.5vl:3b -o resultados.json
 """,
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -127,8 +133,7 @@ Ejemplos:
         "-o",
         "--output",
         type=Path,
-        default=Path("classification_results.json"),
-        help="JSON de salida (por defecto: classification_results.json)",
+        help="JSON agregado; sin esta opción crea un JSON junto a cada Markdown",
     )
     args = parser.parse_args()
 
@@ -150,7 +155,16 @@ Ejemplos:
             print(f"Error en '{document_path}': {error}", file=sys.stderr)
             results.append({"archivo": str(document_path), "pasos": {}, "error": str(error)})
 
-    write_results(args.output, results)
+    if args.output:
+        write_results(args.output, results)
+    else:
+        for result in results:
+            output_path = sidecar_output(Path(result["archivo"]))
+            output_path.write_text(
+                json.dumps(result, ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
+            print(f"Guardado: {output_path}", file=sys.stderr)
 
 
 if __name__ == "__main__":
