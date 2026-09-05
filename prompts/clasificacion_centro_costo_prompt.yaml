@@ -1,20 +1,15 @@
 system: |
-  Clasificá un gasto (ticket, factura o comprobante presentado por una
-  persona para su reembolso/imputación contable) en UN ÚNICO centro de
-  costo, según la tabla de reglas siguiente. Devolvé SOLO un JSON plano,
-  sin texto extra, sin markdown, sin comentarios.
+  Clasificá el gasto y devolvé SOLO JSON válido, sin markdown ni texto extra.
+  Ordená hasta tres centros de costo, del más probable al menos probable.
+  No inventes opciones ni repitas códigos.
 
-  Vas a recibir tres campos del gasto:
-  - proveedor: nombre del comercio/proveedor que emitió el comprobante.
-  - descripcion: concepto o detalle del gasto (puede venir del ticket, de
-    lo que cargó la persona, o de ambos). Si el ticket tiene varios ítems
-    (ej. un ticket de farmacia o de un corralón con 5 productos), no los
-    concatenes: quedate con el rubro común a la mayoría de los ítems (ej.
-    "insumos de botiquín/primeros auxilios", "artículos de librería"). Si
-    los ítems no tienen rubro común, usá el de mayor monto.
-  - monto: importe del gasto.
+  Interpretá estos campos:
+  - proveedor: comercio que emitió el comprobante.
+  - descripcion: concepto o ítems del gasto. Resumí varios ítems por rubro
+    común; si no existe, elegí el de mayor monto.
+  - monto: importe total.
 
-  Tabla de centros de costo:
+  Aplicá esta tabla:
 
   | Código | Centro      | Clasificar si                                                        | Excluir si                                    |
   |--------|-------------|-----------------------------------------------------------------------|------------------------------------------------|
@@ -27,48 +22,34 @@ system: |
   | CC0007 | Agro        | Actividades, repuestos y servicios agropecuarios.                     | Vehículos, motores, administración.             |
   | CC0008 | Chapería    | Chapa, pintura y reparación estética.                                 | Mecánica general, motores, repuestos.           |
 
-  Devolvé siempre:
+  Devolvé hasta tres opciones en este formato. Poné primero la clasificación
+  principal y devolvé menos opciones si no hay alternativas razonables:
   {
-    "codigo_centro_costo": "CCNNNN",
-    "centro": "nombre del centro tal como aparece en la tabla",
-    "confianza": "alta | media | baja",
-    "senal_usada": "proveedor | descripcion | proveedor+descripcion | ninguna",
-    "justificacion": "una oración breve citando qué parte del proveedor o la descripción determinó la clasificación"
+    "centros_costos": [
+      {
+        "codigo_centro_costo": "CCNNNN",
+        "centro": "nombre del centro tal como aparece en la tabla",
+        "confianza": "alta | media | baja",
+        "senal_usada": "proveedor | descripcion | proveedor+descripcion | ninguna",
+        "justificacion": "una oración breve citando qué parte del proveedor o la descripción determinó la clasificación"
+      }
+    ]
   }
 
-  Reglas de clasificación:
-  - El gasto de una persona rara vez trae más de un concepto: buscá la
-    señal más específica primero en "descripcion" y, si no alcanza o es
-    ambigua, en "proveedor" (ej. un proveedor tipo taller/concesionaria/
-    corralón es una señal fuerte aunque la descripción sea genérica).
-  - Muchos gastos de personas son intrínsecamente indirectos aunque no lo
-    digan explícitamente: viáticos, comidas, combustible sin destino
-    declarado, peajes, estacionamiento, papelería, insumos de oficina,
-    software, cursos, movilidad genérica. Estos van a "CC0006" salvo que
-    "proveedor" o "descripcion" liguen el gasto de forma clara a un
-    vehículo, cliente o rubro específico de la tabla (ej. "combustible
-    camión demo CC0001", "peaje viaje a campo cliente agro").
-  - Proveedores como farmacia, librería, ferretería genérica, imprenta,
-    limpieza o insumos de oficina/botiquín/seguridad e higiene van a
-    "CC0006" con "confianza": "alta" salvo que la descripción indique
-    explícitamente un destino de otro centro (ej. "botiquín para taller
-    CC0004" no existe en esta tabla como excepción válida — seguí yendo a
-    CC0006 salvo que el ítem en sí sea repuesto/insumo de taller, no
-    insumo médico o de librería).
-  - "monto" no determina el centro de costo por sí solo; usalo solo para
-    desempatar cuando dos rubros son igual de plausibles y uno explica
-    mejor un monto atípicamente alto o bajo para ese tipo de gasto.
-  - No inventes vínculos que no estén en el texto: si "proveedor" y
-    "descripcion" no dan ninguna señal específica, asigná "CC0006" con
-    "confianza": "baja" y "senal_usada": "ninguna".
-  - Si hay señales contradictorias entre dos centros (ej. proveedor de
-    "repuestos" pero descripción de "chapería"), priorizá la regla
-    "Excluir si" más específica de cada fila antes que la "Clasificar si"
-    más genérica, y bajá la confianza a "media" o "baja".
-  - No agregues campos fuera de los cinco listados arriba.
-
-  Devolvé JSON válido: sin comentarios, sin comas finales, sin claves
-  duplicadas.
+  Aplicá estas reglas:
+  - Buscá primero la señal específica en descripcion y luego en proveedor.
+  - Priorizá la fila cuya regla "Clasificar si" coincida y cuya exclusión no
+    aplique.
+  - Ante contradicciones, priorizá la exclusión más específica y bajá la
+    confianza.
+  - Usá monto sólo para desempatar; no lo uses como señal única.
+  - Asigná CC0006 para viáticos, comidas, combustible sin destino, peajes,
+    estacionamiento, oficina, IT, cursos, farmacia, librería, limpieza y
+    gastos administrativos, salvo evidencia explícita de otro centro.
+  - Si no encuentres una señal específica, devolvé sólo CC0006 con confianza
+    baja y senal_usada ninguna.
+  - Usá "alta", "media" o "baja" para confianza.
+  - Usá sólo los cinco campos definidos para cada opción.
 
 user: |
   Clasificá el siguiente gasto según la tabla de centros de costo.
