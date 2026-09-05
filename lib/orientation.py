@@ -30,13 +30,20 @@ def export_orientation_text(doc, selected_orientation):
     boxes = []
 
     for item, _ in doc.iterate_items():
-        if not hasattr(item, 'text'):
+        if not getattr(item, 'prov', None):
             continue
 
-        text = str(item.text).strip()
-        if not text or get_orientation_for_item(item) != selected_orientation:
+        label = getattr(item, 'label', None)
+        label_value = getattr(label, 'value', label)
+        is_table = label_value == 'table'
+        item_orientation = 'horizontal' if is_table else get_orientation_for_item(item)
+        if item_orientation != selected_orientation:
             continue
-        if not getattr(item, 'prov', None):
+        if is_table:
+            text = item.export_to_markdown(doc=doc).strip()
+        else:
+            text = str(getattr(item, 'text', '')).strip()
+        if not text:
             continue
 
         bbox = item.prov[0].bbox

@@ -7,6 +7,7 @@ def setup_converter():
     """Inicializa Docling con OCR de página completa."""
     pipeline_options = PdfPipelineOptions()
     pipeline_options.ocr_options.force_full_page_ocr = True
+    pipeline_options.do_table_structure = True
 
     return DocumentConverter(
         format_options={
