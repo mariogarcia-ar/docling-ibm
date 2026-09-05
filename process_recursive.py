@@ -254,15 +254,31 @@ def process_directory_recursive(directory_path, output_dir=None, extensions=None
 if __name__ == "__main__":
     # Configurar argumentos de línea de comandos
     parser = argparse.ArgumentParser(
-        description='Procesa recursivamente archivos de imágenes y PDFs usando Docling OCR',
+        description='''
+Procesa recursivamente imágenes y PDFs con Docling y guarda el texto extraído en archivos .md.
+
+La herramienta puede filtrar el texto por orientación:
+- auto: usa la orientación dominante del documento
+- horizontal: guarda sólo texto horizontal
+- vertical: guarda sólo texto vertical
+
+Útil para documentos escaneados, comprobantes o formularios donde se mezclan textos con distinta orientación.
+''',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog='''
 Ejemplos:
-  python process_recursive.py                        # Procesa 'files' (por defecto)
-  python process_recursive.py files/2025-08         # Procesa carpeta específica
-  python process_recursive.py -o output files       # Guarda resultados en carpeta 'output'
-  python process_recursive.py --force files         # Reprocesa todo, incluso archivos ya procesados
-  python process_recursive.py -w 4 files/2025-08   # Procesa con 4 workers en paralelo
+  python process_recursive.py                                        # Procesa la carpeta 'files'
+  python process_recursive.py files/2025-08                          # Procesa una carpeta específica
+  python process_recursive.py -o output files                      # Guarda resultados en 'output'
+  python process_recursive.py --force files                         # Reprocesa archivos aunque ya existan .md
+  python process_recursive.py -w 4 files/2025-08                   # Procesa con 4 workers en paralelo
+  python process_recursive.py --orientation horizontal files        # Guarda solo texto horizontal
+  python process_recursive.py --orientation vertical files          # Guarda solo texto vertical
+  python process_recursive.py --orientation auto files              # Usa la orientación predominante
+
+Ejemplo real con esta carpeta:
+  python process_recursive.py --orientation vertical files/2025-08/2E1F7D6C
+  python process_recursive.py --orientation horizontal files/2025-08/2E1F7D6C
         '''
     )
     
