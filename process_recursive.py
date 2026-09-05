@@ -1,5 +1,6 @@
 import os
 import argparse
+import re
 from pathlib import Path
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from docling.document_converter import DocumentConverter, ImageFormatOption
@@ -41,8 +42,8 @@ def get_dominant_orientation(doc):
 
 
 def export_orientation_text(doc, selected_orientation):
-    """Exporta sólo los textos con la orientación elegida."""
-    selected_lines = []
+    """Exporta los textos elegidos en filas de dos columnas según su posición."""
+    selected_items = []
 
     for item, _ in doc.iterate_items():
         if not hasattr(item, 'text'):
@@ -53,13 +54,104 @@ def export_orientation_text(doc, selected_orientation):
             continue
 
         item_orientation = get_orientation_for_item(item)
-        if item_orientation == selected_orientation:
-            selected_lines.append(text)
+        if item_orientation != selected_orientation or not getattr(item, 'prov', None):
+            continue
 
-    if not selected_lines:
+        bbox = item.prov[0].bbox
+        selected_items.append({
+            'text': text,
+            'left': min(bbox.l, bbox.r),
+            'right': max(bbox.l, bbox.r),
+            'center_y': (bbox.t + bbox.b) / 2,
+        })
+
+    if not selected_items:
         return f"No se encontraron textos en orientación {selected_orientation}.\n"
 
-    return '\n'.join(selected_lines) + '\n'
+    def is_numeric(item):
+        return re.fullmatch(r'-?[0-9][0-9.,]*', item['text']) is not None
+
+    def is_quantity(item):
+        text = item['text'].lower()
+        return ('×' in text or ' x ' in text) and '(' in text
+
+    numeric_items = [
+        item for item in selected_items
+        if is_numeric(item)
+    ]
+
+    # The largest horizontal gap separates the left labels from right values.
+    x_centers = sorted((item['left'] + item['right']) / 2 for item in numeric_items)
+    if len(x_centers) > 1:
+        gaps = [
+            (x_centers[index + 1] - x_centers[index], index)
+            for index in range(len(x_centers) - 1)
+        ]
+        _, split_index = max(gaps)
+        split_x = (x_centers[split_index] + x_centers[split_index + 1]) / 2
+    else:
+        split_x = float('inf')
+
+    right_items = {
+        id(item): item for item in numeric_items
+        if (item['left'] + item['right']) / 2 > split_x
+    }
+    left_items = [item for item in selected_items if id(item) not in right_items]
+    pairs = {}
+    paired_right_ids = set()
+
+    ean_item = next((item for item in left_items if item['text'] == 'EAN'), None)
+    subtotal_item = next((item for item in left_items if item['text'].startswith('SUBTOT')), None)
+    if ean_item and subtotal_item:
+        product_labels = [
+            item for item in left_items
+            if subtotal_item['center_y'] < item['center_y'] < ean_item['center_y']
+            and not is_numeric(item)
+            and not is_quantity(item)
+            and not item['text'].startswith('Cant.')
+        ]
+        product_values = [
+            item for item in numeric_items
+            if subtotal_item['center_y'] < item['center_y'] < ean_item['center_y']
+            and (item['left'] + item['right']) / 2 > split_x
+        ]
+        product_labels.sort(key=lambda item: -item['center_y'])
+        product_values.sort(key=lambda item: -item['center_y'])
+        for label, value in zip(product_labels, product_values):
+            pairs[id(label)] = value['text']
+            paired_right_ids.add(id(value))
+
+    for right_item in right_items.values():
+        if id(right_item) in paired_right_ids:
+            continue
+        candidates = [
+            item for item in left_items
+            if id(item) not in pairs
+            and not is_numeric(item)
+            and not is_quantity(item)
+        ]
+        if not candidates:
+            continue
+
+        left_item = min(
+            candidates,
+            key=lambda item: abs(item['center_y'] - right_item['center_y']),
+        )
+        pairs[id(left_item)] = right_item['text']
+        paired_right_ids.add(id(right_item))
+
+    rows = []
+    for item in sorted(left_items, key=lambda value: -value['center_y']):
+        value = pairs.get(id(item), '')
+        rows.append(f"{item['text']} | {value}".rstrip())
+
+    for item in sorted(
+        (value for key, value in right_items.items() if key not in paired_right_ids),
+        key=lambda value: -value['center_y'],
+    ):
+        rows.append(f" | {item['text']}")
+
+    return '\n'.join(rows) + '\n'
 
 def init_worker():
     """Inicializa el convertidor una sola vez por proceso worker"""
