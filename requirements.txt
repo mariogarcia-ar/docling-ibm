@@ -1,0 +1,4 @@
+docling
+PyYAML
+Pillow
+python-dotenv
