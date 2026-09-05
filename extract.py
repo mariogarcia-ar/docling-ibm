@@ -54,7 +54,10 @@ def extract_json(text: str) -> dict:
     """Extrae el primer bloque JSON de la respuesta del modelo."""
     match = re.search(r"\{.*\}", text, re.DOTALL)
     if not match:
-        raise ValueError(f"El modelo no devolvió un JSON reconocible:\n{text}")
+        raise ValueError(
+            "El modelo no devolvió un JSON completo. Respuesta recibida:\n"
+            f"{text}"
+        )
     return json.loads(match.group(0))
 
 
