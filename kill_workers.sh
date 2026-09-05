@@ -1,11 +1,13 @@
 #!/bin/bash
 
-# Script para eliminar workers huérfanos de ocr_documents.py
+# Script para eliminar procesos de los pipelines OCR y de clasificación
 
-echo "Buscando procesos de ocr_documents.py..."
+echo "Buscando procesos de los pipelines OCR/clasificación..."
 
-# Buscar proceso principal
-MAIN_PIDS=$(ps aux | grep "ocr_documents.py" | grep -v grep | awk '{print $2}')
+PIPELINES="ocr_documents.py|full_pipeline.py|classification_pipeline.py|extraction_pipeline.py"
+
+# Buscar procesos principales de cualquiera de los pipelines
+MAIN_PIDS=$(ps aux | grep -E "$PIPELINES" | grep -v grep | grep -v "kill_workers" | awk '{print $2}')
 
 # Buscar workers de multiprocessing
 WORKER_PIDS=$(ps aux | grep "multiprocessing.spawn" | grep -v grep | awk '{print $2}')
@@ -44,7 +46,7 @@ echo ""
 echo "✓ Limpieza completada"
 
 # Verificar que no queden procesos
-REMAINING=$(ps aux | grep -E "ocr_documents.py|multiprocessing" | grep -v grep | grep -v "kill_workers.sh")
+REMAINING=$(ps aux | grep -E "$PIPELINES|multiprocessing" | grep -v grep | grep -v "kill_workers.sh" | grep -v "kill_workers.py")
 if [ -z "$REMAINING" ]; then
     echo "✓ Todos los procesos fueron eliminados exitosamente"
 else

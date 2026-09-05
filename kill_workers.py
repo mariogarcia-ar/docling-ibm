@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Script para eliminar workers huérfanos de ocr_documents.py
+Script para eliminar procesos de los pipelines OCR y de clasificación.
 Uso: python kill_workers.py
 """
 
@@ -8,6 +8,14 @@ import os
 import sys
 import signal
 import subprocess
+
+PIPELINE_NAMES = (
+    'ocr_documents.py',
+    'full_pipeline.py',
+    'classification_pipeline.py',
+    'extraction_pipeline.py',
+)
+
 
 def get_process_list():
     """Obtiene la lista de procesos activos"""
@@ -19,7 +27,7 @@ def get_process_list():
         return []
 
 def find_pids():
-    """Encuentra los PIDs de procesos relacionados con ocr_documents.py"""
+    """Encuentra pipelines, workers y resource trackers del proyecto."""
     processes = get_process_list()
     
     main_pids = []
@@ -31,11 +39,14 @@ def find_pids():
         if not line or 'grep' in line or 'kill_workers' in line:
             continue
         
-        # Buscar proceso principal
-        if 'ocr_documents.py' in line:
+        # Buscar procesos principales de cualquiera de los pipelines.
+        if any(name in line for name in PIPELINE_NAMES):
             parts = line.split()
             if len(parts) > 1:
-                main_pids.append(parts[1])
+                main_pids.append((
+                    parts[1],
+                    next(name for name in PIPELINE_NAMES if name in line),
+                ))
         
         # Buscar workers
         elif 'multiprocessing.spawn' in line:
@@ -57,11 +68,13 @@ def kill_processes(pids, label):
         return 0
     
     killed = 0
-    for pid in pids:
+    for process in pids:
+        pid = process[0] if isinstance(process, tuple) else process
+        process_name = f" ({process[1]})" if isinstance(process, tuple) else ""
         try:
             pid_int = int(pid)
             os.kill(pid_int, signal.SIGKILL)
-            print(f"  ✓ {label} {pid} eliminado")
+            print(f"  ✓ {label}{process_name} {pid} eliminado")
             killed += 1
         except ProcessLookupError:
             print(f"  ✗ {label} {pid} no existe")
@@ -75,7 +88,7 @@ def kill_processes(pids, label):
     return killed
 
 def main():
-    print("Buscando procesos de ocr_documents.py...\n")
+    print("Buscando procesos de los pipelines OCR/clasificación...\n")
     
     main_pids, worker_pids, tracker_pids = find_pids()
     
@@ -87,7 +100,7 @@ def main():
     
     print("Procesos encontrados:")
     if main_pids:
-        print(f"  Principales: {', '.join(main_pids)}")
+        print(f"  Principales: {', '.join(f'{pid} ({name})' for pid, name in main_pids)}")
     if worker_pids:
         print(f"  Workers: {', '.join(worker_pids)}")
     if tracker_pids:
