@@ -19,7 +19,8 @@ converter = DocumentConverter(
 
 # 4. Convert your document
 # result = converter.convert("id.jpeg")
-result = converter.convert("ticket.jpg")
+img = 'files/2025-08/2D2C9343/2991f57d-c143-4b23-9f87-4dfb1214ef53.jpg'
+result = converter.convert(img)
 
 # 5. Export to structured markdown format
 print(result.document.export_to_markdown())
