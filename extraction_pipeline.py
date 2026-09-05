@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 from extraction_invoice.ask import DEFAULT_MODEL, load_document_text
-from lib.pipeline import execute_prompt, require_markdown_files, write_results
+from lib.pipeline import execute_prompt, require_markdown_files, write_checkpoint, write_results
 
 ROOT = Path(__file__).resolve().parent
 PROMPTS = {
@@ -16,27 +16,36 @@ PROMPTS = {
 }
 
 
-def extract_document(document_path: Path, model: str) -> dict:
+def extract_document(document_path: Path, model: str, checkpoint_path: Path | None = None) -> dict:
     document = load_document_text(document_path)
-    steps = {}
-    errors = {}
+    result = {
+        "archivo": str(document_path),
+        "extracciones": {},
+    }
+    if checkpoint_path and checkpoint_path.exists():
+        result.update(json.loads(checkpoint_path.read_text(encoding="utf-8")))
+    steps = result.setdefault("extracciones", {})
+    errors = result.setdefault("errores", {})
 
     for step_name, prompt_path in PROMPTS.items():
+        if step_name in steps:
+            continue
         try:
             steps[step_name] = execute_prompt(
                 prompt_path,
                 {"documento": document},
                 model,
             )
+            errors.pop(step_name, None)
         except (ValueError, json.JSONDecodeError) as error:
             errors[step_name] = str(error)
-
-    result = {
-        "archivo": str(document_path),
-        "extracciones": steps,
-    }
-    if errors:
-        result["errores"] = errors
+        if checkpoint_path:
+            if not errors:
+                result.pop("errores", None)
+            write_checkpoint(checkpoint_path, result)
+            result.setdefault("errores", errors)
+    if not errors:
+        result.pop("errores", None)
     return result
 
 
@@ -89,7 +98,11 @@ Ejemplos:
     for index, document_path in enumerate(files, start=1):
         print(f"[{index}/{len(files)}] Extrayendo {document_path}", file=sys.stderr)
         try:
-            results.append(extract_document(document_path, args.model))
+            results.append(extract_document(
+                document_path,
+                args.model,
+                sidecar_output(document_path),
+            ))
         except Exception as error:
             results.append({
                 "archivo": str(document_path),
@@ -98,16 +111,12 @@ Ejemplos:
             })
             print(f"Error en '{document_path}': {error}", file=sys.stderr)
 
-    if args.output:
-        write_results(args.output, results)
+        if args.output:
+            write_results(args.output, results)
     else:
         for result in results:
             output_path = sidecar_output(Path(result["archivo"]))
-            output_path.write_text(
-                json.dumps(result, ensure_ascii=False, indent=2),
-                encoding="utf-8",
-            )
-            print(f"Guardado: {output_path}", file=sys.stderr)
+            write_checkpoint(output_path, result)
 
 
 if __name__ == "__main__":

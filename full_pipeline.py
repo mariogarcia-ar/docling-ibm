@@ -277,6 +277,8 @@ Ejemplos:
                 "clasificacion": {},
                 "errores": {"pipeline": str(error)},
             })
+        if args.output:
+            write_results(args.output, results)
 
     if args.output:
         write_results(args.output, results)
@@ -285,11 +287,7 @@ Ejemplos:
             output_path = Path(result["archivo"]).with_name(
                 f"{Path(result['archivo']).stem}_pipeline.json"
             )
-            output_path.write_text(
-                json.dumps(result, ensure_ascii=False, indent=2),
-                encoding="utf-8",
-            )
-            print(f"Guardado: {output_path}", file=sys.stderr)
+            save_checkpoint(output_path, result)
 
 
 if __name__ == "__main__":

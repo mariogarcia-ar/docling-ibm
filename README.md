@@ -106,7 +106,9 @@ todos los archivos `.md` encontrados:
 El resultado conserva las respuestas de cada paso para su evaluación:
 
 Sin `-o`, crea un archivo `_classification.json` junto a cada Markdown.
-Con `-o`, guarda todos los resultados en un único JSON.
+Ese archivo se actualiza después de cada paso `01`, `02` y `03`, y permite
+reanudar una ejecución interrumpida. Con `-o`, guarda todos los resultados en
+un único JSON y lo actualiza después de cada Markdown.
 
 ```bash
 # Un documento
@@ -161,6 +163,8 @@ recorre todas sus subcarpetas y procesa todos los archivos `.md` encontrados:
 2. `11`: extracción específica de comprobantes y facturas.
 
 No pasa datos de 10 a 11 ni de 11 a 10. Guarda ambas respuestas separadas.
+El archivo `_extraction.json` se actualiza después de 10 y después de 11.
+Con `-o`, el JSON agregado se actualiza después de cada Markdown.
 
 ```bash
 # Un documento; crea documento_extraction.json junto al Markdown
@@ -232,6 +236,7 @@ documento_pipeline.json
 El JSON contiene `extracciones` con 10/11 y `clasificacion` con 01/02/03.
 Después de cada etapa se actualiza el archivo `_pipeline.json`, por lo que una
 ejecución interrumpida puede continuar sin repetir los pasos ya completados.
+La opción `--force` ignora el checkpoint y reprocesa OCR y todos los pasos.
 
 ## Estructura principal
 

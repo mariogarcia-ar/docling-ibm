@@ -4,4 +4,7 @@ python full_pipeline.py 'files/2025-08/2D2C9343/2991f57d-c143-4b23-9f87-4dfb1214
 
 
 python full_pipeline.py 'files/2025-08/' 
+python classification_pipeline.py 'files/2025-08/' 
+python extraction_pipeline.py 'files/2025-08/' 
 
+find ./files -type f -name "*.json" -exec rm {} +

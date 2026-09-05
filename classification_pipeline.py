@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 from extraction_invoice.ask import DEFAULT_MODEL, load_document_text
-from lib.pipeline import execute_prompt, require_markdown_files, write_results
+from lib.pipeline import execute_prompt, require_markdown_files, write_checkpoint, write_results
 
 ROOT = Path(__file__).resolve().parent
 PROMPTS_DIR = ROOT / "prompts"
@@ -45,7 +45,12 @@ def sidecar_output(document_path: Path) -> Path:
     return document_path.with_name(f"{document_path.stem}_classification.json")
 
 
-def classify_document(document_path: Path, model: str, tax_condition: str):
+def classify_document(
+    document_path: Path,
+    model: str,
+    tax_condition: str,
+    checkpoint_path: Path | None = None,
+):
     description = load_document_text(document_path)
     base_values = {
         "proveedor": "no informado",
@@ -53,39 +58,56 @@ def classify_document(document_path: Path, model: str, tax_condition: str):
         "monto": "no informado",
     }
     steps = {}
+    if checkpoint_path and checkpoint_path.exists():
+        saved = json.loads(checkpoint_path.read_text(encoding="utf-8"))
+        steps.update(saved.get("pasos", {}))
 
     try:
-        step_01 = execute_prompt(PROMPT_FILES["01"], base_values, model)
+        if "01_centro_costo" in steps:
+            step_01 = steps["01_centro_costo"]
+        else:
+            step_01 = execute_prompt(PROMPT_FILES["01"], base_values, model)
+            steps["01_centro_costo"] = step_01
+            if checkpoint_path:
+                write_checkpoint(checkpoint_path, {"archivo": str(document_path), "pasos": steps})
     except ValueError as error:
         raise ClassificationError(str(error), steps) from error
-    steps["01_centro_costo"] = step_01
     center_cost = primary_center_cost(step_01)
 
     try:
-        step_02 = execute_prompt(
-            PROMPT_FILES["02"],
-            {**base_values, "centro_costo": center_cost},
-            model,
-        )
+        if "02_macro_categoria" in steps:
+            step_02 = steps["02_macro_categoria"]
+        else:
+            step_02 = execute_prompt(
+                PROMPT_FILES["02"],
+                {**base_values, "centro_costo": center_cost},
+                model,
+            )
+            steps["02_macro_categoria"] = step_02
+            if checkpoint_path:
+                write_checkpoint(checkpoint_path, {"archivo": str(document_path), "pasos": steps})
     except ValueError as error:
         raise ClassificationError(str(error), steps) from error
-    steps["02_macro_categoria"] = step_02
     macro_category = primary_macro_category(step_02)
 
     try:
-        step_03 = execute_prompt(
-            PROMPT_FILES["03"],
-            {
-                **base_values,
-                "macro_categoria": macro_category,
-                "condicion_impositiva": tax_condition,
-            },
-            model,
-        )
+        if "03_concepto_codigo_final" in steps:
+            step_03 = steps["03_concepto_codigo_final"]
+        else:
+            step_03 = execute_prompt(
+                PROMPT_FILES["03"],
+                {
+                    **base_values,
+                    "macro_categoria": macro_category,
+                    "condicion_impositiva": tax_condition,
+                },
+                model,
+            )
+            steps["03_concepto_codigo_final"] = step_03
+            if checkpoint_path:
+                write_checkpoint(checkpoint_path, {"archivo": str(document_path), "pasos": steps})
     except ValueError as error:
         raise ClassificationError(str(error), steps) from error
-    steps["03_concepto_codigo_final"] = step_03
-
     return {
         "archivo": str(document_path),
         "pasos": steps,
@@ -143,7 +165,12 @@ Ejemplos:
     for index, document_path in enumerate(files, start=1):
         print(f"[{index}/{len(files)}] Clasificando {document_path}", file=sys.stderr)
         try:
-            results.append(classify_document(document_path, args.model, args.condicion_impositiva))
+            results.append(classify_document(
+                document_path,
+                args.model,
+                args.condicion_impositiva,
+                document_path.with_name(f"{document_path.stem}_classification.json"),
+            ))
         except ClassificationError as error:
             print(f"Error en '{document_path}': {error}", file=sys.stderr)
             results.append({
@@ -160,11 +187,7 @@ Ejemplos:
     else:
         for result in results:
             output_path = sidecar_output(Path(result["archivo"]))
-            output_path.write_text(
-                json.dumps(result, ensure_ascii=False, indent=2),
-                encoding="utf-8",
-            )
-            print(f"Guardado: {output_path}", file=sys.stderr)
+            write_checkpoint(output_path, result)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,7 @@
 import json
 import sys
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 
 from document_extraction import extract_json, load_prompt
 from extraction_invoice.ask import ask_ollama
@@ -25,11 +26,23 @@ def require_markdown_files(source: Path):
 
 
 def write_results(output: Path, results):
-    output.write_text(
-        json.dumps(results, ensure_ascii=False, indent=2),
+    output.parent.mkdir(parents=True, exist_ok=True)
+    with NamedTemporaryFile(
+        mode="w",
         encoding="utf-8",
-    )
+        dir=output.parent,
+        prefix=f".{output.name}.",
+        delete=False,
+    ) as temporary:
+        temporary.write(json.dumps(results, ensure_ascii=False, indent=2))
+        temporary_path = Path(temporary.name)
+    temporary_path.replace(output)
     print(f"Guardado: {output}", file=sys.stderr)
+
+
+def write_checkpoint(output: Path, result: dict):
+    """Guarda un resultado parcial de forma atómica."""
+    write_results(output, result)
 
 
 def execute_prompt(prompt_path: Path, values: dict[str, str], model: str) -> dict:
