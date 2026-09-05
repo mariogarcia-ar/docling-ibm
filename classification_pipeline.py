@@ -3,11 +3,11 @@
 
 import argparse
 import json
-import sys
 from pathlib import Path
 
 from extraction_invoice.ask import DEFAULT_MODEL, ask_ollama, load_document_text
 from document_extraction import extract_json, load_prompt
+from lib.pipeline import require_markdown_files, write_results
 
 ROOT = Path(__file__).resolve().parent
 PROMPTS_DIR = ROOT / "prompts"
@@ -24,12 +24,6 @@ class ClassificationError(Exception):
     def __init__(self, message, steps):
         super().__init__(message)
         self.steps = steps
-
-
-def find_markdown_files(source: Path):
-    if source.is_file():
-        return [source]
-    return sorted(source.rglob("*.md"))
 
 
 def ask_prompt(prompt_path: Path, values: dict[str, str], model: str):
@@ -156,14 +150,7 @@ Ejemplos:
     )
     args = parser.parse_args()
 
-    if not args.source.exists():
-        print(f"Error: no existe '{args.source}'", file=sys.stderr)
-        sys.exit(1)
-
-    files = find_markdown_files(args.source)
-    if not files:
-        print(f"No se encontraron archivos Markdown en '{args.source}'", file=sys.stderr)
-        sys.exit(1)
+    files = require_markdown_files(args.source)
 
     results = []
     for index, document_path in enumerate(files, start=1):
@@ -181,11 +168,7 @@ Ejemplos:
             print(f"Error en '{document_path}': {error}", file=sys.stderr)
             results.append({"archivo": str(document_path), "pasos": {}, "error": str(error)})
 
-    args.output.write_text(
-        json.dumps(results, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
-    print(f"Guardado: {args.output}", file=sys.stderr)
+    write_results(args.output, results)
 
 
 if __name__ == "__main__":
