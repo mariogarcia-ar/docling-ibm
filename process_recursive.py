@@ -41,7 +41,7 @@ def get_dominant_orientation(doc):
     return 'horizontal' if horizontal_count >= vertical_count else 'vertical'
 
 
-def export_orientation_text(doc, selected_orientation):
+def _legacy_export_orientation_text(doc, selected_orientation):
     """Exporta los textos elegidos en filas de dos columnas según su posición."""
     selected_items = []
 
@@ -62,6 +62,7 @@ def export_orientation_text(doc, selected_orientation):
             'text': text,
             'left': min(bbox.l, bbox.r),
             'right': max(bbox.l, bbox.r),
+            'center_x': (bbox.l + bbox.r) / 2,
             'center_y': (bbox.t + bbox.b) / 2,
         })
 
@@ -74,6 +75,9 @@ def export_orientation_text(doc, selected_orientation):
     def is_quantity(item):
         text = item['text'].lower()
         return ('×' in text or ' x ' in text) and '(' in text
+
+    def is_rate(item):
+        return re.fullmatch(r'\([0-9]+\)', item['text']) is not None
 
     numeric_items = [
         item for item in selected_items
@@ -129,6 +133,7 @@ def export_orientation_text(doc, selected_orientation):
             if id(item) not in pairs
             and not is_numeric(item)
             and not is_quantity(item)
+            and not is_rate(item)
         ]
         if not candidates:
             continue
@@ -137,21 +142,132 @@ def export_orientation_text(doc, selected_orientation):
             candidates,
             key=lambda item: abs(item['center_y'] - right_item['center_y']),
         )
+        if abs(left_item['center_y'] - right_item['center_y']) > 40:
+            continue
         pairs[id(left_item)] = right_item['text']
         paired_right_ids.add(id(right_item))
 
+    paired_rate_ids = set()
+    paired_labels = [item for item in left_items if id(item) in pairs]
+    for rate_item in (item for item in left_items if is_rate(item)):
+        if not paired_labels:
+            continue
+
+        label_item = min(
+            paired_labels,
+            key=lambda item: abs(item['center_y'] - rate_item['center_y']),
+        )
+        if abs(label_item['center_y'] - rate_item['center_y']) <= 40:
+            pairs[id(label_item)] = f"{pairs[id(label_item)]} {rate_item['text']}"
+            paired_rate_ids.add(id(rate_item))
+
     rows = []
+    consumed_left_ids = set()
+    consumed_right_ids = set()
+
+    quantity_items = sorted(
+        (item for item in left_items if is_quantity(item)),
+        key=lambda item: -item['center_y'],
+    )
+    anchor_items = sorted(right_items.values(), key=lambda item: -item['center_y'])
+    if quantity_items and len(anchor_items) >= len(quantity_items):
+        left_column_max_x = min(item['center_x'] for item in anchor_items) - 200
+        first_quantity_y = quantity_items[0]['center_y']
+        last_quantity_y = quantity_items[-1]['center_y']
+        product_labels = sorted(
+            (
+                item for item in left_items
+                if last_quantity_y - 70 <= item['center_y'] <= first_quantity_y + 70
+                and item['center_x'] < left_column_max_x
+                and not is_numeric(item)
+                and not is_quantity(item)
+                and not is_rate(item)
+            ),
+            key=lambda item: -item['center_y'],
+        )
+        product_rates = sorted(
+            (
+                item for item in left_items
+                if last_quantity_y - 70 <= item['center_y'] <= first_quantity_y + 70
+                and is_rate(item)
+            ),
+            key=lambda item: -item['center_y'],
+        )
+        product_labels = product_labels[:len(quantity_items)]
+        product_rates = product_rates[:len(quantity_items)]
+        for index, quantity_item in enumerate(quantity_items):
+            fields = [quantity_item, product_labels[index]]
+            if index < len(product_rates):
+                fields.append(product_rates[index])
+            fields.append(anchor_items[index])
+            rows.append(' | '.join(item['text'] for item in sorted(fields, key=lambda item: item['center_x'])))
+            consumed_left_ids.update(id(item) for item in fields if item in left_items)
+            consumed_right_ids.add(id(anchor_items[index]))
+
     for item in sorted(left_items, key=lambda value: -value['center_y']):
+        if id(item) in consumed_left_ids:
+            continue
+        if id(item) in paired_rate_ids:
+            continue
         value = pairs.get(id(item), '')
         rows.append(f"{item['text']} | {value}".rstrip())
 
     for item in sorted(
-        (value for key, value in right_items.items() if key not in paired_right_ids),
+        (
+            value for key, value in right_items.items()
+            if key not in paired_right_ids and id(value) not in consumed_right_ids
+        ),
         key=lambda value: -value['center_y'],
     ):
         rows.append(f" | {item['text']}")
 
     return '\n'.join(rows) + '\n'
+
+
+def export_orientation_text(doc, selected_orientation):
+    """Exporta boxes en líneas alineadas por centro vertical y ordenadas por left."""
+    boxes = []
+
+    for item, _ in doc.iterate_items():
+        if not hasattr(item, 'text'):
+            continue
+
+        text = str(item.text).strip()
+        if not text or get_orientation_for_item(item) != selected_orientation:
+            continue
+        if not getattr(item, 'prov', None):
+            continue
+
+        bbox = item.prov[0].bbox
+        boxes.append({
+            'text': text,
+            'left': min(bbox.l, bbox.r),
+            'center_y': (bbox.t + bbox.b) / 2,
+        })
+
+    if not boxes:
+        return f"No se encontraron textos en orientación {selected_orientation}.\n"
+
+    line_tolerance = 25.0
+    lines = []
+    for box in sorted(boxes, key=lambda value: -value['center_y']):
+        line = min(
+            lines,
+            key=lambda candidate: abs(candidate['center_y'] - box['center_y']),
+            default=None,
+        )
+        if line is None or abs(line['center_y'] - box['center_y']) > line_tolerance:
+            lines.append({'center_y': box['center_y'], 'boxes': [box]})
+            continue
+
+        line['boxes'].append(box)
+        line['center_y'] = sum(item['center_y'] for item in line['boxes']) / len(line['boxes'])
+
+    lines.sort(key=lambda line: -line['center_y'])
+    return '\n'.join(
+        ' | '.join(box['text'] for box in sorted(line['boxes'], key=lambda box: box['left']))
+        for line in lines
+    ) + '\n'
 
 def init_worker():
     """Inicializa el convertidor una sola vez por proceso worker"""
