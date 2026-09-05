@@ -3,11 +3,11 @@
 
 import argparse
 import json
+import sys
 from pathlib import Path
 
-from extraction_invoice.ask import DEFAULT_MODEL, ask_ollama, load_document_text
-from document_extraction import extract_json, load_prompt
-from lib.pipeline import require_markdown_files, write_results
+from extraction_invoice.ask import DEFAULT_MODEL, load_document_text
+from lib.pipeline import execute_prompt, require_markdown_files, write_results
 
 ROOT = Path(__file__).resolve().parent
 PROMPTS_DIR = ROOT / "prompts"
@@ -26,28 +26,6 @@ class ClassificationError(Exception):
         self.steps = steps
 
 
-def ask_prompt(prompt_path: Path, values: dict[str, str], model: str):
-    prompt = load_prompt(prompt_path)
-    user_prompt = prompt["user"]
-    replacements = {
-        "proveedor": "no informado",
-        "descripcion": values["descripcion"],
-        "monto": "no informado",
-        **values,
-    }
-    for key, value in replacements.items():
-        user_prompt = user_prompt.replace(f"{{{{{key}}}}}", value)
-
-    messages = [
-        {"role": "system", "content": prompt["system"]},
-        {"role": "user", "content": user_prompt},
-    ]
-    try:
-        return extract_json(ask_ollama(messages, model))
-    except (ValueError, json.JSONDecodeError) as error:
-        raise ValueError(f"{prompt_path.name}: {error}") from error
-
-
 def primary_center_cost(step_01: dict) -> str:
     options = step_01.get("centros_costos", [])
     if not options:
@@ -64,18 +42,22 @@ def primary_macro_category(step_02: dict) -> str:
 
 def classify_document(document_path: Path, model: str, tax_condition: str):
     description = load_document_text(document_path)
-    base_values = {"descripcion": description}
+    base_values = {
+        "proveedor": "no informado",
+        "descripcion": description,
+        "monto": "no informado",
+    }
     steps = {}
 
     try:
-        step_01 = ask_prompt(PROMPT_FILES["01"], base_values, model)
+        step_01 = execute_prompt(PROMPT_FILES["01"], base_values, model)
     except ValueError as error:
         raise ClassificationError(str(error), steps) from error
     steps["01_centro_costo"] = step_01
     center_cost = primary_center_cost(step_01)
 
     try:
-        step_02 = ask_prompt(
+        step_02 = execute_prompt(
             PROMPT_FILES["02"],
             {**base_values, "centro_costo": center_cost},
             model,
@@ -86,7 +68,7 @@ def classify_document(document_path: Path, model: str, tax_condition: str):
     macro_category = primary_macro_category(step_02)
 
     try:
-        step_03 = ask_prompt(
+        step_03 = execute_prompt(
             PROMPT_FILES["03"],
             {
                 **base_values,

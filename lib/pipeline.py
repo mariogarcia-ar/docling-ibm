@@ -2,6 +2,9 @@ import json
 import sys
 from pathlib import Path
 
+from document_extraction import extract_json, load_prompt
+from extraction_invoice.ask import ask_ollama
+
 
 def find_markdown_files(source: Path):
     if source.is_file():
@@ -27,3 +30,20 @@ def write_results(output: Path, results):
         encoding="utf-8",
     )
     print(f"Guardado: {output}", file=sys.stderr)
+
+
+def execute_prompt(prompt_path: Path, values: dict[str, str], model: str) -> dict:
+    """Construye y ejecuta un prompt YAML con placeholders dinámicos."""
+    prompt = load_prompt(prompt_path)
+    user_prompt = prompt["user"]
+    for key, value in values.items():
+        user_prompt = user_prompt.replace(f"{{{{{key}}}}}", value)
+
+    messages = [
+        {"role": "system", "content": prompt["system"]},
+        {"role": "user", "content": user_prompt},
+    ]
+    try:
+        return extract_json(ask_ollama(messages, model))
+    except (ValueError, json.JSONDecodeError) as error:
+        raise ValueError(f"{prompt_path.name}: {error}") from error

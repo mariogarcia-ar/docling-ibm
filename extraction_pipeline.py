@@ -6,28 +6,14 @@ import json
 import sys
 from pathlib import Path
 
-from document_extraction import extract_json, load_prompt
-from extraction_invoice.ask import DEFAULT_MODEL, ask_ollama, load_document_text
-from lib.pipeline import require_markdown_files, write_results
+from extraction_invoice.ask import DEFAULT_MODEL, load_document_text
+from lib.pipeline import execute_prompt, require_markdown_files, write_results
 
 ROOT = Path(__file__).resolve().parent
 PROMPTS = {
     "10_extraccion_generica": ROOT / "prompts/10-extraction_key_value_generic_prompt.yaml",
     "11_extraccion_factura": ROOT / "prompts/11-extraction_key_value_invoice_prompt.yaml",
 }
-
-
-def run_prompt(prompt_path: Path, document: str, model: str) -> dict:
-    prompt = load_prompt(prompt_path)
-    user_prompt = prompt["user"].replace("{{documento}}", document)
-    messages = [
-        {"role": "system", "content": prompt["system"]},
-        {"role": "user", "content": user_prompt},
-    ]
-    try:
-        return extract_json(ask_ollama(messages, model))
-    except (ValueError, json.JSONDecodeError) as error:
-        raise ValueError(f"{prompt_path.name}: {error}") from error
 
 
 def extract_document(document_path: Path, model: str) -> dict:
@@ -37,7 +23,11 @@ def extract_document(document_path: Path, model: str) -> dict:
 
     for step_name, prompt_path in PROMPTS.items():
         try:
-            steps[step_name] = run_prompt(prompt_path, document, model)
+            steps[step_name] = execute_prompt(
+                prompt_path,
+                {"documento": document},
+                model,
+            )
         except (ValueError, json.JSONDecodeError) as error:
             errors[step_name] = str(error)
 
