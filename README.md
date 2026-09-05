@@ -1,108 +1,93 @@
-# ibm-docling
+# IBM Docling
 
-Pipeline local para digitalizar comprobantes de gastos (facturas, tickets, boletos)
-con [Docling](https://github.com/DS4SD/docling) (OCR → Markdown) y extraer/auditar
-sus datos con modelos LLM locales corriendo en [Ollama](https://ollama.com/), sin
-enviar información a servicios externos.
-
-## Flujo general
-
-```mermaid
-flowchart LR
-    A[Imagen / PDF] -->|process_recursive.py<br/>Docling OCR| B[Markdown .md]
-    B -->|extract.py -M aud| D[JSON auditoría anidado]
-    B -->|extract.py -M kvi| E2[JSON auditoría plano]
-    B -->|extract.py -M kvg| F[JSON genérico, cualquier documento]
-    D -.opcional.-> E[wip/consultar_arca.py<br/>WSCDC/ARCA]
-    E2 -.opcional.-> E
-```
+Procesamiento de imágenes y PDFs con OCR usando Docling. El sistema genera archivos Markdown con el texto detectado, ordenado según la posición de sus boxes.
 
 ## Requisitos
 
-- Python 3.13 (entorno conda `py313_env` en este proyecto — usar el comando
-  `python`, no `python3`, para tener acceso a las dependencias instaladas)
-- [Ollama](https://ollama.com/) corriendo localmente (`http://localhost:11434`)
-  con al menos un modelo descargado, por ejemplo:
-  ```bash
-  ollama pull qwen2.5vl:3b   # modelo multimodal, mejor para documentos/facturas
-  ollama pull smollm2        # modelo chico, más rápido
-  ```
-- Dependencias Python: `docling`, `pyyaml`, `python-dotenv`, `afip.py` (esta
-  última solo si vas a usar `consultar_arca.py`)
+- Python 3.13 o compatible
+- Docling
+- RapidOCR y sus modelos
+- Entorno virtual con las dependencias instaladas
 
-## Estructura del proyecto
+## Procesamiento OCR
 
-| Archivo | Qué hace |
-|---|---|
-| [process_recursive.py](process_recursive.py) | Convierte recursivamente imágenes/PDFs de `files/` a Markdown usando Docling (OCR), en paralelo con múltiples workers |
-| [run.py](run.py) | Ejemplo mínimo de conversión de un solo archivo con Docling |
-| [ask.py](ask.py) | Hace preguntas sobre un archivo vía Ollama: pregunta puntual, modo interactivo, o extracción progresiva de campos (`--fields`) |
-| [extract.py](extract.py) | Extracción "single-shot": carga un prompt system/user de `prompts/`, llama a Ollama y parsea el JSON de respuesta. El template se elige con `-M/--mode` (`aud`=auditoría anidada, `kvi`=auditoría plana, `kvg`=genérico) o con `-p` apuntando a un YAML custom |
-| [questions.yaml](questions.yaml) | Template de campos de control de gastos, preguntados uno por uno en orden (usado por `ask.py --fields` / `wip/extract_template.py`) |
-| `prompts/` | Prompts system/user (YAML) usados por los scripts `extract_*.py` |
-| `wip/` | Scripts/config en desarrollo o de uso opcional: `extract_template.py` (extracción progresiva campo a campo), `consultar_arca.py` (WSCDC/ARCA), `.env`/`.env.example` |
-| [kill_workers.py](kill_workers.py) / [kill_workers.sh](kill_workers.sh) | Mata procesos/workers huérfanos de `process_recursive.py` |
-| `files/` | Comprobantes originales organizados por mes (`AAAA-MM/`) y carpeta hash, junto a su `.md` generado |
-
-## Uso
-
-### 1. Convertir archivos a Markdown (OCR)
+El script principal es `ocr_documents.py`:
 
 ```bash
-python process_recursive.py                  # procesa todo 'files/'
-python process_recursive.py files/2026-06    # procesa solo un mes
-python process_recursive.py -w 4 files        # 4 workers en paralelo
-python process_recursive.py --force files     # reprocesa aunque ya exista el .md
+python ocr_documents.py files
 ```
 
-Si un proceso queda colgado, limpiá los workers huérfanos con:
+Por defecto, procesa recursivamente las imágenes y PDFs dentro de `files` y guarda un `.md` junto a cada archivo original.
+
+### Opciones
 
 ```bash
-python kill_workers.py   # o ./kill_workers.sh
+# Procesar una carpeta específica
+python ocr_documents.py files/2025-08
+
+# Sobrescribir Markdown existentes
+python ocr_documents.py files --force
+
+# Procesar en paralelo
+python ocr_documents.py files --workers 4
+
+# Extraer sólo texto horizontal
+python ocr_documents.py files --orientation horizontal
+
+# Extraer sólo texto vertical
+python ocr_documents.py files --orientation vertical
+
+# Detectar automáticamente la orientación predominante
+python ocr_documents.py files --orientation auto
+
+# Guardar los resultados en otra carpeta
+python ocr_documents.py files --output output
 ```
 
-### 2. Extraer campos de control (uno por uno, con contexto progresivo)
+Sin `--force`, los archivos Markdown existentes se omiten.
+
+## Ordenamiento de boxes
+
+Para cada elemento detectado:
+
+1. Se obtiene su texto y `bbox`.
+2. En orientación horizontal, los boxes se agrupan por `center_y`.
+3. En orientación vertical, se agrupan por `center_x`.
+4. Los elementos de cada línea o columna se ordenan por su posición.
+5. Los campos se separan con `|` en el Markdown.
+
+Las tablas detectadas por Docling se conservan como tablas Markdown.
+
+## Extracción estructurada
+
+El script `extract.py` utiliza Ollama para convertir un Markdown OCR en JSON:
 
 ```bash
-python ask.py archivo.md --fields questions.yaml --output resultado.json
-# o el atajo pensado para pipelines:
-python wip/extract_template.py archivo.md -o resultado.json
+python extract.py files/2025-08/2D2C9343/resultado.md -M kvi
+python extract.py files/2025-08/2D2C9343/resultado.md -M kvg
 ```
 
-### 3. Auditoría completa en una sola llamada (JSON estructurado)
+Modos disponibles:
+
+- `kvi`: extracción orientada a comprobantes y facturas.
+- `kvg`: extracción genérica para cualquier documento.
+
+Se puede indicar otro modelo o guardar la respuesta en un archivo:
 
 ```bash
-python extract.py archivo.md -m qwen2.5vl:3b -o auditoria.json     # -M aud (default): JSON anidado
-python extract.py archivo.md -M kvi -o auditoria.json              # JSON plano
-python extract.py archivo.md -M kvg -o resultado.json              # cualquier tipo de documento
+python extract.py documento.md -M kvi -m qwen2.5vl:3b -o resultado.json
 ```
 
-Devuelve un JSON con validación de calidad/legibilidad, datos del emisor, del
-comprobante, desglose financiero (subtotal, impuestos, monto no gravado) y
-datos específicos del rubro (comensales, litros de combustible).
+Ollama debe estar disponible en `http://localhost:11434`.
 
-### 4. Preguntas libres sobre un archivo
+## Estructura principal
 
-```bash
-python ask.py archivo.md                                   # modo interactivo
-python ask.py archivo.md -q "¿Cuál es el importe total?"    # pregunta puntual
+```text
+ocr_documents.py       # CLI para procesamiento recursivo
+extract.py             # Extracción estructurada con Ollama
+lib/converter.py       # Configuración de Docling
+lib/orientation.py     # Orientación, boxes y ordenamiento
+lib/processor.py       # Conversión, workers y recorrido recursivo
+prompts/               # Templates YAML para extracción
+files/                 # Imágenes, PDFs y Markdown generado
 ```
-
-### 5. Constatar un comprobante contra ARCA/AFIP (opcional)
-
-```bash
-cp wip/.env.example wip/.env   # completar AFIP_ACCESS_TOKEN (gratis en https://app.afipsdk.com)
-python wip/consultar_arca.py --json resultado.json --cae 75082223003046
-```
-
-Sin certificado propio, se puede probar en modo desarrollo con el CUIT público
-`20409378472`. Ver [wip/.env.example](wip/.env.example) para más detalle.
-
-## Notas
-
-- Los archivos `.env`, certificados (`certs/`) y los comprobantes (`files/`) no
-  se versionan (ver [.gitignore](.gitignore)).
-- Todo el procesamiento de OCR y de LLM corre localmente (Docling + Ollama):
-  ningún comprobante se envía a servicios externos, salvo que uses
-  `consultar_arca.py` (que sí se conecta a los web services de ARCA/AFIP) o
-  Afip SDK (que usa un `access_token` de terceros para simplificar la firma).
