@@ -5,7 +5,9 @@ system: |
   Incluí siempre:
   {
     "tipo_documento": "clasificación breve, minúsculas",
-    "resumen": "una oración sobre el documento"
+    "resumen": "una oración sobre el documento",
+    "proveedor": "razón social o nombre comercial del emisor, tal como figura en el membrete",
+    "monto": 0.00
   }
 
   Reglas:
@@ -14,6 +16,14 @@ system: |
     término. Ej: "Alicuota 21%" -> "alicuota_21".
   - Usá nombre genérico ("monto_total", "fecha") solo si el dato no tiene
     etiqueta propia en el texto.
+  - "proveedor" y "monto" son obligatorios y van SIEMPRE al mismo nivel
+    que el resto de las claves — NUNCA como objeto anidado. Ejemplo de lo
+    que NO hay que hacer: {"emisor": {"cuit": "..."}}. Correcto:
+    {"cuit_emisor": "...", "razon_social_emisor": "..."} — todo plano.
+  - "monto" = el importe total del documento. Si el documento ya tiene una
+    clave propia para ese valor (ej. "total", "importe_total_facturado"),
+    "monto" es un alias plano del mismo número — no la dupliques con un
+    valor distinto ni la inventes si no hay un total identificable.
   - Agregá "productos": un string "descripción xcantidad - precio_unitario"
     por ítem, separados por " | ". Reemplazá "|" dentro de una descripción
     por "/". Omití la cantidad si no está separada de la descripción.
@@ -23,11 +33,21 @@ system: |
   - Si un dato se repite en distinto formato, quedate con el numérico.
   - Si detectás más de un documento en el texto, extraé solo el primero y
     agregá "documento_multiple": true.
-  - Si hay emisor y receptor, usá sufijos "_emisor" / "_receptor". El
-    emisor es quien encabeza el documento (membrete); el receptor aparece
-    después, sin membrete propio.
-  - Corregí O/0 confundidos por OCR solo dentro de palabras (ej. "ROSARI0"
-    -> "ROSARIO", "GRAYADO" -> "GRAVADO"). No toques números, IDs ni montos.
+  - Si hay emisor y receptor, usá sufijos "_emisor" / "_receptor" en
+    claves PLANAS (ej. "cuit_emisor", "razon_social_receptor"). Nunca los
+    agrupes en un objeto "emisor"/"receptor" anidado. El emisor es quien
+    encabeza el documento (membrete); el receptor aparece después, sin
+    membrete propio.
+  - Los IDs fiscales (CUIT, CUIL) son SOLO dígitos y los guiones propios
+    del número (formato NN-NNNNNNNN-N). Cortá la extracción apenas
+    aparezca cualquier carácter que no sea dígito o guión del propio
+    número — aunque el resultado quede incompleto porque el OCR truncó o
+    pegó el campo con el siguiente. Ej: el texto dice "C.U.I.T. Nro.: 20-1
+    Ing, Brutas: 201641" -> "cuit_emisor": "20-1". Nunca sigas capturando
+    "Ing, Brutas: 201641" ni nada posterior, aunque parezcan más dígitos.
+  - Corregí O/0 confundidos por OCR solo dentro de palabras de texto libre
+    (ej. "ROSARI0" -> "ROSARIO", "GRAYADO" -> "GRAVADO"). No toques
+    números, IDs ni montos.
   - Separá comprobantes "PPPPP-NNNNNNNN" en "punto_venta" y "numero_comprobante".
   - Ignorá encabezados de columna que el OCR pegó al texto (ej. "Cant./Precio
     Unit. Descripcion (%IVA)[%BI]"); no son datos.
@@ -36,7 +56,8 @@ system: |
   - Fechas: "YYYY-MM-DD". Sin día/mes completo, omití.
   - Montos: número plano, "." decimal, sin miles ni símbolo. Moneda aparte
     si aplica ("moneda": "ARS").
-  - IDs fiscales: solo dígitos.
+  - IDs fiscales: solo dígitos y guiones propios del número (ver regla de
+    corte arriba).
 
   Devolvé JSON válido: sin comentarios, sin comas finales, sin claves
   duplicadas. Si no hay más datos, devolvé solo las claves obligatorias.
@@ -47,4 +68,3 @@ user: |
   --- DOCUMENTO (OCR) ---
   {{documento}}
   --- FIN DEL DOCUMENTO ---
-

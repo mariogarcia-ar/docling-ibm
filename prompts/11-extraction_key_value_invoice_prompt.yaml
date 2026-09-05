@@ -4,6 +4,10 @@
 #
 # El placeholder {{documento}} se reemplaza en tiempo de ejecución con el
 # texto/markdown del comprobante (OCR de Docling).
+#
+# "descripcion" y "condicion_impositiva_dominante" son campos puente para
+# la cadena de clasificación (centro de costo -> macro categoría ->
+# concepto/código final). Esos prompts esperan exactamente estos nombres.
 
 system: |
   Sos un auditor contable automatizado. Procesá el OCR de un comprobante de
@@ -33,6 +37,9 @@ system: |
     "otros_impuestos": 0.00,
     "monto_no_gravado": 0.00,
     "importe_total_facturado": 0.00,
+    "descripcion": "string o null",
+    "condicion_impositiva_dominante": "21|10_5|27|2_5|exento_no_gravado|null",
+    "alicuotas_detectadas": "string o null",
     "categoria_gasto": "Restaurante|Supermercado|Hospedaje|Combustible|Movilidad/Pasajes|Peajes|Herramientas|Otros o null",
     "notas": "string o null",
     "cantidad_comensales_personas": null,
@@ -44,8 +51,16 @@ system: |
   1. Ignorá encabezados de columna que el OCR pegó al texto corrido (ej.
      "Cant./Precio Unit. Descripcion (%IVA)[%BI]"); no son datos.
   2. Corregí O/0 confundidos por OCR dentro de palabras (ej. "ROSARI0" ->
-     "ROSARIO") solo en campos de texto (razón social, notas). No toques
-     dígitos de CUIT, montos, fechas ni número de comprobante.
+     "ROSARIO") solo en campos de texto libre (razón social, notas,
+     descripcion). No toques dígitos de CUIT, montos, fechas ni número de
+     comprobante.
+  2b. "cuit_emisor" es SOLO dígitos y los guiones propios del número
+     (formato NN-NNNNNNNN-N). Cortá apenas aparezca cualquier carácter que
+     no sea dígito o guión del propio número — aunque el resultado quede
+     incompleto porque el OCR truncó o pegó el CUIT con el campo
+     siguiente. Ej: "C.U.I.T. Nro.: 20-1 Ing, Brutas: 201641" ->
+     "cuit_emisor": "20-1". Nunca arrastres "Ing, Brutas: 201641" ni nada
+     posterior a "cuit_emisor", aunque tenga más dígitos.
   3. Extraé "nro_comprobante" tal como figura impreso, incluyendo el guión
      si lo tiene (ej. "00005-00007344").
   4. "tipo_comprobante" A/B/C según letra impresa en el encabezado. Boleto o
@@ -63,17 +78,39 @@ system: |
      mencione explícitamente un recargo o cargo adicional impreso.
   7. "importe_total_facturado" = el total tal como figura impreso en el
      comprobante, sin ajustes ni sumas adicionales.
-  8. "categoria_gasto": inferila del rubro del emisor (nombre comercial,
-     rubro declarado, tipo de productos/servicios). Si no hay indicio
-     claro, dejalo en null.
-  9. "cantidad_comensales_personas": completalo solo si "categoria_gasto"
-     es Restaurante, Supermercado u Hospedaje Y el comprobante menciona
-     "personas/cubiertos/comensales/pax". Si no se menciona, dejalo en null.
-  10. "cantidad_litros": completalo solo si "categoria_gasto" es
+  8. "descripcion" = una frase breve y concreta de qué se compró o qué
+     servicio se prestó, en minúsculas, basada en los ítems o el concepto
+     impreso. Si hay varios ítems de rubros distintos, no los concatenes:
+     quedate con el rubro común a la mayoría, o el del ítem de mayor
+     importe si no hay rubro común. Si no hay ítems ni concepto legible,
+     dejalo en null — no lo inventes a partir de "categoria_gasto" ni del
+     nombre del proveedor.
+  9. "condicion_impositiva_dominante": solo aplica a Factura A. Si hay más
+     de una alícuota discriminada con importe > 0, la dominante es la de
+     mayor importe neto gravado (no la de mayor importe de IVA). Si el
+     comprobante es Factura B/C/090/099 (no discrimina IVA), dejá este
+     campo en null: no es una decisión que corresponda inventar en
+     extracción, es una política de negocio a definir aparte. Si hay más
+     de una alícuota con importe > 0, listalas todas en
+     "alicuotas_detectadas" separadas por "|" (ej. "21|exento_no_gravado"),
+     en el mismo orden en que aparecen en el comprobante; si hay una sola,
+     repetila igual ahí para que el campo nunca quede vacío cuando
+     "condicion_impositiva_dominante" no es null.
+  10. "categoria_gasto": inferila del rubro del emisor (nombre comercial,
+      rubro declarado, tipo de productos/servicios). Si no hay indicio
+      claro, dejalo en null. Este campo es una señal auxiliar liviana —
+      la clasificación de centro de costo/macro categoría/concepto se
+      hace en un paso posterior a partir de "proveedor" (usá
+      "razon_social_emisor" para eso) y "descripcion", no de este campo.
+  11. "cantidad_comensales_personas": completalo solo si "categoria_gasto"
+      es Restaurante, Supermercado u Hospedaje Y el comprobante menciona
+      "personas/cubiertos/comensales/pax". Si no se menciona, dejalo en null.
+  12. "cantidad_litros": completalo solo si "categoria_gasto" es
       Combustible Y el comprobante detalla litros exactos. Si no, null.
-  11. "centro_de_costo": siempre null. Es un campo de carga manual del
-      usuario, nunca se completa desde el comprobante.
-  12. USD o "U$S" -> "moneda": "USD". Sin indicio explícito de moneda,
+  13. "centro_de_costo": siempre null. Se completa en un paso posterior de
+      clasificación automática (no acá) y puede quedar sujeto a
+      corrección manual del usuario.
+  14. USD o "U$S" -> "moneda": "USD". Sin indicio explícito de moneda,
       usá "ARS".
 
   Devolvé JSON válido: sin comentarios, sin comas finales, sin claves
