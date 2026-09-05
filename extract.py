@@ -6,6 +6,9 @@ un documento y devuelve el JSON de la respuesta del modelo.
 Modos disponibles (atajo -M/--mode) y su template en prompts/:
     kvi   -> extraction_key_value_invoice_prompt.yaml - auditoría de comprobantes (JSON plano)
     kvg   -> extraction_key_value_generic_prompt.yaml - cualquier tipo de documento (JSON plano)
+    ccc   -> 01-clasificacion_centro_costo_prompt.yaml - hasta tres centros de costo
+    mcc   -> 02-clasificacion_macro_categoria_prompt.yaml - macro categoría
+    cfc   -> 03-clasificacion_concepto_codigo_final_prompt.yaml - concepto y código final
 
 Uso:
     python extract.py archivo.md
@@ -31,6 +34,12 @@ DEFAULT_MODE = "kvi"
 MODE_PROMPTS = {
     "kvi": "extraction_key_value_invoice_prompt.yaml",
     "kvg": "extraction_key_value_generic_prompt.yaml",
+    "ccc": "01-clasificacion_centro_costo_prompt.yaml",
+    "mcc": "02-clasificacion_macro_categoria_prompt.yaml",
+    "cfc": "03-clasificacion_concepto_codigo_final_prompt.yaml",
+    "01": "01-clasificacion_centro_costo_prompt.yaml",
+    "02": "02-clasificacion_macro_categoria_prompt.yaml",
+    "03": "03-clasificacion_concepto_codigo_final_prompt.yaml",
 }
 
 DEFAULT_PROMPT = PROMPTS_DIR / MODE_PROMPTS[DEFAULT_MODE]
@@ -61,16 +70,60 @@ def run_extraction(file_path: Path, prompt_path: Path, model: str) -> dict:
     return extract_json(response)
 
 
+def run_classification(
+    file_path: Path,
+    prompt_path: Path,
+    model: str,
+    values: dict[str, str],
+) -> dict:
+    document_text = load_document_text(file_path)
+    prompt = load_prompt(prompt_path)
+    user_prompt = prompt["user"]
+    replacements = {
+        "proveedor": "no informado",
+        "descripcion": document_text,
+        "monto": "no informado",
+        **values,
+    }
+    for key, value in replacements.items():
+        user_prompt = user_prompt.replace(f"{{{{{key}}}}}", value)
+    messages = [
+        {"role": "system", "content": prompt["system"]},
+        {"role": "user", "content": user_prompt},
+    ]
+    return extract_json(ask_ollama(messages, model))
+
+
+def iter_markdown_files(path: Path):
+    if path.is_file():
+        yield path
+        return
+    yield from sorted(path.rglob("*.md"))
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Extrae información de un documento aplicando un prompt system/user"
     )
-    parser.add_argument("file", type=Path, help="Ruta del archivo a procesar")
+    parser.add_argument("file", type=Path, help="Ruta de un Markdown o carpeta con Markdowns")
     parser.add_argument(
         "-M",
         "--mode",
         choices=sorted(MODE_PROMPTS),
         help=f"Template en prompts/ (default: {DEFAULT_MODE})",
+    )
+    parser.add_argument(
+        "--centro-costo",
+        help="Código de centro de costo ya asignado para los modos 02/mcc y 03/cfc",
+    )
+    parser.add_argument(
+        "--macro-categoria",
+        help="Código de macro categoría ya asignado para el modo 03/cfc",
+    )
+    parser.add_argument(
+        "--condicion-impositiva",
+        default="no informada",
+        help="Condición impositiva para el modo 03/cfc",
     )
     parser.add_argument(
         "-p",
@@ -99,15 +152,43 @@ def main():
         print(f"Error: no existe el prompt '{args.prompt}'", file=sys.stderr)
         sys.exit(1)
 
-    print(f"Cargando '{args.file}'...", file=sys.stderr)
     print(f"Consultando '{args.model}' con prompt '{args.prompt}'...", file=sys.stderr)
-    try:
-        result = run_extraction(args.file, args.prompt, args.model)
-    except (ValueError, json.JSONDecodeError) as exc:
-        print(f"Error al parsear la respuesta del modelo: {exc}", file=sys.stderr)
+    classification_modes = {"ccc", "mcc", "cfc", "01", "02", "03"}
+    is_classification = args.mode in classification_modes
+    files = list(iter_markdown_files(args.file)) if is_classification else [args.file]
+    if not files:
+        print(f"No se encontraron archivos Markdown en '{args.file}'", file=sys.stderr)
         sys.exit(1)
 
-    output_json = json.dumps(result, ensure_ascii=False, indent=2)
+    results = {}
+    for document_file in files:
+        print(f"Cargando '{document_file}'...", file=sys.stderr)
+        try:
+            if is_classification:
+                if args.mode in {"mcc", "02"} and not args.centro_costo:
+                    raise ValueError("el modo 02/mcc requiere --centro-costo")
+                if args.mode in {"cfc", "03"} and not args.macro_categoria:
+                    raise ValueError("el modo 03/cfc requiere --macro-categoria")
+                values = {
+                    "centro_costo": args.centro_costo or "no informado",
+                    "macro_categoria": args.macro_categoria or "no informada",
+                    "condicion_impositiva": args.condicion_impositiva,
+                }
+                result = run_classification(
+                    document_file,
+                    args.prompt,
+                    args.model,
+                    values,
+                )
+            else:
+                result = run_extraction(document_file, args.prompt, args.model)
+        except (ValueError, json.JSONDecodeError) as exc:
+            print(f"Error al parsear '{document_file}': {exc}", file=sys.stderr)
+            sys.exit(1)
+        results[str(document_file)] = result
+
+    output = results if len(results) > 1 else next(iter(results.values()))
+    output_json = json.dumps(output, ensure_ascii=False, indent=2)
     if args.output:
         args.output.write_text(output_json, encoding="utf-8")
         print(f"Guardado en '{args.output}'", file=sys.stderr)
