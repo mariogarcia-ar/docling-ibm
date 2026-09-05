@@ -34,6 +34,19 @@ def setup_converter():
     )
     return converter
 
+def resolve_output_file(file_path, output_dir=None):
+    """Resuelve la ruta del archivo generado.
+    Por defecto, se guarda junto a la imagen original.
+    """
+    file_path = Path(file_path)
+    if output_dir is None:
+        return file_path.with_suffix('.md')
+
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    return output_dir / file_path.name.replace(file_path.suffix, '.md')
+
+
 def process_file_wrapper(args):
     """
     Wrapper para procesar archivos en paralelo
@@ -42,13 +55,7 @@ def process_file_wrapper(args):
     file_path, output_dir, skip_existing = args
     
     try:
-        # Crear nombre del archivo de salida
-        if output_dir:
-            relative_path = file_path.relative_to(Path(file_path).parts[0])
-            output_file = Path(output_dir) / relative_path.with_suffix('.md')
-            output_file.parent.mkdir(parents=True, exist_ok=True)
-        else:
-            output_file = file_path.with_suffix('.md')
+        output_file = resolve_output_file(file_path, output_dir)
         
         # Verificar si ya existe el archivo de salida
         if skip_existing and output_file.exists():
@@ -83,15 +90,7 @@ def process_file(file_path, converter, output_dir=None, skip_existing=True):
         True si se procesó exitosamente, False si hubo error, None si se saltó
     """
     try:
-        # Crear nombre del archivo de salida
-        if output_dir:
-            # Mantener estructura de carpetas relativa
-            relative_path = file_path.relative_to(Path(file_path).parts[0])
-            output_file = Path(output_dir) / relative_path.with_suffix('.md')
-            output_file.parent.mkdir(parents=True, exist_ok=True)
-        else:
-            # Guardar en la misma carpeta que el archivo original
-            output_file = file_path.with_suffix('.md')
+        output_file = resolve_output_file(file_path, output_dir)
         
         # Verificar si ya existe el archivo de salida
         if skip_existing and output_file.exists():
