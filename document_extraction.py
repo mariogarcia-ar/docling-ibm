@@ -58,7 +58,10 @@ def extract_json(text: str) -> dict:
             "El modelo no devolvió un JSON completo. Respuesta recibida:\n"
             f"{text}"
         )
-    return json.loads(match.group(0))
+    json_text = match.group(0)
+    # Algunos modelos insertan un token aislado antes de cerrar el último campo.
+    json_text = re.sub(r'"\s*v"\s*(?=\n\s*})', '"', json_text)
+    return json.loads(json_text)
 
 
 def run_extraction(file_path: Path, prompt_path: Path, model: str) -> dict:
