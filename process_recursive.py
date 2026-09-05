@@ -2,13 +2,64 @@ import os
 import argparse
 from pathlib import Path
 from concurrent.futures import ProcessPoolExecutor, as_completed
-from functools import partial
 from docling.document_converter import DocumentConverter, ImageFormatOption
 from docling.datamodel.base_models import InputFormat
 from docling.datamodel.pipeline_options import PdfPipelineOptions
 
 # Variable global para el convertidor en cada proceso worker
 _converter = None
+
+
+def get_orientation_for_item(item):
+    """Devuelve 'horizontal' o 'vertical' según el tamaño del bounding box."""
+    if not getattr(item, 'prov', None):
+        return None
+
+    for prov in item.prov:
+        bbox = prov.bbox
+        width = abs(bbox.r - bbox.l)
+        height = abs(bbox.t - bbox.b)
+        return 'horizontal' if width >= height else 'vertical'
+
+    return None
+
+
+def get_dominant_orientation(doc):
+    """Calcula la orientación predominante del documento."""
+    orientations = []
+    for item, _ in doc.iterate_items():
+        orientation = get_orientation_for_item(item)
+        if orientation:
+            orientations.append(orientation)
+
+    if not orientations:
+        return 'horizontal'
+
+    horizontal_count = sum(1 for orientation in orientations if orientation == 'horizontal')
+    vertical_count = sum(1 for orientation in orientations if orientation == 'vertical')
+    return 'horizontal' if horizontal_count >= vertical_count else 'vertical'
+
+
+def export_orientation_text(doc, selected_orientation):
+    """Exporta sólo los textos con la orientación elegida."""
+    selected_lines = []
+
+    for item, _ in doc.iterate_items():
+        if not hasattr(item, 'text'):
+            continue
+
+        text = str(item.text).strip()
+        if not text:
+            continue
+
+        item_orientation = get_orientation_for_item(item)
+        if item_orientation == selected_orientation:
+            selected_lines.append(text)
+
+    if not selected_lines:
+        return f"No se encontraron textos en orientación {selected_orientation}.\n"
+
+    return '\n'.join(selected_lines) + '\n'
 
 def init_worker():
     """Inicializa el convertidor una sola vez por proceso worker"""
@@ -49,70 +100,75 @@ def resolve_output_file(file_path, output_dir=None):
 
 def process_file_wrapper(args):
     """
-    Wrapper para procesar archivos en paralelo
-    Usa el convertidor ya inicializado del worker (no crea uno nuevo)
+    Wrapper para procesar archivos en paralelo.
+    Usa el convertidor ya inicializado del worker (no crea uno nuevo).
     """
-    file_path, output_dir, skip_existing = args
-    
+    file_path, output_dir, skip_existing, orientation = args
+
     try:
         output_file = resolve_output_file(file_path, output_dir)
-        
-        # Verificar si ya existe el archivo de salida
+
         if skip_existing and output_file.exists():
             return ('skipped', file_path, None)
-        
-        # Usar el convertidor ya inicializado del worker
+
         converter = get_converter()
         result = converter.convert(str(file_path))
-        markdown_content = result.document.export_to_markdown()
-        
-        # Guardar el markdown
+        doc = result.document
+
+        dominant_orientation = get_dominant_orientation(doc)
+        selected_orientation = dominant_orientation if orientation == 'auto' else orientation
+        markdown_content = export_orientation_text(doc, selected_orientation)
+
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write(markdown_content)
-        
+
         return ('success', file_path, output_file)
-        
+
     except Exception as e:
         return ('error', file_path, str(e))
 
 
-def process_file(file_path, converter, output_dir=None, skip_existing=True):
+def process_file(file_path, converter, output_dir=None, skip_existing=True, orientation='auto'):
     """
-    Procesa un archivo individual y guarda el resultado
-    
+    Procesa un archivo individual y guarda el resultado.
+
     Args:
         file_path: Ruta del archivo a procesar
         converter: Instancia de DocumentConverter
         output_dir: Directorio donde guardar los resultados (opcional)
         skip_existing: Si True, salta archivos que ya tienen .md generado
-    
+        orientation: 'auto', 'horizontal' o 'vertical'
+
     Returns:
         True si se procesó exitosamente, False si hubo error, None si se saltó
     """
     try:
         output_file = resolve_output_file(file_path, output_dir)
-        
-        # Verificar si ya existe el archivo de salida
+
         if skip_existing and output_file.exists():
             print(f"⊘ Saltando (ya existe): {file_path}")
             return None
-        
+
         print(f"Procesando: {file_path}")
         result = converter.convert(str(file_path))
-        markdown_content = result.document.export_to_markdown()
-        
-        # Guardar el markdown
+        doc = result.document
+
+        dominant_orientation = get_dominant_orientation(doc)
+        selected_orientation = dominant_orientation if orientation == 'auto' else orientation
+        markdown_content = export_orientation_text(doc, selected_orientation)
+
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write(markdown_content)
-        
-        print(f"✓ Guardado: {output_file}")
+
+        print(f"✓ Guardado: {output_file} | orientación: {selected_orientation}")
         return True
-        
+
     except Exception as e:
         print(f"✗ Error procesando {file_path}: {str(e)}")
         return False
 
-def process_directory_recursive(directory_path, output_dir=None, extensions=None, skip_existing=True, workers=1):
+
+def process_directory_recursive(directory_path, output_dir=None, extensions=None, skip_existing=True, workers=1, orientation='auto'):
     """
     Recorre recursivamente un directorio y procesa todos los archivos compatibles
     
@@ -154,38 +210,35 @@ def process_directory_recursive(directory_path, output_dir=None, extensions=None
     skipped = 0
     
     if workers > 1:
-        # Procesamiento en paralelo con ProcessPoolExecutor
-        # Cada proceso carga los weights una sola vez al inicio
         print(f"Inicializando {workers} workers paralelos...")
-        file_args = [(f, output_dir, skip_existing) for f in all_files]
-        
+        file_args = [(f, output_dir, skip_existing, orientation) for f in all_files]
+
         with ProcessPoolExecutor(max_workers=workers, initializer=init_worker) as executor:
             futures = {executor.submit(process_file_wrapper, arg): arg[0] for arg in file_args}
-            
+
             for future in as_completed(futures):
                 status, file_path, result = future.result()
-                
+
                 if status == 'success':
                     print(f"✓ Guardado: {result}")
                     successful += 1
                 elif status == 'skipped':
                     print(f"⊘ Saltando (ya existe): {file_path}")
                     skipped += 1
-                else:  # error
+                else:
                     print(f"✗ Error procesando {file_path}: {result}")
                     failed += 1
     else:
-        # Procesamiento secuencial (original)
         print("Inicializando convertidor Docling...")
         converter = setup_converter()
-        
+
         for file_path in all_files:
-            result = process_file(file_path, converter, output_dir, skip_existing)
+            result = process_file(file_path, converter, output_dir, skip_existing, orientation)
             if result is True:
                 successful += 1
             elif result is False:
                 failed += 1
-            else:  # None = skipped
+            else:
                 skipped += 1
     
     # Resumen
@@ -239,9 +292,16 @@ Ejemplos:
         default=1,
         help='Número de workers paralelos (por defecto: 1 = secuencial, >1 = paralelo)'
     )
-    
+
+    parser.add_argument(
+        '--orientation',
+        choices=['auto', 'horizontal', 'vertical'],
+        default='auto',
+        help='Orientación de texto a guardar: auto usa la dominante, horizontal o vertical filtran solo ese tipo.'
+    )
+
     args = parser.parse_args()
-    
+
     print(f"Procesando directorio: {args.directory}")
     if args.output_dir:
         print(f"Guardando resultados en: {args.output_dir}")
@@ -249,10 +309,12 @@ Ejemplos:
         print(f"Modo: Forzar reprocesamiento (--force)")
     if args.workers > 1:
         print(f"Workers: {args.workers} (paralelo)")
-    
+    print(f"Orientación seleccionada: {args.orientation}")
+
     process_directory_recursive(
-        args.directory, 
-        output_dir=args.output_dir, 
+        args.directory,
+        output_dir=args.output_dir,
         skip_existing=not args.force,
-        workers=args.workers
+        workers=args.workers,
+        orientation=args.orientation
     )
