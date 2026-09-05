@@ -139,12 +139,52 @@ Formato resumido del resultado:
 ]
 ```
 
+## Pipeline de extracción
+
+`extraction_pipeline.py` aplica dos prompts independientes al mismo Markdown
+OCR:
+
+1. `10`: extracción genérica key-value.
+2. `11`: extracción específica de comprobantes y facturas.
+
+No pasa datos de 10 a 11 ni de 11 a 10. Guarda ambas respuestas separadas.
+
+```bash
+# Un documento
+python extraction_pipeline.py documento.md \
+	-o extraction_results.json
+
+# Todos los Markdown de una carpeta, de forma recursiva
+python extraction_pipeline.py files/2025-08 \
+	-o extracciones_2025_08.json
+
+# Usar otro modelo de Ollama
+python extraction_pipeline.py documento.md \
+	--model qwen2.5vl:3b \
+	-o resultado.json
+```
+
+Formato resumido:
+
+```json
+[
+	{
+		"archivo": "files/2025-08/documento.md",
+		"extracciones": {
+			"10_extraccion_generica": {},
+			"11_extraccion_factura": {}
+		}
+	}
+]
+```
+
 ## Estructura principal
 
 ```text
 ocr_documents.py       # CLI para procesamiento OCR recursivo
 document_extraction.py # Extracción y clasificación con Ollama
 classification_pipeline.py # Pipeline secuencial 01 -> 02 -> 03
+extraction_pipeline.py # Extracciones independientes 10 y 11
 lib/converter.py       # Configuración de Docling
 lib/orientation.py     # Orientación, boxes y ordenamiento
 lib/processor.py       # Conversión, workers y recorrido recursivo
