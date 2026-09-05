@@ -42,33 +42,49 @@ def process_image(image_path: str | Path):
     output_md.write_text(doc.export_to_markdown(), encoding='utf-8')
     print(f"Markdown guardado en: {output_md}")
 
-    print(f"\n--- Áreas semánticas detectadas en '{doc.name}' ---\n")
+    orientaciones = []
+    items_to_show = []
+
     for item, level in doc.iterate_items():
+        if not getattr(item, 'prov', None):
+            continue
+
+        for prov in item.prov:
+            bbox = prov.bbox
+            width = abs(bbox.r - bbox.l)
+            height = abs(bbox.t - bbox.b)
+            orientacion = 'horizontal' if width >= height else 'vertical'
+            orientaciones.append(orientacion)
+
+            items_to_show.append((item, orientacion, prov))
+
+    if not orientaciones:
+        print(f"\n--- No se detectaron bloques con orientación ---\n")
+        return output_md
+
+    contador_horizontal = orientaciones.count('horizontal')
+    contador_vertical = orientaciones.count('vertical')
+    orientacion_dominante = 'horizontal' if contador_horizontal >= contador_vertical else 'vertical'
+
+    print(f"\n--- Áreas semánticas detectadas en '{doc.name}' ---")
+    print(f"Orientación dominante: {orientacion_dominante}")
+    print("(Se muestran solo los bloques con la orientación dominante)\n")
+
+    for item, orientacion, prov in items_to_show:
+        if orientacion != orientacion_dominante:
+            continue
+
         tipo_area = item.label.value if hasattr(item, 'label') else type(item).__name__
         texto = item.text.strip() if hasattr(item, 'text') else ""
         texto_corto = (texto[:80] + '...') if len(texto) > 80 else texto
 
         print(f"[{tipo_area.upper()}]")
         print(f"  Texto: {texto_corto or '(sin texto)'}")
-
-        if getattr(item, 'prov', None):
-            for prov in item.prov:
-                page_num = prov.page_no
-                bbox = prov.bbox
-                width = abs(bbox.r - bbox.l)
-                height = abs(bbox.t - bbox.b)
-
-                if width >= height:
-                    orientacion = 'horizontal'
-                else:
-                    orientacion = 'vertical'
-
-                print(
-                    f"  Ubicación: Página {page_num} | "
-                    f"Coordenadas: [{bbox.l:.1f}, {bbox.t:.1f}, {bbox.r:.1f}, {bbox.b:.1f}] | "
-                    f"Orientación: {orientacion}"
-                )
-
+        print(
+            f"  Ubicación: Página {prov.page_no} | "
+            f"Coordenadas: [{prov.bbox.l:.1f}, {prov.bbox.t:.1f}, {prov.bbox.r:.1f}, {prov.bbox.b:.1f}] | "
+            f"Orientación: {orientacion}"
+        )
         print('-' * 50)
 
     return output_md
