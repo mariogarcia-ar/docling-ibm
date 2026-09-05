@@ -11,12 +11,12 @@ Modos disponibles (atajo -M/--mode) y su template en prompts/:
     cfc   -> 03-clasificacion_concepto_codigo_final_prompt.yaml - concepto y código final
 
 Uso:
-    python extract.py archivo.md
-    python extract.py archivo.md -M kvi
-    python extract.py archivo.pdf -M kvg -m qwen2.5vl:3b -o resultado.json
-    python extract.py archivo.md -p prompts/otro_template.yaml   # template custom, sin usar -M
+    python document_extraction.py archivo.md
+    python document_extraction.py archivo.md -M kvi
+    python document_extraction.py archivo.pdf -M kvg -m qwen2.5vl:3b -o resultado.json
+    python document_extraction.py archivo.md -p prompts/otro_template.yaml   # template custom, sin usar -M
 
-    python extract.py 'files/2025-08/2D2C9343/2991f57d-c143-4b23-9f87-4dfb1214ef53.md'
+    python document_extraction.py 'files/2025-08/2D2C9343/2991f57d-c143-4b23-9f87-4dfb1214ef53.md'
 """
 import argparse
 import json
