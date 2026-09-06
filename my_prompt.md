@@ -27,7 +27,9 @@ curl http://localhost:11434/api/generate -d '{
 }'
 
 files/2026-07/0208340E/167fe1c3-be8a-4864-ad1f-ec045bebd7df.jpg
+files/2026-07/0208340E/167fe1c3-be8a-4864-ad1f-ec045bebd7df.raw.md
 
+python extraction_pipeline.py 'files/2026-07/0208340E/167fe1c3-be8a-4864-ad1f-ec045bebd7df.raw.md' 
 
 
 
