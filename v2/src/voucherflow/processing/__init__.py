@@ -18,4 +18,26 @@ from ..models.docling import ProcessedDocument  # contrato de salida (F1)
 # y función ``detectar`` expuestos por el módulo ``processing``.
 from .type_detector import TipoEntrada, detectar
 
-__all__ = ["ProcessedDocument", "TipoEntrada", "detectar"]
+# Clasificador de imagen + gate de procesabilidad (F1 / T-102, E-DOC-2).
+from .image_classifier import (
+    ClaseImagen,
+    ClasificacionImagen,
+    VeredictoGate,
+    clasificar,
+    leer_caracteristicas,
+    sospechar_manuscrito,
+    verificar_procesabilidad,
+)
+
+__all__ = [
+    "ProcessedDocument",
+    "TipoEntrada",
+    "detectar",
+    "ClaseImagen",
+    "ClasificacionImagen",
+    "VeredictoGate",
+    "clasificar",
+    "leer_caracteristicas",
+    "sospechar_manuscrito",
+    "verificar_procesabilidad",
+]
