@@ -83,8 +83,9 @@ def run_extraction(file_path: Path, prompt_path: Path, model: str) -> dict:
     messages = [{"role": "system", "content": system_prompt}]
     user_message = {"role": "user", "content": user_prompt}
     if use_vlm:
+        image_bytes = file_path.read_bytes()
         user_message["images"] = [
-            base64.b64encode(file_path.read_bytes()).decode("ascii")
+            base64.b64encode(image_bytes).decode("ascii")
         ]
     messages.append(user_message)
     response = ask_ollama(
