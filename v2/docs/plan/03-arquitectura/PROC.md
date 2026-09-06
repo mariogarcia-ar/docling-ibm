@@ -83,9 +83,82 @@ ruta de orquestación:
   (texto ordenado línea por línea) frente al PDF directo (texto pegado, pocos
   boxes).
 
+### 5.4 Configuración recomendada de Docling para facturas escaneadas (referencia)
+
+> Fuente: investigación externa (docling.ai, docling-project.github.io,
+> issues del repo docling-project/docling) aportada por el equipo el
+> 2026-09-06. Complementa los hallazgos empíricos de §5.1–5.3.
+
+Una factura escaneada es un documento **puramente visual** (sin capa de texto)
+con tablas complejas (artículos, cantidades, subtotales) donde la precisión es
+crítica. Para que el OCR de Docling **no falle en silencio** y extraiga texto y
+tablas, se recomienda estructurar la configuración bajo tres pilares:
+
+**Pilar 1 — Forzar OCR de página completa (`force_full_page_ocr`).**
+Por defecto Docling optimiza recursos: si detecta trazas de una capa de texto
+oculta (aunque esté corrupta/mal codificada por el escáner) puede **saltarse el
+OCR**. En una factura escaneada hay que obligar al pipeline a ignorar metadatos
+previos y procesar la página como imagen pura.
+
+**Pilar 2 — Cambiar de motor OCR (evitar el bug de RapidOCR).**
+En entornos locales el motor por defecto (`RapidOCR`) a veces tiene problemas
+para cargar modelos de idioma o falla al interpretar ciertos canales de imagen
+(p. ej. PNG con canal alfa). Para facturas en español/inglés la recomendación
+oficial es usar **Tesseract** (`TesseractCliOcrOptions`) o **EasyOCR**
+(`EasyOcrOptions`). *Nota: Tesseract requiere instalación en el SO.*
+
+**Pilar 3 — Configuración de implementación recomendada.**
+
+```python
+from docling.datamodel.base_models import InputFormat
+from docling.datamodel.pipeline_options import PdfPipelineOptions, TesseractCliOcrOptions
+from docling.document_converter import DocumentConverter, PdfFormatOption
+
+# 1. Opciones del pipeline de PDF
+pipeline_options = PdfPipelineOptions()
+pipeline_options.do_ocr = True
+pipeline_options.do_table_structure = True  # activa TableFormer
+
+# Regla de oro: forzar OCR de página completa con Tesseract (no RapidOCR)
+pipeline_options.ocr_options = TesseractCliOcrOptions(
+    lang=["spa", "eng"],        # idiomas de las facturas
+    force_full_page_ocr=True    # evita saltarse el OCR por texto basura
+)
+
+# 2. Asociar estrictamente al formato PDF
+ocr_tuned_features = PdfFormatOption(pipeline_options=pipeline_options)
+
+# 3. Convertidor con la configuración personalizada
+converter = DocumentConverter(
+    allowed_formats=[InputFormat.PDF],
+    format_options={InputFormat.PDF: ocr_tuned_features},
+)
+
+# 4. Convertir la factura escaneada
+resultado = converter.convert("tu_factura_escaneada.pdf")
+
+# 5. Exportar: el Markdown conserva las tablas en formato MD legible
+print(resultado.document.render_as_markdown())
+```
+
+**Tips para el pipeline de facturas:**
+- **Si el PDF falla** (problemas de canales por el software de escaneo): no
+  dejar que Docling haga la conversión interna a imagen. Usar `pdf2image`
+  externamente, guardar páginas como `.jpg` en disco (RGB **sin canal alfa**) y
+  pasar los `.jpg` directo a Docling (acepta imágenes nativas).
+- **Estructura de salida**: al renderizar a Markdown las tablas de precios/ítems
+  se mantienen alineadas, lo que facilita usar Regex o un LLM para extraer
+  campos clave (Monto Total, Fecha, CUIT/Tax ID).
+
+**Decisiones pendientes para la orquestación (derivadas de esta referencia):**
+- ¿Instalar Tesseract en el entorno o preferir EasyOCR (puramente Python)?
+- ¿El pipeline final interactuará con un LLM/sistema RAG para extraer datos de
+  la factura (afín a F3/F4)?
+
 ## 6. Bitácora de seguimiento del módulo
 
 | Fecha | Acción / hito | Responsable | Estado |
 |---|---|---|---|
 | 2026-09-06 | Validación Docling vs pdftotext sobre pdf_escaneados/pdf_aptos_layout; decisión de ruta para orquestación (render→imagen para escaneados). | team implementation | Documentado (§5) |
 | 2026-09-06 | T-101 a T-104 implementados (detector PyMuPDF, clasificador+gate, orientación/preproc, motor+exportador). | team implementation | Hecho |
+| 2026-09-06 | Referencia externa de configuración Docling para facturas escaneadas (force_full_page_ocr + Tesseract/EasyOCR) agregada a §5.4. | team analysis / implementation | Documentado |

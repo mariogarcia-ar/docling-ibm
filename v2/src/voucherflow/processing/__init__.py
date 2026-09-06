@@ -45,6 +45,17 @@ from .preprocessing import QualityReport, evaluar_calidad, preprocesar
 from .ocr import MODOS_VALIDOS, MotorOCR, elegir_motor, transcribir_vlm
 from .markdown_exporter import TOLERANCIA_LINEA, exportar_por_posicion
 
+# Enrutado de PDF por página (apoyo a orquestación, E-DOC-1).
+from .routing import (
+    AnalisisPagina,
+    AnalisisPdf,
+    ClasePagina,
+    MetricasPagina,
+    VeredictoPdf,
+    analizar_pdf,
+    clasificar_pagina,
+)
+
 __all__ = [
     "ProcessedDocument",
     "TipoEntrada",
@@ -72,4 +83,11 @@ __all__ = [
     "transcribir_vlm",
     "TOLERANCIA_LINEA",
     "exportar_por_posicion",
+    "AnalisisPagina",
+    "AnalisisPdf",
+    "ClasePagina",
+    "MetricasPagina",
+    "VeredictoPdf",
+    "analizar_pdf",
+    "clasificar_pagina",
 ]
