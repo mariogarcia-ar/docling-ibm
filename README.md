@@ -46,6 +46,17 @@ python ocr_documents.py files --output output
 
 Sin `--force`, los archivos Markdown existentes se omiten.
 
+Para obtener el Markdown crudo generado por Docling, sin el filtro de
+orientación de `run.py`/`ocr_documents.py`, usá `run_raw.py`:
+
+```bash
+python run_raw.py --input files/2025-08/2E1F7D6C/documento.jpg
+python run_raw.py --input documento.pdf --output documento_raw.md
+```
+
+Por defecto, guarda el resultado junto al archivo de entrada con el sufijo
+`.raw.md`.
+
 `--workers N` crea hasta `N` procesos para procesar imágenes en paralelo.
 Cada proceso inicializa su propio convertidor Docling. Usá `--workers 1` para
 procesamiento secuencial. Si quedan workers huérfanos, ejecutá:
