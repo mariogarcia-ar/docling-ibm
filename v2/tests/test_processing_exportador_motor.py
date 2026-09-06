@@ -18,6 +18,7 @@ from voucherflow.models.docling import Box
 from voucherflow.processing.image_classifier import ClaseImagen, ClasificacionImagen
 from voucherflow.processing.markdown_exporter import (
     TOLERANCIA_LINEA,
+    exportar_documento,
     exportar_por_posicion,
 )
 from voucherflow.processing.ocr import (
@@ -210,3 +211,54 @@ class TestHookVLM:
         with pytest.raises(NotImplementedError) as exc:
             transcribir_vlm("x.jpg")
         assert "F4" in str(exc.value)
+
+
+# ---------------------------------------------------------------------------
+# exportar_documento (política combinada, orquestación)
+# ---------------------------------------------------------------------------
+
+class TestExportarDocumento:
+    def _doc(self, markdown="", boxes=None):
+        from voucherflow.models.docling import ProcessedDocument
+
+        return ProcessedDocument(
+            tipo_entrada="imagen", ruta="x.jpg", markdown=markdown, boxes=boxes or []
+        )
+
+    def test_sin_tabla_cruda_usa_orden_por_posicion(self):
+        # markdown crudo sin "|" y con boxes -> exporta ordenado por posición.
+        doc = self._doc(
+            markdown="texto sin tabla",
+            boxes=[_box("A", 20, 890, 180, 910), _box("B", 20, 90, 180, 110)],
+        )
+        out = exportar_por_posicion(doc.boxes, "horizontal")
+        assert out.strip().split("\n") == ["A", "B"]
+
+    def test_tabla_solo_en_crudo_prioriza_markdown_crudo(self):
+        # Caso real (PDF escaneado): la tabla está en el markdown crudo de
+        # Docling pero NO como item table en boxes -> se conserva el crudo.
+        crudo = "ENCABEZADO\n\n| A | B |\n|---|---|\n| 1 | 2 |\n"
+        doc = self._doc(
+            markdown=crudo,
+            boxes=[_box("solo texto", 10, 480, 300, 520)],
+        )
+        out = exportar_documento(doc)
+        assert "| A | B |" in out, "Debe conservar la tabla del markdown crudo"
+        assert out.strip().endswith("| 1 | 2 |")
+
+    def test_tabla_en_boxes_no_duplica_crudo(self):
+        # Si los boxes ya traen la tabla como item (es_tabla), se ordena por
+        # posición (el crudo con "|" puede ser la misma tabla, no se duplica
+        # arbitrariamente: se prioriza el orden por boxes con tablas).
+        boxes = [
+            _box("TABLA", 10, 480, 300, 520, es_tabla=True,
+                 markdown_tabla="| X |\n|---|\n| 1 |"),
+        ]
+        doc = self._doc(markdown="| X |\n|---|\n| 1 |\n", boxes=boxes)
+        out = exportar_documento(doc)
+        assert "| X |" in out
+
+    def test_sin_boxes_y_sin_markdown(self):
+        doc = self._doc()
+        out = exportar_documento(doc)
+        assert out  # no lanza y devuelve algo

@@ -43,7 +43,11 @@ from .preprocessing import QualityReport, evaluar_calidad, preprocesar
 
 # Motor OCR/VLM (F1 / T-104, E-DOC-2) + exportador ordenado (E-DOC-3).
 from .ocr import MODOS_VALIDOS, MotorOCR, elegir_motor, transcribir_vlm
-from .markdown_exporter import TOLERANCIA_LINEA, exportar_por_posicion
+from .markdown_exporter import (
+    TOLERANCIA_LINEA,
+    exportar_documento,
+    exportar_por_posicion,
+)
 
 # Enrutado de PDF por página (apoyo a orquestación, E-DOC-1).
 from .routing import (
@@ -83,6 +87,7 @@ __all__ = [
     "transcribir_vlm",
     "TOLERANCIA_LINEA",
     "exportar_por_posicion",
+    "exportar_documento",
     "AnalisisPagina",
     "AnalisisPdf",
     "ClasePagina",

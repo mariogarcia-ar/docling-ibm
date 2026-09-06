@@ -137,7 +137,54 @@ def exportar_por_posicion(boxes: list[Box], orientacion: str = "horizontal") -> 
     ) + "\n"
 
 
+def exportar_documento(doc) -> str:
+    """Devuelve el Markdown final de un ``ProcessedDocument`` (política combinada).
+
+    Decisión de orquestación (validada 2026-09-06): el exportador por posición
+    (``exportar_por_posicion``) ordena el **texto** de los ``Box``, pero en
+    documentos escaneados las **tablas** a veces NO llegan como ítem ``table``
+    (``Box.es_tabla``) sino solo dentro del ``markdown`` crudo de Docling
+    (``export_to_markdown``). Perder esa tabla en una factura es inaceptable.
+
+    Por eso esta función **combina**:
+
+      1. Si Docling ya produjo el ``markdown`` crudo y **contiene tabla**
+         (caracteres ``|``) que los boxes no reproducen, se prioriza ese
+         ``markdown`` crudo (conserva la estructura de tabla que Docling
+         detectó).
+      2. Si no hay tabla en el crudo (o no hay ``markdown``), se usa el texto
+         ordenado por posición con ``exportar_por_posicion``.
+
+    Esto cubre ambos casos reales:
+      - imagen/factura con items de texto → markdown ordenado por posición.
+      - PDF escaneado renderizado → markdown crudo de Docling con su tabla.
+    """
+    markdown_crudo = (doc.markdown or "").strip()
+    boxes = doc.boxes or []
+
+    # ¿Hay tabla visible en el crudo de Docling?
+    hay_tabla_cruda = "|" in markdown_crudo
+    # ¿Los boxes reproducen tablas como ítem?
+    tablas_en_boxes = any(b.es_tabla and b.markdown_tabla for b in boxes)
+
+    if hay_tabla_cruda and not tablas_en_boxes:
+        # La tabla solo existe en el crudo de Docling: usarlo tal cual
+        # (conserva el orden + la estructura de tabla que Docling generó).
+        return markdown_crudo + "\n" if not markdown_crudo.endswith("\n") else markdown_crudo
+
+    # Sin tabla relevante: ordenar el texto por posición.
+    if boxes:
+        from .orientation import detectar_orientacion
+
+        orientacion = detectar_orientacion(boxes)
+        return exportar_por_posicion(boxes, orientacion)
+
+    # Sin boxes ni tabla: devolver el crudo (o mensaje).
+    return markdown_crudo if markdown_crudo else "No se encontraron textos.\n"
+
+
 __all__ = [
     "TOLERANCIA_LINEA",
     "exportar_por_posicion",
+    "exportar_documento",
 ]
