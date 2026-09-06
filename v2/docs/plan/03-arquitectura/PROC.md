@@ -49,8 +49,43 @@
 - **Decisión heredada de v1** — El motor OCR por defecto (Docling vs. RapidOCR) y el modelo VLM por defecto se conservan configurable (decisión heredada §3 del doc 04).
 - **ADR-003 (D-3)** — Indirecto: la calidad de la vista que prepara validation depende de la representación de `processing`; confirmar resolución mínima/orientación para no perder texto pequeño (afín a E-QWE-2).
 
-## 5. Bitácora de seguimiento del módulo
+## 5. Hallazgos técnicos (validación 2026-09-06, datos reales)
+
+Comparación empírica sobre fixtures reales (`pdf_escaneados/` y
+`pdf_aptos_layout/`) de **Docling vs `pdftotext --layout`** para decidir la
+ruta de orquestación:
+
+### 5.1 PDF escaneado (sin capa de texto)
+| Método | Resultado |
+|---|---|
+| `pdftotext --layout` | ❌ **vacío** (0 chars): no hay texto que extraer. |
+| Docling sobre PDF directo | ⚠️ **impredecible**: a veces corre OCR (68623f4b → 11400 chars) y a veces solo `<!-- image -->` (3ac5a2ec → 14 chars, boxes=0). |
+| **Docling render→imagen→OCR** | ✅ **confiable**: render de página a imagen (PyMuPDF ~300 dpi) → Docling OCR → exportador ordena. 4/5 dieron texto limpio y ordenado (68623f4b → 10716 chars, boxes=8). |
+
+### 5.2 PDF apto (texto nativo)
+| Método | Resultado |
+|---|---|
+| `pdftotext --layout` | ✅ **excelente layout**: recupera columnas/alineación (242823d2 → 3378 chars, 36744cc6 → 2244 chars). |
+| Docling sobre PDF directo | ✅ texto nativo, pero deja `<!-- image -->` residual y a veces corre RapidOCR innecesario (warning "empty result"). |
+
+### 5.3 Conclusión para la orquestación
+- **Causa raíz**: el adaptador Docling (F0/T-006, igual que v1) configura
+  `force_full_page_ocr=True` **solo para `InputFormat.IMAGE`**, no para
+  `InputFormat.PDF`. Por eso el OCR sobre PDF directo es impredecible.
+- **Ruta `pdf_escaneado`** → **renderizar a imagen** (PyMuPDF) y luego pasar
+  por el pipeline de imagen: gate T-102 → Docling OCR → orientación T-103 →
+  exportador T-104. (Coincide con E-DOC-1: "PDF escaneado → se convierte a
+  imagen".)
+- **Ruta `pdf_texto`/`texto`** → Docling directo (texto nativo); `pdftotext
+  --layout` queda como alternativa/complemento para recuperar layout de
+  columnas (decisión de orquestación).
+- **Nota**: la calidad estructural mejora con render→imagen→OCR + exportador
+  (texto ordenado línea por línea) frente al PDF directo (texto pegado, pocos
+  boxes).
+
+## 6. Bitácora de seguimiento del módulo
 
 | Fecha | Acción / hito | Responsable | Estado |
 |---|---|---|---|
-| _(vacío)_ | | | |
+| 2026-09-06 | Validación Docling vs pdftotext sobre pdf_escaneados/pdf_aptos_layout; decisión de ruta para orquestación (render→imagen para escaneados). | team implementation | Documentado (§5) |
+| 2026-09-06 | T-101 a T-104 implementados (detector PyMuPDF, clasificador+gate, orientación/preproc, motor+exportador). | team implementation | Hecho |
