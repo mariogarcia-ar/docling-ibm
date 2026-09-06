@@ -100,6 +100,73 @@ class TestLeerCaracteristicas:
         c = leer_caracteristicas(tmp_path / "no_existe.png")
         assert c.ancho == 0 and c.alto == 0
 
+    def test_jpeg_exif_orientacion_en_subifd(self, tmp_path):
+        # JPEG mínimo con APP1-EXIF cuyo tag Orientation (274) vive en el subIFD
+        # EXIF (tag 34665), como lo escriben muchas cámaras (caso 4c261bc8).
+        import struct as _struct
+
+        def _campo(endian, tag, tipo, valor):
+            # entrada IFD de 12 bytes con valor inline (SHORT=3)
+            return _struct.pack(f"{endian}HHI", tag, tipo, 1) + valor
+
+        # Construir bloque EXIF (TIFF little-endian) con IFD0 -> subIFD EXIF.
+        endian = "<"
+        # IFD0: 1 entrada (tag 34665 ExifIFDPointer), luego offset del subIFD.
+        ifd0_offset = 8
+        subifd_offset = ifd0_offset + 2 + 12 + 4  # header(8) + 1 entrada + next IFD ptr
+        ifd0 = _struct.pack(f"{endian}H", 1)  # 1 entrada
+        # ExifIFDPointer: tag 34665, tipo 4 (LONG), count 1, valor = offset
+        ifd0 += _struct.pack(f"{endian}HHI", 34665, 4, 1) + _struct.pack(f"{endian}I", subifd_offset)
+        ifd0 += _struct.pack(f"{endian}I", 0)  # next IFD = 0
+        # subIFD EXIF: 1 entrada con Orientation (tag 274, SHORT=3) = 8
+        subifd = _struct.pack(f"{endian}H", 1)
+        subifd += _campo(endian, 274, 3, _struct.pack(f"{endian}H", 8)) + b"\x00\x00"
+        subifd += _struct.pack(f"{endian}I", 0)
+
+        tiff = b"II" + _struct.pack(f"{endian}H", 42) + _struct.pack(f"{endian}I", ifd0_offset)
+        tiff += ifd0 + subifd
+        app1 = b"Exif\x00\x00" + tiff
+        jpeg = (
+            b"\xff\xd8"
+            + b"\xff\xe1" + _struct.pack(">H", len(app1) + 2) + app1
+            + b"\xff\xd9"
+        )
+        ruta = _escribir(tmp_path, "exif_subifd.jpg", jpeg)
+        ch = leer_caracteristicas(ruta)
+        assert ch.exif_orientacion == 8, "Debe leer Orientation del subIFD EXIF"
+
+    def test_jpeg_con_exif_rotacion_se_clasifica_foto(self, tmp_path):
+        # JPEG con SOF0 bien formado (dimensiones legibles) + APP1-EXIF con
+        # Orientation=8 en subIFD -> debe clasificar como foto (no escaneo).
+        import struct as _struct
+
+        # --- APP1-EXIF con Orientation=8 en el subIFD EXIF ---
+        endian = "<"
+        ifd0_offset = 8
+        subifd_offset = ifd0_offset + 2 + 12 + 4
+        ifd0 = _struct.pack(f"{endian}H", 1)
+        ifd0 += _struct.pack(f"{endian}HHI", 34665, 4, 1) + _struct.pack(f"{endian}I", subifd_offset)
+        ifd0 += _struct.pack(f"{endian}I", 0)
+        subifd = _struct.pack(f"{endian}H", 1)
+        subifd += _struct.pack(f"{endian}HHI", 274, 3, 1) + _struct.pack(f"{endian}H", 8) + b"\x00\x00"
+        subifd += _struct.pack(f"{endian}I", 0)
+        tiff = b"II" + _struct.pack(f"{endian}H", 42) + _struct.pack(f"{endian}I", ifd0_offset)
+        tiff += ifd0 + subifd
+        app1_payload = b"Exif\x00\x00" + tiff
+        app1 = b"\xff\xe1" + _struct.pack(">H", len(app1_payload) + 2) + app1_payload
+
+        # --- SOF0 bien formado (alto 1200, ancho 1600, 1 componente Y) ---
+        # payload: precisión(1) + alto(2) + ancho(2) + n_comp(1) + comp(3) = 9
+        sof_payload = b"\x08" + _struct.pack(">HH", 1200, 1600) + b"\x01\x01\x11\x00"
+        sof0 = b"\xff\xc0" + _struct.pack(">H", len(sof_payload)) + sof_payload
+
+        jpeg = b"\xff\xd8" + app1 + sof0 + b"\xff\xd9"
+        ruta = _escribir(tmp_path, "foto_exif.jpg", jpeg)
+        ch = leer_caracteristicas(ruta)
+        assert ch.exif_orientacion == 8
+        c = clasificar(ruta)
+        assert c.clase == ClaseImagen.foto, c.motivo
+
 
 # ---------------------------------------------------------------------------
 # Clasificador

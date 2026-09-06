@@ -1,8 +1,8 @@
-# v2 — Estado actual y qué se puede probar (fase F0)
+# v2 — Estado actual y qué se puede probar (fase F1)
 
 > **Documento**: estado vivo de la versión 2 de `ibm-docling`.
-> **Fecha**: 2026-09-06 · **Rama**: `v2` · **Commit**: `df5efe5` (fase F0)
-> **Fuentes**: `v2/README.md`, `v2/docs/plan/05-plan/F0.md`, `v2/src/voucherflow/`
+> **Fecha**: 2026-09-06 · **Rama**: `v2` · **Commit**: `2b4dc26` (F0 cerrada + inicio F1)
+> **Fuentes**: `v2/README.md`, `v2/docs/plan/05-plan/F0.md`, `v2/docs/plan/05-plan/F1.md` y `F1-subplan.md`, `v2/src/voucherflow/`
 
 ---
 
@@ -10,19 +10,23 @@
 
 | Campo | Valor |
 |---|---|
-| **Fase en curso** | **F0 — Fundación** (schemas, esqueleto, golden set) |
-| **Estado** | 🟡 Implementación de F0 **completada** (T-001..T-006 hechas) — en **revisión**; resta la curación de etiquetas de negocio del golden set con contador |
-| **F1–F6** | 🔴 Backlog (procesamiento, validación, clasificación, extracción, conclusión, cliente) |
+| **Fase en curso** | **F1 — Procesamiento (refactor docling)** (T-101..T-105 + orquestación) |
+| **Estado** | 🟢 **F0 completada** (77 tests). F1 **en implementación**: T-101 ✅ y T-102 ✅ hechas; restan T-103 (preprocesamiento/orientación), T-104 (motor OCR/VLM + exportador), orquestación + `api.process()`, T-105 (integración) y docs de cierre |
+| **F0** | ✅ Fundación completada (schemas, esqueleto, golden set, adaptadores) |
+| **F2–F6** | 🔴 Backlog (validación, clasificación, extracción, conclusión, cliente) |
 | **Paquete** | `voucherflow` v`0.1.0` (layout `src/`, ADR-007) |
 | **Contrato** | `SCHEMA_VERSION = 1.0.0` (congelado, ver criterio de cambio en `schemas/evidence.py`) |
-| **Suite de tests** | ✅ **77 tests en verde** (`python -m pytest tests -q`) en env `py313_env` |
+| **Suite de tests** | ✅ **133 tests en verde** (`python -m pytest tests -q`) en env `py313_env` |
 
-**Resumen**: en esta fase lo que existe es la **fundación de la librería**:
-contratos de evidencia congelados, configuración centralizada, adaptadores
-`OllamaClient`/`DoclingConverter`, base del motor de reglas, el **golden set
-inicial** y el esqueleto (contratos de entrada/salida) de las 5 capacidades que
-se implementarán en F1–F5. **Todavía no hay pipeline funcional de extremo a
-extremo** (eso llega con F1–F5/F6).
+**Resumen**: F0 dejó la **fundación de la librería**: contratos de evidencia
+congelados, configuración centralizada, adaptadores `OllamaClient`/
+`DoclingConverter`, base del motor de reglas, el **golden set inicial** y el
+esqueleto de las 5 capacidades (F1–F5). Sobre esa base, **F1** (en curso)
+refactoriza Docling en `voucherflow/processing/`: ya están implementados el
+**detector de tipo de entrada** (T-101) y el **clasificador de imagen + gate de
+procesabilidad** (T-102), ambos heurísticos livianos, **sin dependencias
+nuevas** y cubiertos por tests. Aún **no hay pipeline funcional de extremo a
+extremo** (llega al completar F1–F5/F6).
 
 ---
 
@@ -59,7 +63,20 @@ lógica de negocio**: sus funciones lanzan `NotImplementedError` hasta su fase.
 
 ---
 
-## 3. Qué se puede probar en esta fase (F0)
+## 2.3 Avance de F1 (en curso)
+
+| Tarea | Módulo | Qué ofrece / se puede probar | Tests |
+|---|---|---|---|
+| **T-101** (✅) | `processing/type_detector.py` | `detectar() -> TipoEntrada` (pdf_texto/pdf_escaneado/imagen/office/texto/no_soportado) con heurística de bytes `/Font` vs `/Subtype /Image` para PDF (sin deps). | `test_processing_type_detector.py` (29) |
+| **T-102** (✅) | `processing/image_classifier.py` | `ClaseImagen` (foto/escaneo_plano/screenshot/manuscrito), `clasificar()`, gate `verificar_procesabilidad() -> VeredictoGate` y hook `sospechar_manuscrito()`. Lee dimensiones JPEG/PNG/BMP/TIFF con stdlib (sin Pillow/OpenCV). | `test_processing_image_classifier.py` (27) |
+| **Inspección** | `scripts/inspeccionar_t102.py` | Aplica T-102 sobre fixtures (o carpeta CLI) y muestra resumen/detalle por clase y gate. | — |
+
+> Detalle: sobre los 38 fixtures de imagen, T-102 clasifica 23 `escaneo_plano`,
+> 13 `screenshot` y 2 `foto`, con **0 rechazos** en falso del gate.
+
+---
+
+## 3. Qué se puede probar en esta fase (F1)
 
 ### 3.1 Rápido — instalación e import
 
@@ -70,14 +87,14 @@ python -c "import voucherflow; print(voucherflow.__version__, voucherflow.SCHEMA
 # → 0.1.0 1.0.0
 ```
 
-### 3.2 Suite de tests (77 en verde)
+### 3.2 Suite de tests (133 en verde)
 
 ```bash
 cd v2
 python -m pytest tests -q
 ```
 
-Cobertura de la suite por archivo:
+Cobertura de la suite por archivo (F0 + F1):
 
 | Archivo de test | Qué valida |
 |---|---|
@@ -88,6 +105,8 @@ Cobertura de la suite por archivo:
 | `test_settings_config.py` | `Settings`: defaults, override por env `VOUCHERFLOW_*`, precedencia de fuentes. |
 | `test_golden_y_esqueleto.py` | Golden set (integridad de `casos.csv` vs. archivos en `fixtures/`, splits sin cruce) y esqueletos (firmas presentes, lanzan `NotImplementedError`). |
 | `test_fixtures.py` | Integridad/consistencia de los fixtures del golden set. |
+| `test_processing_type_detector.py` | **F1/T-101**: `detectar()` por extensión y heurística pdf_texto/pdf_escaneado (PDFs sintéticos). |
+| `test_processing_image_classifier.py` | **F1/T-102**: clasificador (foto/escaneo/screenshot por ratio/EXIF/RGBA), gate de procesabilidad y hook de manuscrito (PNG/JPEG sintéticos con stdlib). |
 
 ### 3.3 Probar el contrato de evidencia a mano (ejemplos)
 

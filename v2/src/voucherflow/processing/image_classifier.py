@@ -231,7 +231,9 @@ def _exif_orientacion(data: bytes) -> int | None:
                 break
             seg_len = struct.unpack(">H", data[i + 2:i + 4])[0]
             if marker == 0xE1 and data[i + 4:i + 10] == b"Exif\x00\x00":
-                exif = data[i + 4:i + 2 + seg_len]
+                # data[i+4:i+10] es "Exif\0\0" (6 bytes); el TIFF embebido
+                # empieza en i+10 y ocupa hasta el final del segmento APP1.
+                exif = data[i + 10:i + 2 + seg_len]
                 return _exif_orientacion_desde_bloque(exif)
             i += 2 + seg_len
     except Exception:
@@ -240,24 +242,53 @@ def _exif_orientacion(data: bytes) -> int | None:
 
 
 def _exif_orientacion_desde_bloque(exif: bytes) -> int | None:
-    """Extrae el tag 274 dentro del bloque EXIF (TIFF embebido)."""
+    """Extrae el tag 274 dentro del bloque EXIF (TIFF embebido).
+
+    El tag ``Orientation`` suele vivir en el **subIFD EXIF** (apuntado por el
+    tag 34665 del IFD0), no en el IFD0. Se busca en ambos para cubrir las
+    variantes de cámaras.
+    """
     try:
         if len(exif) < 8:
             return None
-        # EXIF empieza con "Exif\0\0" ya removido -> ahora TIFF header
+        # El bloque llega sin el prefijo "Exif\0\0" -> empieza con el header TIFF.
         orden = exif[:2]
         endian = "<" if orden == b"II" else (">" if orden == b"MM" else None)
         if endian is None:
             return None
-        offset_ifd = struct.unpack(f"{endian}I", exif[4:8])[0]
-        n_entradas = struct.unpack(f"{endian}H", exif[offset_ifd:offset_ifd + 2])[0]
-        for k in range(n_entradas):
-            pos = offset_ifd + 2 + k * 12
-            if pos + 12 > len(exif):
-                break
-            tag = struct.unpack(f"{endian}H", exif[pos:pos + 2])[0]
-            if tag == 274:  # Orientation
-                return struct.unpack(f"{endian}H", exif[pos + 8:pos + 10])[0]
+
+        def _leer_ifd(offset_ifd: int) -> tuple[dict[int, int], int | None]:
+            """Lee un IFD; devuelve (tags con valor corto, offset subIFD EXIF)."""
+            if offset_ifd + 2 > len(exif):
+                return {}, None
+            n_entradas = struct.unpack(f"{endian}H", exif[offset_ifd:offset_ifd + 2])[0]
+            tags: dict[int, int] = {}
+            offset_exif: int | None = None
+            for k in range(n_entradas):
+                pos = offset_ifd + 2 + k * 12
+                if pos + 12 > len(exif):
+                    break
+                tag = struct.unpack(f"{endian}H", exif[pos:pos + 2])[0]
+                tipo = struct.unpack(f"{endian}H", exif[pos + 2:pos + 4])[0]
+                if tag == 34665 and tipo == 4:  # ExifIFDPointer (LONG)
+                    offset_exif = struct.unpack(f"{endian}I", exif[pos + 8:pos + 12])[0]
+                    continue
+                # type 3 = SHORT (2 bytes); type 4 = LONG (4 bytes)
+                if tipo == 3:
+                    tags[tag] = struct.unpack(f"{endian}H", exif[pos + 8:pos + 10])[0]
+                elif tipo == 4:
+                    tags[tag] = struct.unpack(f"{endian}I", exif[pos + 8:pos + 12])[0]
+            return tags, offset_exif
+
+        # IFD0 + subIFD EXIF (tag 34665).
+        offset_ifd0 = struct.unpack(f"{endian}I", exif[4:8])[0]
+        tags0, offset_exif = _leer_ifd(offset_ifd0)
+        if 274 in tags0:
+            return tags0[274]
+        if offset_exif is not None:
+            tags_exif, _ = _leer_ifd(offset_exif)
+            if 274 in tags_exif:
+                return tags_exif[274]
     except Exception:
         return None
     return None
