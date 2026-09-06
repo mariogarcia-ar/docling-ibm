@@ -93,37 +93,67 @@ def implementar_t104(archivo: Path) -> tuple[str, str, str]:
     return tipo, orientacion, markdown
 
 
+#: Extensiones que se procesan con Docling.
+_EXTENSIONES_PROCESABLES = frozenset(
+    {".pdf", ".jpg", ".jpeg", ".png", ".tif", ".tiff", ".bmp", ".docx", ".xlsx", ".pptx", ".txt", ".md", ".html"}
+)
+
+
+def _expandir_rutas(args: list[str]) -> list[Path]:
+    """Expande archivos/carpetas de la CLI a una lista de archivos a procesar."""
+    rutas: list[Path] = []
+    for raw in args:
+        p = Path(raw)
+        if p.is_dir():
+            rutas.extend(
+                q for q in sorted(p.rglob("*"))
+                if q.is_file() and q.suffix.lower() in _EXTENSIONES_PROCESABLES
+            )
+        elif p.is_file() and p.suffix.lower() in _EXTENSIONES_PROCESABLES:
+            rutas.append(p)
+        else:
+            print(f"⚠  Se ignora (no procesable o no existe): {p}", file=sys.stderr)
+    return sorted(set(rutas))
+
+
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Procesa un archivo con la cadena F1 y guarda el .md.")
-    parser.add_argument("archivo", help="Archivo a procesar (imagen/pdf/office/txt).")
-    parser.add_argument("--outdir", help="Carpeta de salida para el .md (default: junto al archivo).")
+    parser = argparse.ArgumentParser(
+        description="Procesa archivos con la cadena F1 (T-104) y guarda el .md ordenado."
+    )
+    parser.add_argument("archivos", nargs="+", help="Archivos o carpetas a procesar (imagen/pdf/office/txt).")
+    parser.add_argument("--outdir", help="Carpeta de salida para los .md (default: junto a cada archivo).")
     parser.add_argument("--print", action="store_true", help="Además de guardar, imprime el markdown.")
     args = parser.parse_args()
 
-    archivo = Path(args.archivo)
-    if not archivo.exists():
-        print(f"❌ No existe: {archivo}", file=sys.stderr)
+    archivos = _expandir_rutas(args.archivos)
+    if not archivos:
+        print("No se encontraron archivos procesables.", file=sys.stderr)
         sys.exit(2)
 
-    print(f"Procesando: {archivo}")
-    tipo, orientacion, markdown = implementar_t104(archivo)
-    print(f"  tipo_entrada : {tipo}")
-    print(f"  orientación  : {orientacion}")
+    print(f"Archivos a procesar: {len(archivos)}\n")
+    for archivo in archivos:
+        try:
+            tipo, orientacion, markdown = implementar_t104(archivo)
+        except Exception as exc:
+            print(f"❌ {archivo.name}: error {type(exc).__name__}: {exc}")
+            continue
 
-    # Guardar .md
-    if args.outdir:
-        outdir = Path(args.outdir)
-        outdir.mkdir(parents=True, exist_ok=True)
-        salida = outdir / f"{archivo.stem}.md"
-    else:
-        salida = archivo.with_suffix(".md")
-    salida.write_text(markdown, encoding="utf-8")
-    print(f"  guardado     : {salida} ({len(markdown)} chars)")
+        print(f"  {archivo.name[:30]:32} tipo={tipo:<14} orient={orientacion:<10} chars={len(markdown)}")
 
-    if args.print:
-        print("\n" + "=" * 60)
-        print(markdown)
-        print("=" * 60)
+        # Guardar .md
+        if args.outdir:
+            outdir = Path(args.outdir)
+            outdir.mkdir(parents=True, exist_ok=True)
+            salida = outdir / f"{archivo.stem}.md"
+        else:
+            salida = archivo.with_suffix(".md")
+        salida.write_text(markdown, encoding="utf-8")
+        print(f"    guardado: {salida}")
+
+        if args.print:
+            print("\n" + "=" * 60)
+            print(markdown)
+            print("=" * 60)
 
 
 if __name__ == "__main__":
