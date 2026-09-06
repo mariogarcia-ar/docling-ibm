@@ -13,6 +13,11 @@ read v2/readme.md
 keep this simplicity for the pseudocode 
 tidy v2/readme.md 
 
+
+brew install libmagic
+ pip install python-magic
+
+
 # comandos
 git archive --format=zip -o cvc_local_llm.zip HEAD
 

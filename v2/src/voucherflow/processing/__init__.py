@@ -14,4 +14,8 @@ from __future__ import annotations
 
 from ..models.docling import ProcessedDocument  # contrato de salida (F1)
 
-__all__ = ["ProcessedDocument"]
+# Detector de tipo de entrada (F1 / T-101, E-DOC-1): contrato ``TipoEntrada``
+# y función ``detectar`` expuestos por el módulo ``processing``.
+from .type_detector import TipoEntrada, detectar
+
+__all__ = ["ProcessedDocument", "TipoEntrada", "detectar"]
