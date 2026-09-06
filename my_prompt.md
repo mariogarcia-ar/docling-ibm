@@ -1,6 +1,17 @@
 # Flujo
+ - es procesable por texto, continuar
+
+ - es procesable por imagen, continuar
+ - ocr (raw, boxes)
+ - extraccion (datos relevantes por texto / imagen) hay reglas de extraccion qeu son mejores por visual ej Tipo Factura viene en rectangulo en letra mayuscula
+ - validacion (evidencia de la extracion  y reglas de programacion aplicadas a la extraccion, ej si hay 2 cuit entonces es Factura A)
+ - consolidacion : con la evidencia y validacion , sacar una conclusion
 
 
+# notes
+read v2/readme.md
+keep this simplicity for the pseudocode 
+tidy v2/readme.md 
 
 # comandos
 git archive --format=zip -o cvc_local_llm.zip HEAD
