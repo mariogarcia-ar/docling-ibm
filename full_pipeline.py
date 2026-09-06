@@ -4,6 +4,7 @@
 import argparse
 import json
 import sys
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 
 from classification_pipeline import PROMPT_FILES, primary_center_cost, primary_macro_category
@@ -16,6 +17,9 @@ from lib.pipeline import write_results
 from lib.processor import SUPPORTED_EXTENSIONS
 
 
+_converter = None
+
+
 def find_source_files(source: Path):
     if source.is_file():
         return [source]
@@ -25,6 +29,25 @@ def find_source_files(source: Path):
         for pattern in (f"*{extension}", f"*{extension.upper()}")
         for file_path in source.rglob(pattern)
     })
+
+
+def init_worker():
+    """Inicializa un convertidor independiente en cada worker."""
+    global _converter
+    _converter = setup_converter()
+
+
+def process_image_worker(args):
+    """Procesa una imagen dentro de un worker paralelo."""
+    image_path, model, tax_condition, orientation, force = args
+    return process_image(
+        image_path,
+        _converter,
+        model,
+        tax_condition,
+        orientation,
+        force,
+    )
 
 
 def markdown_output(image_path: Path, output_dir: Path | None) -> Path:
@@ -208,6 +231,7 @@ Ejemplos:
   python full_pipeline.py files/2025-08 --orientation horizontal
   python full_pipeline.py imagen.jpg --condicion-impositiva 10_5
     python full_pipeline.py imagen.jpg --force
+    python full_pipeline.py files/2025-08 --workers 4
   python full_pipeline.py files/2025-08 -o resultados_completos.json
 """,
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -245,7 +269,17 @@ Ejemplos:
         action="store_true",
         help="Reprocesa OCR y todos los pasos, ignorando checkpoints existentes",
     )
+    parser.add_argument(
+        "-w",
+        "--workers",
+        type=int,
+        default=1,
+        help="Cantidad de workers paralelos (por defecto: 1)",
+    )
     args = parser.parse_args()
+
+    if args.workers < 1:
+        parser.error("--workers debe ser mayor o igual a 1")
 
     if not args.source.exists():
         print(f"Error: no existe '{args.source}'", file=sys.stderr)
@@ -256,29 +290,65 @@ Ejemplos:
         print(f"No se encontraron imágenes o PDFs en '{args.source}'", file=sys.stderr)
         sys.exit(1)
 
-    converter = setup_converter()
     results = []
-    for index, image_path in enumerate(files, start=1):
-        print(f"[{index}/{len(files)}] Procesando {image_path}", file=sys.stderr)
-        try:
-            results.append(process_image(
-                image_path,
-                converter,
-                args.model,
-                args.condicion_impositiva,
-                args.orientation,
-                args.force,
-            ))
-        except Exception as error:
-            print(f"Error en '{image_path}': {error}", file=sys.stderr)
-            results.append({
-                "archivo": str(image_path),
-                "extracciones": {},
-                "clasificacion": {},
-                "errores": {"pipeline": str(error)},
-            })
+    indexed_results = {}
+
+    def record_result(index, image_path, result):
+        indexed_results[index] = result
+        results[:] = [indexed_results[key] for key in sorted(indexed_results)]
         if args.output:
             write_results(args.output, results)
+
+    if args.workers > 1 and len(files) > 1:
+        worker_args = [
+            (image_path, args.model, args.condicion_impositiva, args.orientation, args.force)
+            for image_path in files
+        ]
+        with ProcessPoolExecutor(
+            max_workers=args.workers,
+            initializer=init_worker,
+        ) as executor:
+            futures = {
+                executor.submit(process_image_worker, worker_arg): index
+                for index, worker_arg in enumerate(worker_args)
+            }
+            for future in as_completed(futures):
+                index = futures[future]
+                image_path = files[index]
+                print(f"[{index + 1}/{len(files)}] Procesando {image_path}", file=sys.stderr)
+                try:
+                    result = future.result()
+                except Exception as error:
+                    print(f"Error en '{image_path}': {error}", file=sys.stderr)
+                    result = {
+                        "archivo": str(image_path),
+                        "extracciones": {},
+                        "clasificacion": {},
+                        "errores": {"pipeline": str(error)},
+                    }
+                record_result(index, image_path, result)
+    else:
+        converter = setup_converter()
+        for index, image_path in enumerate(files):
+            print(f"[{index + 1}/{len(files)}] Procesando {image_path}", file=sys.stderr)
+            try:
+                result = process_image(
+                    image_path,
+                    converter,
+                    args.model,
+                    args.condicion_impositiva,
+                    args.orientation,
+                    args.force,
+                )
+            except Exception as error:
+                print(f"Error en '{image_path}': {error}", file=sys.stderr)
+                result = {
+                    "archivo": str(image_path),
+                    "extracciones": {},
+                    "clasificacion": {},
+                    "errores": {"pipeline": str(error)},
+                }
+            record_result(index, image_path, result)
 
     if args.output:
         write_results(args.output, results)

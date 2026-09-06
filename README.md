@@ -218,6 +218,9 @@ python full_pipeline.py files/2025-08 \
 	--orientation horizontal \
 	--condicion-impositiva 21
 
+# Procesar varias imágenes en paralelo
+python full_pipeline.py files/2025-08 --workers 4
+
 # Guardar todos los resultados en un único JSON
 python full_pipeline.py files/2025-08 \
 	-o resultados_completos.json

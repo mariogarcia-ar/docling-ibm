@@ -9,6 +9,10 @@ python extraction_pipeline.py 'files/2025-08/'
 
 find ./files -type f -name "*.json" -exec rm {} +
 
+find ./files -type f -name "*.md" | zip -@ files_md.zip
+find ./files -type f -name "*.json" | zip -@ files_json.zip
+
+
 
 ollama ps 
 
