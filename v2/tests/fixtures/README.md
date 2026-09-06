@@ -12,8 +12,11 @@ Se tomaron los archivos de `files/` ordenados por tamaño y se eligieron:
 - `grandes/` — los **10 más grandes** (~4.3–4.7 MB; cubren imágenes pesadas).
 - `chicos/` — los **10 más chicos** (~4–13 KB; PDFs/PNGs mínimos).
 - `otros/` — **20 del rango medio** (muestreo uniforme entre extremos).
+- `pdf_escaneados/` — **5 PDFs sin capa de texto** (detectados con PyMuPDF,
+  T-101; cubren la ruta `pdf_escaneado → imagen → OCR/VLM` para la paridad de
+  T-105).
 
-Distribución total: 40 archivos (~60 MB): 27 jpg · 6 pdf · 4 png · 3 jpeg.
+Distribución total: 45 archivos: 27 jpg · 11 pdf · 4 png · 3 jpeg.
 
 Cada archivo conserva su **nombre original** (id UUID). La correspondencia con
 la ruta original de `files/` y el tamaño queda en [`manifest.json`](manifest.json).

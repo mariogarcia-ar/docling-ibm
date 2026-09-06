@@ -3,9 +3,10 @@
   "grupos": [
     "grandes",
     "chicos",
-    "otros"
+    "otros",
+    "pdf_escaneados"
   ],
-  "seleccion": "10 grandes + 10 chicos + 20 medios por tamaño (files/, 2026-09-06)",
+  "seleccion": "10 grandes + 10 chicos + 20 medios por tamaño (files/, 2026-09-06) + 5 pdf_escaneados (2026-09-06)",
   "archivos": [
     {
       "id": "a263d645-166c-4826-b6de-2add4f4eade9",
@@ -326,6 +327,46 @@
       "extension": ".jpg",
       "tamano_bytes": 3178352,
       "origen_files": "files/2026-01/A28EDD9B/f9e731c4-080c-4962-8671-ac410cb171e7.jpg"
+    },
+    {
+      "id": "3ac5a2ec-d129-47c0-947a-4680c7e25f06",
+      "grupo": "pdf_escaneados",
+      "archivo": "pdf_escaneados/3ac5a2ec-d129-47c0-947a-4680c7e25f06.pdf",
+      "extension": ".pdf",
+      "tamano_bytes": 42388,
+      "origen_files": "../files/2026-03/CA5CF7BD/3ac5a2ec-d129-47c0-947a-4680c7e25f06.pdf"
+    },
+    {
+      "id": "68623f4b-775d-44cc-8f9c-369d441ef315",
+      "grupo": "pdf_escaneados",
+      "archivo": "pdf_escaneados/68623f4b-775d-44cc-8f9c-369d441ef315.pdf",
+      "extension": ".pdf",
+      "tamano_bytes": 75003,
+      "origen_files": "../files/2026-07/A85C2934/68623f4b-775d-44cc-8f9c-369d441ef315.pdf"
+    },
+    {
+      "id": "9b7a423c-189c-4b9b-8ab1-23b38d4518b4",
+      "grupo": "pdf_escaneados",
+      "archivo": "pdf_escaneados/9b7a423c-189c-4b9b-8ab1-23b38d4518b4.pdf",
+      "extension": ".pdf",
+      "tamano_bytes": 87601,
+      "origen_files": "../files/2026-08/D62C0CE6/9b7a423c-189c-4b9b-8ab1-23b38d4518b4.pdf"
+    },
+    {
+      "id": "bddb529d-11ef-4380-92c3-56bdecf2acc2",
+      "grupo": "pdf_escaneados",
+      "archivo": "pdf_escaneados/bddb529d-11ef-4380-92c3-56bdecf2acc2.pdf",
+      "extension": ".pdf",
+      "tamano_bytes": 437854,
+      "origen_files": "../files/2026-06/02F2DBEF/bddb529d-11ef-4380-92c3-56bdecf2acc2.pdf"
+    },
+    {
+      "id": "722106ec-ad35-4d09-879f-b2da6f8897ad",
+      "grupo": "pdf_escaneados",
+      "archivo": "pdf_escaneados/722106ec-ad35-4d09-879f-b2da6f8897ad.pdf",
+      "extension": ".pdf",
+      "tamano_bytes": 1687905,
+      "origen_files": "../files/2026-06/D3CDE0E5/722106ec-ad35-4d09-879f-b2da6f8897ad.pdf"
     }
   ]
 }
