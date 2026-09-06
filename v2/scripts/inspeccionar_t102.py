@@ -15,6 +15,7 @@ Ejemplos:
     python scripts/inspeccionar_t102.py                      # fixtures default
     python scripts/inspeccionar_t102.py tests/fixtures/golden
     python scripts/inspeccionar_t102.py files/2025-08 --detalle
+    python scripts/inspeccionar_t102.py tests/fixtures/pdf_escaneados --detalle
 """
 
 from __future__ import annotations

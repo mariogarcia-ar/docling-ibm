@@ -16,6 +16,7 @@ Ejemplos:
     python scripts/inspeccionar_t103.py --sin-ocr               # solo calidad (rápido)
     python scripts/inspeccionar_t103.py tests/fixtures/golden/4c261bc8-*.jpeg
     python scripts/inspeccionar_t103.py files/2025-08/2D2C9343 --detalle
+    python scripts/inspeccionar_t103.py tests/fixtures/pdf_escaneados --detalle
 
 Nota: convertir con Docling descarga modelos la primera vez y es lento (por eso
 en la suite estos casos se marcan ``integration``).
