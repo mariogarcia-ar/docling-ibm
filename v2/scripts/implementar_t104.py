@@ -30,6 +30,8 @@ suite esto es ``@pytest.mark.integration``; acá es una herramienta de uso manua
 from __future__ import annotations
 
 import argparse
+import shutil
+import subprocess
 import sys
 import tempfile
 from pathlib import Path
@@ -66,14 +68,51 @@ def _render_pdf_a_jpg(pdf: Path, dpi: int = 300) -> Path:
     return tmp
 
 
+def _pdftotext_layout(pdf: Path) -> str:
+    """Extrae texto con ``pdftotext --layout`` (mejor para PDFs aptos: columnas).
+
+    Requiere poppler (``pdftotext``) en el sistema. Si no está disponible o
+    falla, devuelve cadena vacía (el llamador decide el fallback).
+    """
+    if shutil.which("pdftotext") is None:
+        return ""
+    with tempfile.TemporaryDirectory(prefix="vf_pdftotext_") as d:
+        out = Path(d) / "salida.txt"
+        try:
+            subprocess.run(
+                ["pdftotext", "-layout", str(pdf), str(out)],
+                check=True,
+                capture_output=True,
+                timeout=60,
+            )
+        except Exception:
+            return ""
+        return out.read_text(encoding="utf-8") if out.exists() else ""
+
+
 def implementar_t104(archivo: Path) -> tuple[str, str, str]:
-    """Procesa un archivo con la cadena F1; devuelve (tipo, orientacion, markdown)."""
-    converter = DoclingConverter()
+    """Procesa un archivo con la cadena F1; devuelve (tipo, orientacion, markdown).
+
+    Ruteo por tipo (PROC.md §5):
+      - PDF ``apto`` (routing: texto nativo, imágenes no dominan) → se usa
+        ``pdftotext --layout`` que recupera mejor columnas/campos alineados.
+      - PDF ``requiere_ocr`` / ``parcial`` → render a imagen + Docling OCR.
+      - ``pdf_texto`` no-apto, imagen, office, texto → Docling directo.
+    """
     tipo = detectar(archivo).tipo
 
-    # Ruta para PDF escaneado: render a imagen -> Docling OCR.
-    if tipo == "pdf_escaneado":
+    # --- PDF: decidir por routing (apto -> layout; resto -> Docling) ---
+    if tipo in ("pdf_texto", "pdf_escaneado") and archivo.suffix.lower() == ".pdf":
         analisis = analizar_pdf(archivo)
+
+        # PDF apto (todas las páginas con texto nativo) -> pdftotext --layout.
+        if analisis.veredicto == VeredictoPdf.apto:
+            md = _pdftotext_layout(archivo)
+            if md.strip():
+                return tipo, "horizontal", md + "\n"
+
+        # PDF que requiere OCR o es parcial: render -> imagen -> Docling OCR.
+        converter = DoclingConverter()
         if analisis.veredicto == VeredictoPdf.requiere_ocr or analisis.requiere_ocr_en_alguna:
             img = _render_pdf_a_jpg(archivo)
             try:
@@ -82,10 +121,14 @@ def implementar_t104(archivo: Path) -> tuple[str, str, str]:
                 img.unlink(missing_ok=True)
         else:
             doc = converter.convert(archivo)
-    else:
-        # pdf_texto / imagen / office / texto: Docling directo.
-        doc = converter.convert(archivo)
 
+        orientacion = detectar_orientacion(doc.boxes)
+        markdown = exportar_documento(doc)
+        return tipo, orientacion, markdown
+
+    # --- Imagen / office / texto / pdf sin routing claro: Docling directo ---
+    converter = DoclingConverter()
+    doc = converter.convert(archivo)
     orientacion = detectar_orientacion(doc.boxes)
     # Política combinada: conserva tablas del markdown crudo de Docling y
     # ordena por posición el texto cuando no hay tabla (ver markdown_exporter).
