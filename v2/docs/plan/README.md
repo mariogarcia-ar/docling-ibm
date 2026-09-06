@@ -43,7 +43,7 @@ justificar una clasificación ante una auditoría.
 |---|-----------|-----|-----------|
 | 00 | [`00-glosario.md`](00-glosario.md) | BA/SA | Glosario del dominio y modelo de evidencia |
 | 01 | [`01-vision-alcance.md`](01-vision-alcance.md) | BA | Visión, problema, objetivos, entregables, alcance (dentro/fuera, MVP vs. futuro) |
-| 02 | [`02-epicas-historias-usuario.md`](02-epicas-historias-usuario.md) | BA | Épicas y user stories INVEST con criterios Gherkin |
+| 02 | [`02-epicas-historias-usuario.md`](02-epicas-historias-usuario.md) · carpeta [`02-epicas/`](02-epicas/) ([E-DOC](02-epicas/E-DOC.md) · [E-QWE](02-epicas/E-QWE.md) · [E-CLAS](02-epicas/E-CLAS.md) · [E-EXT](02-epicas/E-EXT.md) · [E-CONC](02-epicas/E-CONC.md) · [E-LIB](02-epicas/E-LIB.md) · [E-CLI](02-epicas/E-CLI.md)) | BA | Épicas y user stories INVEST con criterios Gherkin + archivo de seguimiento (tracking) por épica |
 | 03 | [`03-arquitectura-solucion.md`](03-arquitectura-solucion.md) | SA | Arquitectura (C4), componentes de la librería, cliente, modelos de datos, secuencias |
 | 04 | [`04-decisiones-abiertas-adr.md`](04-decisiones-abiertas-adr.md) | SA | Decisiones técnicas abiertas y ADR preliminares |
 | 05 | [`05-plan-ejecucion.md`](05-plan-ejecucion.md) | PM | WBS/fases, MoSCoW, estimaciones, riesgos, DoR/DoD |

@@ -1,0 +1,127 @@
+# Épica E-CLAS — Clasificación (Seguimiento)
+
+> Documento de seguimiento generado a partir de
+> [`02-epicas-historias-usuario.md`](../02-epicas-historias-usuario.md) y
+> [`05-plan-ejecucion.md`](../05-plan-ejecucion.md).
+
+## 1. Ficha de la épica
+
+| Campo | Valor |
+|---|---|
+| **Código** | E-CLAS |
+| **Objetivo(s) que cubre** | OBJ-3 — Refactorizar la clasificación (tipo/letra + contable 01→02→03) |
+| **Fuente de ideas** | Prompt WIP `prompts/wip/deteccion_tipo_factura.yaml` (R1-R7) + `11.1` + prompts 01/02/03 |
+| **Módulo de librería** | `classification/` |
+| **Fase(s) del plan** | F3 (T-301..T-305) |
+| **Prioridad MoSCoW** | Must (MVP) — E-CLAS-1 (tipo/letra) y E-CLAS-2 (contable) |
+| **Responsable ciclo** | team analysis (BA/SA/PM) → team implementation |
+| **Estado épica** | 🔴 Backlog |
+| **DoR cumplido** | [ ] pendiente |
+| **Fecha inicio** |  |
+| **Fecha fin** |  |
+
+## 2. Definition of Done de la épica (criterios de aceptación a nivel épica)
+
+- [ ] Las reglas R1-R7 del prompt WIP se migran a un motor de reglas en código (sin depender del prompt para decidir la letra).
+- [ ] El prompt `11.1` reescrito devuelve evidencia (VLM recuadro + LLM texto) y reglas raw por fuente con candidatos_descartados/candidatos_restantes/reglas_aplicadas.
+- [ ] La letra (A/B/C/M/E) se determina cruzando la condición fiscal esperada por negocio y la letra detectada, disparando alerta/conflicto cuando corresponde (R7).
+- [ ] La cadena contable 01→02→03 queda refactorizada con contratos entre pasos (centro de costo → macro categoría → concepto/código), incluyendo el default CC0006.
+- [ ] Paridad verificable con v1 sobre el golden set: equivalencia con `classification_pipeline.py` y `-M 11.1` de v1; tests unitarios de reglas R1-R7 (DoD de F3 en `05-plan-ejecucion.md`).
+- [ ] Documentación/contratos actualizados (README/ADR si cambia una decisión).
+
+## 3. Historias de usuario y seguimiento
+
+### E-CLAS-1 · Detección de tipo y letra de comprobante (con reglas determinísticas)
+- **Estado**: [ ] Pendiente · [ ] En desarrollo · [ ] En QA · [ ] Hecho
+- **Responsable**: team analysis / team implementation
+- **Como** auditor contable,
+  **quiero** que la letra (A/B/C/M/E) se determine cruzando la condición fiscal
+  esperada por negocio y la letra detectada en el documento
+  **para** detectar inconsistencias y evitar aceptar comprobantes no válidos para
+  crédito fiscal.
+- **Criterios de aceptación (Gherkin):**
+
+```gherkin
+Regla: R1 emisor monotributo/exento
+  Dado un emisor Monotributo o Exento
+  Cuando se aplican las reglas de negocio
+  Entonces el tipo esperado es C (independiente del receptor)
+
+Regla: R2A / R2B responsabilidad fiscal
+  Dado un emisor Responsable Inscripto y un receptor Responsable Inscripto
+  Cuando se aplican las reglas de negocio
+  Entonces el tipo esperado es A
+
+  Dado un emisor Responsable Inscripto y un receptor Monotributo/Exento/Consumidor Final
+  Cuando se aplican las reglas de negocio
+  Entonces el tipo esperado es B
+
+Regla: R3 exportación
+  Dado un receptor con país distinto de Argentina
+  Cuando se aplican las reglas de negocio
+  Entonces el tipo esperado es E (prioridad sobre R1/R2)
+
+Regla: R4/R5 extracción OCR/VLM
+  Dado un documento con recuadro de letra grande en el encabezado
+  Cuando se detecta la letra en el documento
+  Entonces se usa la letra del recuadro (VLM prioriza lo que ve)
+  Y si no hay recuadro, se usa regex sobre el texto (FACTURA [A-CME])
+
+Regla: R6 inferencia por campos totales
+  Dado que no hay letra visible en recuadro ni texto
+  Cuando se infiere el tipo
+  Entonces se usa el desglose de campos totales (discriminado => A candidato; subtotal único => B/C)
+
+Regla: R7 conflicto financiero
+  Dado un emisor Responsable Inscripto, receptor Responsable Inscripto y letra detectada B
+  Cuando se aplican las reglas de conflicto
+  Entonces se dispara alerta de comprobante inválido para crédito fiscal
+  Y el resultado conserva el tipo esperado por negocio con confianza media y la discrepancia documentada
+
+Regla: candidatos
+  Cuando se produce el resultado de clasificación
+  Entonces se incluyen candidatos_descartados, candidatos_restantes y reglas_aplicadas
+```
+
+### E-CLAS-2 · Clasificación contable 01→02→03 (centro de costo → macro categoría → concepto/código)
+- **Estado**: [ ] Pendiente · [ ] En desarrollo · [ ] En QA · [ ] Hecho
+- **Responsable**: team analysis / team implementation
+- **Como** área de administración,
+  **quiero** clasificar cada comprobante en centro de costo, macro categoría y
+  concepto/código final usando la cadena de prompts encadenados
+  **para** asignar correctamente el gasto.
+- **Criterios de aceptación (Gherkin):**
+
+```gherkin
+Dado un comprobante con proveedor, descripcion y monto
+Cuando se ejecuta el paso 01
+Entonces devuelve hasta tres centros de costo ordenados por probabilidad
+Y cada opción incluye codigo, centro, confianza, senal_usada y justificacion
+
+Dado el primer centro de costo resultante del paso 01
+Cuando se ejecuta el paso 02
+Entonces devuelve hasta tres macro categorías
+
+Dado el primer resultado de 02 + condición impositiva
+Cuando se ejecuta el paso 03
+Entonces devuelve concepto y código final
+
+Regla: default
+  Dado un gasto sin señal específica
+  Cuando se ejecuta el paso 01
+  Entonces se devuelve CC0006 con confianza baja y senal_usada=none
+```
+
+## 4. Bitácora de seguimiento
+
+| Fecha | Acción / hito | Responsable | Estado |
+|---|---|---|---|
+|  | | | |
+
+## 5. Referencias cruzadas
+
+- Historias fuente: [`02-epicas-historias-usuario.md`](../02-epicas-historias-usuario.md)
+- Objetivo y alcance: [`01-vision-alcance.md`](../01-vision-alcance.md) (OBJ-3)
+- Fases/tareas/DoR-DoD: [`05-plan-ejecucion.md`](../05-plan-ejecucion.md) (F3: T-301..T-305; depende de ADR-006)
+- Calidad/golden set: [`06-estrategia-calidad.md`](../06-estrategia-calidad.md)
+- Dependencias: E-LIB (motor de reglas), E-DOC/E-EXT (markdown/evidencia de entrada)

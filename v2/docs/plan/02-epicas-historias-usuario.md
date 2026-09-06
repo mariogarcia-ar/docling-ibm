@@ -37,6 +37,21 @@ flowchart LR
 
 ---
 
+## Seguimiento por épica
+
+> Archivos de seguimiento (tracking) con estado, DoD y bitácora por cada épica,
+> en la carpeta [`02-epicas/`](02-epicas/):
+
+- [E-DOC](02-epicas/E-DOC.md) — Procesamiento adaptativo docling
+- [E-QWE](02-epicas/E-QWE.md) — Validación qween doble paso
+- [E-CLAS](02-epicas/E-CLAS.md) — Clasificación
+- [E-EXT](02-epicas/E-EXT.md) — Extracción
+- [E-CONC](02-epicas/E-CONC.md) — Conclusión
+- [E-LIB](02-epicas/E-LIB.md) — Librería robusta
+- [E-CLI](02-epicas/E-CLI.md) — Cliente
+
+---
+
 ## Épica E-DOC — Procesamiento adaptativo de documentos (refactor docling)
 
 > Fuente de ideas: `v2/docs/ideas/docling.md`. Convierte el OCR "a ciegas" de v1
