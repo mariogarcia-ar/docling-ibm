@@ -104,6 +104,12 @@ Se puede indicar otro modelo o guardar la respuesta en un archivo:
 ```bash
 python document_extraction.py documento.md -M kvi -m qwen2.5vl:3b -o resultado.json
 
+# Forzar análisis de texto (system_llm)
+python document_extraction.py documento.md -M 11.1 --modality llm
+
+# Forzar análisis visual de imagen (system_vlm)
+python document_extraction.py documento.jpg -M 11.1 --modality vlm
+
 # Clasificación contable en pasos
 python document_extraction.py documento.md -M 01
 python document_extraction.py documento.md -M 02 --centro-costo CC0006

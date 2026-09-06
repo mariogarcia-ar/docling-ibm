@@ -72,10 +72,26 @@ def extract_json(text: str) -> dict:
     return json.loads(json_text)
 
 
-def run_extraction(file_path: Path, prompt_path: Path, model: str) -> dict:
+def run_extraction(
+    file_path: Path,
+    prompt_path: Path,
+    model: str,
+    modality: str = "auto",
+) -> dict:
     prompt = load_prompt(prompt_path)
-    use_vlm = is_image_file(file_path) and "system_vlm" in prompt and "user_vlm" in prompt
+    has_vlm_prompt = {"system_vlm", "user_vlm"}.issubset(prompt)
+    requested_vlm = modality == "vlm"
+    use_vlm = requested_vlm or (
+        modality == "auto" and is_image_file(file_path) and has_vlm_prompt
+    )
+    if requested_vlm and not is_image_file(file_path):
+        raise ValueError("la modalidad vlm requiere un archivo de imagen")
+    if requested_vlm and not has_vlm_prompt:
+        raise ValueError("el prompt no contiene las secciones system_vlm y user_vlm")
+
     system_key = "system_vlm" if use_vlm else "system_llm"
+    if not use_vlm and system_key not in prompt:
+        system_key = "system"
     user_key = "user_vlm" if use_vlm else "user"
     document_text = "" if use_vlm else load_document_text(file_path)
     user_prompt = prompt[user_key].replace("{{documento}}", document_text)
@@ -164,6 +180,12 @@ def main():
         default=DEFAULT_MODEL,
         help=f"Modelo de Ollama (default: {DEFAULT_MODEL})",
     )
+    parser.add_argument(
+        "--modality",
+        choices=["auto", "llm", "vlm"],
+        default="auto",
+        help="Modalidad de análisis: auto, llm (texto) o vlm (imagen).",
+    )
     parser.add_argument("-o", "--output", type=Path, help="Archivo JSON de salida")
     args = parser.parse_args()
 
@@ -208,7 +230,12 @@ def main():
                     values,
                 )
             else:
-                result = run_extraction(document_file, args.prompt, args.model)
+                result = run_extraction(
+                    document_file,
+                    args.prompt,
+                    args.model,
+                    args.modality,
+                )
         except (ValueError, json.JSONDecodeError) as exc:
             print(f"Error al parsear '{document_file}': {exc}", file=sys.stderr)
             sys.exit(1)
