@@ -4,7 +4,7 @@
 > `team implementation`. Complementa el seguimiento de la fase
 > ([`F1.md`](F1.md)) y el diseño del módulo
 > ([`../03-arquitectura/PROC.md`](../03-arquitectura/PROC.md)).
-> **Fecha**: 2026-09-06 · **Rama**: `v2` · **Estado**: Listo para implementar (DoR de diseño cerrado).
+> **Fecha**: 2026-09-06 · **Rama**: `v2` · **Estado**: En implementación (T-101..T-104 + routing hechos; falta orquestación + T-105 + cierre de docs).
 
 ## 1. Ficha del subplan
 
@@ -32,27 +32,45 @@
    suite default.
 4. **Tests F0 afectados → actualizar en F1**:
    `test_esqueletos_lanzan_notimplemented` debe quitar `process` de la lista
-   (ya implementado en F1) y dejarlo cubierto por los tests propios de F1.
+   (cuando `api.process()` quede implementado) y dejarlo cubierto por los tests
+   propios de F1. *Pendiente de aplicar: hoy `api.process()` sigue lanzando
+   `NotImplementedError`.*
 
 ## 3. Alcance por tarea (T-101..T-105)
 
-- **T-101** — `type_detector.py`: implementar `detectar(origen) -> TipoEntrada`.
-  Mantener `@dataclass(frozen=True) TipoEntrada(tipo, ruta_ocr, motivo="")` y los
-  valores `pdf_texto | pdf_escaneado | imagen | office | texto | no_soportado`.
-  Resolver la distinción `pdf_texto`/`pdf_escaneado` con heurística barata.
-- **T-102** — `image_classifier.py`: clasificar la imagen
+- [x] **T-101** — `type_detector.py`: `detectar(origen) -> TipoEntrada`.
+  `TipoEntrada(tipo, ruta_ocr, motivo="")` con valores
+  `pdf_texto | pdf_escaneado | imagen | office | texto | no_soportado`;
+  distinción `pdf_texto`/`pdf_escaneado` por capa real de texto (PyMuPDF).
+  Tests: `test_processing_type_detector.py` (29).
+- [x] **T-102** — `image_classifier.py`: clasifica la imagen
   (foto/escaneo/screenshot/manuscrito) + gate de procesabilidad. Heurístico
-  liviano.
-- **T-103** — `preprocessing.py` (stub heurístico liviano, sin CV) +
-  `orientation.py`: detectar orientación horizontal/vertical por boxes
-  (dominante).
-- **T-104** — `ocr.py` (selección de motor `ocr`/`vlm`/`auto` + hook) +
-  `markdown_exporter.py`: exportar ordenado por posición (portar el algoritmo de
-  `v1/lib/orientation.py`).
-- **T-105** — tests de integración marcados `@pytest.mark.integration`: paridad
-  estructural contra v1 sobre fixtures.
-- **Orquestación** — `procesar_documento(origen) -> ProcessedDocument` en
-  `processing/` (entrada de `api.process`); implementar `api.process()`.
+  liviano (stdlib, sin deps). Tests: `test_processing_image_classifier.py` (27).
+- [x] **T-103** — `preprocessing.py` (QualityReport heurístico, sin CV) +
+  `orientation.py`: orientación horizontal/vertical por boxes (dominante).
+  Tests: `test_processing_orientation.py` (19).
+- [x] **T-104** — `ocr.py` (selección de motor `ocr`/`vlm`/`auto` + hook
+  `transcribir_vlm` que no llama a Ollama en F1) + `markdown_exporter.py`
+  (exporta ordenado por posición, portado de `v1/lib/orientation.py`, paridad
+  byte-compatible). Tests: `test_processing_exportador_motor.py` (24).
+- [x] **T-105/EXT (apoyo orquestación)** — `routing.py`: análisis de PDF por
+  página (apta_layout/escaneada/corrupta/vacía) + veredicto por PDF
+  (apto/requiere_ocr/parcial). Tests: `test_processing_routing.py` (9).
+- [ ] **T-105** — tests de integración marcados `@pytest.mark.integration`:
+  paridad estructural contra v1 sobre fixtures (pendiente).
+- [ ] **Orquestación** — `procesar_documento(origen) -> ProcessedDocument` en
+  `processing/` (entrada de `api.process`); implementar `api.process()`
+  (pendiente).
+
+### 3.1 Avance
+
+- **Suite default**: **187 tests en verde** (`python -m pytest tests -q`).
+- Hecho: T-101, T-102, T-103, T-104 y el enrutado PDF por página (`routing.py`).
+- Pendiente: orquestación `procesar_documento()` + `api.process()`, T-105
+  (integración paridad) y docs de cierre (§7).
+- Ajuste F0 pendiente de aplicar: quitar `process` de
+  `test_esqueletos_lanzan_notimplemented` (decisión §2.4) cuando `api.process()`
+  quede implementado.
 
 ## 4. Reglas duras (no romper F0)
 

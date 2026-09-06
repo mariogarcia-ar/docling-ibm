@@ -7,33 +7,35 @@
 
 | Campo | Valor |
 |---|---|
-| **Módulo (paquete)** | `voucherflow/processing/` (doc 03 §11: `type_detector.py`, `image_classifier.py`, `preprocessing.py`, `orientation.py`, `ocr.py`, `markdown_exporter.py`) |
+| **Módulo (paquete)** | `voucherflow/processing/` (doc 03 §11: `type_detector.py`, `image_classifier.py`, `preprocessing.py`, `orientation.py`, `ocr.py`, `markdown_exporter.py`; + `routing.py` enrutado PDF por página) |
 | **Responsabilidad** | Decidir el tipo de entrada (pdf/img/docx/xlsx/pptx/txt/csv/log/html/md), elegir la ruta de procesamiento y normalizar; en imágenes: gate de procesabilidad → clase de imagen → preprocesamiento → orientación → motor OCR/VLM → salida ordenada (Markdown + boxes). |
 | **Épicas asociadas** | E-DOC (E-DOC-1 detección de tipo, E-DOC-2 procesamiento adaptativo de imágenes, E-DOC-3 salida ordenada) |
-| **Fase(s) del plan** | F0 (T-006 adaptador Docling) y F1 (T-101..T-105) |
+| **Fase(s) del plan** | F0 (T-006 adaptador Docling) y F1 (T-101..T-105 + orquestación) |
 | **Contratos que expone/consume** | Expone: `ProcessedDocument` (tipo_entrada, ruta, markdown, boxes, orientacion, motor, calidad) → lo consumen validation, classification y extraction. Consume: `QualityReport` (salida de calidad) y el adaptador `DoclingConverter` (doc 03 §4.6). |
 | **ADRs relacionados** | ADR-007 (organización del paquete `src/` — decide dónde vive el módulo); decisión heredada de v1 (Docling como motor OCR/conversión multi-formato, encapsulado aquí). |
 | **Interfaces clave** | `procesar_documento()` / `processar_documento()`; dataclass `ProcessedDocument { tipo_entrada, ruta, markdown, boxes, orientacion, motor, calidad }`; flujo: `Detector de tipo → (texto nativo | pdf escaneado→imagen | imagen | office/plano) → Gate de procesabilidad → Clasificador de imagen → Preprocesamiento → Orientación → Motor (OCR|VLM) → Ordenar por posición (center_y/center_x) → salida Markdown`. |
 | **Responsable ciclo** | team analysis (BA/SA/PM) → team implementation |
-| **Estado de diseño** | 🔴 Borrador |
-| **Fecha inicio** |  |
+| **Estado de diseño** | � En implementación (T-101..T-104 + routing hechos; falta orquestación `procesar_documento()`/`api.process()` y T-105 integración paridad) |
+| **Fecha inicio** | 2026-09-06 |
 | **Fecha fin** |  |
 
 ## 2. Estado de trazabilidad del módulo
 
 | Elemento de arquitectura (doc 03) | Sección | Épica/Historia | Fase/Tarea | Estado |
 |---|---|---|---|---|
-| Detector de tipo de entrada (pdf/img/office/plano/no soportado → rutas) | §4.1 | E-DOC-1 | F1 / T-101 | [ ] pendiente |
-| Rutas: texto nativo / pdf escaneado→imagen / office+planos / rechazo-reencolado | §4.1 | E-DOC-1 | F1 / T-101 | [ ] pendiente |
-| Gate de procesabilidad (imagen) | §4.1 | E-DOC-2 | F1 / T-102 | [ ] pendiente |
-| Clasificador de imagen (foto / escaneo / screenshot / manuscrito) | §4.1 | E-DOC-2 | F1 / T-102 | [ ] pendiente |
-| Preprocesamiento (perspectiva, calidad, binarización) | §4.1 | E-DOC-2 | F1 / T-103 | [ ] pendiente |
-| Detección de orientación + rotación | §4.1 | E-DOC-2 | F1 / T-103 | [ ] pendiente |
-| Elección de motor OCR tradicional vs. VLM | §4.1 | E-DOC-2 | F1 / T-104 | [ ] pendiente |
-| Ordenar por posición (center_y / center_x) + tablas Markdown | §4.1 / E-DOC-3 (doc 02) | E-DOC-3 | F1 / T-104 | [ ] pendiente |
-| Dataclass `ProcessedDocument` (contrato de salida) | §4.1 + §9 | E-DOC | F0 / T-001 (schema afín) | [ ] pendiente |
-| Adaptador `DoclingConverter` encapsulado (consumido aquí) | §4.6 | E-DOC | F0 / T-006 | [ ] pendiente |
-| Paridad funcional con `ocr_documents.py`/`run.py`/`run_raw.py` (mismo .md) | §8.2 (mapeo v1→v2) | E-DOC | F1 / T-105 | [ ] pendiente |
+| Detector de tipo de entrada (pdf/img/office/plano/no soportado → rutas) | §4.1 | E-DOC-1 | F1 / T-101 | [x] hecho (`type_detector.py`) |
+| Rutas: texto nativo / pdf escaneado→imagen / office+planos / rechazo-reencolado | §4.1 | E-DOC-1 | F1 / T-101 | [x] hecho (decisión de ruta por tipo; `routing.py` para PDF por página) |
+| Enrutado de PDF por página (apta/escaneada/corrupta/vacía → apto/requiere_ocr/parcial) | §4.1 | E-DOC-1 | F1 / T-105/EXT | [x] hecho (`routing.py`) |
+| Gate de procesabilidad (imagen) | §4.1 | E-DOC-2 | F1 / T-102 | [x] hecho (`image_classifier.py`) |
+| Clasificador de imagen (foto / escaneo / screenshot / manuscrito) | §4.1 | E-DOC-2 | F1 / T-102 | [x] hecho |
+| Preprocesamiento (perspectiva, calidad, binarización) | §4.1 | E-DOC-2 | F1 / T-103 | [x] hecho (heurístico `QualityReport`; stub sin CV) |
+| Detección de orientación + rotación | §4.1 | E-DOC-2 | F1 / T-103 | [x] hecho (`orientation.py` por boxes) |
+| Elección de motor OCR tradicional vs. VLM | §4.1 | E-DOC-2 | F1 / T-104 | [x] hecho (selección + hook; VLM real en F4) |
+| Ordenar por posición (center_y / center_x) + tablas Markdown | §4.1 / E-DOC-3 (doc 02) | E-DOC-3 | F1 / T-104 | [x] hecho (`markdown_exporter.py`) |
+| Dataclass `ProcessedDocument` (contrato de salida) | §4.1 + §9 | E-DOC | F0 / T-001 (schema afín) | [x] hecho |
+| Adaptador `DoclingConverter` encapsulado (consumido aquí) | §4.6 | E-DOC | F0 / T-006 | [x] hecho |
+| Orquestación `procesar_documento()` + `api.process()` | §4.1 | E-DOC-1 / E-DOC | F1 / T-105/ORQ | [ ] pendiente |
+| Paridad funcional con `ocr_documents.py`/`run.py`/`run_raw.py` (mismo .md) | §8.2 (mapeo v1→v2) | E-DOC | F1 / T-105 | [ ] pendiente (integración) |
 
 ## 3. Definition of Design / contratos a congelar
 
@@ -161,4 +163,6 @@ print(resultado.document.render_as_markdown())
 |---|---|---|---|
 | 2026-09-06 | Validación Docling vs pdftotext sobre pdf_escaneados/pdf_aptos_layout; decisión de ruta para orquestación (render→imagen para escaneados). | team implementation | Documentado (§5) |
 | 2026-09-06 | T-101 a T-104 implementados (detector PyMuPDF, clasificador+gate, orientación/preproc, motor+exportador). | team implementation | Hecho |
+| 2026-09-06 | `routing.py`: enrutado de PDF por página (apta/escaneada/corrupta/vacía → apto/requiere_ocr/parcial) portado de `scripts/detectar_aptos_pdftotext_layout.py`. | team implementation | Hecho |
 | 2026-09-06 | Referencia externa de configuración Docling para facturas escaneadas (force_full_page_ocr + Tesseract/EasyOCR) agregada a §5.4. | team analysis / implementation | Documentado |
+| 2026-09-06 | Pendiente: orquestación `procesar_documento()` + `api.process()` (entrada de F2/F3/F4) y T-105 (tests de integración de paridad). | team implementation | Pendiente |

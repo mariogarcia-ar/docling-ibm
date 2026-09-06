@@ -11,22 +11,26 @@
 | Campo | Valor |
 |---|---|
 | **Fase en curso** | **F1 — Procesamiento (refactor docling)** (T-101..T-105 + orquestación) |
-| **Estado** | 🟢 **F0 completada** (77 tests). F1 **en implementación**: T-101 ✅ y T-102 ✅ hechas; restan T-103 (preprocesamiento/orientación), T-104 (motor OCR/VLM + exportador), orquestación + `api.process()`, T-105 (integración) y docs de cierre |
+| **Estado** | 🟢 **F0 completada** (77 tests al cierre). F1 **en implementación**: T-101 ✅, T-102 ✅, T-103 ✅, T-104 ✅ y enrutado PDF por página ✅ (`routing.py`); restan orquestación `procesar_documento()` + `api.process()`, T-105 (integración paridad) y docs de cierre |
 | **F0** | ✅ Fundación completada (schemas, esqueleto, golden set, adaptadores) |
 | **F2–F6** | 🔴 Backlog (validación, clasificación, extracción, conclusión, cliente) |
 | **Paquete** | `voucherflow` v`0.1.0` (layout `src/`, ADR-007) |
 | **Contrato** | `SCHEMA_VERSION = 1.0.0` (congelado, ver criterio de cambio en `schemas/evidence.py`) |
-| **Suite de tests** | ✅ **133 tests en verde** (`python -m pytest tests -q`) en env `py313_env` |
+| **Suite de tests** | ✅ **187 tests en verde** (`python -m pytest tests -q`) en env `py313_env` |
 
 **Resumen**: F0 dejó la **fundación de la librería**: contratos de evidencia
 congelados, configuración centralizada, adaptadores `OllamaClient`/
 `DoclingConverter`, base del motor de reglas, el **golden set inicial** y el
 esqueleto de las 5 capacidades (F1–F5). Sobre esa base, **F1** (en curso)
 refactoriza Docling en `voucherflow/processing/`: ya están implementados el
-**detector de tipo de entrada** (T-101) y el **clasificador de imagen + gate de
-procesabilidad** (T-102), ambos heurísticos livianos, **sin dependencias
-nuevas** y cubiertos por tests. Aún **no hay pipeline funcional de extremo a
-extremo** (llega al completar F1–F5/F6).
+**detector de tipo de entrada** (T-101), el **clasificador de imagen + gate de
+procesabilidad** (T-102), la **orientación/preprocesamiento** (T-103), el
+**motor OCR/VLM + exportador ordenado por posición** (T-104) y el **enrutado de
+PDF por página** (`routing.py`, apoyo a orquestación), todo heurístico liviano,
+**sin dependencias nuevas** y cubierto por tests. Aún **no hay pipeline
+funcional de extremo a extremo** (falta la orquestación `procesar_documento()`
++ `api.process()` y la paridad de integración T-105; el pipeline completo llega
+con F1–F5/F6).
 
 ---
 
@@ -67,12 +71,19 @@ lógica de negocio**: sus funciones lanzan `NotImplementedError` hasta su fase.
 
 | Tarea | Módulo | Qué ofrece / se puede probar | Tests |
 |---|---|---|---|
-| **T-101** (✅) | `processing/type_detector.py` | `detectar() -> TipoEntrada` (pdf_texto/pdf_escaneado/imagen/office/texto/no_soportado) con heurística de bytes `/Font` vs `/Subtype /Image` para PDF (sin deps). | `test_processing_type_detector.py` (29) |
+| **T-101** (✅) | `processing/type_detector.py` | `detectar() -> TipoEntrada` (pdf_texto/pdf_escaneado/imagen/office/texto/no_soportado) con distinción pdf_texto/pdf_escaneado por capa real de texto (PyMuPDF). | `test_processing_type_detector.py` (29) |
 | **T-102** (✅) | `processing/image_classifier.py` | `ClaseImagen` (foto/escaneo_plano/screenshot/manuscrito), `clasificar()`, gate `verificar_procesabilidad() -> VeredictoGate` y hook `sospechar_manuscrito()`. Lee dimensiones JPEG/PNG/BMP/TIFF con stdlib (sin Pillow/OpenCV). | `test_processing_image_classifier.py` (27) |
+| **T-103** (✅) | `processing/preprocessing.py` + `orientation.py` | Orientación por boxes (horizontal/vertical dominante) + preprocesamiento heurístico (`QualityReport`/`evaluar_calidad`), sin CV. | `test_processing_orientation.py` (19) |
+| **T-104** (✅) | `processing/ocr.py` + `markdown_exporter.py` | Motor OCR/VLM (`elegir_motor`: ocr/vlm/auto) + hook `transcribir_vlm` (sin llamar a Ollama en F1) y exportador ordenado por posición (portado de `v1/lib/orientation.py`, paridad byte-compatible; tablas Markdown como ítem único). | `test_processing_exportador_motor.py` (24) |
+| **Apoyo orq.** (✅) | `processing/routing.py` | Enrutado de PDF por página (apta_layout/escaneada/corrupta/vacía) y veredicto por PDF (apto/requiere_ocr/parcial) para la orquestación. | `test_processing_routing.py` (9) |
 | **Inspección** | `scripts/inspeccionar_t102.py` | Aplica T-102 sobre fixtures (o carpeta CLI) y muestra resumen/detalle por clase y gate. | — |
 
 > Detalle: sobre los 38 fixtures de imagen, T-102 clasifica 23 `escaneo_plano`,
 > 13 `screenshot` y 2 `foto`, con **0 rechazos** en falso del gate.
+
+> **Pendiente de F1**: orquestación `procesar_documento()` + `api.process()`
+> (hoy `api.process` lanza `NotImplementedError`), T-105 (tests de integración
+> de paridad contra v1, `@pytest.mark.integration`) y docs de cierre.
 
 ---
 
@@ -87,7 +98,7 @@ python -c "import voucherflow; print(voucherflow.__version__, voucherflow.SCHEMA
 # → 0.1.0 1.0.0
 ```
 
-### 3.2 Suite de tests (133 en verde)
+### 3.2 Suite de tests (187 en verde)
 
 ```bash
 cd v2
@@ -105,8 +116,11 @@ Cobertura de la suite por archivo (F0 + F1):
 | `test_settings_config.py` | `Settings`: defaults, override por env `VOUCHERFLOW_*`, precedencia de fuentes. |
 | `test_golden_y_esqueleto.py` | Golden set (integridad de `casos.csv` vs. archivos en `fixtures/`, splits sin cruce) y esqueletos (firmas presentes, lanzan `NotImplementedError`). |
 | `test_fixtures.py` | Integridad/consistencia de los fixtures del golden set. |
-| `test_processing_type_detector.py` | **F1/T-101**: `detectar()` por extensión y heurística pdf_texto/pdf_escaneado (PDFs sintéticos). |
+| `test_processing_type_detector.py` | **F1/T-101**: `detectar()` por extensión y por capa de texto pdf_texto/pdf_escaneado (PDFs sintéticos). |
 | `test_processing_image_classifier.py` | **F1/T-102**: clasificador (foto/escaneo/screenshot por ratio/EXIF/RGBA), gate de procesabilidad y hook de manuscrito (PNG/JPEG sintéticos con stdlib). |
+| `test_processing_orientation.py` | **F1/T-103**: orientación por boxes (horizontal/vertical), `requiere_rotacion` y preprocesamiento heurístico (`QualityReport`). |
+| `test_processing_exportador_motor.py` | **F1/T-104**: exportador ordenado por posición (horizontal/vertical/tablas) + elección de motor ocr/vlm/auto + hook `transcribir_vlm` sin Ollama. |
+| `test_processing_routing.py` | **Apoyo orquestación**: clasificación de página (apta/escaneada/corrupta/vacía) y veredicto por PDF (apto/requiere_ocr/parcial). |
 
 ### 3.3 Probar el contrato de evidencia a mano (ejemplos)
 
@@ -153,17 +167,19 @@ reglas.ids_disparados({"monto": 100, "texto": "tiene IVA"})  # ["R1", "R2"]
 
 ### 3.6 Lo que NO se puede probar todavía
 
-- ❌ Procesar/convertir un documento real con Docling (llega en **F1**, T-101..T-105).
+- ❌ Pipeline de extremo a extremo de un documento (orquestación `procesar_documento()` + `api.process()`; llega en **F1**).
+- ❌ Paridad de integración T-105 contra v1 sobre fixtures reales (tests `@pytest.mark.integration`; llega en **F1**).
 - ❌ Gate "¿es comprobante?" estilo qween (llega en **F2**, T-201..T-204).
 - ❌ Clasificar tipo/letra y cadena contable (llega en **F3**, T-301..T-305).
 - ❌ Extracción VLM/LLM con evidencia combinada (llega en **F4**, T-401..T-405).
 - ❌ Conclusión reglas→agente→HITL + trazabilidad persistida (llega en **F5**).
 - ❌ CLI/batch (`voucherflow …`) y paridad v1 sobre `files/` (llega en **F6**).
 
-Todas las funciones de esqueleto (`detectar`, `validar_comprobante`,
-`clasificar_*`, `flujo_vlm/llm`, `combinar_evidencia`, `concluir`,
-`escalar_a_agente`, `encolar_hitl`, `CaseRecorder.registrar`) lanzan
-`NotImplementedError` a propósito.
+Las funciones de esqueleto de fases futuras (`validate`, `classify`,
+`extract`, `run`, `validar_comprobante`, `clasificar_*`, `flujo_vlm/llm`,
+`combinar_evidencia`, `concluir`, `escalar_a_agente`, `encolar_hitl`,
+`CaseRecorder.registrar`) y la orquestación de F1 (`api.process`,
+`procesar_documento`) lanzan `NotImplementedError` a propósito.
 
 ---
 
@@ -173,8 +189,8 @@ Todas las funciones de esqueleto (`detectar`, `validar_comprobante`,
       fiscal`, `veredicto`) con el contador (T-004 / plan §3.4 y §4).
 - [ ] Reportar **métricas de la fase** y dejar sin deuda técnica bloqueante
       para F1 (DoD transversal de calidad — `docs/plan/06-estrategia-calidad.md`).
-- [ ] Actualizar el estado de F0 a "cerrada" en `docs/plan/05-plan/F0.md` y
-      arrancar F1 (`docs/plan/05-plan/F1.md`, T-101).
+- [x] F0 en revisión en `docs/plan/05-plan/F0.md` y F1 arrancada
+      (`docs/plan/05-plan/F1.md`, T-101..T-105 en curso).
 
 ---
 

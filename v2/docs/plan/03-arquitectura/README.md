@@ -18,7 +18,7 @@ contrato y ADR, y se registra su estado de diseño/implementación.
 | Archivo | Módulo (paquete) | Responsabilidad | Estado de diseño | Fase(s) |
 |---|---|---|---|---|
 | [`SCHEMAS.md`](SCHEMAS.md) | `voucherflow/schemas/` | Contrato de evidencia pydantic (`EvidenceField`, `SourceEvidence`, `CombinedEvidence`, `VoucherResult`, `CaseRecord`) | 🔴 Borrador | F0 (T-001) |
-| [`PROC.md`](PROC.md) | `voucherflow/processing/` | Ingestión multi-formato: detector de tipo, gate de procesabilidad, clasificador de imagen, preprocesamiento, orientación, motor OCR/VLM y exportación ordenada | 🔴 Borrador | F0 (T-006) + F1 (T-101..T-105) |
+| [`PROC.md`](PROC.md) | `voucherflow/processing/` | Ingestión multi-formato: detector de tipo, gate de procesabilidad, clasificador de imagen, preprocesamiento, orientación, motor OCR/VLM, enrutado PDF por página y exportación ordenada | 🟡 En implementación (T-101..T-104 + routing; falta orquestación + T-105) | F0 (T-006) + F1 (T-101..T-105) |
 | [`VAL.md`](VAL.md) | `voucherflow/validation/` | Gate "¿es comprobante?" por doble paso qween (vista rápida → revisión → vista fiel) | 🔴 Borrador | F2 (T-201..T-204) |
 | [`CLAS.md`](CLAS.md) | `voucherflow/classification/` | Tipo/letra (R1-R7 + VLM/LLM) y clasificación contable (cadena 01→02→03) | 🔴 Borrador | F3 (T-301..T-305) |
 | [`EXT.md`](EXT.md) | `voucherflow/extraction/` | Extracción con flujos VLM y LLM en paralelo, reglas raw (pasada 1) y combinación por campo | 🔴 Borrador | F4 (T-401..T-405) |
@@ -28,11 +28,11 @@ contrato y ADR, y se registra su estado de diseño/implementación.
 | [`TRACE.md`](TRACE.md) | `voucherflow/trace/` | Registro por caso (`CaseRecord`), trazabilidad y persistencia (JSON sidecar) | 🔴 Borrador | F5 (T-506) + F6 (T-603) |
 | [`ORCH-CLI.md`](ORCH-CLI.md) | `voucherflow/orchestrator.py` · `api.py` + `cli/` | Orquestador del pipeline, API de alto nivel y cliente CLI (orquestador/consumidor) | 🔴 Borrador | F5/F6 (T-601..T-606) |
 
-> **Nota de estado**: todos los módulos están en **🔴 Borrador** porque la
-> arquitectura (`03-arquitectura-solucion.md`) es un diseño propuesto y los
-> ADR-001/002/005/006/007 están en estado *propuesto* (aún no resueltos). El
-> primer salto de estado a "🟡 En revisión" se espera tras el workshop de F0
-> (T-003) cuando se congelen los contratos de evidencia y reglas.
+> **Nota de estado**: los módulos de fases futuras (VAL, CLAS, EXT, CONC, RULES,
+> TRACE, ORCH-CLI, y SCHEMAS/MODELS pendientes de confirmar su trazabilidad)
+> siguen en **🔴 Borrador**. **`PROC.md` (processing)** ya pasó a **🟡 En
+> implementación** (F1): T-101..T-104 + enrutado por página hechos; falta la
+> orquestación `procesar_documento()` + `api.process()` y la paridad T-105.
 
 ---
 
