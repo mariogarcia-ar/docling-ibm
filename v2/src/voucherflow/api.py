@@ -1,9 +1,9 @@
-"""API de alto nivel (facade) de ``voucherflow`` — esqueleto (F0).
+"""API de alto nivel (facade) de ``voucherflow`` — F1.
 
 **Fase**: F0 deja el esqueleto de la fachada pública de la librería. La
 implementación de cada operación se completa cuando su módulo de capacidad
-exista (F1–F5): ``process`` (F1), ``validate`` (F2), ``classify`` (F3),
-``extract`` (F4) y ``run``/``concluir`` (F5).
+exista (F1–F5): ``process`` (F1, implementado — T-105/ORQ), ``validate`` (F2),
+``classify`` (F3), ``extract`` (F4) y ``run``/``concluir`` (F5).
 
 El objetivo de exponer esta fachada desde F0 es **fijar la API pública** de la
 librería (E-LIB-1: "librería primero, cliente después") para que el cliente
@@ -48,9 +48,36 @@ class ContratoError(VoucherflowError):
 def process(origen: str) -> "ProcessedDocument":
     """Procesa un documento a representación Markdown+boxes (F1).
 
-    Esqueleto F0 — se implementa en F1 (módulo ``processing``).
+    Implementación de F1 (T-105/ORQ): delega en la orquestación del módulo
+    ``processing`` (``procesar_documento``), que decide la ruta por tipo de
+    entrada (doc 03 §4.1 y ``docs/ideas/docling.md``):
+
+      - PDF escaneado / imagen → gate T-102 → Docling OCR sobre la imagen
+        (render→imagen para PDF escaneado, PROC.md §5).
+      - PDF apto / office / texto → Docling directo (texto nativo).
+      - Formato no soportado → ``DocumentoNoProcesableError`` (rechazo).
+
+    El import de ``processing`` es **diferido** (dentro de la función) para no
+    crear un ciclo de import en el arranque del paquete: ``processing`` no
+    importa ``api`` a nivel de módulo, pero el import local es la opción más
+    segura y explícita (el módulo ``processing`` recién se necesita al
+    procesar, no al importar la fachada).
+
+    Argumentos:
+        origen: ruta al documento (pdf/imagen/office/txt/...).
+
+    Devuelve:
+        :class:`ProcessedDocument` con ``markdown`` + ``boxes`` + metadatos.
+
+    Lanza:
+        ``FileNotFoundError`` si la ruta no existe.
+        ``DocumentoNoProcesableError`` si el formato no es soportado, el PDF no
+        pudo analizarse o la imagen no superó el gate de procesabilidad (F1).
     """
-    raise NotImplementedError("process(): se implementa en F1 (módulo processing).")
+    # Import diferido: evita el ciclo api -> processing -> (api) en el arranque.
+    from .processing.orquestacion import procesar_documento
+
+    return procesar_documento(origen)
 
 
 def validate(origen: str, quick: bool = True) -> "ValidationResult":

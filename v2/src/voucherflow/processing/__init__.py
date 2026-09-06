@@ -60,6 +60,11 @@ from .routing import (
     clasificar_pagina,
 )
 
+# Orquestación de la Fase F1 (T-105/ORQ, E-DOC): ``procesar_documento`` es la
+# entrada de ``api.process``; ``procesar_imagen`` y ``render_pdf_a_jpg`` son la
+# subrutina de imagen y el helper de render (PROC.md §5).
+from .orquestacion import procesar_documento, procesar_imagen, render_pdf_a_jpg
+
 __all__ = [
     "ProcessedDocument",
     "TipoEntrada",
@@ -95,4 +100,8 @@ __all__ = [
     "VeredictoPdf",
     "analizar_pdf",
     "clasificar_pagina",
+    # Orquestación F1 (T-105/ORQ)
+    "procesar_documento",
+    "procesar_imagen",
+    "render_pdf_a_jpg",
 ]

@@ -1,4 +1,10 @@
 {
   "python.analysis.extraPaths": ["v2/src"],
-  "python.analysis.diagnosticMode": "openFilesOnly"
+  "python.analysis.diagnosticMode": "openFilesOnly",
+  "chat.tools.terminal.autoApprove": {
+    "/^python -m pytest tests 2>&1 \\| grep -E \"\\[0-9\\]\\+ \\(passed\\|failed\\|error\\|warnings\\)\" \\| tail -3$/": {
+      "approve": true,
+      "matchCommandLine": true
+    }
+  }
 }
