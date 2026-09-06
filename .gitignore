@@ -3,6 +3,9 @@ files/
 certs/
 
 *.tar.gz
+*.zip
+*.rar
+*.7z
 
 # Python
 __pycache__/
