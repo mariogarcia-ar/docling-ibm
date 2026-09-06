@@ -29,6 +29,18 @@ from .image_classifier import (
     verificar_procesabilidad,
 )
 
+# Preprocesamiento + orientación (F1 / T-103, E-DOC-2).
+from .orientation import (
+    ORIENTACION_HORIZONTAL,
+    ORIENTACION_VERTICAL,
+    ORIENTACIONES_VALIDAS,
+    detectar_orientacion,
+    orientacion_de,
+    orientacion_por_box,
+    requiere_rotacion,
+)
+from .preprocessing import QualityReport, evaluar_calidad, preprocesar
+
 __all__ = [
     "ProcessedDocument",
     "TipoEntrada",
@@ -40,4 +52,14 @@ __all__ = [
     "leer_caracteristicas",
     "sospechar_manuscrito",
     "verificar_procesabilidad",
+    "ORIENTACION_HORIZONTAL",
+    "ORIENTACION_VERTICAL",
+    "ORIENTACIONES_VALIDAS",
+    "detectar_orientacion",
+    "orientacion_de",
+    "orientacion_por_box",
+    "requiere_rotacion",
+    "QualityReport",
+    "evaluar_calidad",
+    "preprocesar",
 ]
