@@ -52,14 +52,32 @@ from voucherflow.processing.type_detector import detectar  # noqa: E402
 
 
 def _render_pdf_a_jpg(pdf: Path, dpi: int = 300) -> Path:
-    """Renderiza la primera página de un PDF escaneado a JPG (RGB, sin alfa)."""
+    """Renderiza un PDF escaneado a JPG (RGB, sin alfa) para OCR.
+
+    Estrategia: si la página tiene imagen(es), renderiza el **área de la imagen
+    más grande** (clip) con zoom — evita el caso de un ticket/recibo chico
+    centrado en una hoja A4 escaneada, que a página completa queda diminuto y
+    Docling no lo lee (ej. fixture 3ac5a2ec). Si no hay imágenes, renderiza la
+    página completa.
+    """
     import fitz  # PyMuPDF
 
     doc = fitz.open(str(pdf))
     try:
         pagina = doc[0]
-        mat = fitz.Matrix(dpi / 72, dpi / 72)
-        pix = pagina.get_pixmap(matrix=mat, colorspace=fitz.csRGB)
+        infos = pagina.get_image_info()
+        if infos:
+            # Tomar la imagen de mayor área.
+            mayor = max(infos, key=lambda i: (i["bbox"][2] - i["bbox"][0]) * (i["bbox"][3] - i["bbox"][1]))
+            bbox = fitz.Rect(mayor["bbox"])
+            # Zoom para que el lado mayor de la imagen quede ~2000 px (bueno para OCR).
+            lado_px = max(bbox.width, bbox.height)
+            zoom = max(2000 / lado_px, dpi / 72) if lado_px else dpi / 72
+            mat = fitz.Matrix(zoom, zoom)
+            pix = pagina.get_pixmap(matrix=mat, clip=bbox, colorspace=fitz.csRGB)
+        else:
+            mat = fitz.Matrix(dpi / 72, dpi / 72)
+            pix = pagina.get_pixmap(matrix=mat, colorspace=fitz.csRGB)
     finally:
         doc.close()
 
