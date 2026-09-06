@@ -51,6 +51,7 @@ system: |
     "candidatos_restantes": [],
     "tipo_esperado_por_negocio": null,
     "tipo_detectado_por_documento": null,
+    "tipo_detectado_por_documento_explicacion": "string",
     "reglas_aplicadas": [],
     "coincide_negocio_vs_documento": false,
     "alerta": {
@@ -65,6 +66,9 @@ system: |
   - Elegí un solo valor real para tipo_documento, tipo_comprobante y confianza.
   - Usá [] cuando una lista no tenga elementos.
   - Usá null cuando no puedas determinar un campo.
+  - Explicá brevemente en tipo_detectado_por_documento_explicacion qué evidencia
+    del documento permitió determinar la letra. Mencioná el recuadro, la letra,
+    el código visible o el texto OCR relevante. Si no hay evidencia, usá null.
   - Escribí en candidatos_descartados la letra y el motivo.
   - Escribí en candidatos_restantes solo letras posibles: A, B, C, M o E.
   - Escribí en tipo_esperado_por_negocio únicamente A, B, C, M, E o null.
