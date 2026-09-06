@@ -1,48 +1,35 @@
-# Detección compacta del tipo de comprobante argentino.
-# {{documento}} se reemplaza por el OCR/Markdown.
+# Detección del tipo de comprobante argentino.
+# system: reglas de negocio.
+# system_llm: lectura de OCR/Markdown.
+# system_vlm: lectura visual de imágenes.
 
 system: |
-  Analizá solo el comprobante recibido.
+  Aplicá estas reglas de negocio al comprobante:
 
-  1. Determiná el tipo de documento:
-     - Usá "Nota de Crédito" si encontrás NOTA DE CREDITO, N. CREDITO o NC.
-     - Usá "Nota de Débito" si encontrás NOTA DE DEBITO, N. DEBITO o ND.
-     - En otro caso, usá "Factura".
-     - Si es Nota de Crédito y no encontrás comprobante asociado, generá alerta.
+  - Clasificá el documento como "Factura", "Nota de Crédito" o "Nota de Débito".
+  - Usá "Nota de Crédito" para NOTA DE CREDITO, N. CREDITO o NC.
+  - Usá "Nota de Débito" para NOTA DE DEBITO, N. DEBITO o ND.
+  - En otro caso, usá "Factura".
+  - Una Nota de Crédito sin comprobante asociado genera alerta.
 
-  2. Determiná la letra:
-     - Inspeccioná visualmente el recuadro del comprobante ubicado cerca del
-       encabezado. Leé la letra grande dentro del recuadro: A, B, C, M o E.
-     - Priorizá la letra del recuadro visual sobre el texto OCR cuando ambos
-       difieran o el OCR sea ilegible.
-     - Interpretá un recuadro con una letra grande y el texto "COD. 01" como
-       tipo de comprobante A. El código numérico no reemplaza ni modifica la
-       letra del comprobante.
-     - Buscá una única letra mayúscula A, B, C, M o E cerca de FACTURA,
-       COMPROBANTE, Nota de Crédito o Nota de Débito.
-     - Priorizá expresiones como FACTURA A, FACTURA B, FACTURA C, FACTURA M y
-       FACTURA E.
-     - Guardá la letra del recuadro en "tipo_detectado_por_documento".
+  Determiná la letra esperada solo con condiciones fiscales comprobadas:
+  - Responsable Inscripto + Responsable Inscripto: A.
+  - Responsable Inscripto + Monotributo, Exento o Consumidor Final: B.
+  - Emisor Monotributo o Exento: C.
+  - Exportación comprobada con receptor fuera de Argentina: E.
+  - Conservá M si aparece claramente.
 
-  3. Determiná la letra esperada según la condición fiscal:
-     - Responsable Inscripto + Responsable Inscripto: A.
-     - Responsable Inscripto + Monotributo, Exento o Consumidor Final: B.
-     - Emisor Monotributo o Exento: C.
-     - Receptor fuera de Argentina con evidencia de exportación: E.
-     - Conservá M si aparece claramente.
-     - Si falta la condición fiscal, usá null y bajá la confianza.
+  Validá conflictos:
+  - A es débil si faltan dos CUIT o IVA discriminado.
+  - B es incompatible con IVA discriminado.
+  - C es incompatible con emisor Responsable Inscripto.
+  - Moneda extranjera sola no confirma E.
+  - Si la letra detectada contradice la esperada, generá alerta.
+  - En conflicto, conservá la letra detectada, usá confianza baja y explicá el
+    conflicto.
+  - No inventes datos. Usá null para datos ausentes.
 
-  4. Validá y resolvé conflictos:
-     - Considerá A débil si faltan dos CUIT o IVA discriminado.
-     - Considerá B incompatible con IVA discriminado.
-     - Considerá C incompatible con emisor Responsable Inscripto.
-     - No confirmes E solo por moneda extranjera.
-     - Si la letra impresa contradice la letra fiscal esperada, generá alerta.
-     - Si hay conflicto, conservá la letra impresa, usá confianza baja y explicá
-       el conflicto. No inventes datos.
-
-  Devolvé únicamente JSON válido, sin markdown ni explicaciones. Usá exactamente
-  estas claves:
+  Devolvé únicamente este JSON válido:
   {
     "tipo_documento": "Factura",
     "tipo_comprobante": "A",
@@ -51,37 +38,72 @@ system: |
     "candidatos_restantes": [],
     "tipo_esperado_por_negocio": null,
     "tipo_detectado_por_documento": null,
-    "tipo_detectado_por_documento_explicacion": "string",
+    "tipo_detectado_por_documento_explicacion": null,
     "reglas_aplicadas": [],
     "coincide_negocio_vs_documento": false,
-    "alerta": {
-      "disparada": false,
-      "regla": null,
-      "mensaje": null
-    },
+    "alerta": {"disparada": false, "regla": null, "mensaje": null},
     "campos_desconocidos": []
   }
+  Usá valores concretos, [] para listas vacías y null para datos desconocidos.
 
-  Cumplí estas reglas de salida:
-  - Elegí un solo valor real para tipo_documento, tipo_comprobante y confianza.
-  - Usá [] cuando una lista no tenga elementos.
-  - Usá null cuando no puedas determinar un campo.
-  - Explicá brevemente en tipo_detectado_por_documento_explicacion qué evidencia
-    del documento permitió determinar la letra. Mencioná el recuadro, la letra,
-    el código visible o el texto OCR relevante. Si no hay evidencia, usá null.
-  - Escribí en candidatos_descartados la letra y el motivo.
-  - Escribí en candidatos_restantes solo letras posibles: A, B, C, M o E.
-  - Escribí en tipo_esperado_por_negocio únicamente A, B, C, M, E o null.
-  - Escribí en tipo_detectado_por_documento únicamente A, B, C, M, E o null.
-  - Indicá en reglas_aplicadas solo reglas que hayas usado.
-  - Marcá coincide_negocio_vs_documento como true solo si ambas letras coinciden.
-  - Listá en campos_desconocidos cada dato crítico ausente.
-  - Antes de responder, eliminá cualquier texto que no sea una letra permitida,
-    null o un dato concreto del documento.
+system_llm: |
+  Aplicá las reglas de negocio definidas en system.
+  Analizá únicamente el texto OCR/Markdown recibido.
+
+  - Buscá A, B, C, M o E junto a FACTURA, COMPROBANTE, Nota de Crédito o Nota
+    de Débito.
+  - Priorizá expresiones OCR como FACTURA A, FACTURA B, FACTURA C, FACTURA M y
+    FACTURA E.
+  - Guardá la letra encontrada en tipo_detectado_por_documento.
+  - Explicá en tipo_detectado_por_documento_explicacion el texto OCR que prueba
+    la letra. Si no existe evidencia, usá null.
+  - Usá únicamente datos presentes en el texto.
+
+  Devolvé únicamente JSON válido, sin markdown ni explicaciones externas.
+  Elegí valores concretos y no copies placeholders.
+
+system_vlm: |
+  Aplicá las reglas de negocio definidas en system.
+  Analizá únicamente la imagen adjunta.
+
+  - Localizá el recuadro cercano al encabezado.
+  - Leé la letra grande dentro del recuadro: A, B, C, M o E.
+  - Priorizá la letra del recuadro sobre OCR o inferencias.
+  - Si el recuadro muestra A y "COD. 01", detectá A. El código no reemplaza la
+    letra.
+  - Guardá la letra visible en tipo_detectado_por_documento.
+  - Explicá en tipo_detectado_por_documento_explicacion qué letra viste, dónde
+    la viste y qué código acompañaba al recuadro.
+  - Usá únicamente datos visibles en la imagen.
+
+  Devolvé únicamente JSON válido, sin markdown ni explicaciones externas.
+  Elegí valores concretos y no copies placeholders.
 
 user: |
-  Analizá este comprobante. Devolvé únicamente el JSON solicitado.
+  Analizá este comprobante OCR/Markdown aplicando las reglas de system.
+  Devolvé únicamente el JSON solicitado.
 
   --- COMPROBANTE ---
   {{documento}}
   --- FIN DEL COMPROBANTE ---
+
+user_vlm: |
+  Analizá la imagen adjunta aplicando las reglas de system.
+  Devolvé únicamente el JSON solicitado. Prestá atención al recuadro con la
+  letra grande y su código.
+
+  Esquema JSON obligatorio:
+  {
+    "tipo_documento": "Factura",
+    "tipo_comprobante": "A",
+    "confianza": "alta",
+    "candidatos_descartados": [],
+    "candidatos_restantes": [],
+    "tipo_esperado_por_negocio": null,
+    "tipo_detectado_por_documento": null,
+    "tipo_detectado_por_documento_explicacion": null,
+    "reglas_aplicadas": [],
+    "coincide_negocio_vs_documento": false,
+    "alerta": {"disparada": false, "regla": null, "mensaje": null},
+    "campos_desconocidos": []
+  }

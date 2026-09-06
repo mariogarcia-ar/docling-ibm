@@ -1,3 +1,8 @@
+# Flujo
+
+
+
+# comandos
 git archive --format=zip -o cvc_local_llm.zip HEAD
 
 

@@ -20,6 +20,7 @@ Uso:
     python document_extraction.py 'files/2025-08/2D2C9343/2991f57d-c143-4b23-9f87-4dfb1214ef53.md'
 """
 import argparse
+import base64
 import json
 import re
 import sys
@@ -45,11 +46,16 @@ MODE_PROMPTS = {
 }
 
 DEFAULT_PROMPT = PROMPTS_DIR / MODE_PROMPTS[DEFAULT_MODE]
+IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".tif", ".tiff", ".bmp"}
 
 
 def load_prompt(prompt_path: Path) -> dict:
     with open(prompt_path, encoding="utf-8") as f:
         return yaml.safe_load(f)
+
+
+def is_image_file(file_path: Path) -> bool:
+    return file_path.suffix.lower() in IMAGE_EXTENSIONS
 
 
 def extract_json(text: str) -> dict:
@@ -67,14 +73,26 @@ def extract_json(text: str) -> dict:
 
 
 def run_extraction(file_path: Path, prompt_path: Path, model: str) -> dict:
-    document_text = load_document_text(file_path)
     prompt = load_prompt(prompt_path)
-    user_prompt = prompt["user"].replace("{{documento}}", document_text)
-    messages = [
-        {"role": "system", "content": prompt["system"]},
-        {"role": "user", "content": user_prompt},
-    ]
-    response = ask_ollama(messages, model)
+    use_vlm = is_image_file(file_path) and "system_vlm" in prompt and "user_vlm" in prompt
+    system_key = "system_vlm" if use_vlm else "system_llm"
+    user_key = "user_vlm" if use_vlm else "user"
+    document_text = "" if use_vlm else load_document_text(file_path)
+    user_prompt = prompt[user_key].replace("{{documento}}", document_text)
+    system_prompt = f'{prompt["system"]}\n\n{prompt[system_key]}'
+    messages = [{"role": "system", "content": system_prompt}]
+    user_message = {"role": "user", "content": user_prompt}
+    if use_vlm:
+        user_message["images"] = [
+            base64.b64encode(file_path.read_bytes()).decode("ascii")
+        ]
+    messages.append(user_message)
+    response = ask_ollama(
+        messages,
+        model,
+        json_format=True,
+        options={"num_ctx": 8192} if use_vlm else None,
+    )
     return extract_json(response)
 
 
