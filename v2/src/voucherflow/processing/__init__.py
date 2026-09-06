@@ -41,6 +41,10 @@ from .orientation import (
 )
 from .preprocessing import QualityReport, evaluar_calidad, preprocesar
 
+# Motor OCR/VLM (F1 / T-104, E-DOC-2) + exportador ordenado (E-DOC-3).
+from .ocr import MODOS_VALIDOS, MotorOCR, elegir_motor, transcribir_vlm
+from .markdown_exporter import TOLERANCIA_LINEA, exportar_por_posicion
+
 __all__ = [
     "ProcessedDocument",
     "TipoEntrada",
@@ -62,4 +66,10 @@ __all__ = [
     "QualityReport",
     "evaluar_calidad",
     "preprocesar",
+    "MODOS_VALIDOS",
+    "MotorOCR",
+    "elegir_motor",
+    "transcribir_vlm",
+    "TOLERANCIA_LINEA",
+    "exportar_por_posicion",
 ]

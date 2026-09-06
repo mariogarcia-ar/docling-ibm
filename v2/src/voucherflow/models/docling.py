@@ -48,14 +48,21 @@ EXTENSIONES_SOPORTADAS = {
 class Box:
     """Caja de texto detectada (para debug/reordenamiento en F1).
 
-    Atributos mínimos que F1 usará para ordenar por posición (center_y /
-    center_x según orientación). Coordenadas normalizadas 0..1.
+    Atributos que F1 usa para ordenar por posición (center_y / center_x según
+    orientación). ``bbox`` es ``(l, t, r, b)``.
+
+    Campos de tabla (F1/T-104, E-DOC-3): cuando el ítem Docling original es una
+    tabla detectada, ``es_tabla=True`` y ``markdown_tabla`` guarda su Markdown
+    exportado; el exportador por posición lo trata como ítem único con
+    orientación forzada horizontal (paridad con ``v1/lib/orientation.py``).
     """
 
     texto: str
     center_x: float = 0.0
     center_y: float = 0.0
     bbox: tuple[float, float, float, float] | None = None  # (l, t, r, b)
+    es_tabla: bool = False
+    markdown_tabla: str | None = None
 
 
 @dataclass
@@ -183,10 +190,30 @@ class DoclingConverter:
         for item, _nivel in documento.iterate_items():
             n_items += 1
             texto = getattr(item, "text", None)
-            if not texto:
-                continue
             prov = getattr(item, "prov", None)
-            box = Box(texto=str(texto))
+
+            # Detectar tabla (paridad con v1/lib/orientation.py: label=='table').
+            label = getattr(item, "label", None)
+            label_value = getattr(label, "value", label)
+            es_tabla = label_value == "table"
+
+            # Para una tabla, el texto relevante es su markdown exportado.
+            markdown_tabla = None
+            if es_tabla:
+                try:
+                    markdown_tabla = item.export_to_markdown(doc=documento).strip()
+                except Exception:
+                    markdown_tabla = None
+                texto = texto or markdown_tabla
+
+            if not texto and not markdown_tabla:
+                continue
+
+            box = Box(
+                texto=str(texto),
+                es_tabla=es_tabla,
+                markdown_tabla=markdown_tabla,
+            )
             if prov:
                 bbox0 = prov[0].bbox if hasattr(prov[0], "bbox") else None
                 if bbox0 is not None:
