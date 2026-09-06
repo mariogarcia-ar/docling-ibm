@@ -22,6 +22,37 @@ funcion procesar_documento(documento):
     si tipo == imagen:
         return procesar_imagen(documento)
 
+    si tipo == office_word:
+        texto = convertir_docx_a_texto(documento)
+        return normalizar_y_estructurar(texto)
+
+    si tipo == office_excel:
+        texto = convertir_xlsx_a_tabla(documento)
+        return normalizar_y_estructurar(texto)
+
+    si tipo == office_powerpoint:
+        texto = extraer_texto_presentacion(documento)
+        return normalizar_y_estructurar(texto)
+
+    si tipo == texto_plano:
+        texto = leer_archivo_texto(documento)
+        return normalizar_y_estructurar(texto)
+
+    si tipo == csv:
+        tabla = leer_csv(documento)
+        return normalizar_y_estructurar(tabla)
+
+    si tipo == log:
+        texto = parsear_log(documento)
+        return normalizar_y_estructurar(texto)
+
+    si tipo == html_o_markdown:
+        texto = extraer_contenido_semantico(documento)
+        return normalizar_y_estructurar(texto)
+
+    si tipo == archivo_no_soportado:
+        retornar rechazar_o_reencolar(documento)
+
     retornar rechazar_o_reencolar(documento)
 ```
 
@@ -76,6 +107,24 @@ funcion procesar_imagen(imagen):
 - Se valida la calidad visual.
 - Si la resolución es baja, se realiza preprocesamiento.
 - Luego se decide si conviene OCR tradicional o modelo visual.
+
+### 4) Archivos de Microsoft Office
+
+- `DOCX`: se extrae texto y estructura de documento.
+- `XLSX`: se convierte a tabla o filas/columnas estructuradas.
+- `PPTX`: se extrae texto de diapositivas y su orden semántico.
+
+### 5) Texto plano, CSV, logs, HTML y Markdown
+
+- `TXT`: se leen directamente como texto.
+- `CSV`: se interpretan como tablas y se convierten a estructura tabular.
+- `LOG`: se parsean líneas de evento o registro para extraer contenido útil.
+- `HTML` y `Markdown`: se leen desde su formato nativo y se normalizan para mantener estructura, títulos, listas y tablas.
+
+### 6) Otros formatos no soportados
+
+- Se rechazan o reencolan para revisión o soporte manual.
+- La idea es no intentar forzar un formato que no puede procesarse confiablemente.
 
 ## Clasificación de la imagen
 
@@ -153,13 +202,15 @@ El algoritmo general sigue esta lógica:
 
 1. identificar el tipo de documento
 2. elegir la ruta de procesamiento correcta
-3. evaluar calidad visual y aplicar preprocesamiento si hace falta
-4. detectar orientación
-5. elegir OCR o VLM según la complejidad visual
-6. extraer texto
-7. ordenar la salida por posición
-8. devolver una representación estructurada y legible
+3. extraer texto nativo si el formato lo permite
+4. convertir a imagen si el documento es PDF escaneado o imagen
+5. evaluar calidad visual y aplicar preprocesamiento si hace falta
+6. detectar orientación
+7. elegir OCR o VLM según la complejidad visual
+8. extraer texto
+9. ordenar la salida por posición
+10. devolver una representación estructurada y legible
 
 ## En una frase
 
-El procesamiento de documentos se decide por tipo de archivo, calidad visual, orientación y complejidad del contenido, y la extracción se adapta según el mejor motor disponible para cada caso.
+El procesamiento de documentos se decide por tipo de archivo, formato de origen, calidad visual, orientación y complejidad del contenido; la extracción se adapta según el mejor motor disponible para cada caso.
