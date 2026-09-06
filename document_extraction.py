@@ -5,6 +5,7 @@ un documento y devuelve el JSON de la respuesta del modelo.
 
 Modos disponibles (atajo -M/--mode) y su template en prompts/:
     kvi   -> extraction_key_value_invoice_prompt.yaml - auditoría de comprobantes (JSON plano)
+    11.1  -> facturacion/11.1-deteccion_tipo_factura.yaml - tipo y letra del comprobante
     kvg   -> extraction_key_value_generic_prompt.yaml - cualquier tipo de documento (JSON plano)
     ccc   -> 01-clasificacion_centro_costo_prompt.yaml - hasta tres centros de costo
     mcc   -> 02-clasificacion_macro_categoria_prompt.yaml - macro categoría
@@ -33,6 +34,7 @@ DEFAULT_MODE = "kvi"
 
 MODE_PROMPTS = {
     "kvi": "extraction_key_value_invoice_prompt.yaml",
+    "11.1": "facturacion/11.1-deteccion_tipo_factura.yaml",
     "kvg": "extraction_key_value_generic_prompt.yaml",
     "ccc": "01-clasificacion_centro_costo_prompt.yaml",
     "mcc": "02-clasificacion_macro_categoria_prompt.yaml",

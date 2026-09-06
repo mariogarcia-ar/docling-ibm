@@ -85,11 +85,14 @@ El script `document_extraction.py` utiliza Ollama para convertir un Markdown OCR
 ```bash
 python document_extraction.py files/2025-08/2D2C9343/resultado.md -M kvi
 python document_extraction.py files/2025-08/2D2C9343/resultado.md -M kvg
+python document_extraction.py files/2025-08/2D2C9343/resultado.md -M 11.1
 ```
 
 Modos disponibles:
 
 - `kvi`: extracción orientada a comprobantes y facturas.
+- `11.1`: detección del tipo de documento y letra del comprobante mediante el
+	prompt visual de facturación.
 - `kvg`: extracción genérica para cualquier documento.
 - `01` o `ccc`: clasifica hasta tres centros de costo.
 - `02` o `mcc`: clasifica la macro categoría; requiere `--centro-costo`.

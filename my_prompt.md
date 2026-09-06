@@ -38,6 +38,8 @@ python ask.py 'files/2026-07/0208340E/167fe1c3-be8a-4864-ad1f-ec045bebd7df.jpg' 
 python ask.py 'files/2026-07/0208340E/167fe1c3-be8a-4864-ad1f-ec045bebd7df.jpg'  -q "Es una factura del tipo A, B o C? Tener en cuenta que el tipo aparece como una sola letra en mayuscula cerca del termino factura."
 
 
+python document_extraction.py 'files/2026-07/0208340E/167fe1c3-be8a-4864-ad1f-ec045bebd7df.jpg'  
+
 
 tenemos un problema de temperatura del dispositivo en el cual luego de 10 min de procesamiento, deberiamos para 2 minutos los procesos esperando que la maquina se enfrie 
 

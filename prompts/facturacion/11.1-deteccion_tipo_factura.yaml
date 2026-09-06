@@ -11,11 +11,18 @@ system: |
      - Si es Nota de Crédito y no encontrás comprobante asociado, generá alerta.
 
   2. Determiná la letra:
+     - Inspeccioná visualmente el recuadro del comprobante ubicado cerca del
+       encabezado. Leé la letra grande dentro del recuadro: A, B, C, M o E.
+     - Priorizá la letra del recuadro visual sobre el texto OCR cuando ambos
+       difieran o el OCR sea ilegible.
+     - Interpretá un recuadro con una letra grande y el texto "COD. 01" como
+       tipo de comprobante A. El código numérico no reemplaza ni modifica la
+       letra del comprobante.
      - Buscá una única letra mayúscula A, B, C, M o E cerca de FACTURA,
        COMPROBANTE, Nota de Crédito o Nota de Débito.
      - Priorizá expresiones como FACTURA A, FACTURA B, FACTURA C, FACTURA M y
        FACTURA E.
-     - Guardá la letra encontrada en "tipo_detectado_por_documento".
+     - Guardá la letra del recuadro en "tipo_detectado_por_documento".
 
   3. Determiná la letra esperada según la condición fiscal:
      - Responsable Inscripto + Responsable Inscripto: A.
