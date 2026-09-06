@@ -4,9 +4,10 @@
     "grandes",
     "chicos",
     "otros",
-    "pdf_escaneados"
+    "pdf_escaneados",
+    "pdf_aptos_layout"
   ],
-  "seleccion": "10 grandes + 10 chicos + 20 medios por tamaño (files/, 2026-09-06) + 5 pdf_escaneados (2026-09-06)",
+  "seleccion": "10 grandes + 10 chicos + 20 medios por tamaño (files/, 2026-09-06) + 5 pdf_escaneados + 5 pdf_aptos_layout (2026-09-06)",
   "archivos": [
     {
       "id": "a263d645-166c-4826-b6de-2add4f4eade9",
@@ -367,6 +368,46 @@
       "extension": ".pdf",
       "tamano_bytes": 1687905,
       "origen_files": "../files/2026-06/D3CDE0E5/722106ec-ad35-4d09-879f-b2da6f8897ad.pdf"
+    },
+    {
+      "id": "36744cc6-2ed9-47e5-b4b8-66c31768164b",
+      "grupo": "pdf_aptos_layout",
+      "archivo": "pdf_aptos_layout/36744cc6-2ed9-47e5-b4b8-66c31768164b.pdf",
+      "extension": ".pdf",
+      "tamano_bytes": 12912,
+      "origen_files": "../files/2026-04/26AC5A68/36744cc6-2ed9-47e5-b4b8-66c31768164b.pdf"
+    },
+    {
+      "id": "242823d2-afd3-4107-a49c-ce382592c6a5",
+      "grupo": "pdf_aptos_layout",
+      "archivo": "pdf_aptos_layout/242823d2-afd3-4107-a49c-ce382592c6a5.pdf",
+      "extension": ".pdf",
+      "tamano_bytes": 50454,
+      "origen_files": "../files/2026-07/830DD0A3/242823d2-afd3-4107-a49c-ce382592c6a5.pdf"
+    },
+    {
+      "id": "c9946aa2-0979-4b5c-9265-77e4f126b978",
+      "grupo": "pdf_aptos_layout",
+      "archivo": "pdf_aptos_layout/c9946aa2-0979-4b5c-9265-77e4f126b978.pdf",
+      "extension": ".pdf",
+      "tamano_bytes": 57715,
+      "origen_files": "../files/2026-06/4F8B9255/c9946aa2-0979-4b5c-9265-77e4f126b978.pdf"
+    },
+    {
+      "id": "5b2e1460-197a-436e-b8cc-df5a99f77a43",
+      "grupo": "pdf_aptos_layout",
+      "archivo": "pdf_aptos_layout/5b2e1460-197a-436e-b8cc-df5a99f77a43.pdf",
+      "extension": ".pdf",
+      "tamano_bytes": 211864,
+      "origen_files": "../files/2026-05/02F45541/5b2e1460-197a-436e-b8cc-df5a99f77a43.pdf"
+    },
+    {
+      "id": "9073693b-f8bf-4f9b-88e0-1008de266c0e",
+      "grupo": "pdf_aptos_layout",
+      "archivo": "pdf_aptos_layout/9073693b-f8bf-4f9b-88e0-1008de266c0e.pdf",
+      "extension": ".pdf",
+      "tamano_bytes": 278833,
+      "origen_files": "../files/2026-08/D1E7CD80/9073693b-f8bf-4f9b-88e0-1008de266c0e.pdf"
     }
   ]
 }

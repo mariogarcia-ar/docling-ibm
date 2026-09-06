@@ -3,21 +3,22 @@
 `files/` es una carpeta temporal e ignorada por git (`.gitignore`), por lo que
 los tests usan copias versionadas en `v2/tests/fixtures/`. Este módulo valida
 que el set de fixtures esté completo y sea consistente con su `manifest.json`
-(10 grandes + 10 chicos + 20 otros + 5 pdf_escaneados).
+(10 grandes + 10 chicos + 20 otros + 5 pdf_escaneados + 5 pdf_aptos_layout).
 
 Criterio (ver `fixtures/README.md`): archivos de `files/` ordenados por tamaño
-→ 10 más grandes, 10 más chicos y 20 del rango medio; en F1/T-105 se agregó un
-grupo ``pdf_escaneados`` con 5 PDFs sin capa de texto (paridad de PDF escaneado).
+→ 10 más grandes, 10 más chicos y 20 del rango medio; en F1/T-105 se agregaron
+los grupos ``pdf_escaneados`` (5 PDFs sin capa de texto) y ``pdf_aptos_layout``
+(5 PDFs con texto nativo apto para ``pdftotext --layout``).
 """
 
 from __future__ import annotations
 
 
 class TestManifest:
-    def test_manifest_existe_y_tiene_45(self, fixtures_manifest):
+    def test_manifest_existe_y_tiene_50(self, fixtures_manifest):
         assert fixtures_manifest, "Falta tests/fixtures/manifest.json"
         archivos = fixtures_manifest["archivos"]
-        assert len(archivos) == 45, f"El manifest debe listar 45 archivos, tiene {len(archivos)}"
+        assert len(archivos) == 50, f"El manifest debe listar 50 archivos, tiene {len(archivos)}"
 
     def test_conteo_por_grupo(self, fixtures_manifest):
         from collections import Counter
@@ -27,6 +28,7 @@ class TestManifest:
         assert grupos["chicos"] == 10, grupos
         assert grupos["otros"] == 20, grupos
         assert grupos["pdf_escaneados"] == 5, grupos
+        assert grupos["pdf_aptos_layout"] == 5, grupos
 
     def test_manifest_archivos_tienen_metadata(self, fixtures_manifest):
         for a in fixtures_manifest["archivos"]:
@@ -66,6 +68,19 @@ class TestArchivos:
             te = detectar(p)
             assert te.tipo == "pdf_escaneado", f"{p.name} no es pdf_escaneado: {te.motivo}"
             assert te.ruta_ocr is True
+
+    def test_pdfs_aptos_layout_tienen_capa_de_texto(self, fixtures_dir):
+        # Los PDFs del grupo pdf_aptos_layout deben tener texto nativo real
+        # (T-101 los ve como pdf_texto): cubren la ruta de texto nativo / layout.
+        from voucherflow.processing.type_detector import detectar
+
+        carpeta = fixtures_dir / "pdf_aptos_layout"
+        pdfs = sorted(carpeta.glob("*.pdf"))
+        assert len(pdfs) == 5, f"Esperaba 5 pdfs aptos, hay {len(pdfs)}"
+        for p in pdfs:
+            te = detectar(p)
+            assert te.tipo == "pdf_texto", f"{p.name} no es pdf_texto: {te.motivo}"
+            assert te.ruta_ocr is False
 
 
 class TestGoldenReferencia:

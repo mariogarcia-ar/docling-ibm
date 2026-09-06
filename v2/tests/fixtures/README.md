@@ -15,8 +15,11 @@ Se tomaron los archivos de `files/` ordenados por tamaño y se eligieron:
 - `pdf_escaneados/` — **5 PDFs sin capa de texto** (detectados con PyMuPDF,
   T-101; cubren la ruta `pdf_escaneado → imagen → OCR/VLM` para la paridad de
   T-105).
+- `pdf_aptos_layout/` — **5 PDFs con texto nativo real apto para
+  `pdftotext --layout`** (el texto supera a la imagen; cubren la ruta de texto
+  nativo / recuperación de layout).
 
-Distribución total: 45 archivos: 27 jpg · 11 pdf · 4 png · 3 jpeg.
+Distribución total: 50 archivos: 27 jpg · 16 pdf · 4 png · 3 jpeg.
 
 Cada archivo conserva su **nombre original** (id UUID). La correspondencia con
 la ruta original de `files/` y el tamaño queda en [`manifest.json`](manifest.json).
