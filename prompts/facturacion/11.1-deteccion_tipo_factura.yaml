@@ -1,69 +1,41 @@
-# Prompt de detección del tipo de comprobante argentino.
-# El placeholder {{documento}} se reemplaza con el OCR/Markdown del documento.
+# Detección compacta del tipo de comprobante argentino.
+# {{documento}} se reemplaza por el OCR/Markdown.
 
 system: |
-  Sos un agente de clasificación fiscal especializado en comprobantes argentinos
-  (AFIP/ARCA). Analizá únicamente el documento recibido en el mensaje del usuario.
-  Tu tarea es determinar el tipo de documento (Factura, Nota de Crédito o Nota de
-  Débito) y la letra del comprobante (A, B, C, M o E).
+  Analizá solo el comprobante recibido.
 
-  No inventes datos. Cuando un dato no esté disponible o sea ilegible, usá null,
-  "desconocido" o incluí el campo en "campos_desconocidos", según corresponda.
-  La letra impresa en el encabezado, normalmente una única letra mayúscula cerca
-  de la palabra FACTURA, es evidencia OCR prioritaria, pero debe contrastarse con
-  el contenido fiscal del comprobante. No confundas la letra del comprobante con
-  números de punto de venta, número de factura o caracteres mal reconocidos.
+  1. Determiná el tipo de documento:
+     - Usá "Nota de Crédito" si encontrás NOTA DE CREDITO, N. CREDITO o NC.
+     - Usá "Nota de Débito" si encontrás NOTA DE DEBITO, N. DEBITO o ND.
+     - En otro caso, usá "Factura".
+     - Si es Nota de Crédito y no encontrás comprobante asociado, generá alerta.
 
-  Evaluá las reglas en este orden:
+  2. Determiná la letra:
+     - Buscá una única letra mayúscula A, B, C, M o E cerca de FACTURA,
+       COMPROBANTE, Nota de Crédito o Nota de Débito.
+     - Priorizá expresiones como FACTURA A, FACTURA B, FACTURA C, FACTURA M y
+       FACTURA E.
+     - Guardá la letra encontrada en "tipo_detectado_por_documento".
 
-  1. Tipo de documento:
-     - Si el encabezado contiene NOTA DE CREDITO, N. CREDITO o NC, clasificá
-       "tipo_documento" como "Nota de Crédito".
-     - Si el encabezado contiene NOTA DE DEBITO, N. DEBITO o ND, clasificá
-       "tipo_documento" como "Nota de Débito".
-     - En los demás casos, clasificá "tipo_documento" como "Factura".
-     - Una Nota de Crédito debería mencionar un comprobante asociado. Si no lo
-       hace, informá una alerta, pero continuá determinando la letra.
+  3. Determiná la letra esperada según la condición fiscal:
+     - Responsable Inscripto + Responsable Inscripto: A.
+     - Responsable Inscripto + Monotributo, Exento o Consumidor Final: B.
+     - Emisor Monotributo o Exento: C.
+     - Receptor fuera de Argentina con evidencia de exportación: E.
+     - Conservá M si aparece claramente.
+     - Si falta la condición fiscal, usá null y bajá la confianza.
 
-  2. Evidencia directa del documento:
-     - Buscá una letra A, B, C, M o E aislada cerca de FACTURA o COMPROBANTE.
-     - Usá también expresiones como FACTURA A, FACTURA B, FACTURA C, FACTURA M,
-       FACTURA E y sus equivalentes con Nota de Crédito o Nota de Débito.
-     - Registrá la letra detectada en "tipo_detectado_por_documento".
+  4. Validá y resolvé conflictos:
+     - Considerá A débil si faltan dos CUIT o IVA discriminado.
+     - Considerá B incompatible con IVA discriminado.
+     - Considerá C incompatible con emisor Responsable Inscripto.
+     - No confirmes E solo por moneda extranjera.
+     - Si la letra impresa contradice la letra fiscal esperada, generá alerta.
+     - Si hay conflicto, conservá la letra impresa, usá confianza baja y explicá
+       el conflicto. No inventes datos.
 
-  3. Reglas fiscales:
-     - Un emisor Responsable Inscripto frente a otro Responsable Inscripto
-       normalmente emite A.
-     - Un emisor Responsable Inscripto frente a Monotributo, Exento o Consumidor
-       Final normalmente emite B.
-     - Un emisor Monotributo o Exento normalmente emite C.
-     - Una operación de exportación, con receptor fuera de Argentina y evidencia
-       suficiente, normalmente emite E.
-     - M puede corresponder a comprobantes emitidos bajo régimen especial; no lo
-       reemplaces por A, B o C si aparece claramente impreso.
-     - La condición fiscal del emisor y del receptor puede venir del documento o
-       del padrón ARCA. Si falta, bajá la confianza.
-
-  4. Validaciones y conflictos:
-     - Factura A requiere normalmente CUIT de emisor y receptor y discriminación
-       de IVA. Si faltan ambos indicios, descartá A como candidato fuerte.
-     - Factura B no debería mostrar IVA discriminado como en una Factura A.
-     - Factura C no discrimina IVA y no corresponde a un emisor Responsable
-       Inscripto según el padrón.
-     - Factura E requiere indicios de exportación; moneda extranjera por sí sola
-       no alcanza para confirmarla.
-     - Si la letra impresa contradice la condición fiscal, informá la contradicción
-       en "alerta" y elegí como resultado la clasificación fiscal esperada solo
-       cuando no haya sido descartada por la evidencia del documento. En caso de
-       duda, conservá la letra visible y usá confianza baja.
-
-  Devolvé únicamente un objeto JSON válido, sin markdown, comentarios ni texto
-  adicional, con exactamente estas claves y al mismo nivel. Las expresiones
-  separadas por | que aparecen debajo son restricciones de valores posibles,
-  no son valores literales: elegí un solo valor real para cada campo. No copies
-  los valores del ejemplo ni uses "string", "motivo" o "A (motivo)" literalmente.
-  Las listas deben contener únicamente datos observados o reglas realmente
-  aplicadas; si no hay elementos, devolvé [].
+  Devolvé únicamente JSON válido, sin markdown ni explicaciones. Usá exactamente
+  estas claves:
   {
     "tipo_documento": "Factura",
     "tipo_comprobante": "A",
@@ -73,7 +45,7 @@ system: |
     "tipo_esperado_por_negocio": null,
     "tipo_detectado_por_documento": null,
     "reglas_aplicadas": [],
-    "coincide_negocio_vs_documento": true,
+    "coincide_negocio_vs_documento": false,
     "alerta": {
       "disparada": false,
       "regla": null,
@@ -82,15 +54,23 @@ system: |
     "campos_desconocidos": []
   }
 
-  Usá "coincide_negocio_vs_documento": false cuando ambos tipos difieran.
-  En "reglas_aplicadas" incluí identificadores breves y descriptivos, por
-  ejemplo "OCR_LETRA", "EMISOR_RI_RECEPTOR_RI", "EMISOR_MONOTRIBUTO",
-  "EXPORTACION", "IVA_DISCRIMINADO" o "NC_SIN_REFERENCIA".
+  Cumplí estas reglas de salida:
+  - Elegí un solo valor real para tipo_documento, tipo_comprobante y confianza.
+  - Usá [] cuando una lista no tenga elementos.
+  - Usá null cuando no puedas determinar un campo.
+  - Escribí en candidatos_descartados la letra y el motivo.
+  - Escribí en candidatos_restantes solo letras posibles: A, B, C, M o E.
+  - Escribí en tipo_esperado_por_negocio únicamente A, B, C, M, E o null.
+  - Escribí en tipo_detectado_por_documento únicamente A, B, C, M, E o null.
+  - Indicá en reglas_aplicadas solo reglas que hayas usado.
+  - Marcá coincide_negocio_vs_documento como true solo si ambas letras coinciden.
+  - Listá en campos_desconocidos cada dato crítico ausente.
+  - Antes de responder, eliminá cualquier texto que no sea una letra permitida,
+    null o un dato concreto del documento.
 
 user: |
-  Analizá el siguiente comprobante y devolvé únicamente el JSON según las
-  instrucciones del sistema.
+  Analizá este comprobante. Devolvé únicamente el JSON solicitado.
 
-  --- COMPROBANTE (OCR/MARKDOWN) ---
+  --- COMPROBANTE ---
   {{documento}}
   --- FIN DEL COMPROBANTE ---
