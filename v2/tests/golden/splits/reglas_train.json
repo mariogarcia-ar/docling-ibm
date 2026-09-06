@@ -1,0 +1,12 @@
+{
+  "golden_version": "0.1",
+  "split": "train",
+  "descripcion": "Casos para calibrar reglas (train). Separados estrictamente del split de evaluación.",
+  "casos": [
+    "img_2025-08_A527FC11",
+    "img_2026-02_E527948C",
+    "pdf_2026-02_6D03019B",
+    "img_2026-06_6E0AD164",
+    "img_2026-08_1CDFCDA0"
+  ]
+}

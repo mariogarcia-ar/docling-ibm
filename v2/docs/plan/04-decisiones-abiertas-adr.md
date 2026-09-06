@@ -7,27 +7,31 @@
 
 Este documento lista las decisiones abiertas, propone una **recomendación** y
 redacta **ADRs preliminares** (estado *propuesto*) para las más relevantes.
-Ninguna está cerrada: se resuelven en la Fase 0/1 del plan
-([`05-plan-ejecucion.md`](05-plan-ejecucion.md)) con los interesados.
+
+> **Estado de resolución (F0, 2026-09-06)**: los ADR-001/002/005/006/007 que
+> bloquean el MVP se resolvieron en la **Fase F0** y pasan a estado
+> **Aceptado** (ver [`05-plan/F0.md`](05-plan/F0.md), T-003). Los ADR-003/004/
+> 008/009 quedan *propuestos* y se resuelven en su fase (F5/F6). El contrato de
+> evidencia congelado vive en `v2/src/voucherflow/schemas/` (F0/T-001).
 
 ---
 
 ## 1. Decisiones abiertas (mapa)
 
-| # | Decisión | Proviene de | ¿Bloquea MVP? | ADR |
-|---|----------|-------------|---------------|-----|
-| D-1 | Contrato de evidencia entre VLM y LLM | ideas (flujo) | Sí (bloqueante) | ADR-001 |
-| D-2 | Tabla de precedencia por campo | ideas (flujo) | Sí (bloqueante) | ADR-002 |
-| D-3 | Alcance de "buscar más evidencia" (gatillo + límite ARCA) | ideas (flujo + algoritmo) | Parcial (se puede dejar como hook) | ADR-003 |
-| D-4 | Auditoría / muestreo de "certeza alta" | ideas (flujo) | No (se diseña en conclusión) | ADR-004 |
-| D-5 | Trazabilidad completa y su persistencia | ideas (flujo) | Sí (requisito de negocio) | ADR-005 |
-| D-6 | Dónde viven las reglas de negocio (código vs. prompt) | v1 `11.1`/WIP R1-R7 | Sí (bloqueante) | ADR-006 |
-| D-7 | Organización del paquete y nombre de la librería | readme v2 | No (baja) | ADR-007 |
-| D-8 | Cómo se implementa el "agente de IA" de la conclusión | ideas (algoritmo) | No (baja) | ADR-008 |
-| D-9 | Persistencia de resultados/HITL (JSON sidecar vs. SQLite vs. servicio) | PM/NFR | No (media) | ADR-009 |
-| D-10 | Política de enfriamiento por temperatura en lotes | `my_prompt.md` (contexto operativo) | No (media) | — (config) |
-| D-11 | Modalidades `llm`/`vlm`/`auto` y su mapeo a los nuevos flujos | v1 `document_extraction.py` | No | — (diseño detallado) |
-| D-12 | Volumen de `files/` como dataset: tamaño y criterio del golden set | contexto repo | No | — (ver 06) |
+| # | Decisión | Proviene de | ¿Bloquea MVP? | ADR | Estado |
+|---|----------|-------------|---------------|-----|--------|
+| D-1 | Contrato de evidencia entre VLM y LLM | ideas (flujo) | Sí (bloqueante) | ADR-001 | ✅ Aceptado (F0) |
+| D-2 | Tabla de precedencia por campo | ideas (flujo) | Sí (bloqueante) | ADR-002 | ✅ Aceptado (F0) |
+| D-3 | Alcance de "buscar más evidencia" (gatillo + límite ARCA) | ideas (flujo + algoritmo) | Parcial (se puede dejar como hook) | ADR-003 | Propuesto (F5) |
+| D-4 | Auditoría / muestreo de "certeza alta" | ideas (flujo) | No (se diseña en conclusión) | ADR-004 | Propuesto (F5) |
+| D-5 | Trazabilidad completa y su persistencia | ideas (flujo) | Sí (requisito de negocio) | ADR-005 | ✅ Aceptado (F0) |
+| D-6 | Dónde viven las reglas de negocio (código vs. prompt) | v1 `11.1`/WIP R1-R7 | Sí (bloqueante) | ADR-006 | ✅ Aceptado (F0) |
+| D-7 | Organización del paquete y nombre de la librería | readme v2 | No (baja) | ADR-007 | ✅ Aceptado (F0) |
+| D-8 | Cómo se implementa el "agente de IA" de la conclusión | ideas (algoritmo) | No (baja) | ADR-008 | Propuesto (F5) |
+| D-9 | Persistencia de resultados/HITL (JSON sidecar vs. SQLite vs. servicio) | PM/NFR | No (media) | ADR-009 | Propuesto (F6) |
+| D-10 | Política de enfriamiento por temperatura en lotes | `my_prompt.md` (contexto operativo) | No (media) | — (config) | Config (F6) |
+| D-11 | Modalidades `llm`/`vlm`/`auto` y su mapeo a los nuevos flujos | v1 `document_extraction.py` | No | — (diseño detallado) | Abierta |
+| D-12 | Volumen de `files/` como dataset: tamaño y criterio del golden set | contexto repo | No | — (ver 06) | Abierta |
 
 ---
 
@@ -35,7 +39,9 @@ Ninguna está cerrada: se resuelven en la Fase 0/1 del plan
 
 ### ADR-001 · Contrato de evidencia compartido entre VLM y LLM
 
-- **Estado**: Propuesto · **Prioridad**: Alta (bloqueante) · **Decisión D-1**
+- **Estado**: ✅ **Aceptado** (F0, 2026-09-06) · **Prioridad**: Alta (bloqueante) · **Decisión D-1**
+- **Implementación**: `v2/src/voucherflow/schemas/evidence.py` (congelado,
+  `SCHEMA_VERSION=1.0.0`, criterio de cambio documentado en el módulo).
 
 **Contexto**
 Hoy cada modalidad devuelve JSON libre según el prompt (`kvi`, `kvg`, `11.1`).
@@ -65,7 +71,10 @@ se reescribe para devolver **evidencia**, no decisión final.
 
 ### ADR-002 · Tabla de precedencia por campo (resolución de desacuerdos)
 
-- **Estado**: Propuesto · **Prioridad**: Alta (bloqueante) · **Decisión D-2**
+- **Estado**: ✅ **Aceptado** (F0, 2026-09-06) · **Prioridad**: Alta (bloqueante) · **Decisión D-2**
+- **Implementación**: el shape de resolución por campo (`FieldResolution` +
+  `CampoCombinado`) está congelado en `schemas/evidence.py`; la tabla de
+  precedencia concreta (PREC_1…) se codifica en F4 (T-404).
 
 **Contexto**
 Cuando VLM y LLM discrepan en un campo, hay que decidir qué fuente gana por tipo
@@ -156,8 +165,10 @@ tasa inicial en Fase 1 (sugerida 5-10%).
 
 ### ADR-005 · Trazabilidad completa y persistencia
 
-- **Estado**: Propuesto · **Prioridad**: Alta (requisito de auditoría) ·
-  **Decisión D-5**
+- **Estado**: ✅ **Aceptado** (F0, 2026-09-06) · **Prioridad**: Alta (requisito de auditoría) · **Decisión D-5**
+- **Implementación**: contrato `CaseRecord` congelado en
+  `v2/src/voucherflow/schemas/result.py`; el registrador/persistencia
+  (`trace/`) se implementa en F5 (T-506).
 
 **Contexto**
 Para justificar una clasificación fiscal ante una auditoría se necesita: versión
@@ -185,7 +196,10 @@ consulta/auditoría sobre el histórico (Fase futura / E-CLI HITL list).
 
 ### ADR-006 · Dónde viven las reglas de negocio: código vs. prompt
 
-- **Estado**: Propuesto · **Prioridad**: Alta (bloqueante) · **Decisión D-6**
+- **Estado**: ✅ **Aceptado** (F0, 2026-09-06) · **Prioridad**: Alta (bloqueante) · **Decisión D-6**
+- **Implementación**: base del motor declarativo (`Rule` + `Registry`) en
+  `v2/src/voucherflow/rules/registry.py`; las reglas R1-R7 se migran en F3
+  (T-301).
 
 **Contexto**
 Hoy las reglas R1-R7 están embebidas en el prompt WIP
@@ -217,7 +231,9 @@ la evidencia de VLM/LLM). El prompt conserva el **conocimiento de qué buscar**
 
 ### ADR-007 · Organización y nombre del paquete de la librería
 
-- **Estado**: Propuesto · **Prioridad**: Baja · **Decisión D-7**
+- **Estado**: ✅ **Aceptado** (F0, 2026-09-06) · **Prioridad**: Baja · **Decisión D-7**
+- **Implementación**: paquete `voucherflow` con layout `src/` en
+  `v2/src/voucherflow/` + `v2/pyproject.toml` (instalable).
 
 **Contexto**
 "Necesito tener una librería robusta y luego un cliente para invocar al

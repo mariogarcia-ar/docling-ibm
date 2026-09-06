@@ -1,0 +1,4 @@
+{
+  "python.analysis.extraPaths": ["v2/src"],
+  "python.analysis.diagnosticMode": "openFilesOnly"
+}

@@ -1,0 +1,331 @@
+{
+  "version": "1.0",
+  "grupos": [
+    "grandes",
+    "chicos",
+    "otros"
+  ],
+  "seleccion": "10 grandes + 10 chicos + 20 medios por tamaño (files/, 2026-09-06)",
+  "archivos": [
+    {
+      "id": "a263d645-166c-4826-b6de-2add4f4eade9",
+      "grupo": "grandes",
+      "archivo": "grandes/a263d645-166c-4826-b6de-2add4f4eade9.jpg",
+      "extension": ".jpg",
+      "tamano_bytes": 4365090,
+      "origen_files": "files/2025-11/A8A2145C/a263d645-166c-4826-b6de-2add4f4eade9.jpg"
+    },
+    {
+      "id": "2e29f542-9629-4518-b198-b58802105acc",
+      "grupo": "grandes",
+      "archivo": "grandes/2e29f542-9629-4518-b198-b58802105acc.jpg",
+      "extension": ".jpg",
+      "tamano_bytes": 4422666,
+      "origen_files": "files/2025-10/23CF8FC1/2e29f542-9629-4518-b198-b58802105acc.jpg"
+    },
+    {
+      "id": "ffd3f806-e576-4971-9a05-b2a045f4c957",
+      "grupo": "grandes",
+      "archivo": "grandes/ffd3f806-e576-4971-9a05-b2a045f4c957.jpg",
+      "extension": ".jpg",
+      "tamano_bytes": 4511464,
+      "origen_files": "files/2025-11/8FBF1D4F/ffd3f806-e576-4971-9a05-b2a045f4c957.jpg"
+    },
+    {
+      "id": "88fb2753-ca94-489c-ab8e-ac9ccf742ad3",
+      "grupo": "grandes",
+      "archivo": "grandes/88fb2753-ca94-489c-ab8e-ac9ccf742ad3.jpg",
+      "extension": ".jpg",
+      "tamano_bytes": 4535394,
+      "origen_files": "files/2025-09/BBCC9627/88fb2753-ca94-489c-ab8e-ac9ccf742ad3.jpg"
+    },
+    {
+      "id": "1f28e080-d797-4453-96fb-f7ea27b6621d",
+      "grupo": "grandes",
+      "archivo": "grandes/1f28e080-d797-4453-96fb-f7ea27b6621d.jpg",
+      "extension": ".jpg",
+      "tamano_bytes": 4599113,
+      "origen_files": "files/2025-09/91DC9BA7/1f28e080-d797-4453-96fb-f7ea27b6621d.jpg"
+    },
+    {
+      "id": "3201b5bc-678d-4eb6-9ab7-110e8c2aeb38",
+      "grupo": "grandes",
+      "archivo": "grandes/3201b5bc-678d-4eb6-9ab7-110e8c2aeb38.jpg",
+      "extension": ".jpg",
+      "tamano_bytes": 4621482,
+      "origen_files": "files/2025-09/68759DD0/3201b5bc-678d-4eb6-9ab7-110e8c2aeb38.jpg"
+    },
+    {
+      "id": "696960b7-d85e-4d1d-a2c1-fe7a67e994be",
+      "grupo": "grandes",
+      "archivo": "grandes/696960b7-d85e-4d1d-a2c1-fe7a67e994be.jpg",
+      "extension": ".jpg",
+      "tamano_bytes": 4623991,
+      "origen_files": "files/2025-09/40C38720/696960b7-d85e-4d1d-a2c1-fe7a67e994be.jpg"
+    },
+    {
+      "id": "afe8bb0e-cb92-464c-8694-29fe65707991",
+      "grupo": "grandes",
+      "archivo": "grandes/afe8bb0e-cb92-464c-8694-29fe65707991.jpg",
+      "extension": ".jpg",
+      "tamano_bytes": 4633996,
+      "origen_files": "files/2025-09/0DF9C5F1/afe8bb0e-cb92-464c-8694-29fe65707991.jpg"
+    },
+    {
+      "id": "9e461da9-8f9b-44f8-a7e8-8da98c11abf4",
+      "grupo": "grandes",
+      "archivo": "grandes/9e461da9-8f9b-44f8-a7e8-8da98c11abf4.jpg",
+      "extension": ".jpg",
+      "tamano_bytes": 4642280,
+      "origen_files": "files/2025-08/A527FC11/9e461da9-8f9b-44f8-a7e8-8da98c11abf4.jpg"
+    },
+    {
+      "id": "8c343f49-3266-4bea-8341-cc83d0574db4",
+      "grupo": "grandes",
+      "archivo": "grandes/8c343f49-3266-4bea-8341-cc83d0574db4.jpg",
+      "extension": ".jpg",
+      "tamano_bytes": 4722526,
+      "origen_files": "files/2025-10/454B37D0/8c343f49-3266-4bea-8341-cc83d0574db4.jpg"
+    },
+    {
+      "id": "ff3797bb-3f79-469f-a693-e0534ad94250",
+      "grupo": "chicos",
+      "archivo": "chicos/ff3797bb-3f79-469f-a693-e0534ad94250.pdf",
+      "extension": ".pdf",
+      "tamano_bytes": 4275,
+      "origen_files": "files/2026-04/632C813C/ff3797bb-3f79-469f-a693-e0534ad94250.pdf"
+    },
+    {
+      "id": "22f0e9af-6bd6-4882-bb69-0991ef3db3ed",
+      "grupo": "chicos",
+      "archivo": "chicos/22f0e9af-6bd6-4882-bb69-0991ef3db3ed.pdf",
+      "extension": ".pdf",
+      "tamano_bytes": 8260,
+      "origen_files": "files/2026-06/49E15E56/22f0e9af-6bd6-4882-bb69-0991ef3db3ed.pdf"
+    },
+    {
+      "id": "b073927b-e9d7-48fc-8f4b-8d2ef0896f97",
+      "grupo": "chicos",
+      "archivo": "chicos/b073927b-e9d7-48fc-8f4b-8d2ef0896f97.pdf",
+      "extension": ".pdf",
+      "tamano_bytes": 8486,
+      "origen_files": "files/2026-07/5F2B8208/b073927b-e9d7-48fc-8f4b-8d2ef0896f97.pdf"
+    },
+    {
+      "id": "629608b8-7cb3-4580-9b4d-dcdc722a14c9",
+      "grupo": "chicos",
+      "archivo": "chicos/629608b8-7cb3-4580-9b4d-dcdc722a14c9.pdf",
+      "extension": ".pdf",
+      "tamano_bytes": 8564,
+      "origen_files": "files/2026-07/07B064F9/629608b8-7cb3-4580-9b4d-dcdc722a14c9.pdf"
+    },
+    {
+      "id": "bab5e67d-a778-4237-ad5c-fe8c230875bc",
+      "grupo": "chicos",
+      "archivo": "chicos/bab5e67d-a778-4237-ad5c-fe8c230875bc.jpeg",
+      "extension": ".jpeg",
+      "tamano_bytes": 9152,
+      "origen_files": "files/2026-04/1E3BB665/bab5e67d-a778-4237-ad5c-fe8c230875bc.jpeg"
+    },
+    {
+      "id": "83fe1dc1-d0d9-4b4c-8dfc-326feecb110b",
+      "grupo": "chicos",
+      "archivo": "chicos/83fe1dc1-d0d9-4b4c-8dfc-326feecb110b.pdf",
+      "extension": ".pdf",
+      "tamano_bytes": 9552,
+      "origen_files": "files/2026-03/6E2569F4/83fe1dc1-d0d9-4b4c-8dfc-326feecb110b.pdf"
+    },
+    {
+      "id": "56517e08-4e12-498a-a26e-9d56fa754541",
+      "grupo": "chicos",
+      "archivo": "chicos/56517e08-4e12-498a-a26e-9d56fa754541.pdf",
+      "extension": ".pdf",
+      "tamano_bytes": 9667,
+      "origen_files": "files/2026-03/81D1E7AB/56517e08-4e12-498a-a26e-9d56fa754541.pdf"
+    },
+    {
+      "id": "243a8b81-eca0-4841-ab69-72adf519a843",
+      "grupo": "chicos",
+      "archivo": "chicos/243a8b81-eca0-4841-ab69-72adf519a843.png",
+      "extension": ".png",
+      "tamano_bytes": 11074,
+      "origen_files": "files/2026-02/E527948C/243a8b81-eca0-4841-ab69-72adf519a843.png"
+    },
+    {
+      "id": "a6d79e19-8ddf-45b2-8dfe-4a056c7ca5c3",
+      "grupo": "chicos",
+      "archivo": "chicos/a6d79e19-8ddf-45b2-8dfe-4a056c7ca5c3.png",
+      "extension": ".png",
+      "tamano_bytes": 12602,
+      "origen_files": "files/2026-01/06F5A882/a6d79e19-8ddf-45b2-8dfe-4a056c7ca5c3.png"
+    },
+    {
+      "id": "d1aa270d-b37c-48df-a87e-3a3b68558148",
+      "grupo": "chicos",
+      "archivo": "chicos/d1aa270d-b37c-48df-a87e-3a3b68558148.png",
+      "extension": ".png",
+      "tamano_bytes": 12602,
+      "origen_files": "files/2026-01/8E90E651/d1aa270d-b37c-48df-a87e-3a3b68558148.png"
+    },
+    {
+      "id": "b152bac8-52ce-4a96-a2f0-e9d62229686a",
+      "grupo": "otros",
+      "archivo": "otros/b152bac8-52ce-4a96-a2f0-e9d62229686a.png",
+      "extension": ".png",
+      "tamano_bytes": 12602,
+      "origen_files": "files/2026-01/BB15E636/b152bac8-52ce-4a96-a2f0-e9d62229686a.png"
+    },
+    {
+      "id": "125cbe9f-dda5-4f99-9fb3-407230294e07",
+      "grupo": "otros",
+      "archivo": "otros/125cbe9f-dda5-4f99-9fb3-407230294e07.jpeg",
+      "extension": ".jpeg",
+      "tamano_bytes": 104450,
+      "origen_files": "files/2026-05/72105294/125cbe9f-dda5-4f99-9fb3-407230294e07.jpeg"
+    },
+    {
+      "id": "1da34e0e-d688-4ece-80f3-c803310a5b54",
+      "grupo": "otros",
+      "archivo": "otros/1da34e0e-d688-4ece-80f3-c803310a5b54.jpg",
+      "extension": ".jpg",
+      "tamano_bytes": 160702,
+      "origen_files": "files/2026-06/38167E5B/1da34e0e-d688-4ece-80f3-c803310a5b54.jpg"
+    },
+    {
+      "id": "4e7bc53f-cf50-45d4-901f-52b232173ed0",
+      "grupo": "otros",
+      "archivo": "otros/4e7bc53f-cf50-45d4-901f-52b232173ed0.jpg",
+      "extension": ".jpg",
+      "tamano_bytes": 179360,
+      "origen_files": "files/2026-08/587F52BB/4e7bc53f-cf50-45d4-901f-52b232173ed0.jpg"
+    },
+    {
+      "id": "4c261bc8-3b30-4493-b5d4-6f499cde014e",
+      "grupo": "otros",
+      "archivo": "otros/4c261bc8-3b30-4493-b5d4-6f499cde014e.jpeg",
+      "extension": ".jpeg",
+      "tamano_bytes": 191319,
+      "origen_files": "files/2026-02/3D5FBB83/4c261bc8-3b30-4493-b5d4-6f499cde014e.jpeg"
+    },
+    {
+      "id": "87bae382-ff1e-46b0-9b55-117d34d71117",
+      "grupo": "otros",
+      "archivo": "otros/87bae382-ff1e-46b0-9b55-117d34d71117.jpg",
+      "extension": ".jpg",
+      "tamano_bytes": 203643,
+      "origen_files": "files/2026-04/725056A1/87bae382-ff1e-46b0-9b55-117d34d71117.jpg"
+    },
+    {
+      "id": "6d36ef2c-ad48-4a58-bba5-52c476344e00",
+      "grupo": "otros",
+      "archivo": "otros/6d36ef2c-ad48-4a58-bba5-52c476344e00.jpg",
+      "extension": ".jpg",
+      "tamano_bytes": 216549,
+      "origen_files": "files/2026-07/92E9FE05/6d36ef2c-ad48-4a58-bba5-52c476344e00.jpg"
+    },
+    {
+      "id": "ca40d927-193d-49bb-b399-8e86be519af2",
+      "grupo": "otros",
+      "archivo": "otros/ca40d927-193d-49bb-b399-8e86be519af2.jpg",
+      "extension": ".jpg",
+      "tamano_bytes": 229621,
+      "origen_files": "files/2026-06/61165D51/ca40d927-193d-49bb-b399-8e86be519af2.jpg"
+    },
+    {
+      "id": "336a2740-2aaa-4577-b551-fedc961607fd",
+      "grupo": "otros",
+      "archivo": "otros/336a2740-2aaa-4577-b551-fedc961607fd.jpg",
+      "extension": ".jpg",
+      "tamano_bytes": 241351,
+      "origen_files": "files/2026-07/F8B06AEB/336a2740-2aaa-4577-b551-fedc961607fd.jpg"
+    },
+    {
+      "id": "2e32c727-855b-4335-976d-369eb1deac27",
+      "grupo": "otros",
+      "archivo": "otros/2e32c727-855b-4335-976d-369eb1deac27.jpg",
+      "extension": ".jpg",
+      "tamano_bytes": 256651,
+      "origen_files": "files/2026-05/F0DB146F/2e32c727-855b-4335-976d-369eb1deac27.jpg"
+    },
+    {
+      "id": "fdcca05c-8281-40bc-8646-7b2cbaf36fea",
+      "grupo": "otros",
+      "archivo": "otros/fdcca05c-8281-40bc-8646-7b2cbaf36fea.jpg",
+      "extension": ".jpg",
+      "tamano_bytes": 274490,
+      "origen_files": "files/2026-07/B48DAE73/fdcca05c-8281-40bc-8646-7b2cbaf36fea.jpg"
+    },
+    {
+      "id": "1f0effca-0489-440b-a0a7-045efc02b0e8",
+      "grupo": "otros",
+      "archivo": "otros/1f0effca-0489-440b-a0a7-045efc02b0e8.jpg",
+      "extension": ".jpg",
+      "tamano_bytes": 297993,
+      "origen_files": "files/2026-02/2C92D49A/1f0effca-0489-440b-a0a7-045efc02b0e8.jpg"
+    },
+    {
+      "id": "4be3d157-7c0c-491d-bfe0-abf8fe755a7b",
+      "grupo": "otros",
+      "archivo": "otros/4be3d157-7c0c-491d-bfe0-abf8fe755a7b.jpg",
+      "extension": ".jpg",
+      "tamano_bytes": 327302,
+      "origen_files": "files/2026-05/D800E592/4be3d157-7c0c-491d-bfe0-abf8fe755a7b.jpg"
+    },
+    {
+      "id": "91c70602-5813-4b94-84bf-1199eeb4f8d5",
+      "grupo": "otros",
+      "archivo": "otros/91c70602-5813-4b94-84bf-1199eeb4f8d5.jpg",
+      "extension": ".jpg",
+      "tamano_bytes": 359879,
+      "origen_files": "files/2026-08/8FD4B4AF/91c70602-5813-4b94-84bf-1199eeb4f8d5.jpg"
+    },
+    {
+      "id": "886c17f5-f099-41ff-95c5-5713dbf11404",
+      "grupo": "otros",
+      "archivo": "otros/886c17f5-f099-41ff-95c5-5713dbf11404.jpg",
+      "extension": ".jpg",
+      "tamano_bytes": 411949,
+      "origen_files": "files/2026-07/DE0FB5A7/886c17f5-f099-41ff-95c5-5713dbf11404.jpg"
+    },
+    {
+      "id": "2e2481a8-468f-4bcb-8dae-9657306f2bf2",
+      "grupo": "otros",
+      "archivo": "otros/2e2481a8-468f-4bcb-8dae-9657306f2bf2.jpg",
+      "extension": ".jpg",
+      "tamano_bytes": 533588,
+      "origen_files": "files/2026-07/DD719542/2e2481a8-468f-4bcb-8dae-9657306f2bf2.jpg"
+    },
+    {
+      "id": "9e5ac0a1-8508-46b0-a955-afef3d1371c0",
+      "grupo": "otros",
+      "archivo": "otros/9e5ac0a1-8508-46b0-a955-afef3d1371c0.jpg",
+      "extension": ".jpg",
+      "tamano_bytes": 1761640,
+      "origen_files": "files/2026-01/6B029C50/9e5ac0a1-8508-46b0-a955-afef3d1371c0.jpg"
+    },
+    {
+      "id": "9fa45f1d-f6ad-4cea-b585-432aa3b39dad",
+      "grupo": "otros",
+      "archivo": "otros/9fa45f1d-f6ad-4cea-b585-432aa3b39dad.jpg",
+      "extension": ".jpg",
+      "tamano_bytes": 2519239,
+      "origen_files": "files/2025-08/F3D45CEC/9fa45f1d-f6ad-4cea-b585-432aa3b39dad.jpg"
+    },
+    {
+      "id": "48973d7a-a873-464d-863c-3b4e2cf7bbdd",
+      "grupo": "otros",
+      "archivo": "otros/48973d7a-a873-464d-863c-3b4e2cf7bbdd.jpg",
+      "extension": ".jpg",
+      "tamano_bytes": 2855077,
+      "origen_files": "files/2025-11/AC8E194A/48973d7a-a873-464d-863c-3b4e2cf7bbdd.jpg"
+    },
+    {
+      "id": "f9e731c4-080c-4962-8671-ac410cb171e7",
+      "grupo": "otros",
+      "archivo": "otros/f9e731c4-080c-4962-8671-ac410cb171e7.jpg",
+      "extension": ".jpg",
+      "tamano_bytes": 3178352,
+      "origen_files": "files/2026-01/A28EDD9B/f9e731c4-080c-4962-8671-ac410cb171e7.jpg"
+    }
+  ]
+}

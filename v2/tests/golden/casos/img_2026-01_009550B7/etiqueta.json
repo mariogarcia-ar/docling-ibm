@@ -1,0 +1,12 @@
+{
+  "golden_version": "0.1",
+  "id": "img_2026-01_009550B7",
+  "archivo": "v2/tests/fixtures/golden/a751a566-583b-4295-8a44-1ede7ab4fa77.jpg",
+  "tipo_entrada": "imagen",
+  "formato": "jpg",
+  "letra": null,
+  "condicion_fiscal": null,
+  "veredicto": null,
+  "clasificacion_contable": null,
+  "_pendiente": "Etiquetas de negocio (letra/condición/veredicto/clasificación) requieren OCR/F1 o criterio de contador (ver README del golden set)."
+}

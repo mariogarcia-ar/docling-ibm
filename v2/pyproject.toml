@@ -1,0 +1,70 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "voucherflow"
+version = "0.1.0"
+description = "Librería robusta de procesamiento documental (clasificación, extracción y conclusión de comprobantes) — v2 del sistema documental."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+authors = [{ name = "Equipo v2 — ibm-docling" }]
+keywords = ["documentos", "comprobantes", "docling", "ollama", "pipeline"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Operating System :: OS Independent",
+]
+
+# Dependencias de F0 (mínimas). Docling/requests se declaran como obligatorias
+# del paquete; en el entorno de desarrollo se resuelven contra py313_env.
+dependencies = [
+    "pydantic>=2.0",
+    "PyYAML>=6.0",
+    "requests>=2.31",
+    "docling>=2.0",
+]
+
+[project.optional-dependencies]
+# Extra para desarrollo / QA (tests, lint, cobertura).
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "httpx>=0.27",
+    "respx>=0.21",
+    "typer>=0.12",
+    "mypy>=1.10",
+]
+# Extra para el futuro CLI.
+cli = [
+    "typer>=0.12",
+]
+
+[project.urls]
+Homepage = "https://github.com/example/voucherflow"  # placeholder: lo define el dueño del repo (ADR-007)
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+# La raíz de tests vive en v2/tests. F0 usa unittest.mock para HTTP; respx/httpx
+# quedan como extras opcionales (no requeridos para la suite de F0).
+testpaths = ["tests"]
+# Layout src/: permite importar ``voucherflow`` sin instalación previa.
+pythonpath = ["src"]
+addopts = "-q"
+markers = [
+    "integration: marca tests que requieren servicios reales (Docling/Ollama) y no corren en CI.",
+]
+filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.coverage.run]
+source = ["voucherflow"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
