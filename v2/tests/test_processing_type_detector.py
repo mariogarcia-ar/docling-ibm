@@ -1,18 +1,19 @@
 """Tests del detector de tipo de entrada (F1 / T-101, épica E-DOC-1).
 
-Validan la clasificación por extensión y la heurística barata que distingue
-``pdf_texto`` de ``pdf_escaneado`` (doc 03 §4.1; regla "PDF escaneado" de
-E-DOC-1).
+Validan la clasificación por extensión y la distinción ``pdf_texto``/
+``pdf_escaneado`` (doc 03 §4.1; regla "PDF escaneado" de E-DOC-1).
 
 Reglas duras del subplan F1 (§4): la suite default corre **sin** Docling real —
-los PDFs de prueba se generan como bytes sintéticos (uno con ``/Font`` y otro
-con ``/Subtype /Image``) y se escriben en ``tmp_path``.
+los PDFs de prueba se generan con **PyMuPDF** (que crea PDFs reales abribles,
+con y sin capa de texto) y se escriben en ``tmp_path``. ``pymupdf`` es
+dependencia del paquete desde F1/T-101.
 """
 
 from __future__ import annotations
 
 from pathlib import Path
 
+import fitz  # PyMuPDF
 import pytest
 
 from voucherflow.processing.type_detector import (
@@ -27,7 +28,7 @@ from voucherflow.processing.type_detector import (
 
 
 # ---------------------------------------------------------------------------
-# Helpers: archivos sintéticos por tipo
+# Helpers: archivos de prueba por tipo
 # ---------------------------------------------------------------------------
 
 def _escribir(tmp_path: Path, nombre: str, contenido: bytes) -> Path:
@@ -36,19 +37,30 @@ def _escribir(tmp_path: Path, nombre: str, contenido: bytes) -> Path:
     return ruta
 
 
-def _pdf_texto_sintetico() -> bytes:
-    """PDF mínimo con capa de texto (declara una fuente ``/Font``)."""
-    return b"%PDF-1.4\n1 0 obj\n<< /Type /Font >>\nendobj\n%%EOF\n"
+def _pdf_con_texto(tmp_path: Path, nombre: str = "texto.pdf") -> Path:
+    """PDF real con capa de texto (inserta texto vectorial)."""
+    ruta = tmp_path / nombre
+    doc = fitz.open()
+    pagina = doc.new_page()
+    pagina.insert_text((72, 72), "FACTURA A 0001-00000001")
+    pagina.insert_text((72, 100), "Total: $ 1.234,56")
+    doc.save(str(ruta))
+    doc.close()
+    return ruta
 
 
-def _pdf_escaneado_sintetico() -> bytes:
-    """PDF mínimo escaneado (imagen de página, sin fuentes)."""
-    return b"%PDF-1.4\n1 0 obj\n<< /Subtype /Image /Width 10 /Height 10 >>\nendobj\n%%EOF\n"
-
-
-def _pdf_sin_senales() -> bytes:
-    """PDF sin fuentes ni imágenes (caso borde: se asume capa de texto)."""
-    return b"%PDF-1.4\n1 0 obj\n<< /Type /Catalog >>\nendobj\n%%EOF\n"
+def _pdf_solo_imagen(tmp_path: Path, nombre: str = "escaneado.pdf") -> Path:
+    """PDF real escaneado: una imagen a página completa, sin texto."""
+    ruta = tmp_path / nombre
+    # Crea un PNG simple en memoria (1x1 blanco no alcanza; usar pixmap).
+    pix = fitz.Pixmap(fitz.csRGB, fitz.IRect(0, 0, 200, 300), False)
+    pix.clear_with(255)  # blanco
+    doc = fitz.open()
+    pagina = doc.new_page(width=200, height=300)
+    pagina.insert_image(pagina.rect, pixmap=pix)
+    doc.save(str(ruta))
+    doc.close()
+    return ruta
 
 
 # ---------------------------------------------------------------------------
@@ -133,47 +145,63 @@ class TestClasificacionPorExtension:
 
 
 # ---------------------------------------------------------------------------
-# Heurística pdf_texto / pdf_escaneado
+# Distinción pdf_texto / pdf_escaneado (con PyMuPDF)
 # ---------------------------------------------------------------------------
 
 class TestClasificacionPdf:
-    def test_pdf_con_fuente_es_pdf_texto(self, tmp_path):
-        ruta = _escribir(tmp_path, "texto.pdf", _pdf_texto_sintetico())
-        te = detectar(ruta)
-        assert te.tipo == "pdf_texto"
-        assert te.ruta_ocr is False  # texto nativo, sin OCR
-
-    def test_pdf_solo_imagen_es_pdf_escaneado(self, tmp_path):
-        ruta = _escribir(tmp_path, "escaneado.pdf", _pdf_escaneado_sintetico())
-        te = detectar(ruta)
-        assert te.tipo == "pdf_escaneado"
-        assert te.ruta_ocr is True  # convertir a imagen + OCR
-
-    def test_pdf_sin_senales_se_asume_pdf_texto_sin_forzar_ocr(self, tmp_path):
-        # Caso borde: sin /Font ni /Image no debe forzar OCR (E-DOC-1).
-        ruta = _escribir(tmp_path, "borde.pdf", _pdf_sin_senales())
+    def test_pdf_con_capa_de_texto_es_pdf_texto(self, tmp_path):
+        # PDF con texto vectorial real -> pdf_texto (texto nativo, sin OCR).
+        ruta = _pdf_con_texto(tmp_path)
         te = detectar(ruta)
         assert te.tipo == "pdf_texto"
         assert te.ruta_ocr is False
 
-    def test_pdf_mixto_dominante_imagen_es_escaneado(self, tmp_path):
-        # 8 imágenes vs 1 fuente -> dominan las imágenes -> escaneado.
-        contenido = b"%PDF-1.4\n"
-        contenido += b"<< /Subtype /Image /Width 1 /Height 1 >>\n" * 8
-        contenido += b"<< /Type /Font >>\n"
-        contenido += b"%%EOF\n"
-        ruta = _escribir(tmp_path, "mixto.pdf", contenido)
+    def test_pdf_solo_imagen_es_pdf_escaneado(self, tmp_path):
+        # PDF con solo una imagen (sin capa de texto) -> pdf_escaneado.
+        ruta = _pdf_solo_imagen(tmp_path)
         te = detectar(ruta)
         assert te.tipo == "pdf_escaneado"
-        assert te.ruta_ocr is True
+        assert te.ruta_ocr is True  # convertir a imagen + OCR
 
-    def test_pdf_mixto_dominante_texto_es_pdf_texto(self, tmp_path):
-        # 1 imagen vs 4 fuentes -> domina el texto -> pdf_texto.
-        contenido = b"%PDF-1.4\n"
-        contenido += b"<< /Subtype /Image /Width 1 /Height 1 >>\n"
-        contenido += b"<< /Type /Font >>\n" * 4
-        contenido += b"%%EOF\n"
-        ruta = _escribir(tmp_path, "mixto2.pdf", contenido)
+    def test_pdf_texto_con_logo_no_es_escaneado(self, tmp_path):
+        # PDF con texto REAL + una imagen (logo): NO debe clasificar escaneado.
+        # (Regresión del bug detectado con PyMuPDF: la heurística de bytes
+        # marcaba como escaneado los PDFs Type0 con logo — 11 falsos positivos.)
+        ruta = tmp_path / "texto_con_logo.pdf"
+        pix = fitz.Pixmap(fitz.csRGB, fitz.IRect(0, 0, 30, 30), False)
+        pix.clear_with(200)
+        doc = fitz.open()
+        pagina = doc.new_page(width=300, height=200)
+        pagina.insert_image(fitz.Rect(10, 10, 40, 40), pixmap=pix)  # logo
+        pagina.insert_text((60, 40), "FACTURA A 0001-00000001")
+        pagina.insert_text((60, 70), "CUIT 20-12345678-9")
+        doc.save(str(ruta))
+        doc.close()
+
+        te = detectar(ruta)
+        assert te.tipo == "pdf_texto", te.motivo
+        assert te.ruta_ocr is False
+
+    def test_pdf_mixto_una_pagina_texto_una_imagen_es_pdf_texto(self, tmp_path):
+        # Mixto (1 pág texto + 1 pág imagen): se prioriza texto (E-DOC-1).
+        ruta = tmp_path / "mixto.pdf"
+        pix = fitz.Pixmap(fitz.csRGB, fitz.IRect(0, 0, 100, 150), False)
+        pix.clear_with(255)
+        doc = fitz.open()
+        p1 = doc.new_page(width=300, height=400)
+        p1.insert_text((72, 72), "Pagina con texto")
+        p2 = doc.new_page(width=100, height=150)
+        p2.insert_image(p2.rect, pixmap=pix)
+        doc.save(str(ruta))
+        doc.close()
+
+        te = detectar(ruta)
+        assert te.tipo == "pdf_texto", te.motivo
+        assert te.ruta_ocr is False
+
+    def test_pdf_corrupto_no_fuerza_ocr(self, tmp_path):
+        # PDF corrupto (no abrible) -> se asume pdf_texto sin forzar OCR.
+        ruta = _escribir(tmp_path, "corrupto.pdf", b"%PDF-1.4\nno valido")
         te = detectar(ruta)
         assert te.tipo == "pdf_texto"
         assert te.ruta_ocr is False

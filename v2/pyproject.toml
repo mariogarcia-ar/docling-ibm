@@ -19,13 +19,16 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 
-# Dependencias de F0 (mínimas). Docling/requests se declaran como obligatorias
+# Dependencias de F0/F1. Docling/pymupdf/requests se declaran como obligatorias
 # del paquete; en el entorno de desarrollo se resuelven contra py313_env.
+# pymupdf se agregó en F1/T-101: distingue pdf_texto/pdf_escaneado por contenido
+# real de página (la heurística de bytes daba falsos positivos en PDFs Type0).
 dependencies = [
     "pydantic>=2.0",
     "PyYAML>=6.0",
     "requests>=2.31",
     "docling>=2.0",
+    "pymupdf>=1.24",
 ]
 
 [project.optional-dependencies]

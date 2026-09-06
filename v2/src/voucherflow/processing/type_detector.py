@@ -7,16 +7,22 @@ reencolado para ``no_soportado`` (los formatos no soportados **no** fuerzan
 OCR — doc 02 E-DOC-1 / doc 03 §4.1).
 
 La distinción ``pdf_texto``/``pdf_escaneado`` (doc 03 §4.1; regla "PDF
-escaneado" de E-DOC-1) se resuelve con una **heurística barata** que inspecciona
-los bytes del PDF buscando fuentes declaradas (``/Font``) e imágenes de página
-(``/Subtype /Image``): un PDF con capa de texto declara tipografías; uno
-escaneado se compone sobre todo de imágenes. No se agregan dependencias (sin
-pypdf/PyMuPDF en F0) ni se corre Docling para decidir.
+escaneado" de E-DOC-1) se resuelve con **PyMuPDF** (``fitz``): se abre el PDF y
+se consulta si sus páginas tienen capa de texto real (``page.get_text()``). Un
+PDF con texto extraíble en todas sus páginas es ``pdf_texto`` (texto nativo,
+sin OCR); uno sin texto en ninguna es ``pdf_escaneado`` (convertir a imagen +
+OCR); mixto → se decide por la página dominante.
+
+Por qué PyMuPDF y no una heurística de bytes: PDFs con fuentes ``Type0`` /
+codificación ``Identity-H`` y texto comprimido en streams **no** exponen
+``/Font`` en los bytes crudos, y un logo junto a texto real hacía que la
+heurística los marcara erróneamente como escaneados (11 falsos positivos en
+``files/``, validado con datos reales 2026-09-06). PyMuPDF analiza el
+contenido real por página.
 """
 
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -54,91 +60,78 @@ class TipoEntrada:
 
 
 # ---------------------------------------------------------------------------
-# Heurística barata pdf_texto / pdf_escaneado (E-DOC-1)
+# Clasificación pdf_texto / pdf_escaneado con PyMuPDF (E-DOC-1)
 # ---------------------------------------------------------------------------
-
-#: Marcas de capa de texto: una fuente declarada implica texto vectorial.
-_RE_FUENTE = re.compile(rb"/Font\b|/Type\s*/Font\b", re.IGNORECASE)
-#: Marcas de imagen incrustada (página escaneada). ``/Subtype /Image`` es la
-#: forma canónica; se acepta también ``/Image`` como respaldo.
-_RE_IMAGEN = re.compile(rb"/Subtype\s*/Image\b", re.IGNORECASE)
-#: Tamaño de ventana (bytes) para decidir si el PDF es escaneado sin recorrer
-#: todo el archivo (heurística barata).
-_LECTURA_PDF_BYTES = 2 * 1024 * 1024  # 2 MiB de prefijo
-
-
-def _muestrear_pdf(ruta: Path) -> tuple[int, int]:
-    """Cuenta fuentes e imágenes en el prefijo del PDF (heurística barata).
-
-    Devuelve ``(n_fuentes, n_imagenes)``. Lee solo los primeros
-    ``_LECTURA_PDF_BYTES`` bytes (los objetos de página suelen estar al
-    inicio); suficiente para separar un PDF con capa de texto de uno escaneado.
-    """
-    with ruta.open("rb") as fh:
-        cabeza = fh.read(_LECTURA_PDF_BYTES)
-    n_fuentes = len(_RE_FUENTE.findall(cabeza))
-    n_imagenes = len(_RE_IMAGEN.findall(cabeza))
-    return n_fuentes, n_imagenes
-
 
 def _clasificar_pdf(ruta: Path) -> TipoEntrada:
     """Clasifica un PDF como ``pdf_texto`` o ``pdf_escaneado`` (E-DOC-1).
 
-    Regla heurística:
-      - Si declara fuentes (``/Font``) → hay capa de texto extraíble
-        (``pdf_texto``, ruta de texto nativo, sin OCR).
-      - Si solo hay imágenes de página y casi ninguna fuente → escaneado
-        (``pdf_escaneado``, hay que convertir a imagen y aplicar OCR).
-      - Documentos mixtos (texto + imágenes): se decide por la señal
-        dominante usando un umbral conservador.
+    Usa PyMuPDF (``fitz``) para leer el contenido real de cada página:
 
-    Sin fuentes declaradas y sin imágenes no debería ocurrir en un PDF válido;
-    se resuelve por la cantidad relativa de cada marca.
+      - ``paginas_con_texto == total`` → ``pdf_texto`` (capa de texto nativa).
+      - ``paginas_con_texto == 0`` → ``pdf_escaneado`` (sin capa de texto).
+      - Mixto → se decide por la mayoría (un escaneo con una portada con texto
+        no debe forzar OCR en todo).
+
+    Si PyMuPDF no puede abrir el archivo (corrupto) o no está disponible, se
+    devuelve ``pdf_texto`` conservador (Docling validará la capa real al
+    convertir) — nunca se fuerza OCR sin necesidad (E-DOC-1).
     """
-    n_fuentes, n_imagenes = _muestrear_pdf(ruta)
+    try:
+        import fitz  # PyMuPDF
 
-    if n_fuentes == 0 and n_imagenes == 0:
-        # PDF sin señales claras en el prefijo: no forzar OCR, se asume texto
-        # (Docling validará la capa real al convertir).
+        doc = fitz.open(str(ruta))
+    except Exception:
+        # No disponible o PDF corrupto: no forzar OCR, se asume texto.
         return TipoEntrada(
             tipo="pdf_texto",
             ruta_ocr=False,
-            motivo="PDF sin señales claras de escaneo en el prefijo; se asume capa de texto (E-DOC-1).",
+            motivo="No se pudo inspeccionar el PDF con PyMuPDF; se asume capa de texto (E-DOC-1).",
         )
 
-    if n_fuentes == 0:
-        # Solo imágenes → PDF escaneado (convertir a imagen + OCR).
-        return TipoEntrada(
-            tipo="pdf_escaneado",
-            ruta_ocr=True,
-            motivo=f"PDF escaneado: {n_imagenes} imagen(es) de página y 0 fuentes declaradas (E-DOC-1).",
-        )
-
-    if n_imagenes == 0:
-        # Solo fuentes → PDF con texto extraíble.
+    try:
+        total = doc.page_count
+        pag_con_texto = 0
+        for pagina in doc:
+            if pagina.get_text().strip():
+                pag_con_texto += 1
+    except Exception:
         return TipoEntrada(
             tipo="pdf_texto",
             ruta_ocr=False,
-            motivo=f"PDF con capa de texto: {n_fuentes} fuente(s) declaradas (E-DOC-1).",
+            motivo="Error leyendo páginas del PDF con PyMuPDF; se asume capa de texto (E-DOC-1).",
         )
+    finally:
+        doc.close()
 
-    # Hay ambas: decidir por la señal dominante (documentos mixtos).
-    if n_imagenes >= n_fuentes * 4:
+    if total == 0:
         return TipoEntrada(
             tipo="pdf_escaneado",
             ruta_ocr=True,
+            motivo="PDF sin páginas: no procesable como texto (E-DOC-1).",
+        )
+
+    if pag_con_texto == 0:
+        return TipoEntrada(
+            tipo="pdf_escaneado",
+            ruta_ocr=True,
+            motivo=f"PDF escaneado: 0 de {total} página(s) con capa de texto (PyMuPDF, E-DOC-1).",
+        )
+
+    if pag_con_texto < total:
+        return TipoEntrada(
+            tipo="pdf_texto",
+            ruta_ocr=False,
             motivo=(
-                f"PDF mayormente escaneado: {n_imagenes} imagen(es) vs. "
-                f"{n_fuentes} fuente(s) declaradas (E-DOC-1)."
+                f"PDF mixto: {pag_con_texto} de {total} página(s) con texto; "
+                "se prioriza capa de texto (E-DOC-1)."
             ),
         )
+
     return TipoEntrada(
         tipo="pdf_texto",
         ruta_ocr=False,
-        motivo=(
-            f"PDF con capa de texto predominante: {n_fuentes} fuente(s) vs. "
-            f"{n_imagenes} imagen(es) (E-DOC-1)."
-        ),
+        motivo=f"PDF con capa de texto en {total} página(s) (PyMuPDF, E-DOC-1).",
     )
 
 
