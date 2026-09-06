@@ -46,6 +46,15 @@ python ocr_documents.py files --output output
 
 Sin `--force`, los archivos Markdown existentes se omiten.
 
+`--workers N` crea hasta `N` procesos para procesar imágenes en paralelo.
+Cada proceso inicializa su propio convertidor Docling. Usá `--workers 1` para
+procesamiento secuencial. Si quedan workers huérfanos, ejecutá:
+
+```bash
+python kill_workers.py
+./kill_workers.sh
+```
+
 ## Ordenamiento de boxes
 
 Para cada elemento detectado:
@@ -240,6 +249,9 @@ El JSON contiene `extracciones` con 10/11 y `clasificacion` con 01/02/03.
 Después de cada etapa se actualiza el archivo `_pipeline.json`, por lo que una
 ejecución interrumpida puede continuar sin repetir los pasos ya completados.
 La opción `--force` ignora el checkpoint y reprocesa OCR y todos los pasos.
+`--workers N` procesa varias imágenes en paralelo, con un convertidor Docling
+por worker. Los checkpoints de cada imagen se mantienen independientes y el
+JSON agregado se actualiza cuando termina cada imagen.
 
 ## Estructura principal
 
