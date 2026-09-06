@@ -7,6 +7,25 @@
 
 ---
 
+## Seguimiento por módulo
+
+> Cada módulo de la librería (y los elementos transversales) tiene un archivo de
+> seguimiento que traza su arquitectura contra épicas, fases, contratos y ADRs.
+> Ver el índice en [`03-arquitectura/README.md`](03-arquitectura/README.md).
+
+- [PROC](03-arquitectura/PROC.md) — Módulo `processing` (docling multi-tipo)
+- [VAL](03-arquitectura/VAL.md) — Módulo `validation` (qween doble-paso)
+- [CLAS](03-arquitectura/CLAS.md) — Módulo `classification` (tipo/letra + contable)
+- [EXT](03-arquitectura/EXT.md) — Módulo `extraction` (VLM + LLM)
+- [CONC](03-arquitectura/CONC.md) — Módulo `conclusion` (reglas → agente → HITL)
+- [SCHEMAS](03-arquitectura/SCHEMAS.md) — Módulo `schemas/` (contrato de evidencia pydantic)
+- [RULES](03-arquitectura/RULES.md) — Módulo `rules/` (motor de reglas R1-R7, precedencia, gaps)
+- [MODELS](03-arquitectura/MODELS.md) — Módulo `models/` (adaptadores: OllamaClient, DoclingConverter, ArcaClient)
+- [TRACE](03-arquitectura/TRACE.md) — Módulo `trace/` (CaseRecord, trazabilidad, sidecar)
+- [ORCH-CLI](03-arquitectura/ORCH-CLI.md) — Orquestador + API de alto nivel + Cliente CLI (`orchestrator.py`, `api.py`, `cli/`)
+
+---
+
 ## 1. Principios de diseño
 
 1. **Etapa decide certeza** — la certeza nace de qué etapa resolvió el caso
