@@ -46,7 +46,7 @@ justificar una clasificación ante una auditoría.
 | 02 | [`02-epicas-historias-usuario.md`](02-epicas-historias-usuario.md) · carpeta [`02-epicas/`](02-epicas/) ([E-DOC](02-epicas/E-DOC.md) · [E-QWE](02-epicas/E-QWE.md) · [E-CLAS](02-epicas/E-CLAS.md) · [E-EXT](02-epicas/E-EXT.md) · [E-CONC](02-epicas/E-CONC.md) · [E-LIB](02-epicas/E-LIB.md) · [E-CLI](02-epicas/E-CLI.md)) | BA | Épicas y user stories INVEST con criterios Gherkin + archivo de seguimiento (tracking) por épica |
 | 03 | [`03-arquitectura-solucion.md`](03-arquitectura-solucion.md) | SA | Arquitectura (C4), componentes de la librería, cliente, modelos de datos, secuencias |
 | 04 | [`04-decisiones-abiertas-adr.md`](04-decisiones-abiertas-adr.md) | SA | Decisiones técnicas abiertas y ADR preliminares |
-| 05 | [`05-plan-ejecucion.md`](05-plan-ejecucion.md) | PM | WBS/fases, MoSCoW, estimaciones, riesgos, DoR/DoD |
+| 05 | [`05-plan-ejecucion.md`](05-plan-ejecucion.md) · carpeta [`05-plan/`](05-plan/) ([F0](05-plan/F0.md) · [F1](05-plan/F1.md) · [F2](05-plan/F2.md) · [F3](05-plan/F3.md) · [F4](05-plan/F4.md) · [F5](05-plan/F5.md) · [F6](05-plan/F6.md)) | PM | WBS/fases, MoSCoW, estimaciones, riesgos, DoR/DoD + archivo de seguimiento (tracking) por fase |
 | 06 | [`06-estrategia-calidad.md`](06-estrategia-calidad.md) | BA/SA/PM→DEV/QA | Estrategia de pruebas, golden set, métricas y criterios de salida por fase |
 
 ---

@@ -9,6 +9,21 @@
 
 ---
 
+## Seguimiento por fase
+
+Cada fase tiene un archivo de seguimiento propio (estado, DoD, WBS tarea a
+tarea y bitácora) dentro de `05-plan/`:
+
+- [F0](05-plan/F0.md) — Fundación (schemas, esqueleto, golden set)
+- [F1](05-plan/F1.md) — Procesamiento (refactor docling)
+- [F2](05-plan/F2.md) — Validación (refactor qween)
+- [F3](05-plan/F3.md) — Clasificación
+- [F4](05-plan/F4.md) — Extracción
+- [F5](05-plan/F5.md) — Conclusión + HITL
+- [F6](05-plan/F6.md) — Cliente CLI/batch e integración final
+
+---
+
 ## 1. Estrategia de entrega
 
 Refactor **incremental por capacidad** con un **esqueleto de librería** desde el
