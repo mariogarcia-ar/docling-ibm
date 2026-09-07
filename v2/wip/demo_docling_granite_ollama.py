@@ -11,7 +11,7 @@
 
 # NOTA sobre la API (docling >= 2.10): la forma ``ApiVlmOptions(api_url=...,
 # api_key=..., model_id=...)`` corresponde a una versión antigua de Docling. En la
-# versión instalada se usa ``VlmConvertOptions.from_preset("granite_docling",
+# versión instalada (2.126.0) se usa ``VlmConvertOptions.from_preset("granite_docling",
 # engine_options=ApiVlmEngineOptions(engine_type=VlmEngineType.API_OLLAMA))``:
 # el preset ya trae el prompt ``Convert this page to docling.``, el
 # ``response_format`` DOCTAGS y el ``model_id`` ``ibm/granite-docling:258m``.

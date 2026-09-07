@@ -3,8 +3,31 @@
 # Instalar con el entorno correcto (conda py313_env):
 #     python -m pip install -r v2/wip/requirements.txt
 #
+# Demos de docling:
+# - demo_docling.py             → OCR default de Docling (RapidOCR)
+# - demo_docling_rapidocr.py    → RapidOCR explícito
+# - demo_docling_easyocr.py     → motor EasyOCR
+# - demo_docling_granite.py     → VLM Granite Docling (transformers/HF)  [comentada]
+# - demo_docling_granite_ollama.py → VLM Granite Docling vía Ollama local [comentada]
+# Otras librerías:
 # - demo_pymupdf4llm.py  → pymupdf4llm (usa pymupdf + rapidocr para OCR de imagen)
 # - demo_xberg.py        → xberg (wheel nativo; solo disponible vía pip, no conda)
+
+# -- demos de docling -----------------------------------------------------------
+# Docling >= 2.118.0: fix de RapidOCR multi-idioma (PR #3863). Antes (2.115.0) es/en
+# resolvían al set 'latin', que rapidocr>=3.9.x rechaza en PP-OCRv6
+# (ValueError: Unsupported rec.lang_type='latin' for PP-OCRv6).
+docling==2.126.0
+# OCR por defecto (demo_docling.py y demo_docling_rapidocr.py):
+rapidocr==3.9.2
+rapidocr-onnxruntime==1.2.3
+onnxruntime==1.29.0      # backend de inferencia de rapidocr
+# Motor EasyOCR (demo_docling_easyocr.py); códigos de idioma ISO (es/en, no spa/eng):
+easyocr==1.7.2
+# VLM Granite Docling (demo_docling_granite.py, comentada): descarga ~1 GB desde HF.
+# Requiere además transformers/torch; NO incluidos aquí por peso.
+# Variante Ollama (demo_docling_granite_ollama.py): solo necesita Ollama local
+# (ollama pull ibm/granite-docling:258m), sin dependencias extra de Python.
 
 # -- demo_pymupdf4llm.py -------------------------------------------------------
 pymupdf4llm==1.28.2     # Markdown de PDF/imagen con layout (trae pymupdf)

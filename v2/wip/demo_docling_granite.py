@@ -6,7 +6,7 @@
 
 # NOTA sobre la API: la forma ``pipeline_options.vlm_options.provider =
 # "granite_docling"`` corresponde a una versión antigua de Docling. En la versión
-# instalada (2.115.0) se configura con ``VlmPipelineOptions`` +
+# instalada (2.126.0) se configura con ``VlmPipelineOptions`` +
 # ``vlm_model_specs.GRANITEDOCLING_TRANSFORMERS`` y el pipeline ``VlmPipeline``.
 
 # Aviso: la primera corrida descarga el modelo (~1 GB) desde Hugging Face.
