@@ -126,7 +126,7 @@ def _caracteres_raros(texto: str) -> int:
 def _cobertura_imagenes(pagina: "fitz.Page") -> float:
     """Fracción (0–1) del área de la página cubierta por imágenes dibujadas."""
     try:
-        import fitz
+        import pymupdf as fitz
     except ImportError:  # pragma: no cover - pymupdf es dependencia del paquete
         return 0.0
     area_img = 0.0
@@ -196,7 +196,7 @@ def analizar_pdf(origen: str | Path) -> AnalisisPdf:
     """
     ruta = Path(origen)
     try:
-        import fitz
+        import pymupdf as fitz
     except ImportError as exc:  # pragma: no cover
         return AnalisisPdf(
             VeredictoPdf.error,

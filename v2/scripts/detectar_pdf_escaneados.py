@@ -32,7 +32,7 @@ from collections import Counter
 from pathlib import Path
 
 try:
-    import fitz  # PyMuPDF (API legada; también disponible como ``import pymupdf``)
+    import pymupdf as fitz  # PyMuPDF
 except ImportError as exc:  # pragma: no cover
     sys.exit(
         "Falta PyMuPDF. Instalalo con:  python -m pip install pymupdf\n"

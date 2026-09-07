@@ -60,7 +60,7 @@ def _render_pdf_a_jpg(pdf: Path, dpi: int = 300) -> Path:
     Docling no lo lee (ej. fixture 3ac5a2ec). Si no hay imágenes, renderiza la
     página completa.
     """
-    import fitz  # PyMuPDF
+    import pymupdf as fitz  # PyMuPDF
 
     doc = fitz.open(str(pdf))
     try:

@@ -12,7 +12,7 @@ Los PDFs se generan con PyMuPDF (sin Docling real, subplan §4).
 
 from __future__ import annotations
 
-import fitz
+import pymupdf as fitz
 import pytest
 
 from voucherflow.processing.routing import (

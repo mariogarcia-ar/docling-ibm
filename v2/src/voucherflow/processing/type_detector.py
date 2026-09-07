@@ -78,7 +78,7 @@ def _clasificar_pdf(ruta: Path) -> TipoEntrada:
     convertir) — nunca se fuerza OCR sin necesidad (E-DOC-1).
     """
     try:
-        import fitz  # PyMuPDF
+        import pymupdf as fitz  # PyMuPDF
 
         doc = fitz.open(str(ruta))
     except Exception:

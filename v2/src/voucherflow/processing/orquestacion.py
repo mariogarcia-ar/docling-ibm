@@ -108,7 +108,7 @@ def render_pdf_a_jpg(pdf: str | Path, pagina: int = 0, dpi: int = 300) -> Path:
     Devuelve:
         ``Path`` al JPG creado (RGB, sin canal alfa).
     """
-    import fitz  # PyMuPDF (dependencia del paquete, F1/T-101)
+    import pymupdf as fitz  # PyMuPDF (dependencia del paquete, F1/T-101)
 
     doc = fitz.open(str(pdf))
     try:
@@ -476,7 +476,7 @@ def _procesar_pdf_parcial(
     from .markdown_exporter import exportar_por_posicion
     from .orientation import orientacion_de
 
-    import fitz  # PyMuPDF
+    import pymupdf as fitz  # PyMuPDF
 
     paginas_ocr = sorted(analisis.paginas_ocr)
 
