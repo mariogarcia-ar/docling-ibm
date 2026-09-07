@@ -15,7 +15,7 @@
 | **ADRs relacionados** | ADR-007 (organización del paquete `src/` — decide dónde vive el módulo); decisión heredada de v1 (Docling como motor OCR/conversión multi-formato, encapsulado aquí). |
 | **Interfaces clave** | `procesar_documento()` / `processar_documento()`; dataclass `ProcessedDocument { tipo_entrada, ruta, markdown, boxes, orientacion, motor, calidad }`; flujo: `Detector de tipo → (texto nativo | pdf escaneado→imagen | imagen | office/plano) → Gate de procesabilidad → Clasificador de imagen → Preprocesamiento → Orientación → Motor (OCR|VLM) → Ordenar por posición (center_y/center_x) → salida Markdown`. |
 | **Responsable ciclo** | team analysis (BA/SA/PM) → team implementation |
-| **Estado de diseño** | � En implementación (T-101..T-104 + routing hechos; falta orquestación `procesar_documento()`/`api.process()` y T-105 integración paridad) |
+| **Estado de diseño** | En implementación (T-101..T-105/ORQ hechos, incl. orquestación `procesar_documento()`/`api.process()` con flag `docling_raw`; falta T-105 integración paridad) |
 | **Fecha inicio** | 2026-09-06 |
 | **Fecha fin** |  |
 
@@ -34,7 +34,8 @@
 | Ordenar por posición (center_y / center_x) + tablas Markdown | §4.1 / E-DOC-3 (doc 02) | E-DOC-3 | F1 / T-104 | [x] hecho (`markdown_exporter.py`) |
 | Dataclass `ProcessedDocument` (contrato de salida) | §4.1 + §9 | E-DOC | F0 / T-001 (schema afín) | [x] hecho |
 | Adaptador `DoclingConverter` encapsulado (consumido aquí) | §4.6 | E-DOC | F0 / T-006 | [x] hecho |
-| Orquestación `procesar_documento()` + `api.process()` | §4.1 | E-DOC-1 / E-DOC | F1 / T-105/ORQ | [ ] pendiente |
+| Orquestación `procesar_documento()` + `api.process()` | §4.1 | E-DOC-1 / E-DOC | F1 / T-105/ORQ | [x] hecho (orquestación completa; `api.process` con keyword `docling_raw`) |
+| Exponer crudo de Docling (`docling_raw`, Opción A) | §4.1 | E-DOC-3 | F1 / T-105/ORQ | [x] hecho (flag en orquestación + `api.process`; equiv. `v1/run_raw.py`; ver subplan F1 §2.5) |
 | Paridad funcional con `ocr_documents.py`/`run.py`/`run_raw.py` (mismo .md) | §8.2 (mapeo v1→v2) | E-DOC | F1 / T-105 | [ ] pendiente (integración) |
 
 ## 3. Definition of Design / contratos a congelar
@@ -81,6 +82,10 @@ ruta de orquestación:
 - **Ruta `pdf_texto`/`texto`** → Docling directo (texto nativo); `pdftotext
   --layout` queda como alternativa/complemento para recuperar layout de
   columnas (decisión de orquestación).
+- **Decisión 2026-09-06 (A1)**: la ruta texto nativo se mantiene **solo con
+  Docling** en esta iteración; `pdftotext --layout`/PyMuPDF layout **no** se
+  incorporan a la orquestación (quedan como enfoque alternativo futuro para
+  layout de columnas, ver subplan F1 §2.6).
 - **Nota**: la calidad estructural mejora con render→imagen→OCR + exportador
   (texto ordenado línea por línea) frente al PDF directo (texto pegado, pocos
   boxes).

@@ -4,7 +4,7 @@
 > `team implementation`. Complementa el seguimiento de la fase
 > ([`F1.md`](F1.md)) y el diseño del módulo
 > ([`../03-arquitectura/PROC.md`](../03-arquitectura/PROC.md)).
-> **Fecha**: 2026-09-06 · **Rama**: `v2` · **Estado**: En implementación (T-101..T-104 + routing hechos; falta orquestación + T-105 + cierre de docs).
+> **Fecha**: 2026-09-06 · **Rama**: `v2` · **Estado**: En implementación (T-101..T-104 + routing + orquestación/`api.process()` hechos; falta T-105 + cierre de docs).
 
 ## 1. Ficha del subplan
 
@@ -33,8 +33,27 @@
 4. **Tests F0 afectados → actualizar en F1**:
    `test_esqueletos_lanzan_notimplemented` debe quitar `process` de la lista
    (cuando `api.process()` quede implementado) y dejarlo cubierto por los tests
-   propios de F1. *Pendiente de aplicar: hoy `api.process()` sigue lanzando
-   `NotImplementedError`.*
+   propios de F1. *Aplicado: `api.process()` quedó implementado (T-105/ORQ,
+   commit 4190fb4) y `process` ya no figura en la lista de esqueletos.*
+5. **Exponer el raw de Docling → flag `docling_raw` (Opción A, 2026-09-06)**: se
+   añade el keyword `docling_raw: bool = False` a `procesar_documento()` y a
+   `api.process()` para devolver en `ProcessedDocument.markdown` el **crudo de
+   Docling** (`export_to_markdown()`, sin el reordenado por posición del
+   exportador E-DOC-3); equivale a `v1/run_raw.py`. **No** se modifica
+   `models/docling.py` ni la dataclass (regla dura §4). Aplica a documento
+   completo (imagen / PDF apto / office / texto y PDF escaneado vía imagen
+   renderizada); en PDF mixto/parcial el crudo pleno no existe (páginas aptas
+   usan PyMuPDF `get_text`) y se anota `docling_raw: "parcial_no_aplica"` en
+   `calidad`. Default `False` preserva la política combinada (contrato F2/F3/F4).
+   Exposición CLI: `--docling-raw` en `scripts/probar_api_process.py`.
+6. **Ruta texto nativo → solo Docling (decisión 2026-09-06, A1)**: la ruta
+   `pdf_texto` apto / office / texto se mantiene **exclusivamente con Docling**
+   directo. `pdftotext --layout` (y PyMuPDF layout) **no** se incorporan a la
+   orquestación en esta iteración: queda como alternativa/complemento futuro
+   (PROC.md §5.3) para recuperar layout de columnas. Motivo: el hallazgo sobre
+   `9dfc597f` (boleto apto a 2 columnas) muestra que Docling aplana columnas,
+   pero mejorar esa ruta excede el alcance de F1 y se evaluará como enfoque
+   alternativo más adelante.
 
 ## 3. Alcance por tarea (T-101..T-105)
 
@@ -58,19 +77,22 @@
   (apto/requiere_ocr/parcial). Tests: `test_processing_routing.py` (9).
 - [ ] **T-105** — tests de integración marcados `@pytest.mark.integration`:
   paridad estructural contra v1 sobre fixtures (pendiente).
-- [ ] **Orquestación** — `procesar_documento(origen) -> ProcessedDocument` en
-  `processing/` (entrada de `api.process`); implementar `api.process()`
-  (pendiente).
+- [x] **Orquestación** — `procesar_documento(origen, *, converter, modo_motor,
+  docling_raw) -> ProcessedDocument` en `processing/` (entrada de `api.process`)
+  y `api.process(origen, *, docling_raw)` implementado (T-105/ORQ, commit
+  4190fb4). Flujo: detector de tipo → gate → clasificador → preprocesamiento →
+  orientación → motor → exportador ordenado (o crudo con `docling_raw`).
 
 ### 3.1 Avance
 
-- **Suite default**: **187 tests en verde** (`python -m pytest tests -q`).
-- Hecho: T-101, T-102, T-103, T-104 y el enrutado PDF por página (`routing.py`).
-- Pendiente: orquestación `procesar_documento()` + `api.process()`, T-105
-  (integración paridad) y docs de cierre (§7).
-- Ajuste F0 pendiente de aplicar: quitar `process` de
-  `test_esqueletos_lanzan_notimplemented` (decisión §2.4) cuando `api.process()`
-  quede implementado.
+- **Suite default**: en verde (`python -m pytest tests -q`; ~195 tests con los
+  de `docling_raw`).
+- Hecho: T-101, T-102, T-103, T-104, enrutado PDF por página (`routing.py`) y
+  orquestación `procesar_documento()` + `api.process()` (T-105/ORQ) con flag
+  `docling_raw` (decisiones §2.5/§2.6).
+- Pendiente: T-105 (integración paridad) y docs de cierre (§7).
+- Ajuste F0 aplicado: `process` ya no figura en
+  `test_esqueletos_lanzan_notimplemented` (decisiones §2.4/§2.5).
 
 ## 4. Reglas duras (no romper F0)
 

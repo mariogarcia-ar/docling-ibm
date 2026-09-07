@@ -15,7 +15,7 @@
 | **Fase(s) del plan** | F0 (T-006 adaptador Docling) y F1 (T-101..T-105 + orquestación) |
 | **Prioridad MoSCoW** | Must (MVP) |
 | **Responsable ciclo** | team analysis (BA/SA/PM) → team implementation |
-| **Estado épica** | 🟡 En implementación (F1: T-101..T-104 + routing hechos; falta orquestación + T-105) |
+| **Estado épica** | 🟡 En implementación (F1: T-101..T-105/ORQ hechos, incl. orquestación + `docling_raw`; falta T-105 paridad) |
 | **DoR cumplido** | [x] |
 | **Fecha inicio** | 2026-09-06 |
 | **Fecha fin** |  |
@@ -27,13 +27,18 @@
 - [x] La orientación se detecta y corrige, ordenando el texto según la lectura real (center_y o center_x).
 - [x] La elección de motor funciona: OCR tradicional para impreso estándar y VLM para manuscrito/firma/sello.
 - [x] La salida es Markdown ordenado por posición visual real y conserva las tablas detectadas como tablas Markdown.
-- [ ] Paridad verificable con v1 sobre el golden set: procesar los formatos de las ideas produce Markdown ordenado equivalente o superior a `ocr_documents.py`/`run.py`/`run_raw.py` (DoD de F1 en `05-plan-ejecucion.md`). *(requiere orquestación + T-105)*
+- [x] La orquestación `procesar_documento()` + `api.process()` está implementada y expone el crudo de Docling vía `docling_raw` (decisión subplan F1 §2.5).
+- [ ] Paridad verificable con v1 sobre el golden set: procesar los formatos de las ideas produce Markdown ordenado equivalente o superior a `ocr_documents.py`/`run.py`/`run_raw.py` (DoD de F1 en `05-plan-ejecucion.md`). *(requiere T-105 integración)*
 - [ ] Documentación/contratos actualizados (README/ADR si cambia una decisión).
+
+> **Nota 2026-09-06**: la ruta texto nativo se mantiene **solo con Docling**;
+> `pdftotext --layout` queda como alternativa futura para layout de columnas
+> (decisión subplan F1 §2.6; caso `9dfc597f`).
 
 ## 3. Historias de usuario y seguimiento
 
 ### E-DOC-1 · Detección del tipo de entrada y ruta de procesamiento
-- **Estado**: [x] Pendiente · [ ] En desarrollo · [ ] En QA · [x] Hecho (T-101 + routing; resta integrar en orquestación)
+- **Estado**: [x] Pendiente · [ ] En desarrollo · [ ] En QA · [x] Hecho (T-101 + routing + orquestación)
 - **Responsable**: team analysis / team implementation
 - **Como** sistema de procesamiento,
   **quiero** detectar el tipo de documento de entrada (PDF texto, PDF escaneado,
@@ -69,7 +74,7 @@ Regla: formato no soportado
 ```
 
 ### E-DOC-2 · Procesamiento adaptativo de imágenes
-- **Estado**: [x] Pendiente · [ ] En desarrollo · [ ] En QA · [x] Hecho (T-102..T-104; resta integrar en orquestación)
+- **Estado**: [x] Pendiente · [ ] En desarrollo · [ ] En QA · [x] Hecho (T-102..T-104 + integrado en orquestación)
 - **Responsable**: team analysis / team implementation
 - **Como** sistema,
   **quiero** clasificar la imagen (foto de documento, escaneo plano, captura
@@ -106,7 +111,7 @@ Regla: elección de motor
 ```
 
 ### E-DOC-3 · Salida ordenada y estructura de lectura
-- **Estado**: [x] Pendiente · [ ] En desarrollo · [ ] En QA · [x] Hecho (T-104 exportador por posición)
+- **Estado**: [x] Pendiente · [ ] En desarrollo · [ ] En QA · [x] Hecho (T-104 exportador por posición + `docling_raw` para crudo Docling)
 - **Responsable**: team analysis / team implementation
 - **Como** consumidor de la salida (flujo LLM),
   **quiero** recibir texto ordenado por posición visual real
@@ -135,7 +140,9 @@ Entonces las tablas se conservan como tablas Markdown
 | 2026-09-06 | F1/T-101 y T-102: detector de tipo + clasificador de imagen con gate | team implementation | Hecho |
 | 2026-09-06 | F1/T-103 y T-104: orientación/preprocesamiento + motor/exportador por posición | team implementation | Hecho |
 | 2026-09-06 | F1/`routing.py`: enrutado de PDF por página para la orquestación | team implementation | Hecho |
-| 2026-09-06 | Pendiente: orquestación `procesar_documento()` + `api.process()` y T-105 (paridad integración) | team implementation | Pendiente |
+| 2026-09-06 | F1/T-105/ORQ: orquestación `procesar_documento()` + `api.process()` implementadas, con flag `docling_raw` (crudo Docling) y `--docling-raw` en el script de prueba. | team analysis → team implementation | Hecho |
+| 2026-09-06 | Decisión A1: ruta texto nativo solo con Docling; `pdftotext --layout` queda como alternativa futura (layout de columnas, caso `9dfc597f`). | team analysis | Cerrada |
+| 2026-09-06 | Pendiente: T-105 (tests integración paridad) y cierre de docs. | team implementation | Pendiente |
 
 ## 5. Referencias cruzadas
 

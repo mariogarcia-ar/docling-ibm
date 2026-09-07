@@ -1,7 +1,7 @@
 # v2 — Estado actual y qué se puede probar (fase F1)
 
 > **Documento**: estado vivo de la versión 2 de `ibm-docling`.
-> **Fecha**: 2026-09-06 · **Rama**: `v2` · **Commit**: `2b4dc26` (F0 cerrada + inicio F1)
+> **Fecha**: 2026-09-06 · **Rama**: `v2` · **Commit**: `4190fb4` (F1: orquestación `procesar_documento()`/`api.process()` + flag `docling_raw`)
 > **Fuentes**: `v2/README.md`, `v2/docs/plan/05-plan/F0.md`, `v2/docs/plan/05-plan/F1.md` y `F1-subplan.md`, `v2/src/voucherflow/`
 
 ---
@@ -10,8 +10,8 @@
 
 | Campo | Valor |
 |---|---|
-| **Fase en curso** | **F1 — Procesamiento (refactor docling)** (T-101..T-105 + orquestación) |
-| **Estado** | 🟢 **F0 completada** (77 tests al cierre). F1 **en implementación**: T-101 ✅, T-102 ✅, T-103 ✅, T-104 ✅ y enrutado PDF por página ✅ (`routing.py`); restan orquestación `procesar_documento()` + `api.process()`, T-105 (integración paridad) y docs de cierre |
+| **Fase en curso** | **F1 — Procesamiento (refactor docling)** (T-101..T-105/ORQ + T-105) |
+| **Estado** | 🟢 **F0 completada** (77 tests al cierre). F1 **en implementación**: T-101 ✅, T-102 ✅, T-103 ✅, T-104 ✅, enrutado PDF por página ✅ (`routing.py`) y **orquestación `procesar_documento()` + `api.process()` ✅** (T-105/ORQ, con flag `docling_raw` para crudo Docling); resta T-105 (integración paridad) y docs de cierre |
 | **F0** | ✅ Fundación completada (schemas, esqueleto, golden set, adaptadores) |
 | **F2–F6** | 🔴 Backlog (validación, clasificación, extracción, conclusión, cliente) |
 | **Paquete** | `voucherflow` v`0.1.0` (layout `src/`, ADR-007) |
@@ -22,15 +22,16 @@
 congelados, configuración centralizada, adaptadores `OllamaClient`/
 `DoclingConverter`, base del motor de reglas, el **golden set inicial** y el
 esqueleto de las 5 capacidades (F1–F5). Sobre esa base, **F1** (en curso)
-refactoriza Docling en `voucherflow/processing/`: ya están implementados el
+refactoriza Docling en `voucherflow/processing/`: están implementados el
 **detector de tipo de entrada** (T-101), el **clasificador de imagen + gate de
 procesabilidad** (T-102), la **orientación/preprocesamiento** (T-103), el
-**motor OCR/VLM + exportador ordenado por posición** (T-104) y el **enrutado de
-PDF por página** (`routing.py`, apoyo a orquestación), todo heurístico liviano,
-**sin dependencias nuevas** y cubierto por tests. Aún **no hay pipeline
-funcional de extremo a extremo** (falta la orquestación `procesar_documento()`
-+ `api.process()` y la paridad de integración T-105; el pipeline completo llega
-con F1–F5/F6).
+**motor OCR/VLM + exportador ordenado por posición** (T-104), el **enrutado de
+PDF por página** (`routing.py`) y la **orquestación `procesar_documento()` +
+`api.process()`** (T-105/ORQ, con flag `docling_raw` que expone el crudo de
+Docling — equiv. `v1/run_raw.py`), todo heurístico liviano, **sin dependencias
+nuevas** y cubierto por tests. Ya **hay pipeline funcional de extremo a extremo**
+de procesamiento (`api.process`); resta la paridad de integración T-105 y los
+docs de cierre de F1.
 
 ---
 
