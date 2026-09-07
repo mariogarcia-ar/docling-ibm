@@ -45,7 +45,7 @@ class ContratoError(VoucherflowError):
 # ---------------------------------------------------------------------------
 
 
-def process(origen: str) -> "ProcessedDocument":
+def process(origen: str, *, docling_raw: bool = False) -> "ProcessedDocument":
     """Procesa un documento a representación Markdown+boxes (F1).
 
     Implementación de F1 (T-105/ORQ): delega en la orquestación del módulo
@@ -63,8 +63,21 @@ def process(origen: str) -> "ProcessedDocument":
     segura y explícita (el módulo ``processing`` recién se necesita al
     procesar, no al importar la fachada).
 
+    ``docling_raw`` (Opción A, decisión de alcance subplan F1 §2.5): cuando es
+    ``True``, ``ProcessedDocument.markdown`` contiene el **crudo de Docling**
+    (el markdown de ``export_to_markdown()`` del adaptador, sin el reordenado
+    por posición del exportador E-DOC-3); equivale a ``v1/run_raw.py``. El
+    default ``False`` preserva el comportamiento actual (política combinada
+    E-DOC-3, contrato F2/F3/F4). Aplica a **documento completo** (imagen / PDF
+    apto / office / texto y PDF escaneado vía imagen renderizada); en un PDF
+    **mixto/parcial** el crudo pleno no existe (las páginas aptas usan
+    PyMuPDF, no Docling por página) y se anota en ``calidad``
+    (``docling_raw: "parcial_no_aplica"``), no aplica pleno.
+
     Argumentos:
         origen: ruta al documento (pdf/imagen/office/txt/...).
+        docling_raw: si True, devuelve en ``markdown`` el crudo de Docling (sin
+            reordenar por posición); default False = comportamiento actual.
 
     Devuelve:
         :class:`ProcessedDocument` con ``markdown`` + ``boxes`` + metadatos.
@@ -77,7 +90,7 @@ def process(origen: str) -> "ProcessedDocument":
     # Import diferido: evita el ciclo api -> processing -> (api) en el arranque.
     from .processing.orquestacion import procesar_documento
 
-    return procesar_documento(origen)
+    return procesar_documento(origen, docling_raw=docling_raw)
 
 
 def validate(origen: str, quick: bool = True) -> "ValidationResult":

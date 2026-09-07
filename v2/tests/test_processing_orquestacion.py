@@ -433,6 +433,145 @@ class TestProcesarImagen:
 
 
 # ---------------------------------------------------------------------------
+# Opción A: flag docling_raw (subplan F1 §2.5) — raw de Docling sin reordenar
+# ---------------------------------------------------------------------------
+
+class TestDoclingRaw:
+    """``docling_raw=True`` expone el crudo de Docling (sin reordenar por
+    posición; equivale a ``v1/run_raw.py``). Decisión de alcance subplan F1
+    §2.5. El crudo se captura de ``conv.convert`` ANTES de pisarlo (no se
+    vuelve a correr Docling); default ``False`` preserva la política combinada
+    (E-DOC-3, contrato F2/F3/F4).
+    """
+
+    def test_imagen_docling_raw_devuelve_crudo_no_exportado(self, tmp_path):
+        # Crudo sin tabla (no reproducible por los boxes): el exportador por
+        # posición (E-DOC-3) devolvería solo el texto de los boxes; el modo raw
+        # debe devolver el markdown crudo del FakeDoc tal cual.
+        ruta = _png_documento(tmp_path)
+        crudo = "# FACTURA ELECTRONICA\n\nRAW DOCLING sin reordenar"
+        item = FakeItem("FACTURA", 50, 1100, 500, 1130)  # box horizontal
+        conv = FakeConverter(FakeDoc(markdown=crudo, items=[item]))
+        doc = procesar_documento(ruta, converter=conv, docling_raw=True)
+
+        assert doc.markdown == crudo, (
+            "docling_raw=True debe devolver el crudo de Docling (sin reordenar "
+            "por posición), no el exportado por los boxes."
+        )
+        # Marca de modo raw en calidad (Opción A).
+        assert isinstance(doc.calidad, dict)
+        assert doc.calidad.get("docling_raw") is True
+        assert doc.calidad.get("salida") == "markdown_crudo_docling"
+        # No se volvió a correr Docling: 1 sola conversión.
+        assert len(conv.convert_calls) == 1
+
+    def test_imagen_docling_raw_false_preserva_exportado(self, tmp_path):
+        # Default (docling_raw=False): comportamiento actual — exportador por
+        # posición cuando el crudo no tiene tabla (contrato F2/F3/F4).
+        ruta = _png_documento(tmp_path)
+        crudo = "# FACTURA ELECTRONICA sin tabla"
+        item = FakeItem("FACTURA", 50, 1100, 500, 1130)
+        conv = FakeConverter(FakeDoc(markdown=crudo, items=[item]))
+        doc = procesar_documento(ruta, converter=conv, docling_raw=False)
+
+        # El crudo NO se devuelve tal cual: se reordena por posición (E-DOC-3).
+        assert doc.markdown != crudo, (
+            "docling_raw=False debe conservar la política combinada (E-DOC-3): "
+            "si no hay tabla en el crudo, se ordena el texto por posición."
+        )
+        assert "FACTURA" in doc.markdown
+        assert "sin tabla" not in doc.markdown
+        assert "docling_raw" not in (doc.calidad or {})
+        # Nota informativa de política de salida (no rompe tests existentes).
+        assert (doc.calidad or {}).get("salida") == "exportado_por_posicion"
+
+    def test_imagen_con_tabla_cruda_raw_y_no_raw_coinciden(self, tmp_path):
+        # Cuando el crudo SÍ tiene tabla (y los boxes no la reproducen), la
+        # política combinada ya conserva el crudo (E-DOC-3): el modo raw y el
+        # default coinciden en el contenido de la tabla. Diferencias esperadas:
+        # el modo raw devuelve el crudo EXACTO de Docling (byte a byte, sin
+        # normalizar); la política combinada puede añadir un ``\\n`` final.
+        ruta = _png_documento(tmp_path)
+        crudo_tabla = "| Concepto | Importe |\n|----------|---------|\n| A       | $100    |"
+        # Sin items: sin boxes; la política combinada conserva el crudo con |.
+        conv = FakeConverter(FakeDoc(markdown=crudo_tabla, items=[]))
+        doc_raw = procesar_documento(ruta, converter=conv, docling_raw=True)
+        assert doc_raw.markdown == crudo_tabla, (
+            "docling_raw=True devuelve el crudo exacto de Docling."
+        )
+        assert doc_raw.calidad.get("docling_raw") is True
+
+        conv2 = FakeConverter(FakeDoc(markdown=crudo_tabla, items=[]))
+        doc_normal = procesar_documento(ruta, converter=conv2, docling_raw=False)
+        # La política combinada conserva la tabla del crudo (E-DOC-3), con la
+        # misma estructura (solo puede diferir en el salto de línea final).
+        assert doc_normal.markdown.rstrip("\n") == crudo_tabla, (
+            "La política combinada ya conserva el crudo con tabla (E-DOC-3)."
+        )
+        assert (doc_normal.calidad or {}).get("salida") == "politica_combinada"
+
+    def test_texto_nativo_docling_raw_devuelve_crudo(self, tmp_path):
+        # Ruta texto/office: _procesar_texto_nativo con docling_raw=True.
+        ruta = tmp_path / "nota.txt"
+        ruta.write_text("Factura de prueba\nTotal 100\n", encoding="utf-8")
+        crudo = "# Factura\n\nA"
+        conv = FakeConverter(FakeDoc(markdown=crudo))
+        doc = procesar_documento(ruta, converter=conv, docling_raw=True)
+
+        assert doc.tipo_entrada == "texto"
+        assert doc.motor == "docling"
+        assert doc.markdown == crudo, (
+            "docling_raw=True en texto nativo debe devolver el crudo de Docling."
+        )
+        assert doc.calidad.get("docling_raw") is True
+        assert doc.calidad.get("salida") == "markdown_crudo_docling"
+        # Una sola conversión (no se corre Docling dos veces).
+        assert len(conv.convert_calls) == 1
+
+    def test_pdf_apto_docling_raw_devuelve_crudo(self, tmp_path):
+        # PDF con texto nativo en todas las páginas → routing apto → texto
+        # nativo directo; docling_raw=True devuelve el crudo (sin reordenar).
+        ruta = _pdf_texto(tmp_path)
+        crudo = "# FACTURA PDF APTO\n\nRAW DOCLING"
+        conv = FakeConverter(FakeDoc(markdown=crudo))
+        doc = procesar_documento(ruta, converter=conv, docling_raw=True)
+
+        assert doc.tipo_entrada == "pdf_texto"
+        assert doc.markdown == crudo, (
+            "docling_raw=True en PDF apto debe devolver el crudo de Docling."
+        )
+        assert doc.calidad.get("docling_raw") is True
+        assert doc.calidad.get("routing") == "apto"
+        assert len(conv.convert_calls) == 1
+
+    def test_pdf_parcial_docling_raw_anota_no_aplica(self, tmp_path):
+        # Decisión Opción A (subplan F1 §2.5): en un PDF mixto/parcial el crudo
+        # pleno de Docling NO existe (páginas aptas usan PyMuPDF, no Docling por
+        # página). docling_raw=True mantiene la concatenación actual y anota la
+        # marca de no-aplicación en calidad.
+        ruta = _pdf_mixto(tmp_path)
+        conv = FakeConverter()
+        doc = procesar_documento(ruta, converter=conv, docling_raw=True)
+
+        assert isinstance(doc, ProcessedDocument)
+        assert doc.motor == "docling"
+        assert doc.calidad.get("routing") == "parcial"
+        assert doc.calidad.get("docling_raw") == "parcial_no_aplica", (
+            "En PDF parcial el crudo pleno no aplica: debe anotarse "
+            "docling_raw='parcial_no_aplica' en calidad."
+        )
+        assert doc.calidad.get("salida") == "concatenado_parcial"
+        assert "nota_raw" in doc.calidad
+
+    def test_pdf_parcial_docling_raw_false_sin_marcas(self, tmp_path):
+        # Default en PDF parcial: sin marcas de modo raw (comportamiento actual).
+        ruta = _pdf_mixto(tmp_path)
+        doc = procesar_documento(ruta, converter=FakeConverter(), docling_raw=False)
+        assert doc.calidad.get("routing") == "parcial"
+        assert "docling_raw" not in doc.calidad
+
+
+# ---------------------------------------------------------------------------
 # api.process (delegación, F1)
 # ---------------------------------------------------------------------------
 
@@ -465,3 +604,37 @@ class TestApiProcess:
         import voucherflow.api
 
         assert callable(voucherflow.api.process)
+
+    def test_process_propaga_docling_raw_a_procesar_documento(self, tmp_path, monkeypatch):
+        # Opción A (subplan F1 §2.5): api.process acepta el keyword
+        # ``docling_raw`` y lo propaga a procesar_documento (spy de delegación,
+        # sin Docling real). También valida que la firma posicional process
+        # (origen) sigue intacta.
+        ruta = _png_documento(tmp_path)
+        from voucherflow.processing import orquestacion
+
+        llamadas: list[dict] = []
+
+        def _fake_procesar(origen, **kwargs):
+            llamadas.append({"origen": Path(origen), "kwargs": kwargs})
+            return ProcessedDocument(
+                tipo_entrada="imagen", ruta=str(ruta),
+                markdown="| crudo |", motor="docling",
+                calidad={"docling_raw": kwargs.get("docling_raw", False)},
+            )
+
+        monkeypatch.setattr(orquestacion, "procesar_documento", _fake_procesar)
+
+        # 1) Con el flag en True → se propaga.
+        doc = process(str(ruta), docling_raw=True)
+        assert doc.calidad["docling_raw"] is True
+        assert llamadas and llamadas[0]["kwargs"].get("docling_raw") is True, (
+            "api.process(docling_raw=True) debe propagar el flag a "
+            "procesar_documento."
+        )
+
+        # 2) Default (False) → no se altera el comportamiento actual.
+        llamadas.clear()
+        doc2 = process(str(ruta))
+        assert doc2.calidad["docling_raw"] is False
+        assert llamadas[0]["kwargs"].get("docling_raw") is False

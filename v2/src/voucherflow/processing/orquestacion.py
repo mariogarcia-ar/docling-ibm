@@ -28,9 +28,18 @@ pipeline de imagen (Docling OCR); pasar el PDF directo a Docling es
 
 Contrato público (congelado para F2/F3/F4):
 
-    ``procesar_documento(origen, *, converter=None, modo_motor="auto") -> ProcessedDocument``
-    ``procesar_imagen(origen, *, converter=None, modo_motor="auto", tipo_entrada="imagen", ...) -> ProcessedDocument``
+    ``procesar_documento(origen, *, converter=None, modo_motor="auto", docling_raw=False) -> ProcessedDocument``
+    ``procesar_imagen(origen, *, converter=None, modo_motor="auto", tipo_entrada="imagen", docling_raw=False, ...) -> ProcessedDocument``
     ``render_pdf_a_jpg(pdf, pagina=0, dpi=300) -> Path``
+
+Opción A (decisión de alcance, subplan F1 §2.5): el keyword ``docling_raw``
+expone en ``ProcessedDocument.markdown`` el **raw de Docling** (el markdown
+crudo de ``export_to_markdown()`` del adaptador, sin el reordenado por
+posición del exportador E-DOC-3); equivale a ``v1/run_raw.py``. Aplica al
+documento completo (imagen/PDF apto/office/texto y PDF escaneado vía imagen
+renderizada); en PDF mixto/parcial el crudo pleno no existe (las páginas aptas
+usan PyMuPDF, no Docling por página) y se anota ``parcial_no_aplica`` en
+``calidad``. Ver docstring de cada subrutina.
 
 Reglas duras (subplan F1 §4): la suite default corre **sin** Docling real ni
 Ollama (el ``converter`` es inyectable para tests); ``ProcessedDocument`` sigue
@@ -143,6 +152,7 @@ def _procesar_texto_nativo(
     *,
     converter: Any,
     nota_calidad: str | None = None,
+    docling_raw: bool = False,
 ) -> "ProcessedDocument":
     """Ruta de texto nativo: Docling directo + orientación + exportador (E-DOC).
 
@@ -153,19 +163,30 @@ def _procesar_texto_nativo(
       - ``tipo_entrada`` final (``pdf_texto`` / ``office`` / ``texto``).
       - ``orientacion = orientacion_de(boxes)`` (T-103; default horizontal si
         no hay boxes).
-      - ``markdown = exportar_documento(doc)`` (T-104/E-DOC-3): política
-        combinada — conserva las tablas del crudo de Docling y ordena el texto
-        por posición cuando no las hay.
+      - ``markdown``: política combinada E-DOC-3 por defecto (conserva las
+        tablas del crudo y ordena el texto por posición cuando no las hay) o,
+        si ``docling_raw=True`` (Opción A, subplan F1 §2.5), el **crudo de
+        Docling** tal cual lo devolvió ``conv.convert`` (sin reordenar por
+        posición; equivale a ``v1/run_raw.py``).
       - ``calidad``: texto nativo no pasa por el gate de imagen (T-102); se
         deja ``None`` salvo que el llamador provea una nota (p. ej. un PDF con
-        ruteo parcial, donde conviene registrar la estrategia aplicada).
+        ruteo parcial, donde conviene registrar la estrategia aplicada). Con
+        ``docling_raw=True`` se añade la marca ``docling_raw: True`` y la nota
+        ``"markdown_crudo_docling"``.
       - ``motor = "docling"`` (motor efectivo F1, subplan §2.2).
+
+    Nota (Opción A): con ``docling_raw=True`` los ``boxes`` se conservan tal
+    cual, aunque el crudo puede no estar alineado con su posición (aceptable
+    para debug; el markdown final es el crudo, no el exportado por posición).
 
     Argumentos:
         ruta: archivo a convertir (PDF apto, office o texto).
         tipo_entrada: valor final de ``ProcessedDocument.tipo_entrada``.
         converter: adaptador Docling inyectable (default real lazy).
         nota_calidad: nota opcional para ``calidad`` (dict pequeño).
+        docling_raw: si True, ``markdown`` es el crudo de Docling (sin el
+            reordenado por posición E-DOC-3); default False = política
+            combinada actual (contrato F2/F3/F4).
 
     Devuelve:
         ``ProcessedDocument`` completo.
@@ -177,15 +198,30 @@ def _procesar_texto_nativo(
     conv = converter if converter is not None else DoclingConverter()
     doc = conv.convert(ruta)
 
+    # PUNTO CLAVE (validado, Opción A): ``conv.convert`` ya devuelve un
+    # ``ProcessedDocument`` cuyo ``markdown`` ES el crudo de Docling
+    # (``export_to_markdown()`` del adaptador, models/docling.py). Se captura
+    # ANTES de pisarlo; así el modo raw NO vuelve a correr Docling.
+    markdown_crudo = doc.markdown
+
     doc.tipo_entrada = tipo_entrada
     doc.ruta = str(ruta)  # se conserva la ruta del archivo original
     doc.orientacion = orientacion_de(doc.boxes)
-    doc.markdown = exportar_documento(doc)
+    if docling_raw:
+        # Opción A (subplan F1 §2.5): crudo de Docling sin reordenar.
+        doc.markdown = markdown_crudo
+    else:
+        doc.markdown = exportar_documento(doc)
     doc.motor = "docling"
 
-    if nota_calidad:
+    if nota_calidad or docling_raw:
         base = dict(doc.calidad or {})
-        base.update(nota_calidad)
+        if nota_calidad:
+            base.update(nota_calidad)
+        if docling_raw:
+            # Marca de modo raw (Opción A): el markdown es el crudo de Docling.
+            base["docling_raw"] = True
+            base["salida"] = "markdown_crudo_docling"
         doc.calidad = base
     else:
         doc.calidad = None
@@ -204,6 +240,7 @@ def procesar_imagen(
     tipo_entrada: str = "imagen",
     tipo_entrada_origen: str | None = None,
     ruta_publica: str | Path | None = None,
+    docling_raw: bool = False,
 ) -> "ProcessedDocument":
     """Procesa una imagen por el pipeline de imagen (E-DOC-2).
 
@@ -226,9 +263,20 @@ def procesar_imagen(
          llama a ``transcribir_vlm`` (F4, subplan §2.2): la selección queda
          anotada en ``calidad`` y el OCR lo hace Docling igual.
       7. Completar el contrato: ``tipo_entrada``, ``orientacion`` (T-103),
-         ``markdown = exportar_documento`` (T-104/E-DOC-3), ``motor="docling"``
-         y ``calidad`` enriquecida (QualityReport + motor seleccionado + clase
-         + gate).
+         ``markdown`` y ``motor="docling"`` y ``calidad`` enriquecida
+         (QualityReport + motor seleccionado + clase + gate).
+
+    ``markdown`` (E-DOC-3 vs. Opción A): por defecto (``docling_raw=False``)
+    se aplica ``exportar_documento`` (política combinada — conserva tablas del
+    crudo y ordena el texto por posición). Con ``docling_raw=True`` (decisión
+    de alcance subplan F1 §2.5) el ``markdown`` es el **crudo de Docling** tal
+    cual lo devolvió ``conv.convert`` (sin reordenar por posición; equivale a
+    ``v1/run_raw.py``); se anota en ``calidad`` ``docling_raw: True`` y
+    ``salida: "markdown_crudo_docling"``. Con el default se anota (solo
+    informativo, no rompe tests) ``salida: "politica_combinada"`` (o
+    ``"exportado_por_posicion"`` cuando no aplica tabla). Los ``boxes`` se
+    conservan como estén (el crudo puede no estar alineado con boxes;
+    aceptable para debug — documentado).
 
     Argumentos:
         origen: ruta de la imagen (o del JPG renderizado de un PDF escaneado).
@@ -245,6 +293,9 @@ def procesar_imagen(
             escaneado (PROC.md §5), el documento público debe apuntar al PDF
             original y no al temporal (que se borra). Si no se pasa, se usa
             ``origen``.
+        docling_raw: si True, ``markdown`` es el crudo de Docling (sin el
+            reordenado por posición E-DOC-3); default False = política
+            combinada actual (contrato F2/F3/F4).
 
     Devuelve:
         ``ProcessedDocument`` completo.
@@ -307,18 +358,38 @@ def procesar_imagen(
         ) from exc
 
     # 7. Completar el contrato (E-DOC-1/E-DOC-2/E-DOC-3).
+    # PUNTO CLAVE (validado, Opción A): ``conv.convert`` ya devuelve un
+    # ``ProcessedDocument`` cuyo ``markdown`` ES el crudo de Docling
+    # (``export_to_markdown()`` del adaptador, models/docling.py). Se captura
+    # ANTES de pisarlo; así el modo raw NO vuelve a correr Docling.
+    markdown_crudo = doc.markdown
+
     doc.tipo_entrada = tipo_entrada
     # La ruta pública es el documento original; si se procesó un JPG temporal
     # renderizado (PDF escaneado), el llamador pasa ``ruta_publica`` con el PDF.
     doc.ruta = str(ruta_publica) if ruta_publica is not None else str(ruta)
     doc.orientacion = orientacion_de(doc.boxes)
-    doc.markdown = exportar_documento(doc)
+    if docling_raw:
+        # Opción A (subplan F1 §2.5): crudo de Docling sin reordenar.
+        doc.markdown = markdown_crudo
+    else:
+        doc.markdown = exportar_documento(doc)
     doc.motor = "docling"
 
     calidad = dict(quality.a_dict())
     calidad["motor_seleccionado"] = motor.value
     calidad["clase_imagen"] = clasificacion.clase.value
     calidad["gate"] = veredicto.motivo
+    if docling_raw:
+        # Marca de modo raw (Opción A): el markdown es el crudo de Docling.
+        calidad["docling_raw"] = True
+        calidad["salida"] = "markdown_crudo_docling"
+    else:
+        # Nota informativa de política de salida (E-DOC-3); no rompe tests
+        # existentes (solo añade claves).
+        hay_tabla_cruda = "|" in (doc.markdown or "")
+        hay_tablas_en_boxes = any(b.es_tabla and b.markdown_tabla for b in (doc.boxes or []))
+        calidad["salida"] = "politica_combinada" if (hay_tabla_cruda and not hay_tablas_en_boxes) else "exportado_por_posicion"
     if veredicto.razon_rechazo:
         calidad["razon_rechazo"] = veredicto.razon_rechazo
     if tipo_entrada_origen:
@@ -341,6 +412,7 @@ def _procesar_pdf_parcial(
     converter: Any,
     modo_motor: str,
     tipo_entrada: str,
+    docling_raw: bool = False,
 ) -> "ProcessedDocument":
     """Procesa un PDF mixto (veredicto ``parcial``) por página (PROC.md §5).
 
@@ -367,6 +439,19 @@ def _procesar_pdf_parcial(
          reordena con el exportador por posición (E-DOC-3); si hay tablas se
          conserva el crudo concatenado.
 
+    Decisión de alcance Opción A — PDF **parcial/mixto** (subplan F1 §2.5): el
+    crudo pleno de Docling **no existe** para este documento (las páginas aptas
+    usan PyMuPDF ``get_text``, no Docling por página; solo el documento
+    completo y las páginas OCR tienen crudo Docling). Por eso, cuando
+    ``docling_raw=True`` **no** se promete crudo real por página apta: se
+    mantiene el comportamiento de concatenación actual (idéntico al default,
+    sin propagar el flag a las páginas) y se anota en ``calidad`` la marca
+    ``docling_raw: "parcial_no_aplica"`` + ``salida: "concatenado_parcial"``
+    con una nota explicativa breve. Si se quisiera el crudo Docling de un PDF
+    mixto de verdad, haría falta procesarlo como documento completo (fuera de
+    esta ruta) o una mejora de fusión por página (documentada como limitación
+    F1 abajo).
+
     Nota (limitación F1, mejora para cierre de docs / T-105): la fusión fina
     por página (mezclar Docling por página apta con offset exacto de puntos
     sobre un mismo sistema de coordenadas) queda como mejora documentada; este
@@ -380,6 +465,9 @@ def _procesar_pdf_parcial(
         modo_motor: modo de selección de motor para las páginas OCR.
         tipo_entrada: valor final de ``ProcessedDocument.tipo_entrada``
             (el detector T-101 devuelve ``pdf_texto`` para PDFs mixtos).
+        docling_raw: si True, no aplica pleno a PDF parcial/mixto; se mantiene
+            la concatenación actual y se anota ``parcial_no_aplica`` en
+            ``calidad`` (Opción A, subplan F1 §2.5).
 
     Devuelve:
         ``ProcessedDocument`` con el markdown concatenado/fusionado.
@@ -476,6 +564,18 @@ def _procesar_pdf_parcial(
             "por página; fusión fina como mejora (cierre docs/T-105)."
         ),
     }
+    if docling_raw:
+        # Opción A en PDF parcial/mixto (subplan F1 §2.5): el crudo pleno de
+        # Docling no existe en esta ruta (páginas aptas usan PyMuPDF, no
+        # Docling por página); se mantiene la concatenación actual y se deja
+        # constancia de la no-aplicación en calidad.
+        doc.calidad["docling_raw"] = "parcial_no_aplica"
+        doc.calidad["salida"] = "concatenado_parcial"
+        doc.calidad["nota_raw"] = (
+            "docling_raw=True: el crudo pleno de Docling no aplica a un PDF "
+            "mixto/parcial (las páginas aptas usan PyMuPDF, no Docling por "
+            "página); se mantiene el markdown concatenado actual."
+        )
 
     # Si no hay tablas en el crudo y hay boxes, ordenar por posición (E-DOC-3).
     if "|" not in markdown_concatenado and boxes_fusion:
@@ -492,6 +592,7 @@ def procesar_documento(
     *,
     converter: Any = None,
     modo_motor: str = "auto",
+    docling_raw: bool = False,
 ) -> "ProcessedDocument":
     """Procesa un documento a ``ProcessedDocument`` (F1 / T-105/ORQ, E-DOC).
 
@@ -518,8 +619,24 @@ def procesar_documento(
          - ``office`` / ``texto`` → Docling directo (texto nativo; Docling
            convierte docx/xlsx/pptx/html/md/txt).
       4. En todos los casos el ``ProcessedDocument`` queda con su ``markdown``
-         ordenado (T-104/E-DOC-3), ``orientacion`` (T-103), ``motor="docling"``
-         y ``calidad`` según la ruta.
+         (por defecto ordenado E-DOC-3, o el crudo de Docling si
+         ``docling_raw=True``), ``orientacion`` (T-103), ``motor="docling"`` y
+         ``calidad`` según la ruta.
+
+    ``docling_raw`` (Opción A, subplan F1 §2.5): el keyword se propaga a las
+    subrutinas que corresponda:
+
+      - ``imagen`` / ``pdf_escaneado`` (vía render→imagen) /
+        ``pdf_texto`` apto / ``office`` / ``texto`` → se expone el **crudo de
+        Docling** (``conv.convert`` ya lo dejó en ``markdown``; se captura
+        antes de pisarlo) sin el reordenado por posición del exportador
+        (equivalente a ``v1/run_raw.py``). Marca en ``calidad``
+        ``docling_raw: True``.
+      - ``parcial`` (PDF mixto) → el crudo pleno no existe (las páginas aptas
+        usan PyMuPDF); se mantiene la concatenación actual y se anota
+        ``docling_raw: "parcial_no_aplica"`` en ``calidad``.
+      - default ``False`` → comportamiento actual (política combinada E-DOC-3,
+        contrato F2/F3/F4).
 
     Decisión de diseño: ``routing`` se aplica SOLO cuando ``detectar`` devuelve
     un PDF (``pdf_texto``/``pdf_escaneado`` y extensión ``.pdf``) para refinar
@@ -531,6 +648,11 @@ def procesar_documento(
         origen: ruta al archivo (pdf/imagen/office/txt/...).
         converter: adaptador Docling inyectable (tests; evita Docling real).
         modo_motor: modo de selección de motor para imágenes (``"auto"``).
+        docling_raw: si True, ``ProcessedDocument.markdown`` es el crudo de
+            Docling (sin reordenar por posición) en documento completo
+            (imagen/PDF apto/office/texto y PDF escaneado vía imagen
+            renderizada); en PDF mixto/parcial se anota en ``calidad``
+            (no aplica pleno). Default False = política combinada actual.
 
     Devuelve:
         :class:`ProcessedDocument` completo.
@@ -574,6 +696,7 @@ def procesar_documento(
             return _procesar_texto_nativo(
                 ruta, "pdf_texto", converter=converter,
                 nota_calidad={"routing": "apto", "nota": analisis.resumen},
+                docling_raw=docling_raw,
             )
         if analisis.veredicto == VeredictoPdf.requiere_ocr:
             # Sin texto nativo aprovechable (o detector dijo pdf_texto pero el
@@ -587,6 +710,7 @@ def procesar_documento(
                     tipo_entrada="pdf_escaneado",
                     tipo_entrada_origen=tipo,
                     ruta_publica=ruta,
+                    docling_raw=docling_raw,
                 )
             finally:
                 img.unlink(missing_ok=True)
@@ -594,6 +718,7 @@ def procesar_documento(
             return _procesar_pdf_parcial(
                 ruta, analisis, converter=converter, modo_motor=modo_motor,
                 tipo_entrada=tipo,  # pdf_texto (T-101); la nota va en calidad
+                docling_raw=docling_raw,
             )
 
     # 3c. PDF escaneado (T-101 sin routing claro o routing no aplicable):
@@ -608,6 +733,7 @@ def procesar_documento(
                 tipo_entrada="pdf_escaneado",
                 tipo_entrada_origen=tipo,
                 ruta_publica=ruta,
+                docling_raw=docling_raw,
             )
         finally:
             img.unlink(missing_ok=True)
@@ -620,11 +746,12 @@ def procesar_documento(
             modo_motor=modo_motor,
             tipo_entrada="imagen",
             tipo_entrada_origen=tipo,
+            docling_raw=docling_raw,
         )
 
     # 3e. Office / texto → texto nativo (Docling convierte docx/xlsx/pptx/html/md/txt).
     if tipo in ("office", "texto"):
-        return _procesar_texto_nativo(ruta, tipo, converter=converter)
+        return _procesar_texto_nativo(ruta, tipo, converter=converter, docling_raw=docling_raw)
 
     # 3f. Seguridad: cualquier tipo no cubierto arriba se rechaza.
     raise _error_no_procesable(
