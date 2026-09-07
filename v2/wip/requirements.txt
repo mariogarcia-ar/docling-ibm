@@ -1,0 +1,16 @@
+# Dependencias de los demos de WIP (v2/wip/).
+#
+# Instalar con el entorno correcto (conda py313_env):
+#     python -m pip install -r v2/wip/requirements.txt
+#
+# - demo_pymupdf4llm.py  → pymupdf4llm (usa pymupdf + rapidocr para OCR de imagen)
+# - demo_xberg.py        → xberg (wheel nativo; solo disponible vía pip, no conda)
+
+# -- demo_pymupdf4llm.py -------------------------------------------------------
+pymupdf4llm==1.28.2     # Markdown de PDF/imagen con layout (trae pymupdf)
+# OCR de imagen directa (force_ocr) para pymupdf4llm:
+rapidocr==3.9.2
+rapidocr-onnxruntime==1.2.3
+
+# -- demo_xberg.py -------------------------------------------------------------
+xberg==1.1.0            # Document intelligence (xberg-io/xberg)
