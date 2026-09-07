@@ -12,6 +12,9 @@ Opciones:
                    por posición); equivale a ``v1/run_raw.py`` (Opción A,
                    subplan F1 §2.5). Default: markdown ordenado / política
                    combinada (contrato F2/F3/F4).
+
+python scripts/probar_api_process.py 'tests/fixtures/golden/9dfc597f-34c5-41ec-99ae-cf35544c7af8.pdf' --docling-raw
+
 """
 from __future__ import annotations
 
