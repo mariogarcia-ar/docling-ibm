@@ -46,14 +46,19 @@
    usan PyMuPDF `get_text`) y se anota `docling_raw: "parcial_no_aplica"` en
    `calidad`. Default `False` preserva la política combinada (contrato F2/F3/F4).
    Exposición CLI: `--docling-raw` en `scripts/probar_api_process.py`.
-6. **Ruta texto nativo → solo Docling (decisión 2026-09-06, A1)**: la ruta
-   `pdf_texto` apto / office / texto se mantiene **exclusivamente con Docling**
-   directo. `pdftotext --layout` (y PyMuPDF layout) **no** se incorporan a la
-   orquestación en esta iteración: queda como alternativa/complemento futuro
-   (PROC.md §5.3) para recuperar layout de columnas. Motivo: el hallazgo sobre
-   `9dfc597f` (boleto apto a 2 columnas) muestra que Docling aplana columnas,
-   pero mejorar esa ruta excede el alcance de F1 y se evaluará como enfoque
-   alternativo más adelante.
+6. **Ruta texto nativo → `pdftotext --layout` preferido, Docling como
+   fallback (decisión 2026-09-07, revierte A1 de 2026-09-06)**: la ruta
+   `pdf_texto` **apto** (todas las páginas con texto nativo) se extrae con
+   `pdftotext --layout` (poppler) porque recupera el **layout de columnas**
+   que Docling directo aplana (caso `9dfc597f`, boleto a 2 columnas; PROC.md
+   §5.2: "excelente layout: recupera columnas/alineación"). Si `pdftotext` no
+   está disponible o devuelve vacío → **fallback** a Docling directo
+   (comportamiento previo A1). `office`/`texto` y el modo `docling_raw`
+   (Opción A, §2.5) siguen con Docling. Módulo nuevo `processing/pdftotext.py`
+   (`extraer_con_pdftotext_layout`) expuesto en `processing/`; el motor queda
+   `"pdftotext"` (con `salida: "pdftotext_layout"` en `calidad`) o `"docling"`
+   en el fallback. Los PDFs aptos ya no corren Docling cuando hay poppler:
+   más rápido y mejor layout.
 
 ## 3. Alcance por tarea (T-101..T-105)
 

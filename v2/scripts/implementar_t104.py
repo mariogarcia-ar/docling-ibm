@@ -30,10 +30,8 @@ suite esto es ``@pytest.mark.integration``; acá es una herramienta de uso manua
 from __future__ import annotations
 
 import argparse
-import shutil
-import subprocess
-import sys
 import tempfile
+import sys
 from pathlib import Path
 
 # El paquete usa layout src/; si se corre sin instalar, se agrega src/ al path.
@@ -87,25 +85,15 @@ def _render_pdf_a_jpg(pdf: Path, dpi: int = 300) -> Path:
 
 
 def _pdftotext_layout(pdf: Path) -> str:
-    """Extrae texto con ``pdftotext --layout`` (mejor para PDFs aptos: columnas).
+    """Extrae texto con ``pdftotext --layout`` (delega en la librería).
 
-    Requiere poppler (``pdftotext``) en el sistema. Si no está disponible o
-    falla, devuelve cadena vacía (el llamador decide el fallback).
+    Requiere poppler (``pdftotext``) en el sistema. Devuelve cadena vacía si
+    no está disponible o falla (el llamador decide el fallback). Usa el helper
+    de ``voucherflow.processing.pdftotext`` (A1 revertida 2026-09-07).
     """
-    if shutil.which("pdftotext") is None:
-        return ""
-    with tempfile.TemporaryDirectory(prefix="vf_pdftotext_") as d:
-        out = Path(d) / "salida.txt"
-        try:
-            subprocess.run(
-                ["pdftotext", "-layout", str(pdf), str(out)],
-                check=True,
-                capture_output=True,
-                timeout=60,
-            )
-        except Exception:
-            return ""
-        return out.read_text(encoding="utf-8") if out.exists() else ""
+    from voucherflow.processing.pdftotext import extraer_con_pdftotext_layout
+
+    return extraer_con_pdftotext_layout(pdf) or ""
 
 
 def implementar_t104(archivo: Path) -> tuple[str, str, str]:

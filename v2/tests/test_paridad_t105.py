@@ -27,14 +27,16 @@ estrategia §3.2 incluye un ``original.md`` (markdown de referencia de v1).
      invariantes que la paridad con v1 exige conceptualmente:
        - Markdown **no vacío** y sin pérdida grosera (la salida de v1 tampoco
          es vacía para estos formatos).
-       - ``boxes`` > 0 (Docling detectó ítems con texto).
        - Los **tokens/campos clave** del documento están presentes (p. ej. para
          el boleto ``9dfc597f``: "ALONSO", "SUV-255671438", "Venado Tuerto",
          "31700.00"). Se comparan **normalizados** (NBSP/guiones suaves/
          minúsculas/espacios) porque el OCR y Docling pueden introducir
          variaciones de espaciado (calibrado contra la salida real, ver abajo).
-       - Contrato de salida: ``tipo_entrada`` correcto por ruta, ``motor ==
-         "docling"`` y ``calidad`` coherente con la ruta.
+       - Contrato de salida: ``tipo_entrada`` correcto por ruta, ``motor``
+         coherente con la ruta (``"pdftotext"`` preferido para PDF apto, con
+         fallback ``"docling"``; ``"docling"`` en el resto) y ``calidad``
+         coherente con la ruta. En el modo ``pdftotext`` no hay ``boxes``
+         (solo texto plano con layout); en el fallback Docling sí hay ítems.
 
   3. **Referencias v1 versionadas (futuro)**: hoy NO existen ``original.md``
      de v1 en fixtures (verificado 2026-09-06; el ``.txt`` de pdftotext del
@@ -103,7 +105,8 @@ UMBRAL_PARIDAD = 0.9
 MUESTRA = [
     {
         # Boleto de colectivo a 2 columnas (PDF apto a texto nativo, eval).
-        # Ruta: Docling directo (texto nativo) + exportador ordenado.
+        # Ruta (2026-09-07, A1 revertida): pdftotext --layout preferido
+        # (recupera columnas) con fallback a Docling directo.
         "id": "pdf_2026-08_2DC73C08",
         "ruta": "golden/9dfc597f-34c5-41ec-99ae-cf35544c7af8.pdf",
         "tipo_esperado": "pdf_texto",
@@ -234,7 +237,14 @@ def _t105_integracion(request) -> None:
 # Tests de integración T-105
 # ---------------------------------------------------------------------------
 class TestParidadPdfAptoTextoNativo:
-    """Ruta PDF apto → texto nativo (Docling directo) sin pérdida de campos."""
+    """Ruta PDF apto → texto nativo (layout) sin pérdida de campos.
+
+    Decisión 2026-09-07 (revierte A1 de 2026-09-06): la ruta apto prefiere
+    ``pdftotext --layout`` (recupera columnas que Docling aplana; PROC.md §5.2)
+    con **fallback a Docling directo** cuando poppler no está disponible. Por
+    eso el motor puede ser ``"pdftotext"`` (preferido) o ``"docling"``
+    (fallback), y los ``boxes`` solo existen en el fallback Docling.
+    """
 
     @pytest.mark.integration
     def test_pdf_apto_texto_nativo_no_pierde_campos_clave(self, fixtures_dir) -> None:
@@ -254,15 +264,21 @@ class TestParidadPdfAptoTextoNativo:
             f"T-105: el PDF apto '{caso['id']}' debe enrutarse como pdf_texto "
             f"(texto nativo), se obtuvo '{doc.tipo_entrada}'."
         )
-        assert doc.boxes, (
-            f"T-105: se esperaban boxes (ítems con texto) en '{caso['id']}'."
-        )
-        assert doc.motor == "docling", (
-            f"T-105: el motor efectivo de '{caso['id']}' debe ser docling."
+        # Ruta preferida (pdftotext --layout) o fallback (Docling directo).
+        assert doc.motor in ("pdftotext", "docling"), (
+            f"T-105: el motor de '{caso['id']}' debe ser 'pdftotext' (preferido) "
+            f"o 'docling' (fallback), se obtuvo '{doc.motor}'."
         )
         assert isinstance(doc.calidad, dict) and doc.calidad.get("routing") == "apto", (
             f"T-105: la calidad de '{caso['id']}' debe anotar routing=apto."
         )
+        # En el modo pdftotext no hay boxes (solo texto plano con layout); en
+        # el fallback Docling sí debería haber ítems con texto.
+        if doc.motor == "docling":
+            assert doc.boxes, (
+                f"T-105: se esperaban boxes (ítems con texto) en '{caso['id']}' "
+                "cuando el fallback es Docling."
+            )
 
         # Campos clave del boleto presentes (paridad estructural con v1).
         ref = _referencia_v1(fixtures_dir, caso)
@@ -412,7 +428,17 @@ class TestParidadMuestra:
             f"T-105: '{caso['id']}' debe enrutarse como {caso['tipo_esperado']} "
             f"(se obtuvo '{doc.tipo_entrada}')."
         )
-        assert doc.motor == "docling"
+        # PDF apto: pdftotext preferido / docling fallback. Resto: docling.
+        if caso["tipo_esperado"] == "pdf_texto":
+            assert doc.motor in ("pdftotext", "docling"), (
+                f"T-105: '{caso['id']}' (pdf_texto apto) debe usar 'pdftotext' "
+                f"o 'docling', se obtuvo '{doc.motor}'."
+            )
+        else:
+            assert doc.motor == "docling", (
+                f"T-105: '{caso['id']}' debe usar motor docling (no es PDF apto "
+                f"a texto nativo), se obtuvo '{doc.motor}'."
+            )
         assert len(doc.markdown) >= 20, (
             f"T-105: '{caso['id']}' tiene un markdown sospechosamente corto "
             "(posible pérdida grosera): {len(doc.markdown)} chars."

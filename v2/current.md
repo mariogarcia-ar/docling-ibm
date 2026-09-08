@@ -1,7 +1,7 @@
 # v2 — Estado actual y qué se puede probar (fase F1)
 
 > **Documento**: estado vivo de la versión 2 de `ibm-docling`.
-> **Fecha**: 2026-09-06 · **Rama**: `v2` · **Commit**: `4190fb4` (F1: orquestación `procesar_documento()`/`api.process()` + flag `docling_raw`)
+> **Fecha**: 2026-09-07 · **Rama**: `v2` (ruta texto nativo con `pdftotext --layout` para PDF apto)
 > **Fuentes**: `v2/README.md`, `v2/docs/plan/05-plan/F0.md`, `v2/docs/plan/05-plan/F1.md` y `F1-subplan.md`, `v2/src/voucherflow/`
 
 ---
@@ -11,7 +11,7 @@
 | Campo | Valor |
 |---|---|
 | **Fase en curso** | **F1 — Procesamiento (refactor docling)** (T-101..T-105/ORQ + T-105) |
-| **Estado** | 🟢 **F0 completada** (77 tests al cierre). F1 **en implementación**: T-101 ✅, T-102 ✅, T-103 ✅, T-104 ✅, enrutado PDF por página ✅ (`routing.py`) y **orquestación `procesar_documento()` + `api.process()` ✅** (T-105/ORQ, con flag `docling_raw` para crudo Docling); resta T-105 (integración paridad) y docs de cierre |
+| **Estado** | 🟢 **F0 completada** (77 tests al cierre). F1 **en implementación**: T-101 ✅, T-102 ✅, T-103 ✅, T-104 ✅, enrutado PDF por página ✅ (`routing.py`), **orquestación `procesar_documento()` + `api.process()` ✅** (T-105/ORQ, con flag `docling_raw` para crudo Docling) y **ruta PDF apto con `pdftotext --layout` ✅** (poppler, con fallback Docling; A1 revertida); resta T-105 (integración paridad) y docs de cierre |
 | **F0** | ✅ Fundación completada (schemas, esqueleto, golden set, adaptadores) |
 | **F2–F6** | 🔴 Backlog (validación, clasificación, extracción, conclusión, cliente) |
 | **Paquete** | `voucherflow` v`0.1.0` (layout `src/`, ADR-007) |
@@ -26,12 +26,15 @@ refactoriza Docling en `voucherflow/processing/`: están implementados el
 **detector de tipo de entrada** (T-101), el **clasificador de imagen + gate de
 procesabilidad** (T-102), la **orientación/preprocesamiento** (T-103), el
 **motor OCR/VLM + exportador ordenado por posición** (T-104), el **enrutado de
-PDF por página** (`routing.py`) y la **orquestación `procesar_documento()` +
+PDF por página** (`routing.py`), la **orquestación `procesar_documento()` +
 `api.process()`** (T-105/ORQ, con flag `docling_raw` que expone el crudo de
-Docling — equiv. `v1/run_raw.py`), todo heurístico liviano, **sin dependencias
-nuevas** y cubierto por tests. Ya **hay pipeline funcional de extremo a extremo**
-de procesamiento (`api.process`); resta la paridad de integración T-105 y los
-docs de cierre de F1.
+Docling — equiv. `v1/run_raw.py`) y la **extracción de PDF apto con
+`pdftotext --layout`** (`processing/pdftotext.py`; recupera columnas que
+Docling aplana, con fallback a Docling si no hay poppler — decisión 2026-09-07
+que revierte A1), todo heurístico liviano, **sin dependencias Python nuevas**
+(poppler es un utilitario de sistema) y cubierto por tests. Ya **hay pipeline
+funcional de extremo a extremo** de procesamiento (`api.process`); resta la
+paridad de integración T-105 y los docs de cierre de F1.
 
 ---
 
@@ -76,15 +79,20 @@ lógica de negocio**: sus funciones lanzan `NotImplementedError` hasta su fase.
 | **T-102** (✅) | `processing/image_classifier.py` | `ClaseImagen` (foto/escaneo_plano/screenshot/manuscrito), `clasificar()`, gate `verificar_procesabilidad() -> VeredictoGate` y hook `sospechar_manuscrito()`. Lee dimensiones JPEG/PNG/BMP/TIFF con stdlib (sin Pillow/OpenCV). | `test_processing_image_classifier.py` (27) |
 | **T-103** (✅) | `processing/preprocessing.py` + `orientation.py` | Orientación por boxes (horizontal/vertical dominante) + preprocesamiento heurístico (`QualityReport`/`evaluar_calidad`), sin CV. | `test_processing_orientation.py` (19) |
 | **T-104** (✅) | `processing/ocr.py` + `markdown_exporter.py` | Motor OCR/VLM (`elegir_motor`: ocr/vlm/auto) + hook `transcribir_vlm` (sin llamar a Ollama en F1) y exportador ordenado por posición (portado de `v1/lib/orientation.py`, paridad byte-compatible; tablas Markdown como ítem único). | `test_processing_exportador_motor.py` (24) |
+| **PDF apto** (✅) | `processing/pdftotext.py` | Extracción de PDF apto con `pdftotext --layout` (poppler) preferido + fallback a Docling directo (A1 revertida 2026-09-07). La orquestación usa motor `pdftotext` (layout de columnas, caso `9dfc597f`); `office`/`texto` y `docling_raw` siguen con Docling. | `test_processing_pdftotext.py` (7) |
 | **Apoyo orq.** (✅) | `processing/routing.py` | Enrutado de PDF por página (apta_layout/escaneada/corrupta/vacía) y veredicto por PDF (apto/requiere_ocr/parcial) para la orquestación. | `test_processing_routing.py` (9) |
 | **Inspección** | `scripts/inspeccionar_t102.py` | Aplica T-102 sobre fixtures (o carpeta CLI) y muestra resumen/detalle por clase y gate. | — |
 
 > Detalle: sobre los 38 fixtures de imagen, T-102 clasifica 23 `escaneo_plano`,
 > 13 `screenshot` y 2 `foto`, con **0 rechazos** en falso del gate.
 
-> **Pendiente de F1**: orquestación `procesar_documento()` + `api.process()`
-> (hoy `api.process` lanza `NotImplementedError`), T-105 (tests de integración
-> de paridad contra v1, `@pytest.mark.integration`) y docs de cierre.
+> **Ruta texto nativo (2026-09-07)**: PDF apto se extrae con `pdftotext
+> --layout` preferido (recupera columnas que Docling aplana, caso `9dfc597f`)
+> con fallback a Docling directo si no hay poppler (decisión subplan F1 §2.6;
+> revierte A1 de 2026-09-06).
+
+> **Pendiente de F1**: T-105 (tests de integración de paridad contra v1,
+> `@pytest.mark.integration`) y docs de cierre.
 
 ---
 

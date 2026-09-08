@@ -49,6 +49,14 @@ from .markdown_exporter import (
     exportar_por_posicion,
 )
 
+# Extracción de PDF apto con pdftotext --layout (poppler; complemento de la
+# ruta texto nativo, PROC.md §5.2; A1 revertida 2026-09-07).
+from .pdftotext import (
+    PDFTOTEXT_BIN,
+    extraer_con_pdftotext_layout,
+    pdftotext_disponible,
+)
+
 # Enrutado de PDF por página (apoyo a orquestación, E-DOC-1).
 from .routing import (
     AnalisisPagina,
@@ -90,6 +98,9 @@ __all__ = [
     "MotorOCR",
     "elegir_motor",
     "transcribir_vlm",
+    "PDFTOTEXT_BIN",
+    "pdftotext_disponible",
+    "extraer_con_pdftotext_layout",
     "TOLERANCIA_LINEA",
     "exportar_por_posicion",
     "exportar_documento",

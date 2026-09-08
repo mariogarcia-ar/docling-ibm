@@ -34,6 +34,7 @@
 | Ordenar por posición (center_y / center_x) + tablas Markdown | §4.1 / E-DOC-3 (doc 02) | E-DOC-3 | F1 / T-104 | [x] hecho (`markdown_exporter.py`) |
 | Dataclass `ProcessedDocument` (contrato de salida) | §4.1 + §9 | E-DOC | F0 / T-001 (schema afín) | [x] hecho |
 | Adaptador `DoclingConverter` encapsulado (consumido aquí) | §4.6 | E-DOC | F0 / T-006 | [x] hecho |
+| Extracción de PDF apto con `pdftotext --layout` (poppler) + fallback Docling | §5.2/§5.3 | E-DOC-1 | F1 / T-104 (ruta texto nativo) | [x] hecho (`processing/pdftotext.py`; A1 revertida 2026-09-07, ver subplan F1 §2.6) |
 | Orquestación `procesar_documento()` + `api.process()` | §4.1 | E-DOC-1 / E-DOC | F1 / T-105/ORQ | [x] hecho (orquestación completa; `api.process` con keyword `docling_raw`) |
 | Exponer crudo de Docling (`docling_raw`, Opción A) | §4.1 | E-DOC-3 | F1 / T-105/ORQ | [x] hecho (flag en orquestación + `api.process`; equiv. `v1/run_raw.py`; ver subplan F1 §2.5) |
 | Paridad funcional con `ocr_documents.py`/`run.py`/`run_raw.py` (mismo .md) | §8.2 (mapeo v1→v2) | E-DOC | F1 / T-105 | [ ] pendiente (integración) |
@@ -79,13 +80,17 @@ ruta de orquestación:
   por el pipeline de imagen: gate T-102 → Docling OCR → orientación T-103 →
   exportador T-104. (Coincide con E-DOC-1: "PDF escaneado → se convierte a
   imagen".)
-- **Ruta `pdf_texto`/`texto`** → Docling directo (texto nativo); `pdftotext
-  --layout` queda como alternativa/complemento para recuperar layout de
-  columnas (decisión de orquestación).
-- **Decisión 2026-09-06 (A1)**: la ruta texto nativo se mantiene **solo con
-  Docling** en esta iteración; `pdftotext --layout`/PyMuPDF layout **no** se
-  incorporan a la orquestación (quedan como enfoque alternativo futuro para
-  layout de columnas, ver subplan F1 §2.6).
+- **Ruta `pdf_texto`/`texto`** → para PDF **apto** (routing): `pdftotext
+  --layout` preferido (recupera layout de columnas) con **fallback** a Docling
+  directo si poppler no está disponible (decisión 2026-09-07, revierte A1).
+- **Decisión 2026-09-06 (A1) — REVERTIDA 2026-09-07**: A1 dejaba la ruta texto
+  nativo **solo con Docling** y `pdftotext --layout`/PyMuPDF layout como
+  alternativa futura (layout de columnas, caso `9dfc597f`). El 2026-09-07 se
+  revierte para PDF **apto**: se migra el helper a la librería
+  (`processing/pdftotext.py`, `extraer_con_pdftotext_layout`) y la orquestación
+  lo usa primero (motor `"pdftotext"`, `calidad.salida: "pdftotext_layout"`);
+  si no hay poppler o devuelve vacío → fallback Docling. Office/texto y el
+  modo `docling_raw` siguen con Docling. Ver subplan F1 §2.6.
 - **Nota**: la calidad estructural mejora con render→imagen→OCR + exportador
   (texto ordenado línea por línea) frente al PDF directo (texto pegado, pocos
   boxes).
@@ -171,3 +176,4 @@ print(resultado.document.render_as_markdown())
 | 2026-09-06 | `routing.py`: enrutado de PDF por página (apta/escaneada/corrupta/vacía → apto/requiere_ocr/parcial) portado de `scripts/detectar_aptos_pdftotext_layout.py`. | team implementation | Hecho |
 | 2026-09-06 | Referencia externa de configuración Docling para facturas escaneadas (force_full_page_ocr + Tesseract/EasyOCR) agregada a §5.4. | team analysis / implementation | Documentado |
 | 2026-09-06 | Pendiente: orquestación `procesar_documento()` + `api.process()` (entrada de F2/F3/F4) y T-105 (tests de integración de paridad). | team implementation | Pendiente |
+| 2026-09-07 | **A1 revertida (ruta texto nativo)**: PDF apto se extrae con `pdftotext --layout` (poppler) preferido + fallback Docling. Helper migrado a `processing/pdftotext.py`; orquestación usa motor `pdftotext` (layout de columnas, caso `9dfc597f`). Tests `test_processing_pdftotext.py` + ajuste orquestación/paridad. | team analysis / implementation | Hecho |

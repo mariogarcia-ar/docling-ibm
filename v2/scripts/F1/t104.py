@@ -2,23 +2,24 @@
 """Procesa archivos/carpetas aplicando T-104 (motor OCR/VLM + exportador).
 
 Para cada archivo de las rutas pasadas (imagen/pdf/office/texto), aplica la
-cadena completa de F1 hasta T-104 y muestra el **motor seleccionado** y el
-**markdown ordenado por posición** (E-DOC-3):
+cadena completa de F1 hasta T-104 y muestra el **motor efectivo** y el
+**markdown de salida**:
 
   1. T-101 ``detectar()``: tipo de entrada (imagen/pdf_texto/pdf_escaneado/...).
   2. En imágenes: T-102 ``clasificar()`` + ``verificar_procesabilidad()``
      (gate) → clase.
   3. T-103 ``evaluar_calidad()`` → calidad; y orientación por boxes.
-  4. T-104 ``elegir_motor()`` → motor OCR/VLM (modo ``auto``/``ocr``/``vlm``;
-     en F1 el motor efectivo es siempre Docling, subplan §2.2 — no se llama a
-     Ollama). En ``auto``, un manuscrito/sello/firma (o señal) prioriza VLM.
-  5. T-104 ``exportar_documento()`` → Markdown final ordenado por posición
-     (política combinada: conserva tablas del crudo + ordena texto por
-     posición), o el crudo de Docling con ``--raw`` (equiv. ``v1/run_raw.py``).
-
-Para PDFs escaneados se usa la orquestación ``procesar_documento()``
-(T-105/ORQ), que decide por página con ``routing`` y renderiza a imagen cuando
-corresponde (PROC.md §5).
+  4. Ruta por tipo (orquestación T-105/ORQ, PROC.md §5):
+       - PDF **apto** (routing) → ``pdftotext --layout`` preferido
+         (recupera columnas que Docling aplana) con fallback a Docling
+         directo si no hay poppler (decisión 2026-09-07, subplan F1 §2.6).
+       - PDF escaneado/parcial → render→imagen→OCR (Docling).
+       - Imagen directa → T-104 ``elegir_motor()`` (ocr/vlm/auto; en F1 el
+         motor efectivo es Docling, subplan §2.2 — no se llama a Ollama).
+       - Office/texto → Docling directo (texto nativo).
+  5. T-104 ``exportar_documento()`` → Markdown final (política combinada:
+     conserva tablas del crudo + ordena texto por posición), o el crudo de
+     Docling con ``--raw`` (equiv. ``v1/run_raw.py``).
 
 Uso:
     python scripts/F1/t104.py <archivo|carpeta>... [--motor MODO] [--raw]
@@ -27,13 +28,14 @@ Uso:
 Ejemplos:
     python scripts/F1/t104.py tests/fixtures/golden/2991f57d-*.jpg
     python scripts/F1/t104.py tests/fixtures/golden
-    python scripts/F1/t104.py tests/fixtures/pdf_escaneados/*.pdf --print
     python scripts/F1/t104.py tests/fixtures/pdf_aptos_layout/*.pdf --outdir /tmp/md
+    python scripts/F1/t104.py tests/fixtures/pdf_escaneados/*.pdf --print
     python scripts/F1/t104.py tests/fixtures/golden/2991f57d-*.jpg --motor vlm --print
     python scripts/F1/t104.py tests/fixtures/golden/2991f57d-*.jpg --raw
 
-Nota: convierte con Docling real (descarga modelos la 1ra vez, lento). Para la
-suite esto es ``@pytest.mark.integration``; acá es una herramienta de uso manual.
+Nota: convierte con Docling real (descarga modelos la 1ra vez, lento) o usa
+pdftotext (poppler) para PDF apto. Para la suite esto es
+``@pytest.mark.integration``; acá es una herramienta de uso manual.
 """
 
 from __future__ import annotations
@@ -92,19 +94,6 @@ def _expandir(args: list[str]) -> list[Path]:
     return sorted(set(rutas))
 
 
-def _clasificar_imagen(archivo: Path) -> tuple[str, str, str]:
-    """Aplica T-102 (gate + clase) + T-103 calidad sobre una imagen directa.
-
-    Devuelve ``(clase, gate, calidad)``. Solo las imágenes directas entran al
-    gate/clasificador (un PDF escaneado no, hasta convertirse en imagen).
-    """
-    cl = clasificar(archivo)
-    v = verificar_procesabilidad(archivo)
-    q = evaluar_calidad(cl)
-    calidad = ",".join(q.acciones) if q.acciones else "-"
-    return cl.clase.value, ("ok" if v.procesable else "rechazada"), calidad
-
-
 def _procesar_archivo(
     archivo: Path,
     *,
@@ -114,10 +103,11 @@ def _procesar_archivo(
     """Procesa un archivo con la cadena F1 hasta T-104; devuelve la fila+markdown.
 
     Ruteo por tipo (PROC.md §5 / orquestación T-105/ORQ):
-      - PDF (texto/escaneado/mixto) → ``procesar_documento`` (decide por
-        página con ``routing`` y renderiza a imagen si hace falta).
-      - Imagen directa → gate/clase T-102 + calidad T-103 + motor T-104 +
-        exportador T-104 (Docling real).
+      - PDF → ``procesar_documento`` (decide por página con ``routing``): apto
+        usa ``pdftotext --layout`` si hay poppler (motor ``pdftotext``) con
+        fallback a Docling; escaneado/parcial renderiza a imagen + Docling.
+      - Imagen directa → gate/clase T-102 + calidad T-103 + motor T-104
+        (``elegir_motor``) + exportador T-104 (Docling real).
       - Office/texto → Docling directo (texto nativo) + exportador.
     """
     fila: dict = {
@@ -128,12 +118,10 @@ def _procesar_archivo(
     tipo = detectar(archivo).tipo
     fila["tipo"] = tipo
 
-    # Clase/gate/calidad solo aplican a imagen directa (T-102/T-103).
-    if tipo == "imagen":
-        fila["clase"], fila["gate"], fila["calidad"] = _clasificar_imagen(archivo)
-
     # PDF con cualquier veredicto (apto/requiere_ocr/parcial): la orquestación
-    # resuelve la ruta por página (T-105/ORQ) y produce motor + exportador.
+    # resuelve la ruta por página (T-105/ORQ). En PDF apto usa pdftotext
+    # --layout (si hay poppler) y expone el motor efectivo ("pdftotext" o
+    # "docling"); en escaneado/parcial renderiza a imagen + Docling.
     if archivo.suffix.lower() == ".pdf":
         doc = procesar_documento(
             archivo, modo_motor=modo_motor, docling_raw=docling_raw
@@ -145,15 +133,30 @@ def _procesar_archivo(
         fila["chars"] = len(doc.markdown)
         return fila
 
-    # Imagen directa / office / texto: Docling directo + cadena T-104.
+    # Imagen directa: T-102 gate + clase ANTES de gastar OCR (doc 00: el gate
+    # evita invertir recursos en imágenes que no pueden leerse). Si no pasa el
+    # gate, NO se convierte con Docling (igual que procesar_imagen).
+    cl = clasificar(archivo) if tipo == "imagen" else None
+    if cl is not None:
+        v = verificar_procesabilidad(archivo)
+        q = evaluar_calidad(cl)
+        fila["clase"] = cl.clase.value
+        fila["gate"] = "ok" if v.procesable else "rechazada"
+        fila["calidad"] = ",".join(q.acciones) if q.acciones else "-"
+        fila["motor"] = elegir_motor(cl, modo=modo_motor).value
+        if not v.procesable:
+            # Gate rechaza (E-DOC-2 / doc 03 §4.1: GATE -->|no pasa| REJ): sin
+            # OCR. Se deja la fila sin markdown para no guardar un .md vacío.
+            fila["orient"] = "-"
+            fila["chars"] = 0
+            return fila
+
+    # Imagen que superó el gate / office / texto: Docling directo + cadena
+    # T-104 (exportador ordenado o crudo con --raw).
     converter = DoclingConverter()
     doc = converter.convert(archivo)
 
-    if tipo == "imagen":
-        cl = clasificar(archivo)
-        # T-104: selección de motor OCR/VLM (en F1 el efectivo es Docling).
-        fila["motor"] = elegir_motor(cl, modo=modo_motor).value
-    else:
+    if cl is None:
         # office/texto: texto nativo; motor Docling (sin gate de imagen).
         fila["motor"] = "docling"
 
@@ -213,15 +216,18 @@ def main() -> None:
             fila["chars"],
         ))
 
-        # Guardar .md
-        if args.outdir:
-            outdir = Path(args.outdir)
-            outdir.mkdir(parents=True, exist_ok=True)
-            salida = outdir / f"{archivo.stem}.md"
-        else:
-            salida = archivo.with_suffix(".md")
-        salida.write_text(fila["markdown"], encoding="utf-8")
-        print(f"    guardado: {salida}")
+        # Guardar .md (solo si hay markdown; una imagen rechazada no se guarda).
+        if fila["markdown"]:
+            if args.outdir:
+                outdir = Path(args.outdir)
+                outdir.mkdir(parents=True, exist_ok=True)
+                salida = outdir / f"{archivo.stem}.md"
+            else:
+                salida = archivo.with_suffix(".md")
+            salida.write_text(fila["markdown"], encoding="utf-8")
+            print(f"    guardado: {salida}")
+        elif fila["gate"] == "rechazada":
+            print(f"    (sin guardar: rechazada por el gate de T-102)")
 
         if args.print:
             print("\n" + "=" * 60)

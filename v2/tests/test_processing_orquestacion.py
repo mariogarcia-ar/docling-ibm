@@ -322,18 +322,45 @@ class TestProcesarDocumentoNoSoportado:
 # ---------------------------------------------------------------------------
 
 class TestProcesarDocumentoPdf:
-    def test_pdf_texto_apto_devuelve_pdf_texto(self, tmp_path):
+    def test_pdf_texto_apto_devuelve_pdf_texto(self, tmp_path, monkeypatch):
         ruta = _pdf_texto(tmp_path)
         conv = FakeConverter()
+        # Sin pdftotext (mock) → la ruta apto hace fallback a Docling directo.
+        monkeypatch.setattr(
+            "voucherflow.processing.pdftotext.extraer_con_pdftotext_layout",
+            lambda pdf: None,
+        )
         doc = procesar_documento(ruta, converter=conv)
 
         assert isinstance(doc, ProcessedDocument)
         assert doc.tipo_entrada == "pdf_texto"
         assert doc.ruta == str(ruta)
         assert doc.motor == "docling"
-        # Routing apto → Docling directo sobre el PDF (1 sola llamada).
+        # Routing apto → fallback a Docling directo sobre el PDF (1 sola llamada).
         assert len(conv.convert_calls) == 1
         assert conv.convert_calls[0] == str(ruta)
+
+    def test_pdf_apto_con_pdftotext_usa_layout(self, tmp_path, monkeypatch):
+        # pdftotext disponible y devuelve texto → se usa el layout (motor
+        # pdftotext), sin llamar al converter Docling.
+        ruta = _pdf_texto(tmp_path)
+        conv = FakeConverter()
+        layout = "FACTURA A 0001-00000001\nTotal: $ 1.234,56\n"
+        monkeypatch.setattr(
+            "voucherflow.processing.pdftotext.extraer_con_pdftotext_layout",
+            lambda pdf: layout,
+        )
+        doc = procesar_documento(ruta, converter=conv)
+
+        assert doc.tipo_entrada == "pdf_texto"
+        assert doc.motor == "pdftotext"
+        assert doc.markdown == layout
+        assert doc.orientacion == "horizontal"
+        assert isinstance(doc.calidad, dict)
+        assert doc.calidad.get("salida") == "pdftotext_layout"
+        assert doc.calidad.get("routing") == "apto"
+        # No se gastó Docling (pdftotext fue suficiente).
+        assert conv.convert_calls == []
 
     def test_pdf_escaneado_renderiza_a_imagen_y_ocr(self, tmp_path):
         ruta = _pdf_escaneado(tmp_path)

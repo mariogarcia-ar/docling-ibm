@@ -229,6 +229,66 @@ def _procesar_texto_nativo(
 
 
 # ---------------------------------------------------------------------------
+# PDF apto: texto nativo con pdftotext --layout (mejor layout de columnas)
+# ---------------------------------------------------------------------------
+
+def _procesar_pdf_apto(
+    ruta: Path,
+    *,
+    converter: Any,
+    analisis: "AnalisisPdf",
+    docling_raw: bool = False,
+) -> "ProcessedDocument":
+    """Ruta PDF apto: ``pdftotext --layout`` preferido, Docling como fallback.
+
+    Decisión 2026-09-07 (revierte A1 de 2026-09-06, subplan F1 §2.6 / PROC.md
+    §5.3): para un PDF ``apto`` (texto nativo en todas las páginas, las
+    imágenes no dominan), se prefiere extraer con ``pdftotext --layout``
+    porque recupera el **layout de columnas** que Docling directo aplana
+    (caso ``9dfc597f``, boleto a 2 columnas; PROC.md §5.2: "excelente layout").
+
+    Reglas:
+      - Si ``pdftotext`` está disponible y devuelve texto no vacío → se usa
+        ese texto (``motor="pdftotext"``, orientación ``horizontal``, calidad
+        con ``salida: "pdftotext_layout"``). Es la ruta preferida.
+      - Si no está disponible, falla o devuelve vacío → **fallback** a
+        ``_procesar_texto_nativo`` (Docling directo; comportamiento previo A1).
+      - ``docling_raw=True`` (Opción A, subplan F1 §2.5) → se mantiene Docling
+        directo siempre (el crudo pleno de Docling es la semántica de ``raw``,
+        equiv. ``v1/run_raw.py``; pdftotext no produce el crudo de Docling).
+    """
+    from .pdftotext import extraer_con_pdftotext_layout
+
+    if not docling_raw:
+        texto = extraer_con_pdftotext_layout(ruta)
+        if texto:
+            # pdftotext --layout: layout de columnas preservado (PROC.md §5.2).
+            from ..models.docling import ProcessedDocument
+
+            doc = ProcessedDocument(
+                tipo_entrada="pdf_texto",
+                ruta=str(ruta),
+                markdown=texto if texto.endswith("\n") else texto + "\n",
+                motor="pdftotext",
+                orientacion="horizontal",
+                calidad={
+                    "routing": "apto",
+                    "salida": "pdftotext_layout",
+                    "motor": "pdftotext",
+                    "nota": analisis.resumen,
+                },
+            )
+            return doc
+
+    # Fallback (o docling_raw=True): Docling directo (texto nativo, previo A1).
+    return _procesar_texto_nativo(
+        ruta, "pdf_texto", converter=converter,
+        nota_calidad={"routing": "apto", "nota": analisis.resumen},
+        docling_raw=docling_raw,
+    )
+
+
+# ---------------------------------------------------------------------------
 # Subrutina de imagen (flujo E-DOC-2 + ideas/docling.md)
 # ---------------------------------------------------------------------------
 
@@ -692,10 +752,11 @@ def procesar_documento(
                 f"No se pudo analizar el PDF '{ruta.name}': {analisis.resumen}"
             )
         if analisis.veredicto == VeredictoPdf.apto:
-            # Texto nativo en todas las páginas: Docling directo.
-            return _procesar_texto_nativo(
-                ruta, "pdf_texto", converter=converter,
-                nota_calidad={"routing": "apto", "nota": analisis.resumen},
+            # Texto nativo en todas las páginas: pdftotext --layout preferido
+            # (layout de columnas), Docling directo como fallback (A1 revertida;
+            # ver _procesar_pdf_apto).
+            return _procesar_pdf_apto(
+                ruta, converter=converter, analisis=analisis,
                 docling_raw=docling_raw,
             )
         if analisis.veredicto == VeredictoPdf.requiere_ocr:
@@ -763,4 +824,5 @@ __all__ = [
     "procesar_documento",
     "procesar_imagen",
     "render_pdf_a_jpg",
+    "_procesar_pdf_apto",
 ]

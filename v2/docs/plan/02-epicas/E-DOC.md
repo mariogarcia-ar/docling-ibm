@@ -31,8 +31,9 @@
 - [ ] Paridad verificable con v1 sobre el golden set: procesar los formatos de las ideas produce Markdown ordenado equivalente o superior a `ocr_documents.py`/`run.py`/`run_raw.py` (DoD de F1 en `05-plan-ejecucion.md`). *(requiere T-105 integración)*
 - [ ] Documentación/contratos actualizados (README/ADR si cambia una decisión).
 
-> **Nota 2026-09-06**: la ruta texto nativo se mantiene **solo con Docling**;
-> `pdftotext --layout` queda como alternativa futura para layout de columnas
+> **Nota 2026-09-07** (revierte A1 de 2026-09-06): la ruta texto nativo para
+> PDF **apto** usa `pdftotext --layout` preferido (poppler) con fallback a
+> Docling directo; `office`/`texto` y el modo `docling_raw` siguen con Docling
 > (decisión subplan F1 §2.6; caso `9dfc597f`).
 
 ## 3. Historias de usuario y seguimiento
@@ -141,7 +142,8 @@ Entonces las tablas se conservan como tablas Markdown
 | 2026-09-06 | F1/T-103 y T-104: orientación/preprocesamiento + motor/exportador por posición | team implementation | Hecho |
 | 2026-09-06 | F1/`routing.py`: enrutado de PDF por página para la orquestación | team implementation | Hecho |
 | 2026-09-06 | F1/T-105/ORQ: orquestación `procesar_documento()` + `api.process()` implementadas, con flag `docling_raw` (crudo Docling) y `--docling-raw` en el script de prueba. | team analysis → team implementation | Hecho |
-| 2026-09-06 | Decisión A1: ruta texto nativo solo con Docling; `pdftotext --layout` queda como alternativa futura (layout de columnas, caso `9dfc597f`). | team analysis | Cerrada |
+| 2026-09-06 | Decisión A1: ruta texto nativo solo con Docling; `pdftotext --layout` queda como alternativa futura (layout de columnas, caso `9dfc597f`). | team analysis | Revertida 2026-09-07 |
+| 2026-09-07 | **A1 revertida**: PDF apto se extrae con `pdftotext --layout` preferido (poppler) + fallback Docling; helper `processing/pdftotext.py` + orquestación (motor `pdftotext`). Office/texto y `docling_raw` siguen con Docling. | team analysis → team implementation | Hecho |
 | 2026-09-06 | Pendiente: T-105 (tests integración paridad) y cierre de docs. | team implementation | Pendiente |
 
 ## 5. Referencias cruzadas
