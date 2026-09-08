@@ -52,3 +52,4 @@ dmypy.json
 dmypy.json
 pyre-check/
 *.log
+v2/tests/fixtures/**/*.md
