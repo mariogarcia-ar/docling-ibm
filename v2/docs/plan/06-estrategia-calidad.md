@@ -168,13 +168,36 @@ tests/golden/
 
 ### Fase 4 — Extracción
 - **Unitarias**: normalización de campos (CUIT truncado, fechas, montos, ítems,
-  `punto_venta`/`numero_comprobante`).
+  `punto_venta`/`numero_comprobante`). **T-401**: 75 tests
+  (`test_extraction_flujos.py`) — contrato y versión del prompt de evidencia
+  (`extraccion-key-value@1`, que no normaliza ni decide), `messages` por fuente,
+  interpretación sin inventar campos (shapes por campo y plano de v1, JSON con
+  cercas/prosa, errores de contrato), conversión a `SourceEvidence` sin duplicar
+  debilidades, pasada raw reutilizada de T-303 y tolerancia a fallos por fuente.
+  La normalización de los valores es **T-402**.
 - **Integración**: VLM y LLM en paralelo devuelven `SourceEvidence` válida;
-  combinación con precedencia (ADR-002).
+  combinación con precedencia (ADR-002). **Hecho en T-401**:
+  `scripts/F4/t401.py` corre **11/11** escenarios sintéticos con dobles (dos
+  fuentes coincidiendo, discrepancia conservando ambas, campo sin sustento, valor
+  fuera del vocabulario, CUIT no sostenido, shape plano de v1, montos no
+  evaluados, sin vista, JSON inválido aislado, fuente caída aislada, todas
+  caídas) y sale con código ≠ 0 si alguno falla; con `--origen` corre la
+  extracción real (F1 + vista fiel de F2 + Ollama). La combinación con precedencia
+  sigue pendiente (**T-404**).
 - **Aceptación** (E-EXT-1/2/3): ambos flujos corren siempre; reglas raw marcan
-  fuentes débiles; paridad con `kvi/kvg/10/11` en campos planos.
+  fuentes débiles; paridad con `kvi/kvg/10/11` en campos planos. **Parcial en
+  T-401**: "ambos flujos corren siempre" verificado (paralelismo **medido**: dos
+  llamadas de 0,2 s tardan ≈ 0,2 s, no 0,4 s; `max_workers=1` serializa); el
+  marcado de fuentes débiles reutiliza el registro raw de T-303 y su afinación
+  por campo es **T-403**; la paridad es **T-405**.
 - **Métricas**: exactitud por campo sobre golden (CUIT, fecha, total, razón
   social), tasa de acuerdo VLM vs. LLM, % campos con fragmento de sustento.
+  **Pendiente**: las tres requieren los campos normalizados (T-402) y el
+  subconjunto del golden (`tests/golden/F4/`) de **T-405**. En T-401 el sostén
+  literal **no** se evalúa sobre los campos de formato volátil (montos, fechas,
+  `descripcion`): quedan listados en
+  `detalle["modelos"][fuente]["sosten_no_evaluado"]` en lugar de inventar un
+  veredicto favorable (ver `EXT.md` §2, nota de alcance de T-401).
 
 ### Fase 5 — Conclusión + HITL
 - **Unitarias**: reglas cruzadas, gaps y límite de reintentos; blindaje del

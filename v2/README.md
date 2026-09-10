@@ -17,10 +17,12 @@ evidencia congelado), `rules` (motor de reglas), `models` (adaptadores
 `OllamaClient` y `DoclingConverter`), `trace` (trazabilidad/`CaseRecord`) y
 `settings` (configuración centralizada).
 
-> **Estado**: Fase F0 — Fundación. Este paquete contiene el esqueleto de los
-> módulos (contratos de entrada/salida), los schemas de evidencia validados, el
-> cliente Ollama robusto y el adaptador Docling encapsulado. La lógica de
-> negocio de cada capacidad se implementa en sus fases (F1–F5).
+> **Estado**: Fases F0–F3 con DoD verificado y **F4 en implementación** (T-401
+> hecha: flujos VLM+LLM en paralelo devolviendo evidencia con el contrato de F0;
+> T-402..T-405 pendientes). El paquete ya tiene implementadas las capacidades de
+> procesamiento (F1), validación (F2), clasificación (F3) y la extracción con
+> contrato de evidencia (F4/T-401); la lógica restante se implementa en sus fases
+> (F4–F5). La suite default corre **sin** Ollama ni Docling reales.
 
 ## Instalación
 
@@ -51,10 +53,10 @@ v2/
     schemas/
       evidence.py           # contrato de evidencia (F0, congelado)
       result.py             # VoucherResult + CaseRecord (F0, congelado)
-    processing/…            # esqueleto (F1)
-    validation/…            # esqueleto (F2)
-    classification/…        # esqueleto (F3)
-    extraction/…            # esqueleto (F4)
+    processing/…            # F1 (implementado)
+    validation/…            # F2 (implementado)
+    classification/…        # F3 (implementado)
+    extraction/…            # F4: T-401 implementado (flujos + evidencia); T-402..T-405 pendientes
     conclusion/…            # esqueleto (F5)
     rules/…                 # esqueleto (F3/F5)
     models/

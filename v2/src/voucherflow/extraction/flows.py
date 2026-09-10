@@ -1,45 +1,209 @@
-"""Módulo ``extraction`` (esqueleto — F4) — flujos VLM + LLM con evidencia.
+"""Módulo ``extraction`` (F4) — flujos VLM + LLM en paralelo con evidencia.
 
-**Fase**: F4 (refactor extracción). En F0 solo se deja el **esqueleto** con las
-firmas públicas y los contratos (basados en ``schemas/evidence.py``), sin
-lógica de negocio ni acoplamiento a scripts de ``v1/``
-(``document_extraction.py`` kvi/kvg, ``extraction_pipeline.py`` 10/11).
+**Fase**: F4 (extracción) · **Tarea**: T-401 · **Épicas**: E-EXT-1, E-EXT-2.
 
-Responsabilidades (doc 03 §4.4, `EXT.md`): correr **en paralelo** el flujo VLM
-(lee la imagen) y el flujo LLM (lee el OCR/Markdown), cada uno devolviendo
-``SourceEvidence`` con el contrato de F0, normalizar campos clave
-(CUIT/fechas/montos/ítems) y combinar la evidencia con resolución por campo
-(ADR-002).
+Este módulo expone la **superficie pública** de la extracción (las firmas que F0
+dejó como esqueleto) y delega la lógica en
+:mod:`voucherflow.extraction.evidencia`:
+
+* :func:`flujo_vlm` — corre el flujo **VLM** (lee la imagen de la vista fiel de
+  F2) y devuelve ``SourceEvidence`` (contrato de F0/ADR-001).
+* :func:`flujo_llm` — corre el flujo **LLM** (lee el OCR/Markdown de F1) y
+  devuelve ``SourceEvidence`` con el **mismo** contrato: eso es lo que permite
+  comparar las dos lecturas campo a campo (E-EXT-1).
+* :func:`extraer` — corre **las dos fuentes en paralelo** sobre el mismo
+  comprobante (no se elige una por documento: es la regla dura de E-EXT-1) y
+  conserva **ambas** evidencias sin colapsarlas.
+* :func:`combinar_evidencia` — **esqueleto de T-404**: combinar por campo con la
+  precedencia de ADR-002 es de esa tarea; acá sigue lanzando
+  ``NotImplementedError`` a propósito.
+
+Nota sobre la firma de F0: ``flujo_vlm(origen, **kwargs)`` /
+``flujo_llm(markdown, **kwargs)`` se conservan tal cual (eran el contrato
+congelado del esqueleto). ``origen`` se interpreta como **la vista preparada de
+F2** (idealmente la vista fiel de E-QWE-2): el camino de ``origen`` a vista es de
+F2, no de la extracción, y aceptar una ``VistaPreparada`` evita que este módulo
+dependa de ``processing``. El flujo real (con ``OllamaClient``) corre con el rol
+``vlm``/``llm`` de ``Settings`` (E-LIB-3).
 """
 
 from __future__ import annotations
 
+from typing import Any, Iterable
+
 from ..schemas.evidence import CombinedEvidence, SourceEvidence
+from .evidencia import (
+    ErrorEvidencia,
+    ErrorExtraccion,
+    ExtraccionEvidencia,
+    Lector,
+    ejecutar_flujo,
+    extraer_evidencia,
+)
+from .prompt_extraccion import (
+    CAMPOS_EXTRACCION,
+    FUENTES_EXTRACCION,
+    VERSION_PROMPT_EXTRACCION,
+    construir_messages_extraccion,
+)
+
+__all__ = [
+    "flujo_vlm",
+    "flujo_llm",
+    "extraer",
+    "combinar_evidencia",
+    # re-exportes de conveniencia (contrato y errores del módulo)
+    "ErrorEvidencia",
+    "ErrorExtraccion",
+    "ExtraccionEvidencia",
+    "Lector",
+    "CAMPOS_EXTRACCION",
+    "FUENTES_EXTRACCION",
+    "VERSION_PROMPT_EXTRACCION",
+    "construir_messages_extraccion",
+]
 
 
-def flujo_vlm(origen: str, **kwargs) -> SourceEvidence:
-    """Flujo VLM: lee la imagen directo y devuelve ``SourceEvidence`` (F4).
+def flujo_vlm(
+    origen: Any,
+    *,
+    lector: Lector,
+    modelo: str | None = None,
+    settings: Any = None,
+    **kwargs: Any,
+) -> SourceEvidence:
+    """Flujo VLM: lee la imagen y devuelve ``SourceEvidence`` (F4/T-401).
 
-    Esqueleto F0 — se implementa en F4 (T-401) con ``OllamaClient``.
+    Implementación de T-401 sobre el ``OllamaClient`` de F0: el flujo construye
+    los ``messages`` del prompt de evidencia versionado
+    (``extraccion-key-value@1``) con la **imagen** de la vista (base64 reducida
+    como en F2/T-202, salvo en la vista ``fiel``, que no se reduce) y convierte
+    la respuesta al contrato de evidencia de F0 (ADR-001).
+
+    Argumentos:
+        origen: la **vista preparada de F2** (``VistaPreparada``, idealmente la
+            vista fiel de E-QWE-2) que trae la imagen en
+            ``ruta_imagen_original``. El camino documento→vista es de F2.
+        lector: objeto con ``ask`` (protocolo :class:`Lector`); en producción,
+            :class:`~voucherflow.models.ollama.OllamaClient`.
+        modelo: modelo explícito (default: rol ``vlm`` de ``Settings``, que ya
+            declara su ``num_ctx``).
+        settings: ``Settings`` para resolver el rol del modelo (default:
+            ``cargar_settings()``).
+
+    Devuelve:
+        ``SourceEvidence`` de la fuente ``vlm`` (un ``EvidenceField`` por campo
+        declarado, con su fragmento de sustento y la pasada raw de T-303).
+
+    Lanza:
+        ``ValueError`` si la vista no trae imagen o no hay modelo configurable.
+        :class:`ErrorEvidencia` si la respuesta no es JSON de objeto.
+        ``OllamaError`` si falla la comunicación con el modelo (se propaga).
     """
-    raise NotImplementedError("flujo_vlm(): se implementa en F4 (T-401).")
+    return ejecutar_flujo(
+        "vlm", lector, vista=origen, modelo=modelo, settings=settings
+    ).source_evidence
 
 
-def flujo_llm(markdown: str, **kwargs) -> SourceEvidence:
-    """Flujo LLM: lee el OCR/Markdown y devuelve ``SourceEvidence`` (F4).
+def flujo_llm(
+    markdown: str,
+    *,
+    lector: Lector,
+    modelo: str | None = None,
+    settings: Any = None,
+    **kwargs: Any,
+) -> SourceEvidence:
+    """Flujo LLM: lee el OCR/Markdown y devuelve ``SourceEvidence`` (F4/T-401).
 
-    Esqueleto F0 — se implementa en F4 (T-401) con ``OllamaClient``.
+    Implementación de T-401 sobre el ``OllamaClient`` de F0: el flujo construye
+    los ``messages`` del prompt de evidencia (el markdown va en ``content``) y
+    convierte la respuesta al contrato de evidencia de F0 (ADR-001) **sin
+    normalizar los valores** (eso es T-402).
+
+    Argumentos:
+        markdown: markdown/OCR procesado de F1
+            (``api.process(...).markdown``).
+        lector: objeto con ``ask`` (protocolo :class:`Lector`).
+        modelo: modelo explícito (default: rol ``llm`` de ``Settings``).
+        settings: ``Settings`` para resolver el rol del modelo.
+
+    Devuelve:
+        ``SourceEvidence`` de la fuente ``llm``.
+
+    Lanza:
+        ``ValueError`` si el markdown está vacío o no hay modelo configurable.
+        :class:`ErrorEvidencia` si la respuesta no es JSON de objeto.
+        ``OllamaError`` si falla la comunicación con el modelo (se propaga).
     """
-    raise NotImplementedError("flujo_llm(): se implementa en F4 (T-401).")
+    return ejecutar_flujo(
+        "llm", lector, markdown=markdown, modelo=modelo, settings=settings
+    ).source_evidence
 
 
-def combinar_evidencia(documento_id: str, fuentes: list[SourceEvidence]) -> CombinedEvidence:
+def extraer(
+    lector: Lector,
+    *,
+    markdown: str | None = None,
+    vista: Any = None,
+    documento_id: str = "documento",
+    fuentes: Iterable[str] = FUENTES_EXTRACCION,
+    modelo: str | None = None,
+    settings: Any = None,
+    max_workers: int | None = None,
+) -> ExtraccionEvidencia:
+    """Corre los dos flujos **en paralelo** y devuelve la evidencia por fuente (T-401).
+
+    Es el punto de entrada de la extracción (E-EXT-1): los flujos VLM y LLM
+    corren **siempre juntos** sobre el comprobante —no se elige uno por
+    documento—, cada uno devuelve ``SourceEvidence`` con el mismo contrato
+    (ADR-001) y las dos evidencias se **conservan sin colapsar** (la resolución
+    por campo con la precedencia de ADR-002 es T-404).
+
+    Argumentos:
+        lector: objeto con ``ask`` (protocolo :class:`Lector`).
+        markdown: markdown/OCR de F1 para la fuente ``llm``.
+        vista: ``VistaPreparada`` de F2 (idealmente la **vista fiel**) para la
+            fuente ``vlm``.
+        documento_id: id del documento (hash sha256 en producción).
+        fuentes: fuentes a correr, en orden (default: las dos).
+        modelo: modelo explícito para todas las fuentes.
+        settings: ``Settings`` para resolver modelo/``num_ctx`` por rol.
+        max_workers: tope de hilos (default: una tarea por fuente con insumo;
+            ``max_workers=1`` fuerza la serialización).
+
+    Devuelve:
+        :class:`~voucherflow.extraction.evidencia.ExtraccionEvidencia` con las
+        evidencias por fuente, los veredictos raw y la trazabilidad de la corrida
+        (fuentes sin insumo, fallos por fuente, paralelismo, duraciones).
+
+    Lanza:
+        :class:`ErrorExtraccion` si **todas** las fuentes con insumo fallaron.
+    """
+    return extraer_evidencia(
+        lector,
+        markdown=markdown,
+        vista=vista,
+        documento_id=documento_id,
+        fuentes=fuentes,
+        modelo=modelo,
+        settings=settings,
+        max_workers=max_workers,
+    )
+
+
+def combinar_evidencia(
+    documento_id: str, fuentes: list[SourceEvidence]
+) -> CombinedEvidence:
     """Combina la evidencia de las fuentes con resolución por campo (F4).
 
-    Esqueleto F0 — se implementa en F4 (T-404) aplicando la precedencia
-    declarativa de ADR-002.
+    Esqueleto F0 — se implementa en F4/**T-404** aplicando la precedencia
+    declarativa de ADR-002. T-401 **no** la implementa a propósito: su
+    entregable es que ambos flujos corran en paralelo devolviendo
+    ``SourceEvidence`` con el contrato de F0, y las evidencias se conservan
+    separadas (ADR-001) hasta que la precedencia por campo esté definida.
     """
-    raise NotImplementedError("combinar_evidencia(): se implementa en F4 (T-404).")
-
-
-__all__ = ["flujo_vlm", "flujo_llm", "combinar_evidencia"]
+    raise NotImplementedError(
+        "combinar_evidencia(): se implementa en F4 (T-404, precedencia ADR-002). "
+        "T-401 entrega las dos SourceEvidence sin colapsar; usá "
+        "extraction.extraer() para obtenerlas."
+    )

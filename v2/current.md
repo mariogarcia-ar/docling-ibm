@@ -1,8 +1,8 @@
-# v2 — Estado actual y qué se puede probar (fase F1)
+# v2 — Estado actual y qué se puede probar (fase F4)
 
 > **Documento**: estado vivo de la versión 2 de `ibm-docling`.
-> **Fecha**: 2026-09-07 · **Rama**: `v2` (ruta texto nativo con `pdftotext --layout` para PDF apto)
-> **Fuentes**: `v2/README.md`, `v2/docs/plan/05-plan/F0.md`, `v2/docs/plan/05-plan/F1.md` y `F1-subplan.md`, `v2/src/voucherflow/`
+> **Fecha**: 2026-09-10 · **Rama**: `v2`
+> **Fuentes**: `v2/README.md`, `v2/docs/plan/05-plan/F0.md`..`F4.md` y subplanes, `v2/src/voucherflow/`
 
 ---
 
@@ -10,13 +10,17 @@
 
 | Campo | Valor |
 |---|---|
-| **Fase en curso** | **F1 — Procesamiento (refactor docling)** (T-101..T-105/ORQ + T-105) |
-| **Estado** | 🟢 **F0 completada** (77 tests al cierre). F1 **en implementación**: T-101 ✅, T-102 ✅, T-103 ✅, T-104 ✅, enrutado PDF por página ✅ (`routing.py`), **orquestación `procesar_documento()` + `api.process()` ✅** (T-105/ORQ, con flag `docling_raw` para crudo Docling) y **ruta PDF apto con `pdftotext --layout` ✅** (poppler, con fallback Docling; A1 revertida); resta T-105 (integración paridad) y docs de cierre |
+| **Fase en curso** | **F4 — Extracción** (T-401..T-405) |
+| **Estado** | **T-401 ✅ hecha**: los flujos VLM (vista fiel de F2) y LLM (OCR/Markdown de F1) corren **en paralelo** y devuelven `SourceEvidence` con el contrato de F0; prompt de evidencia versionado `extraccion-key-value@1`, intérprete que no inventa ni normaliza, pasada raw reutilizada de T-303 y medición real de paralelismo. Restan T-402 (normalización), T-403 (reglas raw de extracción), T-404 (combinación ADR-002) y T-405 (paridad con v1). |
 | **F0** | ✅ Fundación completada (schemas, esqueleto, golden set, adaptadores) |
-| **F2–F6** | 🔴 Backlog (validación, clasificación, extracción, conclusión, cliente) |
+| **F1** | ✅ Implementada (T-101..T-105/ORQ, `api.process()`; paridad de integración en `@pytest.mark.integration`) |
+| **F2** | ✅ DoD verificado (T-201..T-204; doble paso qween) |
+| **F3** | ✅ DoD verificado (T-301..T-305; motor de reglas R1-R7, evidencia, reglas raw, cadena contable y paridad con v1) |
+| **F4** | 🟡 En implementación (**T-401 hecha**; T-402..T-405 pendientes) |
+| **F5–F6** | 🔴 Backlog (conclusión + HITL; CLI/batch y paridad sobre `files/`) |
 | **Paquete** | `voucherflow` v`0.1.0` (layout `src/`, ADR-007) |
 | **Contrato** | `SCHEMA_VERSION = 1.0.0` (congelado, ver criterio de cambio en `schemas/evidence.py`) |
-| **Suite de tests** | ✅ **187 tests en verde** (`python -m pytest tests -q`) en env `py313_env` |
+| **Suite de tests** | ✅ **730 tests en verde + 10 skipped** (`python -m pytest tests -q`) en env `py313_env` |
 
 **Resumen**: F0 dejó la **fundación de la librería**: contratos de evidencia
 congelados, configuración centralizada, adaptadores `OllamaClient`/
@@ -57,13 +61,15 @@ paridad de integración T-105 y los docs de cierre de F1.
 
 Estos módulos existen con su **firma pública y contratos** pero **no tienen
 lógica de negocio**: sus funciones lanzan `NotImplementedError` hasta su fase.
+F1–F4 ya implementaron las capacidades de las filas marcadas; las de F5 siguen
+pendientes.
 
 | Capacidad (fase) | Módulo | Contratos ya definidos |
 |---|---|---|
 | Procesamiento (F1) | `processing/type_detector.py` | `TipoEntrada` (tipo, `ruta_ocr`) |
 | Validación (F2) | `validation/qween.py` | `VeredictoGate` (comprobante/no/indeterminado), `ValidationResult` |
 | Clasificación (F3) | `classification/tipo_comprobante.py` | `TipoComprobanteResult`, `ClasificacionContableResult` |
-| Extracción (F4) | `extraction/flows.py` | `flujo_vlm()`, `flujo_llm()`, `combinar_evidencia()` |
+| Extracción (F4) | `extraction/flows.py` | `flujo_vlm()`, `flujo_llm()`, `extraer()` (**implementados en T-401**); `combinar_evidencia()` (esqueleto de T-404) |
 | Conclusión (F5) | `conclusion/engine.py` | `concluir()`, `escalar_a_agente()`, `encolar_hitl()` |
 | Conclusión (F5) | `models/arca.py` | `ArcaClient`, `ArcaResultado` (opcional, ADR-003) |
 | Trazabilidad (F5) | `trace/recorder.py` | `CaseRecorder` |
@@ -96,6 +102,29 @@ lógica de negocio**: sus funciones lanzan `NotImplementedError` hasta su fase.
 
 ---
 
+## 2.4 Avance de F4 (en curso)
+
+| Tarea | Módulo | Qué ofrece / se puede probar | Tests |
+|---|---|---|---|
+| **T-401** (✅) | `extraction/{flows,evidencia,prompt_extraccion}.py` | Los flujos **VLM** (vista fiel de F2) y **LLM** (OCR/Markdown de F1) corren **en paralelo** (`ThreadPoolExecutor`, una tarea por fuente) y devuelven cada uno `SourceEvidence` con el contrato de F0 (ADR-001). Prompt de evidencia versionado `extraccion-key-value@1` (reporta `valor` + `fragmento_sustento` por campo; no normaliza ni decide). El intérprete no inventa campos (los lista en `campos_ausentes`), tolera el JSON plano de v1 (`kvi`/`kvg`) y reutiliza la pasada raw de T-303. Una fuente caída no tumba a la otra; todas caídas lanzan `ErrorExtraccion`. Las dos evidencias se conservan **sin colapsar** (T-404). | `test_extraction_flujos.py` (75) |
+| **T-402..T-405** (🔴) | `extraction/key_value.py`, `rules/precedencia.py`, `tests/golden/F4/` | Normalización key-value, reglas raw por fuente afinadas para extracción, combinación por campo (ADR-002) y paridad con v1. | — |
+
+> **Inspección de T-401**: `python scripts/F4/t401.py` corre **11/11** escenarios
+> sintéticos (dos fuentes coincidiendo, discrepancia conservando ambas, campo sin
+> sustento, valor fuera del vocabulario, CUIT no sostenido, JSON plano de v1,
+> montos no evaluados por sostén, sin vista, JSON inválido aislado, fuente caída
+> aislada, todas caídas) y **mide el paralelismo** (en paralelo ≈ el máximo de las
+> dos llamadas, no la suma). Con `--origen <doc>` corre la extracción real
+> (F1 + vista fiel de F2 + Ollama).
+>
+> **Decisión de alcance**: los campos de **formato volátil** (montos, fechas,
+> `descripcion`) no se evalúan por sostén literal en T-401 (el OCR decide
+> separadores y formato) y quedan listados en
+> `detalle["modelos"][fuente]["sosten_no_evaluado"]` para que T-402/T-403 los
+> cubran — no se inventa un veredicto favorable.
+
+---
+
 ## 3. Qué se puede probar en esta fase (F1)
 
 ### 3.1 Rápido — instalación e import
@@ -107,7 +136,7 @@ python -c "import voucherflow; print(voucherflow.__version__, voucherflow.SCHEMA
 # → 0.1.0 1.0.0
 ```
 
-### 3.2 Suite de tests (187 en verde)
+### 3.2 Suite de tests (730 en verde + 10 skipped)
 
 ```bash
 cd v2
@@ -130,6 +159,9 @@ Cobertura de la suite por archivo (F0 + F1):
 | `test_processing_orientation.py` | **F1/T-103**: orientación por boxes (horizontal/vertical), `requiere_rotacion` y preprocesamiento heurístico (`QualityReport`). |
 | `test_processing_exportador_motor.py` | **F1/T-104**: exportador ordenado por posición (horizontal/vertical/tablas) + elección de motor ocr/vlm/auto + hook `transcribir_vlm` sin Ollama. |
 | `test_processing_routing.py` | **Apoyo orquestación**: clasificación de página (apta/escaneada/corrupta/vacía) y veredicto por PDF (apto/requiere_ocr/parcial). |
+| `test_rules_contexto.py` · `test_rules_tipo_comprobante.py` · `test_rules_raw.py` | **F3/T-301 y T-303**: contexto tipado, una clase por regla R1..R7 + combinaciones, y las cuatro reglas raw por fuente (`RAW_CAMPO`/`RAW_VOCABULARIO`/`RAW_SUSTENTO`/`RAW_CONTRADICCION`). |
+| `test_classification_prompt_tipo.py` · `test_classification_contable.py` · `test_classification_paridad.py` | **F3/T-302, T-304 y T-305**: prompt de evidencia `tipo-comprobante@1` + lector inyectable; cadena contable 01→02→03 con checkpoints y contratos por paso; paridad con v1 (fidelidad de prompts portados, subconjunto del golden, regresión de R5). |
+| `test_extraction_flujos.py` | **F4/T-401**: prompt de evidencia `extraccion-key-value@1`, `messages` por fuente, intérprete (sin normalizar ni inventar; tolera el JSON plano de v1), contrato `SourceEvidence`, pasada raw reutilizada de T-303 y **paralelismo real** de los dos flujos (incluye fallos por fuente). |
 
 ### 3.3 Probar el contrato de evidencia a mano (ejemplos)
 
@@ -180,7 +212,7 @@ reglas.ids_disparados({"monto": 100, "texto": "tiene IVA"})  # ["R1", "R2"]
 - 🟡 Paridad de integración T-105 contra v1 sobre fixtures reales (tests `@pytest.mark.integration`; **F1, pendiente de corrida real**).
 - ✅ Gate "¿es comprobante?" estilo qween (**hecho en F2**, T-201..T-204).
 - ✅ Clasificar tipo/letra y cadena contable (**F3** completa: T-301..T-305 — motor de reglas R1-R7, prompt de evidencia, reglas raw, cadena contable 01→02→03 y paridad verificada con v1: **8/8** en la cadena y **5/5** de exactitud de letra vs. **2/5** de v1).
-- ❌ Extracción VLM/LLM con evidencia combinada (llega en **F4**, T-401..T-405).
+- 🟡 **Extracción VLM/LLM con contrato de evidencia (T-401 ✅)**: `python scripts/F4/t401.py` corre **11/11** escenarios sin Ollama (prompt versionado, evidencia por fuente, paralelismo medido) y con `--origen` extrae de verdad (F1 + vista fiel de F2 + Ollama). Faltan la normalización (T-402), las reglas raw por fuente (T-403), la combinación por campo (T-404) y la paridad con v1 (T-405).
 - ❌ Conclusión reglas→agente→HITL + trazabilidad persistida (llega en **F5**).
 - ❌ CLI/batch (`voucherflow …`) y paridad v1 sobre `files/` (llega en **F6**).
 
@@ -206,11 +238,42 @@ python scripts/F3/t301.py            # 14 escenarios R1..R7 contra la expectativ
 python -m pytest tests/test_rules_tipo_comprobante.py -q
 ```
 
-Las funciones de esqueleto de fases futuras (`validate`, `classify`,
-`extract`, `run`, `validar_comprobante`, `clasificar_*`, `flujo_vlm/llm`,
-`combinar_evidencia`, `concluir`, `escalar_a_agente`, `encolar_hitl`,
-`CaseRecorder.registrar`) y la orquestación de F1 (`api.process`,
-`procesar_documento`) lanzan `NotImplementedError` a propósito.
+### 3.8 Comprobación rápida de T-401 (F4)
+
+```bash
+python scripts/F4/t401.py                      # 11 escenarios + paralelismo medido
+python scripts/F4/t401.py --prompt             # el prompt de evidencia versionado
+python -m pytest tests/test_extraction_flujos.py -q
+```
+
+```python
+from voucherflow.extraction import extraer
+from voucherflow.models.ollama import OllamaClient
+from voucherflow.validation.vistas import preparar_vista_fiel
+from voucherflow import api
+
+documento = api.process("comprobante.pdf")
+vista = preparar_vista_fiel(documento, "comprobante.pdf")   # vista fiel (E-QWE-2)
+resultado = extraer(
+    OllamaClient(),
+    markdown=documento.markdown,
+    vista=vista,
+    documento_id="doc-1",
+)
+resultado.evidencias_por_fuente()   # {'vlm': SourceEvidence, 'llm': SourceEvidence}
+resultado.debilidades               # ['[llm] La fuente declaró ...']
+resultado.detalle["fuentes_sin_insumo"]
+```
+
+> Los valores llegan **crudos** (la normalización es T-402) y las dos evidencias
+> se conservan **sin colapsar** (la combinación por campo con precedencia
+> ADR-002 es T-404: `combinar_evidencia` sigue lanzando `NotImplementedError`).
+
+Las funciones de esqueleto de fases futuras (`run`, `concluir`,
+`escalar_a_agente`, `encolar_hitl`, `CaseRecorder.registrar`,
+`combinar_evidencia`) lanzan `NotImplementedError` a propósito. Ya **no** son
+esqueletos `process` (F1), `validate` (F2), `classify` (F3),
+`flujo_vlm`/`flujo_llm`/`extract` (F4/T-401).
 
 ---
 

@@ -15,42 +15,50 @@
 | **ADRs relacionados** | ADR-001 (contrato de evidencia compartido VLM/LLM — bloqueante); ADR-002 (tabla de precedencia por campo en la combinación — bloqueante); ADR-006 (reglas raw de lectura en código); ADR-007 (layout). |
 | **Interfaces clave** | `extraer()` (VLM imagen + LLM OCR en paralelo); combinación modelada como `{ campo: { "vlm": EvidenceField, "llm": EvidenceField, "resolucion": FieldResolution { ganador, regla, motivo } } }`; normalización key-value (CUIT dígitos+guiones, fechas YYYY-MM-DD, montos sin separadores, punto_venta/número de PPPPP-NNNNNNNN). |
 | **Responsable ciclo** | team analysis (BA/SA/PM) → team implementation |
-| **Estado de diseño** | 🔴 Borrador |
-| **Fecha inicio** |  |
+| **Estado de diseño** | 🟡 En implementación (T-401: flujos en paralelo + contrato de evidencia; T-402..T-405 pendientes) |
+| **Fecha inicio** | 2026-09-10 |
 | **Fecha fin** |  |
 
 ## 2. Estado de trazabilidad del módulo
 
 | Elemento de arquitectura (doc 03) | Sección | Épica/Historia | Fase/Tarea | Estado |
 |---|---|---|---|---|
-| Flujo VLM (lee la imagen) | §4.4 | E-EXT-1 | F4 / T-401 | [ ] pendiente |
-| Flujo LLM (razona el OCR/Markdown) | §4.4 | E-EXT-1 | F4 / T-401 | [ ] pendiente |
-| Ambos flujos siempre en paralelo (no elegir por documento) | §4.4 | E-EXT-1 | F4 / T-401 | [ ] pendiente |
-| Reglas raw VLM / reglas raw LLM (pasada 1 por fuente) | §4.4 | E-EXT-2 | F4 / T-403 | [ ] pendiente |
-| Combinar evidencia por campo con fuente | §4.4 + §6 (nota de diseño) | E-EXT-1 | F4 / T-404 | [ ] pendiente |
+| Flujo VLM (lee la imagen) | §4.4 | E-EXT-1 | F4 / T-401 | [x] hecho (`extraction/flows.py::flujo_vlm` + `evidencia.py`: prompt de evidencia `extraccion-key-value@1`, un `EvidenceField` por campo con sustento) |
+| Flujo LLM (razona el OCR/Markdown) | §4.4 | E-EXT-1 | F4 / T-401 | [x] hecho (`extraction/flows.py::flujo_llm`, mismo contrato que el VLM) |
+| Ambos flujos siempre en paralelo (no elegir por documento) | §4.4 | E-EXT-1 | F4 / T-401 | [x] hecho (`extraer_evidencia()` con `ThreadPoolExecutor`, una tarea por fuente; `max_workers=1` serializa solo si se pide) |
+| Reglas raw VLM / reglas raw LLM (pasada 1 por fuente) | §4.4 | E-EXT-2 | F4 / T-403 | [ ] pendiente (T-401 ya reutiliza el registro de T-303 para el contrato de F0; su afinación es T-403) |
+| Combinar evidencia por campo con fuente | §4.4 + §6 (nota de diseño) | E-EXT-1 | F4 / T-404 | [ ] pendiente (`combinar_evidencia` sigue esqueleto a propósito) |
 | Resolución por campo (`FieldResolution` con precedencia ADR-002) | §6 | E-EXT-1 | F4 / T-404 | [ ] pendiente |
-| Normalización key-value (CUIT, fechas, montos, punto_venta/número, ítems) | E-EXT-3 (doc 02) + §10 heredado | E-EXT-3 | F4 / T-402 | [ ] pendiente |
-| Contrato `EvidenceField`/`SourceEvidence` (schema pydantic, T-001) | §6 + §9 | E-EXT / E-LIB-2 | F0 / T-001 | [ ] pendiente |
+| Normalización key-value (CUIT, fechas, montos, punto_venta/número, ítems) | E-EXT-3 (doc 02) + §10 heredado | E-EXT-3 | F4 / T-402 | [ ] pendiente (T-401 conserva el valor crudo a propósito) |
+| Contrato `EvidenceField`/`SourceEvidence` (schema pydantic, T-001) | §6 + §9 | E-EXT / E-LIB-2 | F0 / T-001 | [x] hecho (F0; consumido por T-401) |
 | Evidencia combinada (`CombinedEvidence`) como entrada de la conclusión | §4.5 + §9 | E-EXT / E-CONC | F4 → F5 / T-404→T-501 | [ ] pendiente |
-| Paridad con `extraction_pipeline.py` (10/11) y `document_extraction.py` (kvi/kvg) | §8.2 (mapeo v1→v2) | E-EXT | F4 / T-405 | [ ] pendiente |
+| Paridad con `extraction_pipeline.py` (10/11) y `document_extraction.py` (kvi/kvg) | §8.2 (mapeo v1→v2) | E-EXT | F4 / T-405 | [ ] pendiente (el intérprete ya tolera el JSON plano de `kvi`/`kvg` para poder medirla) |
+
+> **Nota de alcance (T-401)**: los campos de **formato volátil** (montos, fechas,
+> `descripcion`) **no** se evalúan por sostén literal en T-401: el OCR decide los
+> separadores de miles/decimales y el formato de fecha, así que exigir igualdad
+> literal produciría debilidades espurias. Quedan listados explícitamente en
+> `ExtraccionEvidencia.detalle["modelos"][fuente]["sosten_no_evaluado"]` (no se
+> inventa un veredicto favorable) y los cubre T-402 (normalización) + T-403
+> (reglas raw por fuente).
 
 ## 3. Definition of Design / contratos a congelar
 
-- [ ] Interfaz pública acordada: firmas de los flujos VLM/LLM devolviendo `SourceEvidence` y de la combinación devolviendo `CombinedEvidence` (con `FieldResolution` por campo).
-- [ ] Contrato de entrada/salida alineado al schema de evidencia: `EvidenceField { campo, valor, fuente, fragmento_sustento, confianza_fuente, meta }` validado con pydantic — rechazar si falta campo/valor/fuente/fragmento (E-LIB-2).
-- [ ] ADR(s) asociado(s) resueltos: ADR-001 (schema estricto por campo y prompts reescritos a evidencia) y ADR-002 (tabla de precedencia definida campo por campo en workshop con negocio).
-- [ ] Casos de golden set / tests que lo validan: casos donde VLM y LLM discrepan (para probar precedencia), casos de fuente internamente inconsistente (debilitada en pasada 1) y paridad de campos normalizados contra v1 (T-405).
+- [x] Interfaz pública acordada: firmas de los flujos VLM/LLM devolviendo `SourceEvidence` (`extraction/flows.py::flujo_vlm`/`flujo_llm`, T-401) y de la combinación devolviendo `CombinedEvidence` (**pendiente**: T-404, `combinar_evidencia` sigue esqueleto). El lector de modelo es un parámetro inyectable (protocolo `extraction.Lector`, mismo criterio que F3-subplan §2.6).
+- [x] Contrato de entrada/salida alineado al schema de evidencia: `EvidenceField { campo, valor, fuente, fragmento_sustento, confianza_fuente, meta }` validado con pydantic — el intérprete de T-401 rechaza con error de contrato claro lo que no es JSON de objeto (`ErrorEvidencia`) y declara explícitamente el fragmento ausente (E-LIB-2).
+- [x] ADR(s) asociado(s) resueltos: ADR-001 (schema estricto por campo y prompts reescritos a evidencia: `extraccion-key-value@1` no normaliza ni decide) y ADR-002 (**parcial**: T-401 conserva ambas evidencias sin colapsar; la tabla de precedencia por campo la aplica T-404).
+- [ ] Casos de golden set / tests que lo validan: los casos de discrepancia VLM/LLM y de fuente inconsistentemente sostenida ya están cubiertos por `tests/test_extraction_flujos.py` y `scripts/F4/t401.py` (sintéticos); el subconjunto del golden y la paridad de campos normalizados contra v1 son de **T-405**.
 
 ## 4. Decisiones abiertas que lo afectan
 
-- **ADR-001 (D-1, bloqueante)** — Contrato de evidencia: si no se congela en F0, la extracción no puede comparar VLM/LLM programáticamente (riesgo R-01).
-- **ADR-002 (D-2, bloqueante)** — Tabla de precedencia por campo: sin ella la combinación no resuelve desacuerdos de forma determinista; requiere workshop con negocio por tipo de campo.
+- **ADR-001 (D-1, bloqueante)** — Contrato de evidencia: si no se congela en F0, la extracción no puede comparar VLM/LLM programáticamente (riesgo R-01). **Resuelto en F0 y consumido por T-401**: los dos flujos devuelven el mismo `SourceEvidence`.
+- **ADR-002 (D-2, bloqueante)** — Tabla de precedencia por campo: sin ella la combinación no resuelve desacuerdos de forma determinista; requiere workshop con negocio por tipo de campo. **Sigue bloqueando T-404** (T-401 no lo suple: conserva las dos evidencias).
 - **ADR-006 (D-6)** — Reglas raw (R4-R6) en código apoyadas en la evidencia de VLM/LLM; condiciona cómo se valida la pasada 1 por fuente.
-- **D-11 (sin ADR)** — Modalidades `llm`/`vlm`/`auto` y su mapeo a los nuevos flujos; afecta la paridad con los modos `kvi/kvg/10/11` de v1 (E-EXT-1 "modalidades de la librería v1").
-- **R-02 (riesgo)** — La migración de prompts (10/11/kvi/kvg) puede degradar calidad de extracción; mitigar con golden set y paridad por fase.
+- **D-11 (sin ADR)** — Modalidades `llm`/`vlm`/`auto` y su mapeo a los nuevos flujos; afecta la paridad con los modos `kvi/kvg/10/11` de v1 (E-EXT-1 "modalidades de la librería v1"). **Parcial**: T-401 corre siempre las dos fuentes (no hay modalidad que elija una) y su intérprete tolera el JSON plano de `kvi`/`kvg`, así que la paridad de T-405 es medible.
+- **R-02 (riesgo)** — La migración de prompts (10/11/kvi/kvg) puede degradar calidad de extracción; mitigar con golden set y paridad por fase (T-405).
 
 ## 5. Bitácora de seguimiento del módulo
 
 | Fecha | Acción / hito | Responsable | Estado |
 |---|---|---|---|
-| _(vacío)_ | | | |
+| 2026-09-10 | **T-401 hecha**: los flujos VLM (vista fiel de F2) y LLM (OCR/Markdown de F1) corren **en paralelo** (`ThreadPoolExecutor`, una tarea por fuente) y cada uno devuelve `SourceEvidence` con el contrato de F0 (ADR-001). Prompt de evidencia versionado `extraccion-key-value@1` (el modelo reporta valor + fragmento de sustento; no normaliza ni decide). El intérprete no inventa campos ausentes, tolera el JSON plano de v1 (`kvi`/`kvg`) y reutiliza la pasada raw de T-303; los campos de formato volátil quedan explícitamente sin evaluar por sostén (T-402/T-403). Una fuente caída no tumba a la otra; todas caídas lanzan `ErrorExtraccion`. Módulo en 🟡 En implementación. | team implementation | Hecho |

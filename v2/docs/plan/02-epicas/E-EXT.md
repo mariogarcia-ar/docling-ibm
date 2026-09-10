@@ -15,25 +15,25 @@
 | **Fase(s) del plan** | F4 (T-401..T-405) |
 | **Prioridad MoSCoW** | Must (MVP) |
 | **Responsable ciclo** | team analysis (BA/SA/PM) → team implementation |
-| **Estado épica** | 🔴 Backlog |
-| **DoR cumplido** | [ ] pendiente |
-| **Fecha inicio** |  |
+| **Estado épica** | 🟡 En implementación (E-EXT-1 hecho en T-401; E-EXT-2/E-EXT-3 pendientes) |
+| **DoR cumplido** | [x] sí |
+| **Fecha inicio** | 2026-09-10 |
 | **Fecha fin** |  |
 
 ## 2. Definition of Done de la épica (criterios de aceptación a nivel épica)
 
-- [ ] Ambos flujos (VLM sobre imagen y LLM sobre OCR/Markdown) corren SIEMPRE en paralelo sobre cada comprobante, sin elegir uno por documento.
-- [ ] Cada flujo devuelve evidencia por campo con el mismo esquema (campo, valor, fuente, fragmento de sustento) conforme al schema `SourceEvidence` (T-001).
-- [ ] Las reglas raw por fuente (pasada 1) marcan como debilitada a una fuente internamente inconsistente antes de combinarse.
-- [ ] La combinación de evidencia resuelve por campo con precedencia (ADR-002) y conserva trazabilidad de cada fuente.
-- [ ] Los campos se normalizan (CUIT, fechas ISO, montos, punto_venta/número) sin inventar datos ausentes; en modo auditoría los no-comprobantes devuelven comprobante_valido=false con motivo_rechazo.
-- [ ] Paridad verificable con v1 sobre el golden set: equivalencia con `extraction_pipeline.py` (10/11) y `document_extraction.py` (kvi/kvg) en campos normalizados (DoD de F4 en `05-plan-ejecucion.md`).
-- [ ] Documentación/contratos actualizados (README/ADR si cambia una decisión).
+- [x] Ambos flujos (VLM sobre imagen y LLM sobre OCR/Markdown) corren SIEMPRE en paralelo sobre cada comprobante, sin elegir uno por documento. *(T-401: `extraer_evidencia()` con `ThreadPoolExecutor`, una tarea por fuente; medido en `scripts/F4/t401.py`)*
+- [x] Cada flujo devuelve evidencia por campo con el mismo esquema (campo, valor, fuente, fragmento de sustento) conforme al schema `SourceEvidence` (T-001). *(`extraction/evidencia.py::construir_source_evidence`)*
+- [ ] Las reglas raw por fuente (pasada 1) marcan como debilitada a una fuente internamente inconsistente antes de combinarse. *(T-401 ya publica `valida`/`debilidades`/`reglas_aplicadas` reutilizando el registro de T-303; su afinación por campo es T-403)*
+- [ ] La combinación de evidencia resuelve por campo con precedencia (ADR-002) y conserva trazabilidad de cada fuente. *(T-401 conserva **ambas** evidencias sin colapsar; la resolución es T-404)*
+- [ ] Los campos se normalizan (CUIT, fechas ISO, montos, punto_venta/número) sin inventar datos ausentes; en modo auditoría los no-comprobantes devuelven comprobante_valido=false con motivo_rechazo. *(T-402; T-401 conserva el valor crudo a propósito)*
+- [ ] Paridad verificable con v1 sobre el golden set: equivalencia con `extraction_pipeline.py` (10/11) y `document_extraction.py` (kvi/kvg) en campos normalizados (DoD de F4 en `05-plan-ejecucion.md`). *(T-405)*
+- [ ] Documentación/contratos actualizados (README/ADR si cambia una decisión). *(parcial: T-401 actualizó `EXT.md`, `F4.md` y `F4-subplan.md`)*
 
 ## 3. Historias de usuario y seguimiento
 
 ### E-EXT-1 · Flujos VLM y LLM en paralelo con contrato de evidencia
-- **Estado**: [ ] Pendiente · [ ] En desarrollo · [ ] En QA · [ ] Hecho
+- **Estado**: [ ] Pendiente · [ ] En desarrollo · [ ] En QA · [x] **Hecho** (T-401, 2026-09-10)
 - **Responsable**: team analysis / team implementation
 - **Como** sistema,
   **quiero** ejecutar siempre ambos flujos (VLM y LLM) sobre cada comprobante y que
@@ -112,7 +112,7 @@ Regla: validación de comprobante
 
 | Fecha | Acción / hito | Responsable | Estado |
 |---|---|---|---|
-|  | | | |
+| 2026-09-10 | **E-EXT-1 hecha (T-401)**: los flujos VLM y LLM corren siempre en paralelo y cada uno devuelve `SourceEvidence` con el contrato de F0 (ADR-001). Prompt de evidencia versionado `extraccion-key-value@1`; el intérprete no inventa campos, tolera el JSON plano de v1 y reutiliza la pasada raw de T-303. Suites: `tests/test_extraction_flujos.py` (75) y `scripts/F4/t401.py` (11/11 + paralelismo medido). E-EXT-2 (T-403) y E-EXT-3 (T-402) siguen pendientes. | team implementation | Hecho |
 
 ## 5. Referencias cruzadas
 

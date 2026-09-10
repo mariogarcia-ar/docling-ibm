@@ -69,7 +69,13 @@ explícito, no `if` disperso).
 
 - **Estado**: ✅ **Aceptado** (F0, 2026-09-06) · **Prioridad**: Alta (bloqueante) · **Decisión D-1**
 - **Implementación**: `v2/src/voucherflow/schemas/evidence.py` (congelado,
-  `SCHEMA_VERSION=1.0.0`, criterio de cambio documentado en el módulo).
+  `SCHEMA_VERSION=1.0.0`, criterio de cambio documentado en el módulo). El lado
+  **prompt** se materializó en **F4/T-401**: `extraction/prompt_extraccion.py`
+  congela `extraccion-key-value@1` (el modelo reporta `valor` +
+  `fragmento_sustento` por campo; **no** normaliza ni decide) y
+  `extraction/flows.py` devuelve `SourceEvidence` con `meta.version_prompt`.
+  El modo plano legado de `kvi`/`kvg` sigue aceptándose en el intérprete
+  (`parsear_evidencia_extraccion`) para medir la paridad de T-405.
 
 **Contexto**
 Hoy cada modalidad devuelve JSON libre según el prompt (`kvi`, `kvg`, `11.1`).
@@ -102,7 +108,11 @@ se reescribe para devolver **evidencia**, no decisión final.
 - **Estado**: ✅ **Aceptado** (F0, 2026-09-06) · **Prioridad**: Alta (bloqueante) · **Decisión D-2**
 - **Implementación**: el shape de resolución por campo (`FieldResolution` +
   `CampoCombinado`) está congelado en `schemas/evidence.py`; la tabla de
-  precedencia concreta (PREC_1…) se codifica en F4 (T-404).
+  precedencia concreta (PREC_1…) se codifica en F4 (T-404). **Avance
+  (F4/T-401)**: los dos flujos ya entregan las dos `SourceEvidence` completas
+  **sin colapsar** (`extraction/evidencia.py::extraer_evidencia`), así que la
+  combinación de T-404 tiene ambas entradas disponibles;
+  `combinar_evidencia()` sigue lanzando `NotImplementedError` a propósito.
 
 **Contexto**
 Cuando VLM y LLM discrepan en un campo, hay que decidir qué fuente gana por tipo
