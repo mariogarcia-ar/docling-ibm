@@ -253,7 +253,8 @@ def decidir_es_comprobante(
         ``confianza_fuente`` (alta/media/baja según el parseo, ver
         :func:`_parsear_veredicto`), ``vista_usada`` = ``vista.tipo_vista`` y
         ``detalle`` con: ``nota`` (explica el veredicto), ``modelo``,
-        ``version_prompt`` (``qween-gate@1``, ADR-005), ``respuesta_bruta``,
+        ``version_prompt`` (``VERSION_PROMPT_QWEEN`` — actual ``qween-gate@2``,
+        ADR-005), ``respuesta_bruta``,
         ``parseo`` (``reconocido`` + ``normalizado``) y ``evidencia``: el
         :class:`SourceEvidence` serializado con ``model_dump(mode="json")``
         (campo ``es_comprobante``, fuente coherente con la vista, fragmento no

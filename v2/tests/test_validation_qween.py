@@ -6,7 +6,7 @@ Validan (F2-subplan §3.2 y reglas duras §4):
    según la vista: con imagen agrega ``images`` con la imagen en **base64**
    (formato que exige Ollama ``/api/chat`` — validado empíricamente) al
    mensaje ``user``; textual incluye el markdown en ``content``. Se verifica
-   ``VERSION_PROMPT_QWEEN == "qween-gate@1"`` (ADR-005).
+   ``VERSION_PROMPT_QWEEN == "qween-gate@2"`` (ADR-005).
 2. ``decidir_es_comprobante`` con un doble del cliente cubre las 3 salidas
    (``comprobante`` / ``no_comprobante`` / ``indeterminado``) + respuestas
    vacías/ruido/no reconocibles → ``indeterminado`` con nota en ``detalle``,
@@ -147,14 +147,22 @@ def _vista_texto(
 class TestPromptQween:
     def test_version_prompt_congelada(self):
         # ADR-005: versión del prompt corto para trazabilidad de la evidencia.
-        assert VERSION_PROMPT_QWEEN == "qween-gate@1"
+        # v2: fix de falsos positivos (caso 2926bed9) — define qué es/no es
+        # comprobante.
+        assert VERSION_PROMPT_QWEEN == "qween-gate@2"
 
-    def test_system_prompt_pide_las_tres_salidas_sin_explicar(self):
-        # qween.md §1: prompt corto, decisión orientada, tres salidas.
+    def test_system_prompt_pide_las_tres_salidas_y_define_limites(self):
+        # qween.md §1 + v2: prompt corto, decisión orientada, tres salidas.
+        # v2 agrega la definición de qué ES / qué NO ES comprobante (fix de
+        # falsos positivos: capturas de sistema mostrando movimientos).
         assert "comprobante" in SYSTEM_PROMPT_QWEEN
         assert "no_comprobante" in SYSTEM_PROMPT_QWEEN
         assert "indeterminado" in SYSTEM_PROMPT_QWEEN
-        assert "explica" not in SYSTEM_PROMPT_QWEEN.lower().replace("no expliques", "")
+        # v2: define los límites — capturas de apps/sistemas que muestran un
+        # movimiento NO son comprobante (caso 2926bed9).
+        assert "Capturas de pantalla" in SYSTEM_PROMPT_QWEEN
+        assert "movimiento" in SYSTEM_PROMPT_QWEEN.lower()
+        assert "Extractos bancarios" in SYSTEM_PROMPT_QWEEN
 
     def test_mensajes_con_imagen_incluyen_la_imagen(self):
         # Vista con imagen: el mensaje user agrega ``images`` con la imagen en

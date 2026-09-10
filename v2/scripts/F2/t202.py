@@ -16,7 +16,7 @@ el documento es comprobante. Muestra por archivo:
     la ``confianza_fuente`` (alta/media/baja) y la fuente de evidencia
     (``vlm`` si la vista es imagen, ``llm`` si es texto).
   - con ``--detalle``: la nota del gate, el modelo usado, la versión de prompt
-    (``qween-gate@1``) y la evidencia (``SourceEvidence`` serializada).
+    (``qween-gate@2``) y la evidencia (``SourceEvidence`` serializada).
 
 Al final imprime un **reporte del procesamiento**: distribución de veredictos
 (con %), ahorro de la reducción de imagen (peso original vs. reducido, total y

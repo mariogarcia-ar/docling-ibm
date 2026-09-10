@@ -45,14 +45,45 @@ from .vistas import VistaPreparada
 #: versión/hash). Se registra en ``EvidenceField.meta.version_prompt`` vía
 #: ``nueva_meta`` en ``qween._construir_evidencia_gate`` para poder auditar qué
 #: prompt produjo cada decisión (E-CONC-5 / ADR-005).
-VERSION_PROMPT_QWEEN = "qween-gate@1"
+#
+# Historial de versiones:
+#   - ``qween-gate@1``: prompt inicial (3 salidas) portado de la idea qween.md.
+#   - ``qween-gate@2``: define qué ES y qué NO ES un comprobante. Fix de falsos
+#     positivos: el modelo clasificaba como "comprobante" capturas de pantalla
+#     de sistemas/apps que muestran un movimiento financiero y piden la factura
+#     (caso golden ``2926bed9``), solo porque el texto contenía las palabras
+#     "comprobante"/"impuesto"/montos. Ahora se aclara que la captura de un
+#     movimiento/consulta NO es el comprobante en sí.
+VERSION_PROMPT_QWEEN = "qween-gate@2"
 
 #: System prompt del gate "¿es comprobante?" (E-QWE-1). Portado de la idea
-#: fuente ``docs/ideas/qween.md`` §1. Pide una sola etiqueta de tres opciones
-#: (``comprobante | no_comprobante | indeterminado``), sin explicación.
+#: fuente ``docs/ideas/qween.md`` §1, con definición de qué ES / qué NO ES un
+#: comprobante (v2, fix de falsos positivos — caso ``2926bed9``). Pide una
+#: sola etiqueta de tres opciones (``comprobante | no_comprobante |
+#: indeterminado``), sin explicación.
 SYSTEM_PROMPT_QWEEN = (
     "Analiza esta imagen/documento de forma rápida.\n"
-    "Tu tarea es decidir si corresponde a un comprobante fiscal o comercial.\n"
+    "Tu tarea es decidir si corresponde a un COMPROBANTE FISCAL O COMERCIAL "
+    "válido para rendición de gastos.\n"
+    "\n"
+    "Se considera COMPROBANTE únicamente el documento emitido por el "
+    "proveedor/vendedor que acredita la operación: factura, ticket, recibo "
+    "oficial, boleto, nota de crédito/débito, o comprobante electrónico "
+    "(con o sin discriminación de IVA).\n"
+    "\n"
+    "NO es comprobante (responder no_comprobante):\n"
+    "- Capturas de pantalla de apps, billeteras, home banking o sistemas que "
+    "solo MUESTRAN un movimiento, un pago, una transferencia o una consulta "
+    "y piden/adjuntan la factura aparte.\n"
+    "- Extractos bancarios, resúmenes de tarjeta, listados o reportes.\n"
+    "- Pantallas de aprobación, mensajes, chats, correos o avisos.\n"
+    "- Documentos personales (DNI, licencia), selfies, fotos ajenas al gasto, "
+    "memos o capturas sin datos fiscales del emisor.\n"
+    "\n"
+    "Regla práctica: si la imagen es solo una captura de un sistema que "
+    "describe un movimiento y NO es el documento emitido por el comercio, "
+    "entonces no_comprobante.\n"
+    "\n"
     "Responder solo con una de estas opciones:\n"
     "- comprobante\n"
     "- no_comprobante\n"
