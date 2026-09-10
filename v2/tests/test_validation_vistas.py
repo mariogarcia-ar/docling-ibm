@@ -1,15 +1,16 @@
-"""Tests de preparación de vistas (F2 / T-201, épica E-QWE-1).
+"""Tests de preparación de vistas (F2 / T-201 y T-203, épica E-QWE).
 
-Validan ``preparar_vista_rapida`` y el contrato :class:`VistaPreparada` (vista
-barata del doble paso qween): la vista rápida es de calidad baja/moderada (no
-alta), distinguible de las vistas de revisión/fiel (gradiente de calidad), se
-deriva sin Docling/Ollama reales y expone trazabilidad (tipo ``rapida``,
-coherente con ``ValidationResult.vista_usada``).
+Validan ``preparar_vista_rapida`` (T-201) y ``preparar_vista_revision`` /
+``preparar_vista_fiel`` (T-203) junto al contrato :class:`VistaPreparada`
+(doble paso qween): la vista rápida es de calidad baja (nivel 1), la de
+revisión media (nivel 2) y la fiel alta (nivel 3). El gradiente es verificable
+de forma programática (``nivel_vista``) y la vista fiel **no reutiliza** la
+rápida (regla dura F2-subplan §4, E-QWE-2). Todo se deriva sin Docling/Ollama
+reales.
 
 Reglas duras (F2-subplan §4): no se rompe el contrato congelado de F0
 (``ValidationResult``/``VeredictoGate``/``validar_comprobante`` siguen
-exportándose y ``validar_comprobante`` sigue lanzando ``NotImplementedError``
-hasta T-202). La suite default corre sin servicios reales; los fixtures de
+exportándose). La suite default corre sin servicios reales; los fixtures de
 imagen se leen con stdlib (``processing.leer_caracteristicas``, sin Pillow).
 """
 
@@ -24,13 +25,17 @@ from voucherflow.validation import (
     CALIDAD_POR_TIPO_VISTA,
     GRADO_CALIDAD_POR_NIVEL,
     HOOK_DEGRADACION,
+    RESOLUCION_VISTA_FIEL_PX,
     RESOLUCION_VISTA_RAPIDA_PX,
+    RESOLUCION_VISTA_REVISION_PX,
     TIPOS_TEXTO_SIN_THUMBNAIL,
     TIPOS_VISTA,
     ValidationResult,
     VeredictoGate,
     VistaPreparada,
+    preparar_vista_fiel,
     preparar_vista_rapida,
+    preparar_vista_revision,
     validar_comprobante,
 )
 
@@ -216,6 +221,132 @@ class TestVistaRapidaSobreFixtureReal:
 
 
 # ---------------------------------------------------------------------------
+# Vista de revisión (T-203 / E-QWE-1): calidad media para la 2ª pasada
+# ---------------------------------------------------------------------------
+
+class TestPrepararVistaRevision:
+    def test_imagen_devuelve_revision_media_nivel_2(self):
+        doc = _doc_imagen("ruta.jpg")
+        vista = preparar_vista_revision(doc)
+
+        assert vista.tipo_vista == "revision", "T-203: la 2ª pasada usa 'revision'"
+        assert vista.calidad == CALIDAD_POR_TIPO_VISTA["revision"] == "media"
+        assert vista.nivel_vista == 2
+        assert "T-203" in vista.nota and "E-QWE-1" in vista.nota
+        # Distinta de la rápida: tipo y calidad (no se confunden).
+        assert vista.tipo_vista != "rapida"
+        assert vista.calidad != CALIDAD_POR_TIPO_VISTA["rapida"]
+
+    def test_revision_objetivo_intermedio_entre_rapida_y_fiel(self):
+        # La resolución objetivo de la revisión es intermedia: 512 < 1024 < 2048.
+        assert (
+            RESOLUCION_VISTA_RAPIDA_PX
+            < RESOLUCION_VISTA_REVISION_PX
+            < RESOLUCION_VISTA_FIEL_PX
+        ), "el gradiente de resolución debe ser rápida < revisión < fiel"
+
+    def test_texto_nativo_revision_usa_markdown_calidad_media(self):
+        doc = _doc_texto(markdown="FACTURA C\nTotal: $50")
+        vista = preparar_vista_revision(doc)
+
+        assert vista.tipo_vista == "revision"
+        assert vista.calidad == "media"
+        assert vista.resolucion_objetivo == 0, "texto nativo: sin resolución de píxeles"
+        assert vista.ruta_imagen_original is None
+        assert "FACTURA C" in vista.representacion
+
+    def test_documento_sin_ruta_ni_markdown_lanza_valueerror(self):
+        doc = ProcessedDocument("imagen", "", "")
+        with pytest.raises(ValueError, match="T-203"):
+            preparar_vista_revision(doc)
+
+
+# ---------------------------------------------------------------------------
+# Vista fiel (T-203 / E-QWE-2): máxima fidelidad, NO reutiliza la rápida
+# ---------------------------------------------------------------------------
+
+class TestPrepararVistaFiel:
+    def test_imagen_devuelve_fiel_alta_nivel_3(self):
+        doc = _doc_imagen("ruta.jpg")
+        vista = preparar_vista_fiel(doc)
+
+        assert vista.tipo_vista == "fiel", "T-203/E-QWE-2: la vista fiel es 'fiel'"
+        assert vista.calidad == CALIDAD_POR_TIPO_VISTA["fiel"] == "alta"
+        assert vista.nivel_vista == 3
+        assert "T-203" in vista.nota and "E-QWE-2" in vista.nota
+
+    def test_fiel_no_reutiliza_la_rapida(self):
+        # Regla dura F2-subplan §4 / E-QWE-2: la vista fiel no puede ser la
+        # rápida re-escalada. Se verifica que apunte a la representación de
+        # máxima fidelidad (original sin reducir, factor 1.0) y lo declare.
+        doc = _doc_imagen("ruta.jpg")
+        rapida = preparar_vista_rapida(doc)
+        fiel = preparar_vista_fiel(doc)
+
+        assert fiel.tipo_vista != rapida.tipo_vista
+        assert fiel.nivel_vista > rapida.nivel_vista
+        assert fiel.calidad == "alta" and rapida.calidad == "baja"
+        # La fiel NO se reduce: factor 1.0 (no reutiliza la degradación rápida)
+        # y apunta a la imagen original, no al artefacto degradado.
+        assert fiel.factor_escala == 1.0
+        assert fiel.representacion == rapida.ruta_imagen_original
+        assert fiel.metadatos["reutiliza_vista_rapida"] is False
+        assert fiel.metadatos["resolucion_completa"] is True
+
+    def test_fiel_sobre_imagen_real_anota_resolucion_completa(self, fixtures_dir):
+        from voucherflow.processing import leer_caracteristicas
+
+        img = _primer_fixture_imagen(fixtures_dir)
+        carac = leer_caracteristicas(img)
+        doc = _doc_imagen(img)
+        vista = preparar_vista_fiel(doc)
+
+        lado_mayor = max(carac.ancho, carac.alto)
+        # Resolución objetivo = lado mayor real, acotada al tope alto anotativo.
+        assert vista.resolucion_objetivo == min(lado_mayor, RESOLUCION_VISTA_FIEL_PX)
+        assert vista.factor_escala == 1.0
+        assert vista.metadatos["dimensiones_originales"] == (carac.ancho, carac.alto)
+
+    def test_texto_nativo_fiel_usa_markdown_completo_alta(self):
+        doc = _doc_texto(markdown="FACTURA D\nTotal: $75")
+        vista = preparar_vista_fiel(doc)
+
+        assert vista.tipo_vista == "fiel"
+        assert vista.calidad == "alta"
+        assert vista.ruta_imagen_original is None
+        assert "FACTURA D" in vista.representacion
+        assert vista.metadatos["reutiliza_vista_rapida"] is False
+
+    def test_documento_sin_ruta_ni_markdown_lanza_valueerror(self):
+        doc = ProcessedDocument("imagen", "", "")
+        with pytest.raises(ValueError, match="T-203"):
+            preparar_vista_fiel(doc)
+
+
+# ---------------------------------------------------------------------------
+# Gradiente global del doble paso (requisito 3): rápida < revisión < fiel
+# ---------------------------------------------------------------------------
+
+class TestGradienteVistas:
+    def test_gradiente_numerico_y_calidades(self):
+        doc = _doc_imagen("ruta.jpg")
+        rapida = preparar_vista_rapida(doc)
+        revision = preparar_vista_revision(doc)
+        fiel = preparar_vista_fiel(doc)
+
+        assert rapida.nivel_vista < revision.nivel_vista < fiel.nivel_vista, (
+            "E-QWE: el gradiente debe ser rápida(1) < revisión(2) < fiel(3)"
+        )
+        assert (rapida.calidad, revision.calidad, fiel.calidad) == (
+            "baja",
+            "media",
+            "alta",
+        )
+        # Las tres resoluciones son decrecientes en fidelidad.
+        assert rapida.resolucion_objetivo <= revision.resolucion_objetivo <= fiel.resolucion_objetivo
+
+
+# ---------------------------------------------------------------------------
 # F0 intacto (requisito 4): contratos congelados de validation
 # ---------------------------------------------------------------------------
 
@@ -239,12 +370,16 @@ class TestNoRompeF0:
         assert r.vista_usada == "rapida"
         assert r.detalle == {}
 
-    def test_validar_comprobante_sigue_siendo_esqueleto(self):
-        # T-201 es solo la preparación de la vista rápida; el gate y la
-        # orquestación son T-202/T-203. ``validar_comprobante`` debe seguir
-        # lanzando NotImplementedError (congelado por test_esqueletos...).
-        with pytest.raises(NotImplementedError):
-            validar_comprobante("origen.jpg")
+    def test_validar_comprobante_dejo_de_ser_esqueleto(self):
+        # T-203 implementó la orquestación: ``validar_comprobante`` deja de
+        # lanzar NotImplementedError y delega en ``validar_y_procesar``. El
+        # contrato F0 se conserva (misma firma y tipo de retorno); la cobertura
+        # de comportamiento con dobles vive en test_validation_qween.py.
+        import inspect
+
+        firma = inspect.signature(validar_comprobante)
+        assert list(firma.parameters) == ["origen", "quick"]
+        assert callable(validar_comprobante)
 
     def test_vocabulario_vista_usada_coherente(self):
         # ``VistaPreparada.tipo_vista`` usa el mismo vocabulario que

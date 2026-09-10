@@ -20,10 +20,18 @@ Validan (F2-subplan §3.2 y reglas duras §4):
    (rol ``vlm``, default ``qwen2.5vl:3b`` con su ``num_ctx``) — se verifica
    con el doble qué ``model`` recibe ``ask``.
 
-Reglas duras: la suite default corre **sin Ollama real** (doble del cliente);
-no se rompe el esqueleto F0 (``validar_comprobante`` sigue lanzando
-``NotImplementedError`` y ``api.validate`` también — cubierto por
-``test_golden_y_esqueleto.py``).
+5. (T-203) La orquestación del doble paso ``validar_y_procesar``: 1ª pasada
+   rápida → rechazo si ``no_comprobante``; 2ª pasada de revisión si
+   ``indeterminado``; vista fiel solo si ``comprobante``; la política
+   "indeterminado tras revisión" se resuelve como rechazo conservando la
+   trazabilidad. ``validar_comprobante`` y ``api.validate`` dejan de lanzar
+   ``NotImplementedError``.
+
+Reglas duras: la suite default corre **sin Ollama real** (doble del cliente) y
+**sin Docling real** (se inyecta un ``ProcessedDocument`` ya procesado, no un
+archivo); no se rompe el contrato congelado de F0 (``ValidationResult``
+construible igual, ``classify``/``extract``/``run`` siguen siendo esqueletos —
+cubierto por ``test_golden_y_esqueleto.py``).
 """
 
 from __future__ import annotations
@@ -32,16 +40,22 @@ from typing import Any
 
 import pytest
 
+from voucherflow.models.docling import ProcessedDocument
 from voucherflow.schemas.evidence import EvidenceField, Fuente, SourceEvidence
 from voucherflow.settings.config import cargar_settings
 from voucherflow.validation import (
     CAMPO_GATE,
+    ResultadoValidacion,
     ValidationResult,
     VeredictoGate,
     VistaPreparada,
     construir_messages_gate,
     decidir_es_comprobante,
+    preparar_vista_fiel,
+    preparar_vista_rapida,
+    preparar_vista_revision,
     validar_comprobante,
+    validar_y_procesar,
 )
 from voucherflow.validation.prompt_qween import (
     SYSTEM_PROMPT_QWEEN,
@@ -390,18 +404,218 @@ class TestModeloResolucion:
 
 
 # ---------------------------------------------------------------------------
-# 5. F0 intacto: validar_comprobante sigue siendo esqueleto (T-203)
+# 5. T-203 · Orquestación del doble paso (validar_y_procesar)
+# ---------------------------------------------------------------------------
+
+
+class FakeOllamaSecuencia:
+    """Doble del ``OllamaClient`` que responde una **secuencia** de contenidos.
+
+    La orquestación del doble paso puede llamar hasta dos veces (rápida y
+    revisión). Este doble devuelve la respuesta i-ésima en orden de llamada
+    (la última se repite si hay más llamadas) y registra cada llamada, para
+    verificar qué vista se usó en cada pasada.
+    """
+
+    def __init__(self, contenidos: list[str]) -> None:
+        self.contenidos = list(contenidos)
+        self.llamadas: list[dict[str, Any]] = []
+
+    def ask(self, messages, model, json_format=False, options=None, num_ctx=None):
+        idx = min(len(self.llamadas), len(self.contenidos) - 1)
+        self.llamadas.append(
+            {"messages": messages, "model": model, "num_ctx": num_ctx}
+        )
+        return FakeRespuesta(self.contenidos[idx])
+
+
+def _doc_procesado_texto(
+    markdown: str = "FACTURA A\nProveedor: Ejemplo S.A.\nTotal: $100,00",
+) -> ProcessedDocument:
+    """``ProcessedDocument`` de texto nativo ya procesado por F1 (sin Docling).
+
+    Decisión de testeo (F2-subplan §4): ``validar_y_procesar`` acepta un
+    ``ProcessedDocument`` ya procesado, así los tests del doble paso **no**
+    corren Docling real (lento). El documento es mínimo (3 posicionales).
+    """
+    return ProcessedDocument("pdf_texto", "doc.pdf", markdown)
+
+
+class TestValidarYProcesar:
+    def test_comprobante_en_primera_pasada_prepara_vista_fiel(self):
+        # Happy path: la 1ª pasada (vista rápida) decide comprobante → se
+        # prepara la vista fiel y NO hay 2ª pasada.
+        cliente = FakeOllamaClient("comprobante")
+        res = validar_y_procesar(_doc_procesado_texto(), cliente)
+
+        assert isinstance(res, ResultadoValidacion)
+        assert res.veredicto_final == VeredictoGate.comprobante
+        assert res.vista_fiel is not None, "comprobante → debe haber vista fiel"
+        assert res.vista_fiel.tipo_vista == "fiel"
+        assert res.vista_fiel.calidad == "alta"
+        assert len(res.pasadas) == 1, "comprobante en 1ª pasada: una sola pasada"
+        assert len(cliente.llamadas) == 1
+        assert res.resultado.veredicto == VeredictoGate.comprobante
+        assert res.resultado.vista_usada == "rapida"
+        assert res.pasadas[0].vista_usada == "rapida"
+
+    def test_no_comprobante_en_primera_pasada_no_prepara_vista_fiel(self):
+        # Rechazo: no se prepara la vista fiel (no llega a extracción; ahorro
+        # E-QWE) y no hay 2ª pasada.
+        cliente = FakeOllamaClient("no_comprobante")
+        res = validar_y_procesar(_doc_procesado_texto(), cliente)
+
+        assert res.veredicto_final == VeredictoGate.no_comprobante
+        assert res.vista_fiel is None, "no_comprobante → sin vista fiel (ahorro)"
+        assert len(res.pasadas) == 1
+        assert len(cliente.llamadas) == 1
+        assert res.resultado.vista_usada == "rapida"
+
+    def test_indeterminado_luego_comprobante_usa_vista_revision(self):
+        # 1ª pasada indeterminado → 2ª pasada con la vista de revisión que
+        # confirma comprobante → vista fiel presente y 2 pasadas trazadas.
+        cliente = FakeOllamaSecuencia(["indeterminado", "comprobante"])
+        res = validar_y_procesar(_doc_procesado_texto(), cliente)
+
+        assert res.veredicto_final == VeredictoGate.comprobante
+        assert res.vista_fiel is not None
+        assert res.vista_fiel.tipo_vista == "fiel"
+        assert len(res.pasadas) == 2, "indeterminado → 2ª pasada de revisión"
+        assert len(cliente.llamadas) == 2
+        assert res.pasadas[0].vista_usada == "rapida"
+        assert res.pasadas[1].vista_usada == "revision", (
+            "la 2ª pasada debe decidir sobre la vista de revisión (T-203)"
+        )
+        assert res.resultado.vista_usada == "revision"
+        assert res.resultado is res.pasadas[-1]
+
+    def test_indeterminado_luego_no_comprobante_rechaza(self):
+        # 1ª indeterminado + 2ª no_comprobante → rechazo, sin vista fiel.
+        cliente = FakeOllamaSecuencia(["indeterminado", "no_comprobante"])
+        res = validar_y_procesar(_doc_procesado_texto(), cliente)
+
+        assert res.veredicto_final == VeredictoGate.no_comprobante
+        assert res.vista_fiel is None
+        assert len(res.pasadas) == 2
+        assert res.pasadas[1].veredicto == VeredictoGate.no_comprobante
+        assert res.pasadas[1].vista_usada == "revision"
+
+    def test_indeterminado_tras_revision_rechaza_con_trazabilidad(self):
+        # Política E-QWE-1 ("si sigue sin ser comprobante, se rechaza"): un
+        # indeterminado tras la revisión se resuelve como no_comprobante, pero
+        # se conserva la trazabilidad de ambas pasadas.
+        cliente = FakeOllamaSecuencia(["indeterminado", "indeterminado"])
+        res = validar_y_procesar(_doc_procesado_texto(), cliente)
+
+        assert res.veredicto_final == VeredictoGate.no_comprobante, (
+            "indeterminado tras revisión se rechaza (E-QWE-1)"
+        )
+        assert res.vista_fiel is None
+        assert len(res.pasadas) == 2
+        # La 2ª pasada conserva su veredicto original (indeterminado) para no
+        # perder trazabilidad; la política se aplica en veredicto_final.
+        assert res.pasadas[1].veredicto == VeredictoGate.indeterminado
+        resolucion = res.resultado.detalle["resolucion_doble_paso"]
+        assert resolucion["veredictos_por_pasada"] == ["indeterminado", "indeterminado"]
+        assert resolucion["decision"] == "no_comprobante"
+        assert "E-QWE-1" in resolucion["motivo"]
+
+    def test_documento_procesado_se_reutiliza_para_las_tres_vistas(self):
+        # El ProcessedDocument de F1 se usa tal cual (no se re-procesa Docling):
+        # se expone en el resultado para trazabilidad/consumo aguas abajo.
+        doc = _doc_procesado_texto()
+        cliente = FakeOllamaClient("comprobante")
+        res = validar_y_procesar(doc, cliente)
+
+        assert res.documento is doc
+        # La vista fiel apunta a la representación de máxima fidelidad
+        # (markdown completo del documento), no a la vista rápida degradada.
+        rapida = preparar_vista_rapida(doc)
+        fiel = preparar_vista_fiel(doc)
+        assert res.vista_fiel.representacion == fiel.representacion
+        assert res.vista_fiel.tipo_vista != rapida.tipo_vista
+
+    def test_modelo_se_propaga_a_todas_las_pasadas(self):
+        # El modelo inyectado se usa en ambas pasadas del doble paso.
+        cliente = FakeOllamaSecuencia(["indeterminado", "comprobante"])
+        validar_y_procesar(_doc_procesado_texto(), cliente, modelo="mi-gate:1")
+
+        assert len(cliente.llamadas) == 2
+        assert all(c["model"] == "mi-gate:1" for c in cliente.llamadas)
+
+    def test_error_de_ollama_se_propaga(self):
+        # Una falla de comunicación NO se silencia como no_comprobante (T-203):
+        # se propaga al llamador.
+        from voucherflow.models.ollama import OllamaError
+
+        class ClienteQueFalla:
+            def ask(self, *a, **k):  # noqa: ARG002
+                raise OllamaError("sin conexión con Ollama (test)")
+
+        with pytest.raises(OllamaError):
+            validar_y_procesar(_doc_procesado_texto(), ClienteQueFalla())
+
+
+class TestValidarComprobanteImplementado:
+    def test_validar_comprobante_delega_y_devuelve_validationresult(self, monkeypatch):
+        # T-203: ``validar_comprobante`` ya no lanza NotImplementedError; delega
+        # en la orquestación y devuelve el ValidationResult de la última pasada
+        # (misma firma/tipo que el contrato F0).
+        import voucherflow.validation.qween as qween_mod
+
+        def _fake_validar_y_procesar(origen, cliente=None, **kwargs):  # noqa: ARG001
+            return ResultadoValidacion(
+                resultado=ValidationResult(
+                    veredicto=VeredictoGate.comprobante, vista_usada="rapida"
+                ),
+                veredicto_final=VeredictoGate.comprobante,
+                vista_fiel=None,
+                pasadas=[],
+                documento=None,
+            )
+
+        monkeypatch.setattr(qween_mod, "validar_y_procesar", _fake_validar_y_procesar)
+        resultado = validar_comprobante("cualquier.pdf")
+
+        assert isinstance(resultado, ValidationResult)
+        assert resultado.veredicto == VeredictoGate.comprobante
+
+    def test_validar_comprobante_con_documento_procesado(self, monkeypatch):
+        # Integración real de ``validar_comprobante`` → ``validar_y_procesar``:
+        # se monkeypatcha la resolución del documento de F1 (Docling lento)
+        # devolviendo un ProcessedDocument mínimo, y el cliente Ollama se
+        # reemplaza por un doble.
+        import voucherflow.validation.qween as qween_mod
+
+        doc = _doc_procesado_texto()
+        monkeypatch.setattr(qween_mod, "_resolver_documento", lambda *a, **k: doc)
+        monkeypatch.setattr(qween_mod, "OllamaClient", lambda *a, **k: FakeOllamaClient("comprobante"))
+        resultado = validar_comprobante("doc.pdf")
+        assert isinstance(resultado, ValidationResult)
+        assert resultado.veredicto == VeredictoGate.comprobante
+
+    def test_api_validate_ya_no_lanza_notimplemented(self, monkeypatch):
+        # ``api.validate`` deja de lanzar NotImplementedError (T-203): delega en
+        # ``validation.validar_comprobante``.
+        import voucherflow.api as api_mod
+
+        def _fake_validar_comprobante(origen, quick=True):  # noqa: ARG001
+            return ValidationResult(veredicto=VeredictoGate.comprobante)
+
+        monkeypatch.setattr(
+            "voucherflow.validation.validar_comprobante", _fake_validar_comprobante
+        )
+        resultado = api_mod.validate("doc.pdf")
+        assert isinstance(resultado, ValidationResult)
+        assert resultado.veredicto == VeredictoGate.comprobante
+
+
+# ---------------------------------------------------------------------------
+# 6. F0 intacto: contratos congelados y esqueletos de otras fases
 # ---------------------------------------------------------------------------
 
 
 class TestNoRompeF0:
-    def test_validar_comprobante_sigue_siendo_esqueleto(self):
-        # T-202 implementa la decisión de una pasada; la orquestación del doble
-        # paso (validar_comprobante / api.validate) es T-203 y sigue lanzando
-        # NotImplementedError (regla dura F2-subplan §4).
-        with pytest.raises(NotImplementedError):
-            validar_comprobante("origen.jpg")
-
     def test_validationresult_sigue_construible_como_f0(self):
         # El contrato congelado no cambió: se construye igual que en F0.
         r = ValidationResult(veredicto=VeredictoGate.no_comprobante)

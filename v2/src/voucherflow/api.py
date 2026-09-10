@@ -2,8 +2,9 @@
 
 **Fase**: F0 deja el esqueleto de la fachada pública de la librería. La
 implementación de cada operación se completa cuando su módulo de capacidad
-exista (F1–F5): ``process`` (F1, implementado — T-105/ORQ), ``validate`` (F2),
-``classify`` (F3), ``extract`` (F4) y ``run``/``concluir`` (F5).
+exista (F1–F5): ``process`` (F1, implementado — T-105/ORQ), ``validate`` (F2,
+implementado — T-203), ``classify`` (F3), ``extract`` (F4) y ``run``/``concluir``
+(F5).
 
 El objetivo de exponer esta fachada desde F0 es **fijar la API pública** de la
 librería (E-LIB-1: "librería primero, cliente después") para que el cliente
@@ -96,9 +97,34 @@ def process(origen: str, *, docling_raw: bool = False) -> "ProcessedDocument":
 def validate(origen: str, quick: bool = True) -> "ValidationResult":
     """Gate "¿es comprobante?" con doble paso qween (F2).
 
-    Esqueleto F0 — se implementa en F2 (módulo ``validation``).
+    Implementación de F2 (T-203): delega en
+    ``validation.validar_comprobante`` (que a su vez orquesta el doble paso con
+    ``validar_y_procesar``) y devuelve el :class:`ValidationResult` del gate.
+    El import es **diferido** (dentro de la función) para no crear un ciclo de
+    import en el arranque del paquete: ``validation`` importa ``processing``
+    (lazy) y la fachada no necesita el módulo hasta que se llama ``validate``
+    (mismo criterio que ``process`` y su comentario).
+
+    Sobre ``quick``: en F2 no cambia el flujo (la orquestación siempre hace el
+    doble paso); se conserva por compatibilidad con el contrato de la fachada
+    (F0). Para obtener la vista fiel de extracción o la trazabilidad de las
+    pasadas, usar ``validation.validar_y_procesar``.
+
+    Argumentos:
+        origen: ruta al documento (pdf/imagen/office/txt/...).
+        quick: reservado; hoy no altera el flujo del doble paso.
+
+    Devuelve:
+        :class:`voucherflow.validation.ValidationResult` del gate.
+
+    Lanza:
+        ``FileNotFoundError`` / ``DocumentoNoProcesableError`` si F1 rechaza el
+        documento; ``OllamaError`` si falla la comunicación con Ollama.
     """
-    raise NotImplementedError("validate(): se implementa en F2 (módulo validation).")
+    # Import diferido: evita el ciclo api -> validation -> processing -> (api).
+    from .validation import validar_comprobante
+
+    return validar_comprobante(origen, quick=quick)
 
 
 def classify(markdown: str, condicion_impositiva: str | None = None) -> VoucherResult:

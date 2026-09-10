@@ -78,14 +78,17 @@ class TestEsqueletoPaquete:
         # Los esqueletos de fases futuras NO implementan lógica (F0).
         # Decisión del subplan F1 §2.4: ``process`` sale de esta lista porque
         # ``api.process()`` quedó implementado en F1 (T-105/ORQ); su cobertura
-        # vive en ``tests/test_processing_orquestacion.py``. Los otros 4
-        # esqueletos (validate F2, classify F3, extract F4, run F5) siguen
-        # pendientes de sus fases.
+        # vive en ``tests/test_processing_orquestacion.py``.
+        # Decisión del subplan F2 §2.7 (T-203): ``validate`` sale de esta lista
+        # porque ``api.validate()`` quedó implementado en F2 (delega en
+        # ``validation.validar_y_procesar``/``validar_comprobante``); su
+        # cobertura vive en ``tests/test_validation_qween.py``. Los otros 3
+        # esqueletos (classify F3, extract F4, run F5) siguen pendientes.
         import pytest
 
-        from voucherflow.api import classify, extract, run, validate
+        from voucherflow.api import classify, extract, run
 
-        for fn in (validate, classify, extract, run):
+        for fn in (classify, extract, run):
             with pytest.raises(NotImplementedError):
                 fn("dummy")
 

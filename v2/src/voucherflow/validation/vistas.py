@@ -82,6 +82,36 @@ HOOK_DEGRADACION = "degradar_a_thumbnail"
 #: (E-QWE-1: vista reducida; la lectura de detalle no es necesaria). Anotativo.
 RESOLUCION_VISTA_RAPIDA_PX = 512
 
+#: Longitud objetivo (px, lado mayor) de la **vista de revisión** (T-203). Es
+#: intermedia entre la rápida (512) y la fiel (2048): la 2ª pasada de los
+#: indeterminados necesita más detalle que la decisión barata pero no la
+#: fidelidad completa de la extracción (E-QWE-1: "vista de revisión de mayor
+#: calidad"; qween.md §1). Anotativo (sin remuestreo de píxeles en F2).
+RESOLUCION_VISTA_REVISION_PX = 1024
+
+#: Tope alto de referencia (px, lado mayor) de la **vista fiel** (T-203). La
+#: vista fiel es la de **máxima fidelidad** disponible y **nunca** reutiliza la
+#: vista rápida (regla dura F2-subplan §4, E-QWE-2): su ``representacion`` es la
+#: imagen original (o el render de F1) sin reducir, con ``factor_escala=1.0``.
+#: El tope (2048 px) solo acota el valor anotado de ``resolucion_objetivo``
+#: para no arrastrar cifras desmesuradas a la trazabilidad; no implica
+#: reducción de la representación. Anotativo (sin remuestreo de píxeles en F2).
+RESOLUCION_VISTA_FIEL_PX = 2048
+
+# Etiquetas de trazabilidad de la nota de cada vista (una por tipo, E-QWE).
+_ETIQUETA_RAPIDA = "Vista rápida (T-201/E-QWE-1)"
+_ETIQUETA_REVISION = "Vista de revisión (T-203/E-QWE-1)"
+_ETIQUETA_FIEL = "Vista fiel (T-203/E-QWE-2)"
+# Motivos de calidad por vista (documentan por qué la calidad es baja/media/alta).
+_MOTIVO_RAPIDA_IMAGEN = (
+    "calidad baja para decidir barato, sin remuestrear píxeles "
+    "(sin librería de imagen declarada)."
+)
+_MOTIVO_RAPIDA_TEXTO = (
+    "el gate decide sobre el markdown de F1; no aplica thumbnail "
+    "(F2-subplan §2.4)."
+)
+
 #: ``tipo_entrada`` de F1 cuya "vista" para el gate es la representación de
 #: texto (markdown), sin thumbnail (F2-subplan §2.4: PDF con texto nativo y
 #: office/texto no aplican thumbnail).
@@ -274,10 +304,9 @@ def preparar_vista_rapida(
         carac = leer_caracteristicas(ruta_origen)
         objetivo, factor = _resolucion_objetivo(carac)
         nota = (
-            f"Vista rápida (T-201/E-QWE-1): imagen '{Path(ruta_origen).name}' "
+            f"{_ETIQUETA_RAPIDA}: imagen '{Path(ruta_origen).name}' "
             f"{carac.ancho}x{carac.alto}px -> objetivo {objetivo}px "
-            f"(factor {factor}); calidad baja para decidir barato, sin "
-            "remuestrear píxeles (sin librería de imagen declarada)."
+            f"(factor {factor}); {_MOTIVO_RAPIDA_IMAGEN}"
         )
         metadatos: dict[str, Any] = {
             "dimensiones_originales": (carac.ancho, carac.alto),
@@ -302,9 +331,8 @@ def preparar_vista_rapida(
     # es el markdown de F1 (decisión F2-subplan §2.4; no aplica thumbnail).
     markdown = (doc.markdown or "").strip() or "(sin markdown)"
     nota = (
-        f"Vista rápida (T-201/E-QWE-1): representación de texto "
-        f"(tipo_entrada='{tipo_entrada or 'desconocido'}') — el gate decide "
-        "sobre el markdown de F1; no aplica thumbnail (F2-subplan §2.4)."
+        f"{_ETIQUETA_RAPIDA}: representación de texto "
+        f"(tipo_entrada='{tipo_entrada or 'desconocido'}') — {_MOTIVO_RAPIDA_TEXTO}"
     )
     metadatos = {
         "tipo_entrada": tipo_entrada,
@@ -324,13 +352,247 @@ def preparar_vista_rapida(
     )
 
 
+# ---------------------------------------------------------------------------
+# Vistas de revisión y fiel (T-203, E-QWE-1 / E-QWE-2)
+# ---------------------------------------------------------------------------
+
+def _comun_vista(
+    documento: "ProcessedDocument",
+    origen: str | Path | None,
+) -> tuple[str, str, bool]:
+    """Valida el documento y resuelve ``(ruta_origen, tipo_entrada, es_imagen)``.
+
+    Helper compartido por las vistas de revisión/fiel (T-203) para no duplicar
+    la lógica de T-201: exige que el ``ProcessedDocument`` de F1 traiga ruta o
+    markdown (si no, no hay representación de la cual derivar la vista) y
+    decide si la derivación es de imagen o de texto nativo con el mismo
+    criterio (:func:`_es_imagen` + ``processing.type_detector``).
+
+    Lanza ``ValueError`` con mensaje en español si no hay representación.
+    """
+    doc = documento
+    ruta_origen = str(origen) if origen is not None else (doc.ruta or "")
+    tipo_entrada = doc.tipo_entrada or ""
+    if not ruta_origen and not (doc.markdown or "").strip():
+        raise ValueError(
+            "preparar_vista(): el ProcessedDocument no tiene ruta ni markdown "
+            "para derivar la vista (T-203)."
+        )
+    return ruta_origen, tipo_entrada, _es_imagen(tipo_entrada, ruta_origen)
+
+
+def preparar_vista_revision(
+    documento: "ProcessedDocument",
+    *,
+    origen: str | Path | None = None,
+) -> VistaPreparada:
+    """Prepara la vista de revisión (calidad media) para la 2ª pasada (T-203).
+
+    F2-subplan §3.3 / E-QWE-1: cuando la 1ª pasada sobre la vista rápida
+    devuelve ``indeterminado``, se re-decide con una vista de **mayor calidad**
+    (``revision``/``media``, nivel 2). Se prepara **sobre la misma
+    representación procesada de F1** (``ProcessedDocument``), sin volver a
+    correr Docling ni Ollama (decisión F2-subplan §2.2).
+
+    Decisiones de diseño (alineadas a T-201, stub funcional anotativo):
+
+      - **Imagen** (``imagen``/``pdf_escaneado`` o ruta con extensión de
+        imagen): anota la resolución objetivo intermedia
+        (:data:`RESOLUCION_VISTA_REVISION_PX` = 1024 px, entre la rápida de 512
+        y la fiel de 2048) y el factor de escala, leídos con
+        ``processing.leer_caracteristicas`` (stdlib, sin decodificar píxeles).
+        ``representacion`` apunta a la **imagen original de F1** con metadatos
+        de calidad media; **no** se remuestrean píxeles (sin Pillow/OpenCV
+        declarados): la degradación real es el hook documentado
+        (:data:`HOOK_DEGRADACION`).
+      - **Texto nativo** (``pdf_texto``/``office``/``texto``): la vista es el
+        propio ``markdown`` de F1 con calidad media (no aplica thumbnail;
+        F2-subplan §2.4).
+
+    La vista de revisión es **distinta** de la rápida (calidad ``media`` vs.
+    ``baja``; ``tipo_vista`` ``revision`` vs. ``rapida``) y de la fiel
+    (``media`` < ``alta``): T-204 verifica ese gradiente (E-QWE-2).
+
+    Argumentos:
+        documento: :class:`~voucherflow.models.docling.ProcessedDocument` de F1.
+        origen: ruta del documento original (si se omite se usa
+            ``documento.ruta``).
+
+    Devuelve:
+        :class:`VistaPreparada` con ``tipo_vista="revision"`` y
+        ``calidad="media"`` (``nivel_vista=2``).
+
+    Lanza:
+        ``ValueError`` si el documento no trae markdown ni ruta.
+    """
+    ruta_origen, tipo_entrada, es_imagen = _comun_vista(documento, origen)
+
+    if es_imagen and ruta_origen:
+        carac = leer_caracteristicas(ruta_origen)
+        lado_mayor = max(carac.ancho, carac.alto)
+        objetivo = min(lado_mayor, RESOLUCION_VISTA_REVISION_PX) if lado_mayor else 0
+        factor = round(lado_mayor / objetivo, 4) if objetivo else 1.0
+        nota = (
+            f"{_ETIQUETA_REVISION}: imagen '{Path(ruta_origen).name}' "
+            f"{carac.ancho}x{carac.alto}px -> objetivo {objetivo}px "
+            f"(factor {factor}); calidad media para la 2ª pasada de "
+            "indeterminados, sin remuestrear píxeles (sin librería de imagen "
+            "declarada)."
+        )
+        metadatos: dict[str, Any] = {
+            "dimensiones_originales": (carac.ancho, carac.alto),
+            "formato": carac.formato,
+            "ratio": carac.ratio,
+            "hook_degradacion": HOOK_DEGRADACION,
+            "pasada": 2,
+        }
+        return VistaPreparada(
+            tipo_vista="revision",
+            calidad=CALIDAD_POR_TIPO_VISTA["revision"],
+            representacion=ruta_origen,
+            resolucion_objetivo=objetivo,
+            origen=ruta_origen,
+            ruta_imagen_original=ruta_origen,
+            factor_escala=factor,
+            nota=nota,
+            metadatos=metadatos,
+        )
+
+    markdown = (documento.markdown or "").strip() or "(sin markdown)"
+    nota = (
+        f"{_ETIQUETA_REVISION}: representación de texto "
+        f"(tipo_entrada='{tipo_entrada or 'desconocido'}') — calidad media para "
+        "la 2ª pasada de indeterminados; no aplica thumbnail "
+        "(F2-subplan §2.4)."
+    )
+    return VistaPreparada(
+        tipo_vista="revision",
+        calidad=CALIDAD_POR_TIPO_VISTA["revision"],
+        representacion=markdown,
+        resolucion_objetivo=0,
+        origen=ruta_origen,
+        ruta_imagen_original=None,
+        factor_escala=1.0,
+        nota=nota,
+        metadatos={
+            "tipo_entrada": tipo_entrada,
+            "hook_degradacion": None,
+            "pasada": 2,
+        },
+    )
+
+
+def preparar_vista_fiel(
+    documento: "ProcessedDocument",
+    *,
+    origen: str | Path | None = None,
+) -> VistaPreparada:
+    """Prepara la vista fiel (calidad alta) que alimenta la extracción (T-203).
+
+    F2-subplan §3.3 / E-QWE-2: para un comprobante confirmado se prepara la
+    vista de **máxima fidelidad** disponible, que es la entrada del flujo de
+    extracción (F4). **Regla dura (F2-subplan §4, E-QWE-2): la vista fiel NUNCA
+    reutiliza la vista rápida**; por eso ``representacion`` apunta a la **imagen
+    original de F1** (o al render de F1 sin reducir) con ``factor_escala=1.0``,
+    o al ``markdown`` completo para texto nativo (no a la vista degradada).
+
+    Decisiones de diseño:
+
+      - **Imagen**: ``resolucion_objetivo`` = lado mayor real de la imagen
+        (máxima fidelidad: no se reduce), acotado solo informativamente al tope
+        alto :data:`RESOLUCION_VISTA_FIEL_PX` (2048 px) para la trazabilidad;
+        ``factor_escala=1.0`` (no hay reducción). La vista conserva, cuando
+        existan, tabla/sello/firma/QR/texto pequeño porque es la imagen
+        original, no la derivada degradada (E-QWE-2). La orientación
+        corregida/limpieza leve real son hooks de F4 (F2 es anotativo, sin
+        Pillow/OpenCV declarados).
+      - **Texto nativo**: el ``markdown`` completo de F1 con calidad alta (la
+        vista de máxima fidelidad para el flujo textual).
+
+    Argumentos:
+        documento: :class:`~voucherflow.models.docling.ProcessedDocument` de F1.
+        origen: ruta del documento original (si se omite se usa
+            ``documento.ruta``).
+
+    Devuelve:
+        :class:`VistaPreparada` con ``tipo_vista="fiel"`` y ``calidad="alta"``
+        (``nivel_vista=3``), distinta de la rápida y de la de revisión.
+
+    Lanza:
+        ``ValueError`` si el documento no trae markdown ni ruta.
+    """
+    ruta_origen, tipo_entrada, es_imagen = _comun_vista(documento, origen)
+
+    if es_imagen and ruta_origen:
+        carac = leer_caracteristicas(ruta_origen)
+        lado_mayor = max(carac.ancho, carac.alto)
+        # Máxima fidelidad: la representación es la imagen original sin reducir
+        # (factor 1.0). ``resolucion_objetivo`` anota el lado mayor real,
+        # acotado al tope alto solo para la trazabilidad (no reduce la imagen).
+        objetivo = min(lado_mayor, RESOLUCION_VISTA_FIEL_PX) if lado_mayor else 0
+        nota = (
+            f"{_ETIQUETA_FIEL}: imagen '{Path(ruta_origen).name}' "
+            f"{carac.ancho}x{carac.alto}px -> representación original sin "
+            f"reducir (objetivo {objetivo}px, tope {RESOLUCION_VISTA_FIEL_PX}); "
+            "NO reutiliza la vista rápida (E-QWE-2); orientación/limpieza son "
+            "hooks de F4."
+        )
+        metadatos: dict[str, Any] = {
+            "dimensiones_originales": (carac.ancho, carac.alto),
+            "formato": carac.formato,
+            "ratio": carac.ratio,
+            "reutiliza_vista_rapida": False,
+            "resolucion_completa": True,
+            "hook_degradacion": None,  # la fiel no se degrada
+            "hook_limpieza": "preprocesar_fiel",  # F4 (orientación/limpieza)
+        }
+        return VistaPreparada(
+            tipo_vista="fiel",
+            calidad=CALIDAD_POR_TIPO_VISTA["fiel"],
+            representacion=ruta_origen,
+            resolucion_objetivo=objetivo,
+            origen=ruta_origen,
+            ruta_imagen_original=ruta_origen,
+            factor_escala=1.0,
+            nota=nota,
+            metadatos=metadatos,
+        )
+
+    markdown = (documento.markdown or "").strip() or "(sin markdown)"
+    nota = (
+        f"{_ETIQUETA_FIEL}: representación de texto completa "
+        f"(tipo_entrada='{tipo_entrada or 'desconocido'}') — calidad alta para "
+        "la extracción (F4); NO reutiliza la vista rápida (E-QWE-2)."
+    )
+    return VistaPreparada(
+        tipo_vista="fiel",
+        calidad=CALIDAD_POR_TIPO_VISTA["fiel"],
+        representacion=markdown,
+        resolucion_objetivo=0,
+        origen=ruta_origen,
+        ruta_imagen_original=None,
+        factor_escala=1.0,
+        nota=nota,
+        metadatos={
+            "tipo_entrada": tipo_entrada,
+            "reutiliza_vista_rapida": False,
+            "hook_degradacion": None,
+            "hook_limpieza": None,
+        },
+    )
+
+
 __all__ = [
     "TIPOS_VISTA",
     "CALIDAD_POR_TIPO_VISTA",
     "GRADO_CALIDAD_POR_NIVEL",
     "HOOK_DEGRADACION",
     "RESOLUCION_VISTA_RAPIDA_PX",
+    "RESOLUCION_VISTA_REVISION_PX",
+    "RESOLUCION_VISTA_FIEL_PX",
     "TIPOS_TEXTO_SIN_THUMBNAIL",
     "VistaPreparada",
     "preparar_vista_rapida",
+    "preparar_vista_revision",
+    "preparar_vista_fiel",
 ]

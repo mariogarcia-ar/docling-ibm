@@ -2,22 +2,28 @@
 
 **Fase**: F2 (refactor qween). F0 dejó el esqueleto con la firma pública y los
 contratos congelados (``VeredictoGate``, ``ValidationResult`` y
-``validar_comprobante`` lanzando ``NotImplementedError``). T-201 agregó la
-preparación de la vista rápida (``vistas.py``) y **T-202** implementa la
-**decisión binaria de una pasada** :func:`decidir_es_comprobante` sobre la
-vista de decisión con el ``OllamaClient`` (F0/T-005) y el prompt corto
-versionado de 3 salidas (``prompt_qween.py``, portado de ``ideas/qween.md`` §1).
-La orquestación del doble paso (vistas de revisión/fiel, rechazo y
-``validar_y_procesar``/``api.validate``) es T-203: por eso ``validar_comprobante``
-**sigue** lanzando ``NotImplementedError`` (regla dura F2-subplan §4; no romper
-``test_golden_y_esqueleto.py`` ni ``api.py``).
+``validar_comprobante``). T-201 agregó la preparación de la vista rápida
+(``vistas.py``) y **T-202** la **decisión binaria de una pasada**
+:func:`decidir_es_comprobante` sobre la vista de decisión con el
+``OllamaClient`` (F0/T-005) y el prompt corto versionado de 3 salidas
+(``prompt_qween.py``, portado de ``ideas/qween.md`` §1).
+
+**T-203** implementa la **orquestación del doble paso**
+:func:`validar_y_procesar` (vista rápida → decisión → revisión de indeterminados
+→ vista fiel), las vistas de revisión/fiel (``vistas.py``) y **conecta**
+``validar_comprobante`` (que deja de lanzar ``NotImplementedError`` y delega en
+la orquestación) y ``api.validate``. El retorno es la dataclass nueva
+:class:`ResultadoValidacion` (no se toca el contrato congelado
+``ValidationResult``, regla dura F2-subplan §4).
 
 Responsabilidades implementadas aquí (doc 03 §4.2 y `VAL.md`): decidir de forma
 barata (una pasada, prompt corto) si la vista corresponde a un comprobante
-(3 salidas: comprobante / no / indeterminado) y reportar la decisión como
+(3 salidas: comprobante / no / indeterminado), reportar la decisión como
 :class:`ValidationResult` con ``SourceEvidence`` (ADR-001) en
-``detalle["evidencia"]``. El principio de doble calidad (E-QWE-2) y la segunda
-pasada de indeterminados son T-203.
+``detalle["evidencia"]`` y, sobre indeterminados, redecidir con una vista de
+revisión de mayor calidad; si se confirma comprobante, preparar la vista fiel
+de extracción sin reutilizar la vista rápida (principio de doble calidad,
+E-QWE-2).
 """
 
 from __future__ import annotations
@@ -25,13 +31,20 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 from enum import Enum
+from pathlib import Path
 from typing import Any
 
+from ..models.docling import ProcessedDocument
 from ..models.ollama import OllamaClient
 from ..schemas.evidence import EvidenceField, Fuente, SourceEvidence, nueva_meta
 from ..settings.config import Settings, cargar_settings
 from .prompt_qween import VERSION_PROMPT_QWEEN, construir_messages_gate
-from .vistas import VistaPreparada
+from .vistas import (
+    VistaPreparada,
+    preparar_vista_fiel,
+    preparar_vista_rapida,
+    preparar_vista_revision,
+)
 
 
 class VeredictoGate(str, Enum):
@@ -56,16 +69,69 @@ class ValidationResult:
     detalle: dict = field(default_factory=dict)
 
 
-def validar_comprobante(origen: str, quick: bool = True) -> ValidationResult:
-    """Gate doble-paso: decide si ``origen`` es un comprobante (F2).
+@dataclass
+class ResultadoValidacion:
+    """Salida de la orquestación del doble paso qween (T-203 / E-QWE).
 
-    Esqueleto F0 — se implementa en F2/T-203 (orquestación del doble paso que
-    orquesta :func:`decidir_es_comprobante` sobre la vista rápida y, en
-    indeterminados, sobre la vista de revisión). T-202 implementa solo la
-    decisión de una pasada; esta función sigue lanzando ``NotImplementedError``
-    (regla dura F2-subplan §4).
+    Es el retorno de :func:`validar_y_procesar`: envuelve el
+    :class:`ValidationResult` del gate (la última pasada) junto con la
+    trazabilidad de todas las pasadas y la **vista fiel** de extracción. Se
+    define como dataclass **nueva** (no se toca el contrato congelado
+    ``ValidationResult``, regla dura F2-subplan §4): así ``ValidationResult``
+    sigue siendo construible tal como lo fija F0.
+
+    Campos:
+        resultado: :class:`ValidationResult` de la **última pasada** del gate
+            (la que decidió el veredicto final). Nunca ``None``.
+        veredicto_final: veredicto tras aplicar la política del doble paso
+            (``comprobante`` o ``no_comprobante``; un ``indeterminado`` de la
+            2ª pasada se resuelve como ``no_comprobante`` — ver
+            :func:`validar_y_procesar`).
+        vista_fiel: :class:`VistaPreparada` de calidad alta (T-203/E-QWE-2)
+            que alimenta la extracción (F4). Es ``None`` cuando el veredicto
+            final es ``no_comprobante`` (no se prepara: ahorro E-QWE).
+        pasadas: lista de :class:`ValidationResult` en orden de ejecución
+            (1ª rápida + 2ª revisión si existió). Trazabilidad del doble paso.
+        documento: :class:`~voucherflow.models.docling.ProcessedDocument` de F1
+            usado para preparar las vistas (trazabilidad y consumo aguas abajo).
     """
-    raise NotImplementedError("validar_comprobante(): se implementa en F2 (T-203, orquestación del doble paso).")
+
+    resultado: ValidationResult
+    veredicto_final: VeredictoGate
+    vista_fiel: VistaPreparada | None = None
+    pasadas: list[ValidationResult] = field(default_factory=list)
+    documento: Any = None
+
+
+def validar_comprobante(origen: str, quick: bool = True) -> ValidationResult:
+    """Gate doble-paso: decide si ``origen`` es un comprobante (T-203 / E-QWE).
+
+    Implementación de F2/T-203: delega en :func:`validar_y_procesar` (la
+    orquestación completa del doble paso) y devuelve **solo** el
+    :class:`ValidationResult` de la última pasada, respetando la firma y el tipo
+    de retorno congelados en F0 (``validar_comprobante(origen, quick=True) ->
+    ValidationResult``, regla dura F2-subplan §4).
+
+    Sobre ``quick``: en T-203/F2 **no cambia el flujo** — la orquestación
+    siempre hace el doble paso (rápida y, si hace falta, revisión) porque es la
+    semántica del gate qween (E-QWE-1). Se conserva el parámetro por
+    compatibilidad con el contrato F0 y para un futuro modo "rápido sin
+    revisión" (documentado como pendiente). El llamador que necesite la vista
+    fiel o la trazabilidad de las pasadas debe usar :func:`validar_y_procesar`.
+
+    Argumentos:
+        origen: ruta del documento a validar (se procesa con F1).
+        quick: reservado; hoy no altera el flujo (siempre doble paso).
+
+    Devuelve:
+        :class:`ValidationResult` de la última pasada del gate.
+
+    Lanza:
+        ``FileNotFoundError`` / ``DocumentoNoProcesableError`` si F1 rechaza el
+        documento; ``OllamaError`` si falla la comunicación con Ollama (se
+        propaga, no se silencia como ``no_comprobante``).
+    """
+    return validar_y_procesar(origen).resultado
 
 
 # ---------------------------------------------------------------------------
@@ -316,10 +382,193 @@ def decidir_es_comprobante(
     )
 
 
+# ---------------------------------------------------------------------------
+# T-203 · Orquestación del doble paso (vistas rápida → revisión → fiel)
+# ---------------------------------------------------------------------------
+
+def _resolver_documento(
+    origen: str | Path | "ProcessedDocument",
+    *,
+    converter: Any = None,
+    modo_motor: str = "auto",
+) -> "ProcessedDocument":
+    """Obtiene el ``ProcessedDocument`` de F1 para validar (T-203).
+
+    Admite dos formas de entrada (decisión de testeo documentada):
+
+      - ``ProcessedDocument``: ya procesado (F1). Se usa tal cual — permite
+        testear ``validar_y_procesar`` sin Docling real (regla dura F2-subplan
+        §4) inyectando un documento mínimo.
+      - ``str`` / ``Path``: se procesa con ``procesar_documento`` (F1/T-105),
+        con el ``converter`` inyectable (los tests usan un converter falso).
+
+    Import diferido de ``processing`` para no acoplar el arranque del paquete
+    ``validation`` a Docling (mismo criterio que ``api.process``).
+    """
+    if isinstance(origen, ProcessedDocument):
+        return origen
+    from ..processing.orquestacion import procesar_documento
+
+    return procesar_documento(origen, converter=converter, modo_motor=modo_motor)
+
+
+def validar_y_procesar(
+    origen: str | Path | "ProcessedDocument",
+    cliente: OllamaClient | None = None,
+    *,
+    modelo: str | None = None,
+    settings: Settings | None = None,
+    converter: Any = None,
+    modo_motor: str = "auto",
+) -> ResultadoValidacion:
+    """Orquesta el doble paso qween y prepara la vista fiel (T-203 / E-QWE).
+
+    Implementa el flujo de F2-subplan §5 / doc 03 §5.1 / ``ideas/qween.md`` §4:
+    procesa el documento (F1), decide con la **vista rápida** (T-201/T-202) y,
+    si el veredicto es ``indeterminado``, hace una **2ª pasada** con la vista de
+    **revisión** de mayor calidad (T-203). Solo si el veredicto final es
+    ``comprobante`` prepara la **vista fiel** de extracción (T-203/E-QWE-2), que
+    **nunca** reutiliza la vista rápida (regla dura F2-subplan §4).
+
+    Flujo (subplan §5):
+
+      1. Procesar ``origen`` con ``procesar_documento`` (F1) → ``ProcessedDocument``
+         (si ``origen`` ya es un ``ProcessedDocument`` se usa tal cual: testeo
+         sin Docling).
+      2. ``preparar_vista_rapida`` (T-201) y ``decidir_es_comprobante`` (T-202).
+      3. Si ``no_comprobante`` → se devuelve el rechazo: **no** se prepara
+         vista fiel (no llega a extracción; ahorro E-QWE).
+      4. Si ``indeterminado`` → ``preparar_vista_revision`` (T-203, calidad
+         media) y **2ª pasada** con ``decidir_es_comprobante``:
+           - ``no_comprobante`` tras revisión → rechazo.
+           - ``comprobante`` → se sigue al paso 5.
+           - ``indeterminado`` tras revisión → **política de rechazo**
+             (E-QWE-1: "si sigue sin ser comprobante, se rechaza"): el
+             ``veredicto_final`` es ``no_comprobante`` **conservando la
+             trazabilidad** de ambas pasadas en ``pasadas``/``detalle``.
+      5. Si el veredicto final es ``comprobante`` → ``preparar_vista_fiel``
+         (T-203, calidad alta) y se devuelve en ``vista_fiel`` para que F4
+         (extracción) la consuma.
+
+    Política "indeterminado tras revisión": se resuelve como
+    ``no_comprobante`` (rechazo por no confirmado, E-QWE-1) y se registra en
+    ``resultado.detalle["resolucion_doble_paso"]`` un resumen con el veredicto
+    de cada pasada y la decisión, para no perder trazabilidad (el
+    ``ValidationResult`` de la 2ª pasada conserva su ``veredicto=indeterminado``
+    original; la política se aplica en ``veredicto_final``).
+
+    Sobre errores: los ``OllamaError`` de :func:`decidir_es_comprobante` se
+    **propagan** (no se silencian como ``no_comprobante``): una falla de
+    comunicación no es una decisión negativa. Igual criterio para las
+    excepciones de F1 al procesar.
+
+    Argumentos:
+        origen: ruta del documento o un ``ProcessedDocument`` ya procesado por
+            F1 (útil para tests sin Docling).
+        cliente: ``OllamaClient`` inyectable. Si es ``None`` se construye uno
+            en el momento (los tests **siempre** deben inyectar un doble; el
+            Ollama real queda en ``@pytest.mark.integration``).
+        modelo: modelo del gate (si ``None`` se resuelve de ``Settings``).
+        settings: ``Settings`` opcional para resolver el modelo.
+        converter: adaptador Docling inyectable para F1 (tests).
+        modo_motor: modo de selección de motor de F1 para imágenes.
+
+    Devuelve:
+        :class:`ResultadoValidacion` con el ``ValidationResult`` de la última
+        pasada, el ``veredicto_final``, la ``vista_fiel`` (solo si
+        ``comprobante``), las ``pasadas`` (1 o 2) y el ``documento`` de F1.
+    """
+    if cliente is None:
+        # Se referencia el nombre del módulo (``OllamaClient``) para que los
+        # tests puedan inyectarlo/monkeypatcharlo sin tocar la red.
+        cliente = OllamaClient()
+
+    documento = _resolver_documento(origen, converter=converter, modo_motor=modo_motor)
+    ruta_origen = str(origen) if not isinstance(origen, ProcessedDocument) else None
+
+    # 1ª pasada: vista rápida (T-201) → decisión barata (T-202).
+    vista_rapida = preparar_vista_rapida(documento, origen=ruta_origen)
+    primera = decidir_es_comprobante(
+        vista_rapida, cliente, modelo=modelo, settings=settings
+    )
+    pasadas: list[ValidationResult] = [primera]
+
+    # No comprobante en la 1ª pasada: rechazo sin preparar vista fiel (ahorro).
+    if primera.veredicto is VeredictoGate.no_comprobante:
+        return ResultadoValidacion(
+            resultado=primera,
+            veredicto_final=VeredictoGate.no_comprobante,
+            vista_fiel=None,
+            pasadas=pasadas,
+            documento=documento,
+        )
+
+    # Indeterminado: 2ª pasada con la vista de revisión (calidad media, T-203).
+    ultima = primera
+    if primera.veredicto is VeredictoGate.indeterminado:
+        vista_revision = preparar_vista_revision(documento, origen=ruta_origen)
+        segunda = decidir_es_comprobante(
+            vista_revision, cliente, modelo=modelo, settings=settings
+        )
+        pasadas.append(segunda)
+        ultima = segunda
+
+        if segunda.veredicto is VeredictoGate.no_comprobante:
+            return ResultadoValidacion(
+                resultado=segunda,
+                veredicto_final=VeredictoGate.no_comprobante,
+                vista_fiel=None,
+                pasadas=pasadas,
+                documento=documento,
+            )
+
+        if segunda.veredicto is VeredictoGate.indeterminado:
+            # Política E-QWE-1: "si sigue sin ser comprobante, se rechaza".
+            # Se resuelve como no_comprobante conservando la trazabilidad de
+            # ambas pasadas (no se pierde el 'indeterminado' original).
+            ultima.detalle["resolucion_doble_paso"] = {
+                "veredictos_por_pasada": [p.veredicto.value for p in pasadas],
+                "vistas_usadas": [p.vista_usada for p in pasadas],
+                "decision": "no_comprobante",
+                "motivo": (
+                    "Indeterminado tras la 2ª pasada de revisión: se rechaza "
+                    "por no confirmado (E-QWE-1; política del doble paso T-203)."
+                ),
+            }
+            return ResultadoValidacion(
+                resultado=ultima,
+                veredicto_final=VeredictoGate.no_comprobante,
+                vista_fiel=None,
+                pasadas=pasadas,
+                documento=documento,
+            )
+
+    # Veredicto final comprobante: preparar la vista fiel (T-203/E-QWE-2),
+    # que NO reutiliza la vista rápida, y devolverla para F4 (extracción).
+    vista_fiel = preparar_vista_fiel(documento, origen=ruta_origen)
+    ultima.detalle.setdefault("resolucion_doble_paso", {}).update(
+        {
+            "veredictos_por_pasada": [p.veredicto.value for p in pasadas],
+            "vistas_usadas": [p.vista_usada for p in pasadas],
+            "decision": "comprobante",
+            "vista_fiel_preparada": True,
+        }
+    )
+    return ResultadoValidacion(
+        resultado=ultima,
+        veredicto_final=VeredictoGate.comprobante,
+        vista_fiel=vista_fiel,
+        pasadas=pasadas,
+        documento=documento,
+    )
+
+
 __all__ = [
     "VeredictoGate",
     "ValidationResult",
+    "ResultadoValidacion",
     "validar_comprobante",
+    "validar_y_procesar",
     "CAMPO_GATE",
     "MAX_FRAGMENTO_TEXTO_CHARS",
     "decidir_es_comprobante",
