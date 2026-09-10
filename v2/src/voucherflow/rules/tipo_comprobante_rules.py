@@ -74,11 +74,28 @@ from .registry import Registry, Rule
 # Constantes portadas del prompt WIP
 # ---------------------------------------------------------------------------
 
-#: Regex de R5 (portada literal de ``reglas.extraccion_ocr`` del WIP). Se
-#: compila con ``IGNORECASE`` para tolerar OCR/LLM que devuelven "Factura A" en
-#: minúsculas (robustez, decisión T-301); el resto del patrón es idéntico.
+#: Regex de R5 (portada del ``reglas.extraccion_ocr`` del WIP).
+#:
+#: **Ajuste de T-305 (bug encontrado en la verificación de paridad)**: el patrón
+#: literal del WIP era ``FACTURA\s+([A-CME])|COMPROBANTE\s+([A-CME])`` —con
+#: ``\s+``— y por eso el ``\s+`` se comía el **salto de línea** del markdown de
+#: Docling y capturaba la primera letra de la línea siguiente: el encabezado
+#: ``"FACTURA\n  Código: 1"`` producía la letra ``C`` (el ``C`` de
+#: "**C**ódigo") sobre **dos PDFs reales del golden** cuyo encabezado dice
+#: ``FACTURA A``. El patrón del WIP nunca se ejecutó como código en v1 (vivía en
+#: el prompt como ``criterio`` descriptivo), así que el defecto recién apareció
+#: al portarlo a un motor determinístico (T-301) y ejercitarlo con documentos
+#: reales (T-305).
+#:
+#: El ajuste es **mínimo y conserva la semántica** del ``criterio`` del WIP
+#: ("letra junto a FACTURA"): se reemplaza ``\s+`` por ``[ \t]+`` —espacios y
+#: tabulaciones, **nunca** un salto de línea— y se agrega ``\b`` después de la
+#: letra para no capturar la inicial de la palabra siguiente (``"FACTURA
+#: Código"`` no debe dar ``C``, porque ``C`` va seguida de una letra). El ``\b``
+#: es de Unicode, así que ``C`` + ``ó`` tampoco produce frontera.
 REGEX_LETRA_ENCABEZADO = re.compile(
-    r"FACTURA\s+([A-CME])|COMPROBANTE\s+([A-CME])", re.IGNORECASE
+    r"(?:FACTURA|COMPROBANTE)[ \t]+([A-CME])\b",
+    re.IGNORECASE,
 )
 
 #: Mensaje de la alerta de R7 (portado literal del WIP §``conflicto_auditoria``).
@@ -148,15 +165,18 @@ def letra_de_campos_totales(ctx: ContextoTipoComprobante) -> str | None:
 def extraer_letra_encabezado(texto: str | None) -> str | None:
     """Extrae la letra del encabezado con :data:`REGEX_LETRA_ENCABEZADO`.
 
-    Devuelve el primer grupo capturado (``FACTURA X`` o ``COMPROBANTE X``) o
-    ``None`` si no hay coincidencia.
+    Devuelve el grupo capturado (``FACTURA X`` o ``COMPROBANTE X``, con la letra
+    **en la misma línea** que la palabra) o ``None`` si no hay coincidencia. La
+    letra se devuelve en **mayúscula** (el patrón es ``IGNORECASE`` para tolerar
+    OCR/LLM que escriben "Factura A"), así el valor ya viene en el vocabulario
+    del motor.
     """
     if not texto:
         return None
     coincidencia = REGEX_LETRA_ENCABEZADO.search(texto)
     if not coincidencia:
         return None
-    return coincidencia.group(1) or coincidencia.group(2)
+    return coincidencia.group(1).upper()
 
 
 def resolver_tabla_inferencia(

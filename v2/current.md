@@ -179,7 +179,7 @@ reglas.ids_disparados({"monto": 100, "texto": "tiene IVA"})  # ["R1", "R2"]
 - ✅ Pipeline de extremo a extremo de un documento (orquestación `procesar_documento()` + `api.process()`; **hecho en F1**).
 - 🟡 Paridad de integración T-105 contra v1 sobre fixtures reales (tests `@pytest.mark.integration`; **F1, pendiente de corrida real**).
 - ✅ Gate "¿es comprobante?" estilo qween (**hecho en F2**, T-201..T-204).
-- 🟡 Clasificar tipo/letra (**F3**: T-301..T-304 hechas — motor de reglas R1-R7, prompt de evidencia con lector inyectable, reglas raw por fuente y cadena contable 01→02→03 con `api.classify()`); falta la paridad con v1 (T-305).
+- ✅ Clasificar tipo/letra y cadena contable (**F3** completa: T-301..T-305 — motor de reglas R1-R7, prompt de evidencia, reglas raw, cadena contable 01→02→03 y paridad verificada con v1: **8/8** en la cadena y **5/5** de exactitud de letra vs. **2/5** de v1).
 - ❌ Extracción VLM/LLM con evidencia combinada (llega en **F4**, T-401..T-405).
 - ❌ Conclusión reglas→agente→HITL + trazabilidad persistida (llega en **F5**).
 - ❌ CLI/batch (`voucherflow …`) y paridad v1 sobre `files/` (llega en **F6**).

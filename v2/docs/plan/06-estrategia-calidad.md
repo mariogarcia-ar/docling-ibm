@@ -152,12 +152,18 @@ tests/golden/
   puede correr con `scripts/F3/t304.py --origen` o con el CLI portado
   `scripts/F3/classification_pipeline.py`.
 - **Aceptación** (E-CLAS-1/2): reglas Gherkin; paridad con v1 `-M 11.1` y
-  `classification_pipeline.py`. **Pendiente de T-305** (la lectura real contra
-  Ollama local ya se puede correr con `scripts/F3/t302.py --origen`).
+  `classification_pipeline.py`. **Hecho en T-305**: subconjunto de paridad en
+  `tests/golden/F3/`; cadena contable **8/8** campos coincidentes con v1 y
+  exactitud de letra **v2 5/5** vs. **v1 2/5** sobre los casos etiquetados.
 - **Métricas**: exactitud de letra (por categoría A/B/C/M/E), % de casos con
-  alerta R7 correctamente disparada, % acuerdo negocio-vs-documento. **Pendiente
-  de T-305**: los tests actuales son de contrato y reglas (deterministas); la
-  medición sobre el golden set necesita la corrida con modelo real.
+  alerta R7 correctamente disparada, % acuerdo negocio-vs-documento.
+  **Medido en T-305**: las tres al 100% sobre el tramo **determinista** del
+  subconjunto (`tests/golden/F3/`); la medición sobre el golden completo sigue
+  pendiente de la curación con contador (F2 §2.5).
+- **T-305**: 32 tests (`test_classification_paridad.py`) — fidelidad de los
+  prompts portados contra los YAML de v1, integridad del subconjunto (rutas,
+  etiquetas derivadas con sustento, sin residuos de v1), paridad de letra de los
+  casos sintéticos y la lógica de comparación de los scripts.
 
 ### Fase 4 — Extracción
 - **Unitarias**: normalización de campos (CUIT truncado, fechas, montos, ítems,

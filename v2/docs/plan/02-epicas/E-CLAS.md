@@ -15,7 +15,7 @@
 | **Fase(s) del plan** | F3 (T-301..T-305) |
 | **Prioridad MoSCoW** | Must (MVP) — E-CLAS-1 (tipo/letra) y E-CLAS-2 (contable) |
 | **Responsable ciclo** | team analysis (BA/SA/PM) → team implementation |
-| **Estado épica** | 🟡 En implementación (F3: T-301..T-304 hechas; T-305 pendiente) |
+| **Estado épica** | 🟢 DoD verificado (F3: T-301..T-305 hechas; cierre documental pendiente) |
 | **DoR cumplido** | [x] sí |
 | **Fecha inicio** | 2026-09-10 |
 | **Fecha fin** |  |
@@ -26,8 +26,8 @@
 - [x] El prompt `11.1` reescrito devuelve evidencia (VLM recuadro + LLM texto) y reglas raw por fuente con candidatos_descartados/candidatos_restantes/reglas_aplicadas. — **T-302** (evidencia: `prompt_tipo_comprobante.py` + `evidencia.py`) y **T-303** (reglas raw: `rules/raw.py`; los candidatos curados y las `debilidades`/`valida` de cada fuente salen de ahí).
 - [x] La letra (A/B/C/M/E) se determina cruzando la condición fiscal esperada por negocio y la letra detectada, disparando alerta/conflicto cuando corresponde (R7). — **T-301** (pendiente: reemplazar el lector por el real en T-302/T-303).
 - [x] La cadena contable 01→02→03 queda refactorizada con contratos entre pasos (centro de costo → macro categoría → concepto/código), incluyendo el default CC0006. — **T-304** (`classification/contable.py` + `prompts_contable.py`: `OpcionCentroCosto`/`OpcionMacroCategoria`/`PasoConceptoCodigo`, `primary_*`, checkpoints y `clasificar_contable()` como variante pura).
-- [ ] Paridad verificable con v1 sobre el golden set: equivalencia con `classification_pipeline.py` y `-M 11.1` de v1; tests unitarios de reglas R1-R7 (DoD de F3 en `05-plan-ejecucion.md`). **Parcial**: los tests unitarios de R1-R7 están hechos (T-301) y `scripts/F3/classification_pipeline.py` ya es el CLI de comparación; la **medición** de paridad es T-305.
-- [ ] Documentación/contratos actualizados (README/ADR si cambia una decisión).
+- [x] Paridad verificable con v1 sobre el golden set: equivalencia con `classification_pipeline.py` y `-M 11.1` de v1; tests unitarios de reglas R1-R7 (DoD de F3 en `05-plan-ejecucion.md`). — **T-305**: subconjunto `tests/golden/F3/` + `scripts/F3/paridad_contable.py` (**8/8** campos coinciden), `scripts/F3/paridad_11_1.py` (exactitud de letra **v2 5/5** vs. **v1 2/5**) y `tests/test_classification_paridad.py`.
+- [x] Documentación/contratos actualizados (README/ADR si cambia una decisión). — **T-305** registró el ajuste del patrón de R5 (ver bitácora) y el subconjunto de paridad con su criterio de etiquetas.
 
 ## 3. Historias de usuario y seguimiento
 
@@ -84,7 +84,7 @@ Regla: candidatos
 ```
 
 ### E-CLAS-2 · Clasificación contable 01→02→03 (centro de costo → macro categoría → concepto/código)
-- **Estado**: [ ] Pendiente · [x] **En desarrollo** (T-304 hecha; falta la medición de paridad de T-305) · [ ] En QA · [ ] Hecho
+- **Estado**: [ ] Pendiente · [x] **En desarrollo** (T-304 y T-305 hechas: DoD de la historia verificado) · [ ] En QA · [ ] Hecho
 - **Responsable**: team analysis / team implementation
 - **Como** área de administración,
   **quiero** clasificar cada comprobante en centro de costo, macro categoría y
@@ -118,7 +118,7 @@ Regla: default
 |---|---|---|---|
 | 2026-09-10 | **E-CLAS-1 (T-301)**: R1-R7 migradas del prompt WIP al motor de reglas en código (`rules/contexto.py`, `rules/tipo_comprobante_rules.py` con `REGISTRO_NEGOCIO`/`REGISTRO_LECTURA`/`REGISTRO_CONFLICTO`) y `clasificar_tipo_comprobante()` implementado con `preferencia_letra`. Los criterios Gherkin de R1/R2A/R2B/R3/R4/R5/R6/R7 y de candidatos quedan cubiertos por tests unitarios (`tests/test_rules_tipo_comprobante.py`, 81 tests) y verificados por `scripts/F3/t301.py` (14/14). | team implementation | Hecho |
 | 2026-09-10 | **E-CLAS-1 (T-302)**: `11.1` reescrito como prompt de **evidencia** versionado (`tipo-comprobante@1`): el modelo reporta la lectura (recuadro del VLM / texto del LLM) con su fragmento de sustento y **no** decide la letra. `classification/evidencia.py` normaliza la lectura al vocabulario del motor (D-13), construye `SourceEvidence` (ADR-001), corre las dos fuentes conservando ambas evidencias (ADR-002) y puebla el contexto de R4/R5 para que decida el motor de T-301. Tests: `tests/test_classification_prompt_tipo.py` (50); herramienta: `scripts/F3/t302.py` (10/10, punta a punta T-302 → T-301). | team implementation | Hecho |
-| 2026-09-10 | **E-CLAS-2 (T-304)**: cadena contable 01→02→03 refactorizada a la librería con **contratos tipados entre pasos** (`OpcionCentroCosto`/`OpcionMacroCategoria`/`PasoConceptoCodigo`), los tres prompts de v1 portados **literales** y versionados (`contable-0X@1`, verificados idénticos contra los YAML de `prompts/`), checkpoints `<doc>_classification.json` con reanudación y `ErrorCadenaContable` con resultados parciales. Incluye el **default CC0006 / senal_usada=ninguna** del Gherkin y la **variante pura** `clasificar_contable()` (sin red). `api.classify()` queda implementado (sale de los esqueletos). Tests: `tests/test_classification_contable.py` (60); herramientas: `scripts/F3/t304.py` (8/8) y `scripts/F3/classification_pipeline.py` (CLI de paridad con v1). | team implementation | Hecho |
+| 2026-09-10 | **E-CLAS (T-305)**: subconjunto de paridad de F3 (`tests/golden/F3/`) y las tres herramientas — `paridad_contable.py` (**8/8** campos de la cadena contable coinciden con v1 sobre 2 casos), `paridad_11_1.py` (exactitud de letra **v2 5/5** vs. **v1 2/5** sobre los 5 casos etiquetados; v1 no concluyó en 4) y `tests/test_classification_paridad.py` (32 tests deterministas: fidelidad de prompts contra los YAML de v1, integridad del subconjunto, paridad de letra y lógica de comparación). **Hallazgo**: bug real de R5 (`\s+` cruzaba el salto de línea del markdown de Docling y tomaba la letra de la línea siguiente: `"FACTURA\n  Código: 1"` → `C`) que sobrevivía porque en v1 el patrón nunca se ejecutó como código; corregido a `[ \t]+` + `\b` con test de regresión. | team implementation | Hecho |
 
 ## 5. Referencias cruzadas
 

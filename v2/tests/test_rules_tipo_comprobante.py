@@ -33,6 +33,7 @@ from voucherflow.rules import (
     evaluar_conflicto,
     evaluar_lectura,
     evaluar_negocio,
+    extraer_letra_encabezado,
     letra_de_campos_totales,
     letra_de_encabezado,
     letra_de_recuadro,
@@ -238,15 +239,30 @@ class TestR5RegexEncabezado:
         ctx = ContextoTipoComprobante(texto_encabezado_llm="DOCUMENTO NO FISCAL")
         assert letra_de_encabezado(ctx) is None, "Sin patrón no hay letra detectada"
 
-    def test_regex_y_grupos(self):
+    def test_regex_y_grupo(self):
+        # T-305: el patrón pasó a un único grupo (``FACTURA``/``COMPROBANTE``
+        # comparten la captura), porque ahora la alternancia cubre la palabra
+        # entera y la letra es siempre el grupo 1.
         m = REGEX_LETRA_ENCABEZADO.search("FACTURA B")
         assert m is not None and m.group(1) == "B", (
-            "El primer grupo corresponde a FACTURA <letra>"
+            "El grupo 1 corresponde a la letra junto a FACTURA"
         )
         m2 = REGEX_LETRA_ENCABEZADO.search("COMPROBANTE E")
-        assert m2 is not None and m2.group(2) == "E", (
-            "El segundo grupo corresponde a COMPROBANTE <letra>"
+        assert m2 is not None and m2.group(1) == "E", (
+            "El grupo 1 corresponde a la letra junto a COMPROBANTE"
         )
+
+    def test_regex_no_cruza_el_salto_de_linea(self):
+        # Regresión del bug encontrado en T-305: con ``\s+`` (patrón literal del
+        # WIP) el salto de línea del markdown de Docling hacía que la letra se
+        # capturara de la línea siguiente — ``"FACTURA\n  Código: 1"`` daba ``C``
+        # (el ``C`` de "**C**ódigo") sobre dos PDFs reales cuyo encabezado dice
+        # ``FACTURA A``. La letra tiene que estar en la **misma línea**.
+        assert extraer_letra_encabezado("FACTURA\n  Código: 1") is None
+        assert extraer_letra_encabezado("FACTURA\n      C") is None
+        assert extraer_letra_encabezado("  A\n  FACTURA\nCOD.01") is None
+        # Y sigue funcionando cuando la letra está en la misma línea.
+        assert extraer_letra_encabezado("FACTURA A\nCOD. 001") == "A"
 
     def test_r5_solo_si_r4_no_dio_resultado(self):
         # R4 con letra válida gana; R5 no debe ni dispararse en la cascada.

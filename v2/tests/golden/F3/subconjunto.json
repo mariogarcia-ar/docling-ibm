@@ -1,0 +1,94 @@
+{
+  "golden_version": "0.2-f3",
+  "descripcion": "Subconjunto de paridad de F3 (T-305). Acota el golden a los casos con sustento objetivo de letra (evidencia OCR/texto nativo que nombra la letra) mas casos sinteticos deterministas para el tramo de reglas R1-R7 y para la cadena contable 01->02->03. Ver README.md del directorio.",
+  "decision_alcance": "F3-subplan 2.9: no se espera la curacion con contador; se marca 'letra' como 'derivada_de_evidencia' (no 'verificada') para que el reporte no la presente como verdad de negocio.",
+  "letra_real": [
+    {
+      "id": "img_2025-08_2D2C9343",
+      "ruta": "v2/tests/fixtures/golden/2991f57d-c143-4b23-9f87-4dfb1214ef53.jpg",
+      "veredicto": "comprobante",
+      "letra_derivada": "A",
+      "letra_estado": "derivada_de_evidencia",
+      "evidencia": "OCR: 'TIQUE FACTURA A', CUIT, farmacia (T-204, F2 SS2.5)",
+      "nota": "Tique: el golden no define el mapeo 090/099 (decision D-13), pero la evidencia textual si nombra la letra A."
+    },
+    {
+      "id": "pdf_2026-02_6D03019B",
+      "ruta": "v2/tests/fixtures/golden/af9f596b-bab2-4e69-b82a-c61fcdacdcbd.pdf",
+      "veredicto": "comprobante",
+      "letra_derivada": "A",
+      "letra_estado": "derivada_de_evidencia",
+      "evidencia": "Texto nativo: 'FACTURA A', CUIT, CAE (T-204, F2 SS2.5)"
+    },
+    {
+      "id": "img_2026-08_1CDFCDA0",
+      "ruta": "v2/tests/fixtures/golden/66cd35e9-a0a2-4342-b4f9-4c7e7c39d6b0.pdf",
+      "veredicto": "comprobante",
+      "letra_derivada": "A",
+      "letra_estado": "derivada_de_evidencia",
+      "evidencia": "Texto nativo: 'FACTURA A', CAE, Total (T-204, F2 SS2.5)"
+    }
+  ],
+  "letra_sintetica": [
+    {
+      "id": "letra_a_ri_ri",
+      "archivo": "casos/letra_a_ri_ri.md",
+      "condicion_emisor": "Responsable Inscripto",
+      "condicion_receptor": "Responsable Inscripto",
+      "letra_esperada": "A",
+      "regla_esperada": "R2A",
+      "evidencia": "Texto 'FACTURA A' en el encabezado (R5) + R2A (emisor RI, receptor RI)"
+    },
+    {
+      "id": "letra_b_ri_cf",
+      "archivo": "casos/letra_b_ri_cf.md",
+      "condicion_emisor": "Responsable Inscripto",
+      "condicion_receptor": "Consumidor Final",
+      "letra_esperada": "B",
+      "regla_esperada": "R2B",
+      "evidencia": "Texto 'FACTURA B' en el encabezado (R5) + R2B (emisor RI, receptor CF)"
+    },
+    {
+      "id": "letra_c_monotributo",
+      "archivo": "casos/letra_c_monotributo.md",
+      "condicion_emisor": "Monotributo",
+      "condicion_receptor": "Consumidor Final",
+      "letra_esperada": "C",
+      "regla_esperada": "R1",
+      "evidencia": "Texto 'FACTURA C' en el encabezado (R5) + R1 (emisor Monotributo)"
+    },
+    {
+      "id": "letra_e_exportacion",
+      "archivo": "casos/letra_e_exportacion.md",
+      "condicion_emisor": "Responsable Inscripto",
+      "condicion_receptor": "Responsable Inscripto",
+      "receptor_pais": "Chile",
+      "letra_esperada": "E",
+      "regla_esperada": "R3",
+      "evidencia": "R3 (receptor fuera de Argentina) tiene prioridad sobre R2A"
+    },
+    {
+      "id": "conflicto_r7_esperado_a_detectado_b",
+      "archivo": "casos/conflicto_r7.md",
+      "condicion_emisor": "Responsable Inscripto",
+      "condicion_receptor": "Responsable Inscripto",
+      "letra_esperada": "A",
+      "letra_detectada": "B",
+      "letra_esperada_final": "B",
+      "regla_esperada": "R7",
+      "evidencia": "Discrepancia negocio (A) vs documento (B) -> alerta R7 y letra final segun preferencia_letra=documento"
+    }
+  ],
+  "contable": [
+    {
+      "id": "contable_repuestos",
+      "archivo": "casos/contable_repuestos.md",
+      "descripcion": "Compra de repuestos de automotor (senal fuerte -> CC0004/MC07)"
+    },
+    {
+      "id": "contable_servicios",
+      "archivo": "casos/contable_servicios.md",
+      "descripcion": "Servicio de limpieza de oficina (senal administrativa -> CC0006)"
+    }
+  ]
+}

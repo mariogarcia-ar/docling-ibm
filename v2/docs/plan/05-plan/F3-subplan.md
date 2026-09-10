@@ -5,8 +5,8 @@
 > ([`F3.md`](F3.md)) y el diseño de los módulos
 > ([`../03-arquitectura/CLAS.md`](../03-arquitectura/CLAS.md) y
 > [`../03-arquitectura/RULES.md`](../03-arquitectura/RULES.md)).
-> **Fecha**: 2026-09-10 · **Rama**: `v2` · **Estado**: En implementación
-> (T-301..T-304 hechas; T-305 pendiente).
+> **Fecha**: 2026-09-10 · **Rama**: `v2` · **Estado**: DoD verificado
+> (T-301..T-305 hechas; cierre documental pendiente).
 
 ## 1. Ficha del subplan
 
@@ -325,17 +325,45 @@
   golden set es **T-305** (`scripts/F3/paridad_contable.py`); acá se construyó la
   estructura y el CLI para poder correr ambos lados.
 
-### 3.5 T-305 · Paridad con `classification_pipeline.py` y `-M 11.1` de v1
+### 3.5 T-305 · Paridad con `classification_pipeline.py` y `-M 11.1` de v1 ✅ Hecho
+
+> **Estado 2026-09-10**: **Hecho** por `team implementation`. Corrida real:
+> cadena contable **8/8** campos coincidentes y exactitud de letra **v2 5/5**
+> vs. **v1 2/5**. Suite **646 passed / 10 skipped**. Ver bitácora en
+> [`F3.md`](F3.md) §4 y el detalle en
+> [`tests/golden/F3/README.md`](../../../tests/golden/F3/README.md).
 
 - **Qué**: verificar el DoD de F3 (y mitigar R-02): (a) **paridad funcional de
   la cadena contable** contra `v1/classification_pipeline.py` y (b) **paridad
   del flujo de tipo/letra** contra el modo `-M 11.1` de
-  `v1/document_extraction.py`, sobre el subconjunto de paridad (§2.9).
-- **Archivos**: `scripts/F3/paridad_contable.py` (corre la cadena v2 y compara
-  `pasos`/`codigo` con el sidecar de v1) + `scripts/F3/paridad_11_1.py` (compara
-  letra/evidencia con `-M 11.1`) + `tests/test_classification_paridad.py`
-  (parte determinista con dobles; la corrida con Ollama real queda
-  `@pytest.mark.integration`).
+  `v1/document_extraction.py`, sobre el subconjunto de paridad (§2.9). ✅
+- **Archivos**: `tests/golden/F3/` (`subconjunto.json`, `README.md`, 7 casos
+  sintéticos) + `scripts/F3/paridad_contable.py` + `scripts/F3/paridad_11_1.py`
+  + `tests/test_classification_paridad.py` (32 tests). ✅
+- **Hallazgo (el mayor valor de la tarea)**: sobre **dos PDFs reales del golden**
+  cuyo encabezado dice `FACTURA A`, R5 devolvía la letra **`C`**. El patrón
+  portado **literal** del WIP usaba `\s+`, que se come el **salto de línea** del
+  markdown de Docling y captura la letra de la línea siguiente:
+  `"FACTURA\n  Código: 1"` → `C` (el `C` de "**C**ódigo"). No se había visto
+  antes porque **en v1 ese patrón nunca se ejecutó como código**: vivía en el
+  prompt WIP como `criterio` **descriptivo** para el modelo. Corrección mínima
+  (`\s+` → `[ \t]+` + `\b`), conservando la semántica del `criterio`, con test
+  de regresión.
+- **Métricas del DoD de F3** (reportadas en `06-estrategia-calidad.md` y
+  `tests/golden/F3/README.md`): exactitud de letra por categoría (v2 **100%**
+  sobre los casos etiquetados), % de alerta R7 correctamente disparada y % de
+  acuerdo negocio-vs-documento (ambos **100%** sobre el tramo determinista), y
+  paridad de la cadena contable (**8/8** campos).
+- **Notas de entorno**: `v1/prompts/` está vacío (v1 resuelve sus prompts como
+  `Path(__file__).parent / "prompts"`), así que los scripts arman la disposición
+  que v1 espera en un **temporal** (sin mutar el repo) y corren v1 sobre
+  **copias** (v1 escribe siempre un sidecar junto al markdown). El rol `llm` de
+  `Settings` no está instalado en este entorno: `--detectar-modelo` cae al rol
+  `vlm` y lo informa (la paridad no depende del modelo elegido).
+- **Nota de honestidad**: el acuerdo con v1 en la letra es **2/3 comparables**;
+  el criterio del DoD es **paridad o mejora** y el reporte publica las dos
+  exactitudes (v2 y v1) para que un desacuerdo se lea como mejora —o
+  regresión— con evidencia, no como un número aislado.
 - **Herramienta de paridad del pipeline completo**: `scripts/F3/classification_pipeline.py`
   (portado de v1: `--condicion-impositiva`, `-m/--model`, `-o/--output`, sidecar
   `<doc>_classification.json`, reanudación por checkpoint) para correr ambos
@@ -350,14 +378,15 @@
 
 ### 3.6 Avance
 
-- **Estado (2026-09-10)**: F3 en 🟡 **En implementación**. **T-301: Hecha**
+- **Estado (2026-09-10)**: F3 con el **DoD verificado**. **T-301: Hecha**
   (motor de reglas R1-R7 en código + contexto tipado + `clasificar_tipo_comprobante()`),
   **T-302: Hecha** (prompt de evidencia `tipo-comprobante@1` + lector inyectable),
-  **T-303: Hecha** (pasada 1 de reglas raw por fuente) y **T-304: Hecha** (cadena
-  contable 01→02→03 con contratos entre pasos, checkpoints y `api.classify()`).
-  Suite en verde: **614 passed, 10 skipped** — 285 tests de F3 (122 de T-301 + 50
-  de T-302 + 53 de T-303 + 60 de T-304) sobre una base de 328). **Pendiente**:
-  T-305. `classify` **ya no** está en
+  **T-303: Hecha** (pasada 1 de reglas raw por fuente), **T-304: Hecha** (cadena
+  contable 01→02→03 con contratos entre pasos, checkpoints y `api.classify()`)
+  y **T-305: Hecha** (paridad con v1 medida con documentos y modelos reales).
+  Suite en verde: **646 passed, 10 skipped** — 317 tests de F3 (122 de T-301 + 50
+  de T-302 + 53 de T-303 + 60 de T-304 + 32 de T-305) sobre una base de 328.
+  `classify` **ya no** está en
   `test_esqueletos_lanzan_notimplemented` (quedan `extract` y `run`, F4/F5).
 - `F3.md` pasó de 🔴 Backlog a 🟡 En implementación (T-301 marcada Hecho).
 - **Punto de partida real**: ADR-006 ya aceptado en F0 (base `Rule`/`Registry`
@@ -370,7 +399,7 @@
   F2 con `validate`, subplan F1 §2.4 / F2 §2.7). Cuidado: `extract` y `run`
   **siguen** en la lista (F4/F5).
 - Suite default en verde al inicio (referencia: 187 tests al cierre de F1 + los
-  de F2; **614 passed / 10 skipped** tras T-301..T-304).
+  de F2; **646 passed / 10 skipped** tras T-301..T-305).
 
 ## 4. Reglas duras (no romper F0/F1/F2)
 
