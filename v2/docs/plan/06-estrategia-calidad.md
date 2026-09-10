@@ -130,13 +130,23 @@ tests/golden/
 
 ### Fase 3 — Clasificación
 - **Unitarias**: motor de reglas R1-R7 con fixtures deterministas (cada regla por
-  separado y combinadas); candidatos descartados/restantes.
+  separado y combinadas); candidatos descartados/restantes. **T-301**: 122 tests
+  (`test_rules_contexto.py` 41 + `test_rules_tipo_comprobante.py` 81).
+  **T-302**: 50 tests (`test_classification_prompt_tipo.py`) — contrato y versión
+  del prompt de evidencia (que el modelo no decide), construcción de `messages`
+  por fuente, normalización de la lectura al vocabulario del motor, conversión a
+  `SourceEvidence` y el puente completo T-302 → T-301 (R4/R5/R7).
 - **Integración**: flujo VLM/LLM (mockeados) → reglas → tipo final; cadena
-  contable 01→02→03 con datos de referencia.
+  contable 01→02→03 con datos de referencia. **Hecho para tipo/letra en T-302**
+  (`scripts/F3/t302.py` corre el doble paso de punta a punta sobre 10 escenarios
+  y sale con código ≠ 0 si alguno falla); la cadena contable llega con T-304.
 - **Aceptación** (E-CLAS-1/2): reglas Gherkin; paridad con v1 `-M 11.1` y
-  `classification_pipeline.py`.
+  `classification_pipeline.py`. **Pendiente de T-305** (la lectura real contra
+  Ollama local ya se puede correr con `scripts/F3/t302.py --origen`).
 - **Métricas**: exactitud de letra (por categoría A/B/C/M/E), % de casos con
-  alerta R7 correctamente disparada, % acuerdo negocio-vs-documento.
+  alerta R7 correctamente disparada, % acuerdo negocio-vs-documento. **Pendiente
+  de T-305**: los tests actuales son de contrato y reglas (deterministas); la
+  medición sobre el golden set necesita la corrida con modelo real.
 
 ### Fase 4 — Extracción
 - **Unitarias**: normalización de campos (CUIT truncado, fechas, montos, ítems,

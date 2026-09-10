@@ -15,7 +15,7 @@
 | **Fase(s) del plan** | F3 (T-301..T-305) |
 | **Prioridad MoSCoW** | Must (MVP) — E-CLAS-1 (tipo/letra) y E-CLAS-2 (contable) |
 | **Responsable ciclo** | team analysis (BA/SA/PM) → team implementation |
-| **Estado épica** | 🟡 En implementación (F3: T-301 hecha; T-302..T-305 pendientes) |
+| **Estado épica** | 🟡 En implementación (F3: T-301 y T-302 hechas; T-303..T-305 pendientes) |
 | **DoR cumplido** | [x] sí |
 | **Fecha inicio** | 2026-09-10 |
 | **Fecha fin** |  |
@@ -23,7 +23,7 @@
 ## 2. Definition of Done de la épica (criterios de aceptación a nivel épica)
 
 - [x] Las reglas R1-R7 del prompt WIP se migran a un motor de reglas en código (sin depender del prompt para decidir la letra). — **T-301** (`rules/tipo_comprobante_rules.py` + `clasificar_tipo_comprobante()`).
-- [ ] El prompt `11.1` reescrito devuelve evidencia (VLM recuadro + LLM texto) y reglas raw por fuente con candidatos_descartados/candidatos_restantes/reglas_aplicadas.
+- [x] El prompt `11.1` reescrito devuelve evidencia (VLM recuadro + LLM texto) y reglas raw por fuente con candidatos_descartados/candidatos_restantes/reglas_aplicadas. — **T-302** (evidencia: `prompt_tipo_comprobante.py` + `evidencia.py`, con las dos evidencias conservadas). **Nota**: las *reglas raw* por fuente (que califican esa evidencia) son de **T-303**.
 - [x] La letra (A/B/C/M/E) se determina cruzando la condición fiscal esperada por negocio y la letra detectada, disparando alerta/conflicto cuando corresponde (R7). — **T-301** (pendiente: reemplazar el lector por el real en T-302/T-303).
 - [ ] La cadena contable 01→02→03 queda refactorizada con contratos entre pasos (centro de costo → macro categoría → concepto/código), incluyendo el default CC0006.
 - [ ] Paridad verificable con v1 sobre el golden set: equivalencia con `classification_pipeline.py` y `-M 11.1` de v1; tests unitarios de reglas R1-R7 (DoD de F3 en `05-plan-ejecucion.md`).
@@ -32,7 +32,7 @@
 ## 3. Historias de usuario y seguimiento
 
 ### E-CLAS-1 · Detección de tipo y letra de comprobante (con reglas determinísticas)
-- **Estado**: [ ] Pendiente · [x] **En desarrollo** (T-301 hecha; T-302/T-303 pendientes) · [ ] En QA · [ ] Hecho
+- **Estado**: [ ] Pendiente · [x] **En desarrollo** (T-301 y T-302 hechas; T-303 pendiente) · [ ] En QA · [ ] Hecho
 - **Responsable**: team analysis / team implementation
 - **Como** auditor contable,
   **quiero** que la letra (A/B/C/M/E) se determine cruzando la condición fiscal
@@ -117,6 +117,7 @@ Regla: default
 | Fecha | Acción / hito | Responsable | Estado |
 |---|---|---|---|
 | 2026-09-10 | **E-CLAS-1 (T-301)**: R1-R7 migradas del prompt WIP al motor de reglas en código (`rules/contexto.py`, `rules/tipo_comprobante_rules.py` con `REGISTRO_NEGOCIO`/`REGISTRO_LECTURA`/`REGISTRO_CONFLICTO`) y `clasificar_tipo_comprobante()` implementado con `preferencia_letra`. Los criterios Gherkin de R1/R2A/R2B/R3/R4/R5/R6/R7 y de candidatos quedan cubiertos por tests unitarios (`tests/test_rules_tipo_comprobante.py`, 81 tests) y verificados por `scripts/F3/t301.py` (14/14). | team implementation | Hecho |
+| 2026-09-10 | **E-CLAS-1 (T-302)**: `11.1` reescrito como prompt de **evidencia** versionado (`tipo-comprobante@1`): el modelo reporta la lectura (recuadro del VLM / texto del LLM) con su fragmento de sustento y **no** decide la letra. `classification/evidencia.py` normaliza la lectura al vocabulario del motor (D-13), construye `SourceEvidence` (ADR-001), corre las dos fuentes conservando ambas evidencias (ADR-002) y puebla el contexto de R4/R5 para que decida el motor de T-301. Tests: `tests/test_classification_prompt_tipo.py` (50); herramienta: `scripts/F3/t302.py` (10/10, punta a punta T-302 → T-301). | team implementation | Hecho |
 
 ## 5. Referencias cruzadas
 

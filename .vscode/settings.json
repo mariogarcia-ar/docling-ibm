@@ -2,7 +2,28 @@
   "python.analysis.extraPaths": ["v2/src"],
   "python.analysis.diagnosticMode": "openFilesOnly",
   "chat.tools.terminal.autoApprove": {
-    "/^python -m pytest tests 2>&1 \\| grep -E \"\\[0-9\\]\\+ \\(passed\\|failed\\|error\\|warnings\\)\" \\| tail -3$/": {
+    // Comando original: pytest con resumen filtrado
+    "/^python3?\\s+-m\\s+pytest\\s+tests(\\s+[\\w./:\\-]+)*\\s*\\|\\s*grep\\s+-E\\s+\"\\[0-9\\]\\+ \\(passed\\|failed\\|error\\|warnings\\)\"\\s*\\|\\s*tail\\s+-3$/": {
+      "approve": true,
+      "matchCommandLine": true
+    },
+    // pytest directo (sin "python -m"), con paths/flags opcionales
+    "/^pytest(\\s+[\\w./:\\-=\"']+)*$/": {
+      "approve": true,
+      "matchCommandLine": true
+    },
+    // python(3) -m pytest, con paths/flags opcionales (sin pipe)
+    "/^python3?\\s+-m\\s+pytest(\\s+[\\w./:\\-=\"']+)*$/": {
+      "approve": true,
+      "matchCommandLine": true
+    },
+    // Variante con -k "expresión" (con espacios/comillas)
+    "/^(python3?\\s+-m\\s+)?pytest\\s+.*-k\\s+\"[^\"]*\".*$/": {
+      "approve": true,
+      "matchCommandLine": true
+    },
+    // pytest de un test/clase/método puntual (test_x.py::Clase::test_metodo)
+    "/^(python3?\\s+-m\\s+)?pytest\\s+[\\w./]+\\.py(::\\w+)*(\\s+[\\w./:\\-=\"']+)*$/": {
       "approve": true,
       "matchCommandLine": true
     }

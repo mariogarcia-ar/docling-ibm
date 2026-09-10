@@ -15,7 +15,7 @@
 | **ADRs relacionados** | ADR-006 (reglas de negocio en código vs. prompt — decisión D-6, bloqueante); ADR-002 (tabla de precedencia por campo); ADR-003 (gatillo de gaps para evidencia adicional). |
 | **Interfaces clave** | Dataclass `Rule { id, prioridad, condicion(ctx), resultado, tipo }` (ej. `REGLA_R1 = Rule(id="R1", prioridad=1, condicion=..., resultado="C", tipo="negocio")`); registro/motor: ejecutar sobre evidencia, ordenar por prioridad y registrar disparos; `rules/precedencia.py` (PREC_1..PREC_N por campo); `rules/gaps.py` (faltan_datos por gap concreto). |
 | **Responsable ciclo** | team analysis (BA/SA/PM) → team implementation |
-| **Estado de diseño** | 🟡 Motor declarativo (F0) + R1-R7 y contexto tipado (F3/T-301) implementados; reglas raw (T-303), precedencia (T-404) y cruzadas/gaps (F5) pendientes |
+| **Estado de diseño** | 🟡 Motor declarativo (F0) + R1-R7 y contexto tipado (F3/T-301) + evidencia de lectura (F3/T-302) implementados; reglas raw (T-303), precedencia (T-404) y cruzadas/gaps (F5) pendientes |
 | **Fecha inicio** | 2026-09-10 |
 | **Fecha fin** |  |
 
@@ -30,11 +30,11 @@
 | Regla R3 (exportación → E, prioridad sobre R1/R2) | §7 + doc 02 | E-CLAS-1 | F3 / T-301 | [x] hecho (`prioridad=0`; pisa a R1/R2) |
 | Reglas R4-R6 (extracción: recuadro VLM, regex texto, inferencia por desglose) | §7 + doc 02 | E-CLAS-1 | F3 / T-301 | [x] hecho en cascada (`REGISTRO_LECTURA`) |
 | Regla R7 (conflicto financiero → alerta comprobante inválido crédito fiscal) | §7 + doc 02 | E-CLAS-1 | F3 / T-301 | [x] hecho (`condicion_r7` + `construir_alerta()`) |
-| Reglas raw por fuente (pasada 1) → `SourceEvidence.valida`/`debilidades` | §4.4 (reglas raw VLM/LLM) | E-EXT-2 | F4 / T-403 | [ ] pendiente |
+| Reglas raw por fuente (pasada 1) → `SourceEvidence.valida`/`debilidades` | §4.4 (reglas raw VLM/LLM) | E-EXT-2 | F4 / T-403 | [ ] pendiente (el insumo ya existe: T-302 deja `valida`/`debilidades` con la higiene de la lectura; falta el veredicto raw de T-303) |
 | Tabla de precedencia por campo (`rules/precedencia.py`, PREC_n) | §6 + ADR-002 | E-EXT-1 | F4 / T-404 | [ ] pendiente |
 | Reglas cruzadas de conclusión (negocio + fast-fail + conflicto) | §4.5 | E-CONC-1 | F5 / T-501 | [ ] pendiente |
 | Detección de gaps (`rules/gaps.py`) → gatillo de evidencia adicional | §4.5 | E-CONC-2 | F5 / T-502 | [ ] pendiente |
-| LLM/VLM dejan de "aplicar reglas" y devuelven evidencia; el motor decide | §7 (ver decisión #1/#6) | E-CLAS-1 / E-EXT | F3/F4 | [ ] pendiente |
+| LLM/VLM dejan de "aplicar reglas" y devuelven evidencia; el motor decide | §7 (ver decisión #1/#6) | E-CLAS-1 / E-EXT | F3/F4 | [x] hecho para tipo/letra en F3/T-302 (`tipo-comprobante@1` no pide la decisión; `evidencia.py` vuelca la lectura al contexto y decide el motor R1-R7); los flujos de F4/T-401 reutilizan el patrón |
 | Casuística observada en HITL → nuevas reglas (crece % certeza alta por programa) | §7 | E-CONC-4 / E-LIB-4 | F5 + post-MVP | [ ] pendiente |
 
 ## 3. Definition of Design / contratos a congelar
@@ -56,3 +56,4 @@
 | Fecha | Acción / hito | Responsable | Estado |
 |---|---|---|---|
 | 2026-09-10 | T-301 implementado: R1-R7 viven como `Rule` declarativas en `rules/tipo_comprobante_rules.py` (tres registros separados por familia: negocio/lectura/conflicto, decisión F3-subplan §2.3) y se evalúan sobre `rules/contexto.py` (`ContextoTipoComprobante`, inmutable). `registry.py` **no** se reescribió (contrato F0 congelado). Las reglas *raw* por fuente (T-303) y la precedencia por campo (T-404) se agregan en sus tareas sin tocar esta base. | team implementation | Hecho |
+| 2026-09-10 | T-302 (F3): el prompt `11.1` se reescribe como prompt de **evidencia** (`tipo-comprobante@1`) — deja de pedir `tipo_comprobante`/`confianza`/`reglas_aplicadas`/`alerta` y devuelve la lectura con fragmento de sustento (ADR-001). La lectura se normaliza al vocabulario del motor (`normalizar_letra`, el mismo de R4/R5) y se vuelca al contexto tipado de T-301; el lector es inyectable, de modo que F4/T-403 solo tiene que conectar **una** implementación de reglas raw sobre `SourceEvidence.valida`/`debilidades`. | team implementation | Hecho |

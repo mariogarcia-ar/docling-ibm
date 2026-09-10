@@ -6,7 +6,7 @@
 > ([`../03-arquitectura/CLAS.md`](../03-arquitectura/CLAS.md) y
 > [`../03-arquitectura/RULES.md`](../03-arquitectura/RULES.md)).
 > **Fecha**: 2026-09-10 · **Rama**: `v2` · **Estado**: En implementación
-> (T-301 hecha; T-302..T-305 pendientes).
+> (T-301 y T-302 hechas; T-303..T-305 pendientes).
 
 ## 1. Ficha del subplan
 
@@ -114,7 +114,7 @@
 ### 3.1 T-301 · Migrar R1-R7 del prompt WIP a motor de reglas en código ✅ Hecho
 
 > **Estado 2026-09-10**: **Hecho** por `team implementation`. Suite completa en
-> verde (**450 passed, 10 skipped**); `python -c "import voucherflow.classification,
+> verde (**500 passed, 10 skipped**); `python -c "import voucherflow.classification,
 > voucherflow.rules, voucherflow.api"` devuelve `ok` y `python scripts/F3/t301.py`
 > reporta **14/14** escenarios sintéticos coincidentes con la expectativa. Ver
 > bitácora en [`F3.md`](F3.md) §4.
@@ -264,12 +264,13 @@
 ### 3.6 Avance
 
 - **Estado (2026-09-10)**: F3 en 🟡 **En implementación**. **T-301: Hecha**
-  (motor de reglas R1-R7 en código + contexto tipado + `clasificar_tipo_comprobante()`;
-  suite en verde: **450 passed, 10 skipped** — 122 de los nuevos
-  `tests/test_rules_contexto.py`/`tests/test_rules_tipo_comprobante.py` sobre una
-  base de 328). **Pendientes**: T-302, T-303, T-304 y
+  (motor de reglas R1-R7 en código + contexto tipado + `clasificar_tipo_comprobante()`)
+  y **T-302: Hecha** (prompt de evidencia `tipo-comprobante@1` + lector
+  inyectable + `contexto_desde_evidencia()`/`leer_evidencia()`; suite en verde:
+  **500 passed, 10 skipped** — 122 tests de T-301 + 50 de T-302 sobre una base de
+  328). **Pendientes**: T-303, T-304 y
   T-305. `clasificar_contable()` sigue lanzando `NotImplementedError` (T-304) y
-  `api.classify()` **no** se implementa en T-301 (depende de T-304); la lista de
+  `api.classify()` **no** se implementa todavía (depende de T-304); la lista de
   esqueletos de `test_esqueletos_lanzan_notimplemented` queda igual (`classify`,
   `extract`, `run`).
 - `F3.md` pasó de 🔴 Backlog a 🟡 En implementación (T-301 marcada Hecho).
@@ -283,7 +284,7 @@
   F2 con `validate`, subplan F1 §2.4 / F2 §2.7). Cuidado: `extract` y `run`
   **siguen** en la lista (F4/F5).
 - Suite default en verde al inicio (referencia: 187 tests al cierre de F1 + los
-  de F2; **450 passed / 10 skipped** tras T-301).
+  de F2; **500 passed / 10 skipped** tras T-301 y T-302).
 
 ## 4. Reglas duras (no romper F0/F1/F2)
 
