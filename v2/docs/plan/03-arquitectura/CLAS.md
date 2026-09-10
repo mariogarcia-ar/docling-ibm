@@ -15,8 +15,8 @@
 | **ADRs relacionados** | ADR-006 (reglas en código vs. prompt — bloqueante); ADR-001 (contrato de evidencia: `11.1` pasa a devolver evidencia); ADR-002 (precedencia por campo en la resolución de la letra); ADR-007 (layout). |
 | **Interfaces clave** | `clasificar()` (tipo/letra + contable); subflujo tipo/letra: flujo VLM (letra del recuadro) + flujo LLM (regex/razonamiento) → reglas raw por fuente → reglas negocio R1-R3 → reglas extracción R4-R6 → reglas conflicto R7 → candidatos descartados/restantes. Subflujo contable: extract (proveedor, descripcion, monto) → paso 01 centro de costo → paso 02 macro categoría → paso 03 concepto/código + condición impositiva. |
 | **Responsable ciclo** | team analysis (BA/SA/PM) → team implementation |
-| **Estado de diseño** | 🔴 Borrador |
-| **Fecha inicio** |  |
+| **Estado de diseño** | 🟡 T-301 implementado (`tipo_comprobante.py` + `rules/contexto.py` + `rules/tipo_comprobante_rules.py`); T-302..T-305 pendientes |
+| **Fecha inicio** | 2026-09-10 |
 | **Fecha fin** |  |
 
 ## 2. Estado de trazabilidad del módulo
@@ -25,9 +25,9 @@
 |---|---|---|---|---|
 | Subflujo tipo/letra: vista fiel + OCR → VLM (recuadro) / LLM (regex) | §4.3 | E-CLAS-1 | F3 / T-302 | [ ] pendiente |
 | Reglas raw por fuente (R4-R6 de lectura) → candidatos descartados/restantes | §4.3 | E-CLAS-1 | F3 / T-303 | [ ] pendiente |
-| Reglas de negocio R1-R3 (monotributo/exento→C, R2A→A, R2B→B, R3 exportación→E) | §4.3 + §7 | E-CLAS-1 | F3 / T-301 | [ ] pendiente |
-| Regla de conflicto R7 (comprobante inválido para crédito fiscal + alerta) | §4.3 + §7 | E-CLAS-1 | F3 / T-301 | [ ] pendiente |
-| Migración R1-R7 del prompt WIP a motor de reglas en código | §7 | E-CLAS-1 | F3 / T-301 | [ ] pendiente |
+| Reglas de negocio R1-R3 (monotributo/exento→C, R2A→A, R2B→B, R3 exportación→E) | §4.3 + §7 | E-CLAS-1 | F3 / T-301 | [x] hecho (`rules/tipo_comprobante_rules.py` → `REGISTRO_NEGOCIO`) |
+| Regla de conflicto R7 (comprobante inválido para crédito fiscal + alerta) | §4.3 + §7 | E-CLAS-1 | F3 / T-301 | [x] hecho (`REGISTRO_CONFLICTO` + `construir_alerta()`) |
+| Migración R1-R7 del prompt WIP a motor de reglas en código | §7 | E-CLAS-1 | F3 / T-301 | [x] hecho (tres registros + `clasificar_tipo_comprobante()`) |
 | Reescritura de `11.1` para devolver evidencia (no la decisión) | §7 (ver decisión abierta #1/#6) | E-CLAS-1 | F3 / T-302 | [ ] pendiente |
 | Subflujo contable: cadena 01 (centro de costo) → 02 (macro categoría) → 03 (concepto/código + condición impositiva) | §4.3 | E-CLAS-2 | F3 / T-304 | [ ] pendiente |
 | Candidatos tipo/letra como insumo de la conclusión (reglas cruzadas) | §4.5 (entrada a conclusion) | E-CLAS-1 / E-CONC-1 | F3 → F5 / T-501 | [ ] pendiente |
@@ -52,4 +52,4 @@
 
 | Fecha | Acción / hito | Responsable | Estado |
 |---|---|---|---|
-| _(vacío)_ | | | |
+| 2026-09-10 | T-301 implementado: R1-R7 migradas del prompt WIP al motor de reglas en código (ADR-006). `clasificar_tipo_comprobante()` decide la letra cruzando negocio (R1/R2A/R2B/R3) con lectura (R4→R5→R6) y dispara R7 en la discrepancia; `preferencia_letra` (`documento` default / `negocio`) conserva las dos semánticas de v1 y del WIP. Precedencia de la letra: **resuelta como parámetro, validación con negocio pendiente** (D-14). Mapeo de tiques `090`/`099` fuera de alcance (D-13). | team implementation | Hecho |

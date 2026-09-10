@@ -32,6 +32,34 @@ redacta **ADRs preliminares** (estado *propuesto*) para las más relevantes.
 | D-10 | Política de enfriamiento por temperatura en lotes | `my_prompt.md` (contexto operativo) | No (media) | — (config) | Config (F6) |
 | D-11 | Modalidades `llm`/`vlm`/`auto` y su mapeo a los nuevos flujos | v1 `document_extraction.py` | No | — (diseño detallado) | Abierta |
 | D-12 | Volumen de `files/` como dataset: tamaño y criterio del golden set | contexto repo | No | — (ver 06) | Abierta |
+| D-13 | Mapeo de comprobantes `090`/`099` (tiques) a la letra y su código AFIP | WIP R1-R7 (sin reglas para tiques) + golden | No (post-MVP) | — (a cerrar con contador) | Abierta (F3, 2026-09-10) |
+| D-14 | Precedencia de la letra ante discrepancia negocio vs. documento | `11.1` de v1 (manda el documento) vs. WIP (manda la ley) | Parcial (hay default) | — (parámetro `preferencia_letra`) | Abierta — validar con negocio (F3, 2026-09-10) |
+
+### D-13 · Mapeo de `090`/`099` (tiques) — registrada en F3/T-301
+
+El enum `TipoComprobante` de `schemas/evidence.py` contempla `090`/`099` y el
+golden ya tiene evidencia de tiques ("TIQUE FACTURA A"), pero el prompt WIP
+`deteccion_tipo_factura.yaml` **no** define reglas R1-R7 para ellos. F3 **no
+inventa** un mapeo letra↔código AFIP: el motor los trata como **letra no
+concluida** (si la lectura aporta una letra de tique, se conserva con certeza
+baja) en lugar de forzar A/B/C. **Cierre**: con contador, definiendo la regla y
+el mapeo antes de considerarlos clasificados.
+
+### D-14 · Precedencia de la letra ante discrepancia — registrada en F3/T-301
+
+Ante discrepancia entre la letra esperada por negocio (R1/R2A/R2B) y la
+detectada en el documento (R4/R5/R6), las dos fuentes históricas resolvían
+distinto: `11.1` de v1 dejaba **el documento**; el WIP
+`deteccion_tipo_factura.yaml` decía "la ley manda sobre el papel" (**negocio**).
+F3 conserva **ambas semánticas** en un parámetro de `clasificar_tipo_comprobante()`:
+
+- `preferencia_letra="documento"` (**default**, paridad con `11.1` de v1),
+- `preferencia_letra="negocio"` (semántica del WIP).
+
+En ambos casos la certeza es **baja**, la discrepancia queda documentada en
+`detalle` y se dispara R7 cuando corresponde. **Cierre**: validar el default con
+negocio; si negocio objeta, el cambio es de una línea (parámetro con default
+explícito, no `if` disperso).
 
 ---
 

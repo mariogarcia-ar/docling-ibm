@@ -5,8 +5,8 @@
 > ([`F3.md`](F3.md)) y el diseño de los módulos
 > ([`../03-arquitectura/CLAS.md`](../03-arquitectura/CLAS.md) y
 > [`../03-arquitectura/RULES.md`](../03-arquitectura/RULES.md)).
-> **Fecha**: 2026-09-10 · **Rama**: `v2` · **Estado**: En planificación
-> (borrador previo a T-301).
+> **Fecha**: 2026-09-10 · **Rama**: `v2` · **Estado**: En implementación
+> (T-301 hecha; T-302..T-305 pendientes).
 
 ## 1. Ficha del subplan
 
@@ -88,11 +88,11 @@
    `"no informado"` y `descripcion` = markdown procesado (portado literal de
    `classify_document()` de v1). Cuando F4 entregue los campos extraídos, la
    cadena los consume sin cambiar su contrato (parámetro `base_values`).
-8. **`090`/`099` (tiques) quedan fuera de R1-R7 (decisión abierta D-12)**: el
+8. **`090`/`099` (tiques) quedan fuera de R1-R7 (decisión abierta D-13)**: el
    enum `TipoComprobante` contempla `090`/`099` y el golden ya tiene evidencia
    de tiques ("TIQUE FACTURA A"), pero el prompt WIP **no** define reglas para
    ellos. F3 no inventa mapeo letra↔código AFIP: se registra como decisión
-   abierta (**D-12**, a cerrar con contador) y el motor los trata como letra no
+   abierta (**D-13**, a cerrar con contador) y el motor los trata como letra no
    concluida (queda la letra del tique si la lectura la aporta, con certeza
    baja) en lugar de forzar A/B/C.
 9. **Golden set: no se etiqueta la `letra` masivamente en F3**: la columna
@@ -111,7 +111,13 @@
 
 ## 3. Alcance por tarea (T-301..T-305)
 
-### 3.1 T-301 · Migrar R1-R7 del prompt WIP a motor de reglas en código
+### 3.1 T-301 · Migrar R1-R7 del prompt WIP a motor de reglas en código ✅ Hecho
+
+> **Estado 2026-09-10**: **Hecho** por `team implementation`. Suite completa en
+> verde (**450 passed, 10 skipped**); `python -c "import voucherflow.classification,
+> voucherflow.rules, voucherflow.api"` devuelve `ok` y `python scripts/F3/t301.py`
+> reporta **14/14** escenarios sintéticos coincidentes con la expectativa. Ver
+> bitácora en [`F3.md`](F3.md) §4.
 
 - **Qué**: portar R1-R7 a `Rule` declarativas + contexto tipado de entrada +
   orquestación de los tres registros (§2.3) que decide la letra final y arma
@@ -122,12 +128,14 @@
   - `rules/contexto.py` — `ContextoTipoComprobante` (dataclass): condiciones
     fiscales de emisor/receptor + país, evidencia de lectura (letra del
     recuadro VLM, texto de encabezado LLM, desglose IVA, campos totales),
-    datos ausentes. Es el "contexto tipado" que anticipa `RULES.md`.
+    datos ausentes. Es el "contexto tipado" que anticipa `RULES.md`. ✅
   - `rules/tipo_comprobante_rules.py` — `REGISTRO_NEGOCIO` (R1/R2A/R2B/R3),
     `REGISTRO_LECTURA` (R4/R5/R6), `REGISTRO_CONFLICTO` (R7) + helpers de
-    construcción (`construir_registros()`).
+    construcción (`construir_registros()`). ✅
   - `rules/__init__.py` (ampliado: exportar los registros y el contexto;
-    **no** romper `Rule`/`Registry`).
+    **no** romper `Rule`/`Registry`). ✅
+  - `classification/tipo_comprobante.py` — `clasificar_tipo_comprobante()`
+    implementado; `clasificar_contable()` sigue `NotImplementedError` (T-304). ✅
 - **Contrato de decisión** (portado del WIP §`orden_de_evaluacion`):
   1. R3 (exportación) tiene prioridad máxima: si aplica → `E`, fin.
   2. R1/R2A/R2B → `tipo_esperado_por_negocio`.
@@ -135,13 +143,29 @@
   4. Comparar; coincidencia → letra final, certeza alta.
   5. Discrepancia → R7 (y reglas análogas) → alerta; letra final según
      `preferencia_letra` (§2.4); `campos_desconocidos` a la vista.
-- **Tests** (T-301, unitarios y deterministas, sin Ollama):
-  `tests/test_rules_tipo_comprobante.py` — **una clase por regla** (R1, R2A,
-  R2B, R3 con prioridad sobre R1/R2, R4 recuadro, R5 regex
-  `FACTURA\s+([A-CME])|COMPROBANTE\s+([A-CME])`, R6 desglose) + combinaciones
-  (R3+R1, R2A+R4-B conflicto+R7), `candidatos_descartados/restantes`,
-  `reglas_aplicadas` trazable, y el caso `campos_desconocidos` (faltan
-  condiciones fiscales → certeza baja).
+- **Prioridades implementadas**: R3=0, R1=1, R2A/R2B=2, R4=10, R5=11, R6=12,
+  R7=20 (R4-R6 arrancan en 10 para marcar que son otra familia; el orden entre
+  familias lo fija el orquestador, no la prioridad).
+- **Tests** (T-301, unitarios y deterministas, sin Ollama) ✅:
+  `tests/test_rules_tipo_comprobante.py` (81 tests) — **una clase por regla** (R1,
+  R2A, R2B, R3 con prioridad sobre R1/R2, R4 recuadro, R5 regex
+  `FACTURA\s+([A-CME])|COMPROBANTE\s+([A-CME])`, R6 desglose, R7 alerta) +
+  combinaciones (R3 pisa R1/R2, R2A+R4-B conflicto+R7, R4 gana sobre R5, R5 solo
+  si R4 no dio, R6 desempate por condición fiscal, casos parciales con
+  `campos_desconocidos` → certeza baja), `candidatos_descartados/restantes`,
+  `reglas_aplicadas` trazable y sin cruce descartados∩restantes (ADR-008).
+  `tests/test_rules_contexto.py` (41 tests) — construcción incremental,
+  normalización defensiva, inmutabilidad, `campos_desconocidos()` y `desde_dict`
+  (shape del WIP).
+- **Herramienta de inspección** ✅: `scripts/F3/t301.py` — imprime los tres
+  registros (`--reglas`), corre **14 escenarios sintéticos** que cubren R1..R7,
+  el cruce negocio-vs-documento, la discrepancia con alerta R7 y los casos
+  parciales (marca ✅/❌ contra la expectativa; salida no-cero si alguno falla) y
+  acepta un `--contexto` JSON propio con el shape plano o el anidado del WIP
+  (`emisor`/`receptor`/`ocr`), con `--preferencia-letra` y reporte `--json`.
+- **Pendiente de otras tareas**: T-303 enriquece `candidatos_descartados/
+  restantes` con las reglas raw por fuente; T-302 puebla el contexto desde la
+  evidencia del lector.
 
 ### 3.2 T-302 · Reescribir `11.1` para devolver **evidencia** (VLM recuadro + LLM texto)
 
@@ -239,18 +263,27 @@
 
 ### 3.6 Avance
 
-- Aún no arrancada: `F3.md` en 🔴 Backlog.
+- **Estado (2026-09-10)**: F3 en 🟡 **En implementación**. **T-301: Hecha**
+  (motor de reglas R1-R7 en código + contexto tipado + `clasificar_tipo_comprobante()`;
+  suite en verde: **450 passed, 10 skipped** — 122 de los nuevos
+  `tests/test_rules_contexto.py`/`tests/test_rules_tipo_comprobante.py` sobre una
+  base de 328). **Pendientes**: T-302, T-303, T-304 y
+  T-305. `clasificar_contable()` sigue lanzando `NotImplementedError` (T-304) y
+  `api.classify()` **no** se implementa en T-301 (depende de T-304); la lista de
+  esqueletos de `test_esqueletos_lanzan_notimplemented` queda igual (`classify`,
+  `extract`, `run`).
+- `F3.md` pasó de 🔴 Backlog a 🟡 En implementación (T-301 marcada Hecho).
 - **Punto de partida real**: ADR-006 ya aceptado en F0 (base `Rule`/`Registry`
   congelada y testeada); F1 cerrando T-105 (markdown de entrada disponible vía
   `api.process`); F2 **completada** (vista fiel de extracción disponible vía
   `validation.validar_y_procesar` → `vista_fiel`, exactitud del gate 19/19).
 - **Ajuste F0 pendiente de aplicar**: cuando `api.classify()` quede
-  implementado, `classify` **sale** de la lista de esqueletos en
+  implementado (T-304), `classify` **sale** de la lista de esqueletos en
   `test_esqueletos_lanzan_notimplemented` (mismo criterio que F1 con `process` y
   F2 con `validate`, subplan F1 §2.4 / F2 §2.7). Cuidado: `extract` y `run`
   **siguen** en la lista (F4/F5).
 - Suite default en verde al inicio (referencia: 187 tests al cierre de F1 + los
-  de F2).
+  de F2; **450 passed / 10 skipped** tras T-301).
 
 ## 4. Reglas duras (no romper F0/F1/F2)
 
@@ -383,8 +416,9 @@ La salida del modelo **no** decide; reporta evidencia de lectura:
 - `v2/docs/plan/03-arquitectura/RULES.md` (contexto tipado, registros, reglas
   raw reutilizadas por F4).
 - `v2/docs/plan/02-epicas/E-CLAS.md` (estado de E-CLAS-1/E-CLAS-2).
-- `v2/docs/plan/04-decisiones-abiertas-adr.md` (**D-12** nueva: mapeo
-  090/099/tiques + precedencia de letra si negocio la objeta).
+- `v2/docs/plan/04-decisiones-abiertas-adr.md` (**D-13** mapeo
+  090/099/tiques y **D-14** precedencia de la letra si negocio la objeta; ambas
+  registradas en el cierre de T-301).
 - `v2/docs/plan/06-estrategia-calidad.md` (métricas de F3 §Fase 3).
 - `v2/current.md` (F3 en curso / cerrada; `api.classify` disponible).
 - No adelantar fases previas como cerradas si no corresponde (F1 tenía T-105

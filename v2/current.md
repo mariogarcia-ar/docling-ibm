@@ -176,13 +176,35 @@ reglas.ids_disparados({"monto": 100, "texto": "tiene IVA"})  # ["R1", "R2"]
 
 ### 3.6 Lo que NO se puede probar todavía
 
-- ❌ Pipeline de extremo a extremo de un documento (orquestación `procesar_documento()` + `api.process()`; llega en **F1**).
-- ❌ Paridad de integración T-105 contra v1 sobre fixtures reales (tests `@pytest.mark.integration`; llega en **F1**).
-- ❌ Gate "¿es comprobante?" estilo qween (llega en **F2**, T-201..T-204).
-- ❌ Clasificar tipo/letra y cadena contable (llega en **F3**, T-301..T-305).
+- ✅ Pipeline de extremo a extremo de un documento (orquestación `procesar_documento()` + `api.process()`; **hecho en F1**).
+- 🟡 Paridad de integración T-105 contra v1 sobre fixtures reales (tests `@pytest.mark.integration`; **F1, pendiente de corrida real**).
+- ✅ Gate "¿es comprobante?" estilo qween (**hecho en F2**, T-201..T-204).
+- 🟡 Clasificar tipo/letra (**F3, T-301 hecha**: motor de reglas R1-R7 en código + `clasificar_tipo_comprobante()`); falta la evidencia del lector real (T-302/T-303) y la cadena contable (T-304/T-305).
 - ❌ Extracción VLM/LLM con evidencia combinada (llega en **F4**, T-401..T-405).
 - ❌ Conclusión reglas→agente→HITL + trazabilidad persistida (llega en **F5**).
 - ❌ CLI/batch (`voucherflow …`) y paridad v1 sobre `files/` (llega en **F6**).
+
+### 3.7 Comprobación rápida de T-301 (F3)
+
+```python
+from voucherflow.classification.tipo_comprobante import clasificar_tipo_comprobante
+from voucherflow.rules.contexto import ContextoTipoComprobante
+
+ctx = ContextoTipoComprobante(
+    emisor_condicion_fiscal="Responsable Inscripto",
+    receptor_condicion_fiscal="Responsable Inscripto",
+    letra_recuadro_vlm="B",
+)
+res = clasificar_tipo_comprobante(ctx)
+res.letra              # 'B' (default preferencia_letra="documento")
+res.reglas_aplicadas   # ['R2A', 'R4', 'R7']
+res.alertas            # [{'regla': 'R7', ...}] comprobante inválido para crédito fiscal
+```
+
+```bash
+python scripts/F3/t301.py            # 14 escenarios R1..R7 contra la expectativa
+python -m pytest tests/test_rules_tipo_comprobante.py -q
+```
 
 Las funciones de esqueleto de fases futuras (`validate`, `classify`,
 `extract`, `run`, `validar_comprobante`, `clasificar_*`, `flujo_vlm/llm`,
