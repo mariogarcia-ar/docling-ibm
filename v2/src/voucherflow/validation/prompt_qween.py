@@ -24,10 +24,13 @@ Formato de la imagen en ``messages`` (T-202):
     base64 data`` porque Ollama interpreta cada ítem de ``images`` como base64.
     Precedente del repo: ``v1/document_extraction.py`` (modalidad VLM) usa el
     mismo patrón (``base64.b64encode(ruta.read_bytes()).decode("ascii")``).
-    Nota: algunas versiones de Ollama aceptan rutas en ``images``; acá se
-    usa base64 por compatibilidad con el servidor local del entorno y con v1.
-    La decisión barata (E-QWE-1) dejará de transportar la imagen completa
-    cuando T-201 implemente el hook de thumbnail (``degradar_a_thumbnail``).
+    **Antes de codificar se REDUCE la imagen** al lado mayor objetivo de la
+    vista (:data:`LADO_MAYOR_OBJETIVO_POR_VISTA`: rápida 512 px / revisión
+    1024 px / fiel sin reducción), con Pillow (best-effort). Esto realiza de
+    verdad la vista barata (E-QWE-1: no transportar la imagen completa) y
+    **evita exceder el ``num_ctx`` del VLM** (una imagen grande sin reducir
+    supera los 4096 tokens del ``qwen2.5vl:3b`` y Ollama responde HTTP 400
+    ``exceed_context_size_error``). Ver :func:`imagen_envio_base64`.
   - Vista textual (``ruta_imagen_original is None``): el markdown /
     representación de F1 va en ``content`` (F2-subplan §2.4: no aplica
     thumbnail).
@@ -36,10 +39,15 @@ Formato de la imagen en ``messages`` (T-202):
 from __future__ import annotations
 
 import base64
+import io
 from pathlib import Path
 from typing import Any
 
-from .vistas import VistaPreparada
+from .vistas import (
+    RESOLUCION_VISTA_RAPIDA_PX,
+    RESOLUCION_VISTA_REVISION_PX,
+    VistaPreparada,
+)
 
 #: Versión del prompt corto del gate (ADR-005: trazabilidad de prompt por
 #: versión/hash). Se registra en ``EvidenceField.meta.version_prompt`` vía
@@ -106,6 +114,151 @@ USER_TEXTO = (
     "indicadas.\n\n--- DOCUMENTO ---\n{documento}\n--- FIN DOCUMENTO ---"
 )
 
+#: Lado mayor objetivo (px) de la imagen que se envía al modelo, por tipo de
+#: vista (decisión barata E-QWE-1 / doble calidad E-QWE-2):
+#:   - ``rapida``   → 512 px  (máxima reducción: la decisión es barata).
+#:   - ``revision`` → 1024 px (detalle intermedio para la 2ª pasada).
+#:   - ``fiel``     → ``None`` (sin reducción: máxima fidelidad para F4).
+#: El valor ``None`` significa "no reducir" (la vista fiel no se degrada);
+#: cualquier otro valor es el lado mayor objetivo tras el remuestreo.
+LADO_MAYOR_OBJETIVO_POR_VISTA: dict[str, int | None] = {
+    "rapida": RESOLUCION_VISTA_RAPIDA_PX,
+    "revision": RESOLUCION_VISTA_REVISION_PX,
+    "fiel": None,
+}
+
+#: Calidad JPEG (0-100) de la imagen reducida enviada al modelo. 80 conserva
+#: legibilidad de texto/QR/sellos en la vista barata sin inflar el payload.
+CALIDAD_JPEG_ENVIO = 80
+
+#: Piso del lado menor (px) de la imagen reducida: evita perder detalle en
+#: imágenes muy alargadas (p. ej. capturas panorámicas) al bajar el lado mayor.
+LADO_MENOR_MINIMO_ENVIO_PX = 256
+
+
+def _bytes_imagen_para_envio(
+    ruta: str | Path, lado_mayor_objetivo: int | None
+) -> tuple[bytes, dict[str, Any]]:
+    """Bytes de la imagen a enviar al modelo (reducida si aplica).
+
+    Reduce la imagen al ``lado_mayor_objetivo`` (px) manteniendo aspecto con
+    Pillow (best-effort: si no está disponible o la imagen no se puede abrir,
+    devuelve los bytes originales) y la guarda como JPEG de calidad
+    :data:`CALIDAD_JPEG_ENVIO`. Aplica el piso de lado menor
+    :data:`LADO_MENOR_MINIMO_ENVIO_PX` y **no agranda** imágenes chicas.
+    Respeta la orientación EXIF. ``lado_mayor_objetivo`` ``None`` = sin
+    reducción (vista fiel).
+
+    Devuelve ``(datos, info)``; ``info`` traza la reducción (dimensiones y
+    pesos original/envío) para la evidencia y los reportes.
+    """
+    ruta = Path(ruta)
+    datos_originales = ruta.read_bytes()
+
+    if lado_mayor_objetivo is None:
+        return datos_originales, {
+            "reducida": False,
+            "motivo": "sin reducción (vista fiel: máxima fidelidad E-QWE-2)",
+            "peso_original_bytes": len(datos_originales),
+        }
+
+    try:
+        from PIL import Image, ImageOps
+    except ImportError:
+        return datos_originales, {
+            "reducida": False,
+            "motivo": "Pillow no disponible; se envía la imagen sin reducir",
+            "peso_original_bytes": len(datos_originales),
+        }
+
+    try:
+        with Image.open(ruta) as img:
+            img = ImageOps.exif_transpose(img)  # respeta orientación EXIF
+            ancho, alto = img.size
+            img = img.convert("RGB")
+            lado_mayor, lado_menor = max(ancho, alto), min(ancho, alto)
+            escala = min(1.0, lado_mayor_objetivo / lado_mayor) if lado_mayor else 1.0
+            nuevo_mayor = max(1, round(lado_mayor * escala))
+            nuevo_menor = max(1, round(lado_menor * escala))
+            # Piso del lado menor: reducir menos en imágenes muy alargadas.
+            if (
+                nuevo_menor < LADO_MENOR_MINIMO_ENVIO_PX
+                and lado_menor > LADO_MENOR_MINIMO_ENVIO_PX
+            ):
+                escala = LADO_MENOR_MINIMO_ENVIO_PX / lado_menor
+                nuevo_mayor = max(1, round(lado_mayor * escala))
+                nuevo_menor = LADO_MENOR_MINIMO_ENVIO_PX
+            if escala >= 1.0:
+                return datos_originales, {
+                    "reducida": False,
+                    "motivo": (
+                        f"imagen {ancho}x{alto}px ya es <= objetivo "
+                        f"{lado_mayor_objetivo}px; sin reducir"
+                    ),
+                    "peso_original_bytes": len(datos_originales),
+                }
+            nuevo = (
+                (nuevo_mayor, nuevo_menor)
+                if ancho >= alto
+                else (nuevo_menor, nuevo_mayor)
+            )
+            reducida = img.resize(nuevo, Image.Resampling.LANCZOS)
+            buf = io.BytesIO()
+            reducida.save(buf, "JPEG", quality=CALIDAD_JPEG_ENVIO, optimize=True)
+            datos = buf.getvalue()
+            return datos, {
+                "reducida": True,
+                "ancho_original": ancho,
+                "alto_original": alto,
+                "ancho_envio": nuevo[0],
+                "alto_envio": nuevo[1],
+                "peso_original_bytes": len(datos_originales),
+                "peso_envio_bytes": len(datos),
+            }
+    except Exception as exc:  # imagen ilegible/formatos raros → original
+        return datos_originales, {
+            "reducida": False,
+            "motivo": (
+                f"no se pudo reducir ({type(exc).__name__}: {exc}); "
+                "se envía la imagen original"
+            ),
+            "peso_original_bytes": len(datos_originales),
+        }
+
+
+def imagen_envio_base64(vista: VistaPreparada) -> tuple[str, dict[str, Any]]:
+    """Base64 de la imagen de la vista para el envío al modelo (T-202/T-203).
+
+    Reduce la imagen al lado mayor objetivo de la vista
+    (:data:`LADO_MAYOR_OBJETIVO_POR_VISTA`: rápida 512 px / revisión 1024 px /
+    fiel sin reducción) **antes** de codificar, para que la decisión barata
+    (E-QWE-1) no transporte la imagen completa y no exceda el ``num_ctx`` del
+    VLM. Devuelve ``(base64, info)`` con la trazabilidad de la reducción
+    (dimensiones y pesos original/envío).
+
+    Lanza:
+        ``ValueError`` si la vista es textual (no tiene ``ruta_imagen_original``)
+        o si no se pudo leer la imagen.
+    """
+    if not vista.ruta_imagen_original:
+        raise ValueError(
+            "imagen_envio_base64(): la vista no tiene imagen "
+            "(ruta_imagen_original es None); es una vista textual (T-202/T-203)."
+        )
+    lado_mayor_objetivo = LADO_MAYOR_OBJETIVO_POR_VISTA.get(
+        vista.tipo_vista, RESOLUCION_VISTA_RAPIDA_PX
+    )
+    try:
+        datos, info = _bytes_imagen_para_envio(
+            vista.ruta_imagen_original, lado_mayor_objetivo
+        )
+    except OSError as exc:
+        raise ValueError(
+            "imagen_envio_base64(): no se pudo leer la imagen de la "
+            f"vista '{vista.ruta_imagen_original}' (T-202/T-203): {exc}"
+        ) from exc
+    return base64.b64encode(datos).decode("ascii"), info
+
 
 def construir_messages_gate(vista: VistaPreparada) -> list[dict[str, Any]]:
     """Construye los ``messages`` de ``OllamaClient.ask`` para la vista (T-202).
@@ -114,10 +267,10 @@ def construir_messages_gate(vista: VistaPreparada) -> list[dict[str, Any]]:
     (:data:`SYSTEM_PROMPT_QWEEN`) y, según la vista:
 
       - Imagen (``ruta_imagen_original``): el mensaje ``user`` incluye
-        ``images`` con la imagen en **base64** (formato que exige la API
-        ``/api/chat`` de Ollama para el modelo local — validado
-        empíricamente) y un texto corto de acompañamiento
-        (:data:`USER_SOLO_IMAGEN`).
+        ``images`` con la imagen **reducida** (según el tipo de vista) y
+        codificada en **base64** (formato que exige la API ``/api/chat`` de
+        Ollama para el modelo local — validado empíricamente) y un texto corto
+        de acompañamiento (:data:`USER_SOLO_IMAGEN`).
       - Textual (``ruta_imagen_original is None``): el mensaje ``user`` incluye
         el markdown/representación de la vista (:data:`USER_TEXTO`).
 
@@ -127,20 +280,10 @@ def construir_messages_gate(vista: VistaPreparada) -> list[dict[str, Any]]:
     """
     system: dict[str, Any] = {"role": "system", "content": SYSTEM_PROMPT_QWEEN}
     if vista.ruta_imagen_original:
+        # Reducción real al lado mayor objetivo de la vista (E-QWE-1) + base64.
         # Ollama /api/chat (modelo local qwen2.5vl:3b) espera la imagen en
-        # base64: validado empíricamente — la ruta (absoluta o relativa)
-        # devuelve HTTP 400 "illegal base64 data". Mismo patrón que
-        # v1/document_extraction.py (modalidad VLM de F4).
-        try:
-            imagen_b64 = base64.b64encode(
-                Path(vista.ruta_imagen_original).read_bytes()
-            ).decode("ascii")
-        except OSError as exc:
-            raise ValueError(
-                "construir_messages_gate(): no se pudo leer la imagen de la "
-                f"vista '{vista.ruta_imagen_original}' para codificar en "
-                f"base64 (T-202): {exc}"
-            ) from exc
+        # base64 y una imagen grande sin reducir excede el num_ctx del modelo.
+        imagen_b64, _info = imagen_envio_base64(vista)
         user: dict[str, Any] = {
             "role": "user",
             "content": USER_SOLO_IMAGEN,
@@ -165,5 +308,9 @@ __all__ = [
     "SYSTEM_PROMPT_QWEEN",
     "USER_SOLO_IMAGEN",
     "USER_TEXTO",
+    "LADO_MAYOR_OBJETIVO_POR_VISTA",
+    "CALIDAD_JPEG_ENVIO",
+    "LADO_MENOR_MINIMO_ENVIO_PX",
+    "imagen_envio_base64",
     "construir_messages_gate",
 ]

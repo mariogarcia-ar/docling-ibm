@@ -36,6 +36,8 @@ cubierto por ``test_golden_y_esqueleto.py``).
 
 from __future__ import annotations
 
+import base64
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -58,6 +60,7 @@ from voucherflow.validation import (
     validar_y_procesar,
 )
 from voucherflow.validation.prompt_qween import (
+    LADO_MAYOR_OBJETIVO_POR_VISTA,
     SYSTEM_PROMPT_QWEEN,
     VERSION_PROMPT_QWEEN,
 )
@@ -97,6 +100,42 @@ class FakeOllamaClient:
 # ---------------------------------------------------------------------------
 # Vistas mínimas (contrato T-201): imagen y texto nativo
 # ---------------------------------------------------------------------------
+
+
+def _imagen_sintetica(ancho: int = 1200, alto: int = 800, sufijo: str = ".jpg") -> str:
+    """Crea una imagen sintética temporal (para tests de reducción).
+
+    Escribe una imagen válida de ``ancho`` x ``alto`` en un archivo temporal y
+    devuelve su ruta. No depende de fixtures ni de Pillow para crear el caso
+    base mínima: si Pillow está disponible (lo está en ``py313_env``) la usa
+    para generar una imagen con contenido; si no, escribe un PNG/JPEG mínimo.
+    """
+    import struct
+    import tempfile
+    import zlib
+
+    def _png_blanco(w: int, h: int) -> bytes:
+        fila = b"\x00" + b"\xff\xff\xff" * w
+        raw = fila * h
+        def chunk(tipo: bytes, datos: bytes) -> bytes:
+            return (
+                struct.pack(">I", len(datos))
+                + tipo
+                + datos
+                + struct.pack(">I", zlib.crc32(tipo + datos) & 0xFFFFFFFF)
+            )
+        ihdr = struct.pack(">IIBBBBB", w, h, 8, 2, 0, 0, 0)
+        return (
+            b"\x89PNG\r\n\x1a\n"
+            + chunk(b"IHDR", ihdr)
+            + chunk(b"IDAT", zlib.compress(raw))
+            + chunk(b"IEND", b"")
+        )
+
+    tmp = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
+    tmp.write(_png_blanco(ancho, alto))
+    tmp.close()
+    return tmp.name
 
 
 #: PNG mínimo 1x1 (válido) para los tests que construyen messages con imagen:
@@ -214,6 +253,83 @@ class TestPromptQween:
         vista = _vista_texto(markdown="   ")
         with pytest.raises(ValueError, match="T-202"):
             construir_messages_gate(vista)
+
+    # ------------------------------------------------------------------
+    # Reducción real de la imagen antes del envío (E-QWE-1 + contexto VLM)
+    # ------------------------------------------------------------------
+
+    def test_lado_mayor_objetivo_por_vista(self):
+        # Gradiente del doble paso: la rápida reduce más, la revisión menos y
+        # la fiel no reduce (máxima fidelidad, E-QWE-2).
+        assert LADO_MAYOR_OBJETIVO_POR_VISTA == {
+            "rapida": 512,
+            "revision": 1024,
+            "fiel": None,
+        }
+
+    def test_imagen_envio_base64_reduce_imagen_grande(self):
+        # Una imagen grande se reduce al lado mayor objetivo de la vista (512
+        # para la rápida): evita exceder el num_ctx del VLM y hace la decisión
+        # barata (E-QWE-1). Se usa una imagen sintética grande (no fixture).
+        from voucherflow.validation.prompt_qween import imagen_envio_base64
+
+        vista = _vista_imagen(ruta=_imagen_sintetica(ancho=2200, alto=2700))
+        b64, info = imagen_envio_base64(vista)
+
+        assert info["reducida"] is True, "la imagen grande debe reducirse"
+        assert max(info["ancho_envio"], info["alto_envio"]) <= 512, (
+            "el lado mayor de la vista rápida no debe superar los 512 px"
+        )
+        assert info["peso_envio_bytes"] < info["peso_original_bytes"]
+        # El base64 decodifica a un JPEG válido (se re-codifica al reducir).
+        assert base64.b64decode(b64)[:2] == b"\xff\xd8"
+
+    def test_imagen_envio_base64_no_agranda_imagen_chica(self):
+        # Imágenes más chicas que el objetivo no se agrandan (se envían tal cual).
+        from voucherflow.validation.prompt_qween import imagen_envio_base64
+
+        ruta = _imagen_sintetica(ancho=200, alto=150)
+        vista = _vista_imagen(ruta=ruta)
+        b64, info = imagen_envio_base64(vista)
+
+        assert info["reducida"] is False
+        assert "ya es <= objetivo" in info["motivo"]
+        assert base64.b64decode(b64) == Path(ruta).read_bytes()
+
+    def test_imagen_envio_fiel_no_reduce(self):
+        # La vista fiel NO se degrada (máxima fidelidad para F4, E-QWE-2).
+        from voucherflow.validation.prompt_qween import imagen_envio_base64
+
+        ruta = _imagen_sintetica(ancho=2200, alto=2700)
+        vista = VistaPreparada(
+            tipo_vista="fiel",
+            calidad="alta",
+            representacion=ruta,
+            origen=ruta,
+            ruta_imagen_original=ruta,
+        )
+        b64, info = imagen_envio_base64(vista)
+
+        assert info["reducida"] is False
+        assert "sin reducción" in info["motivo"]
+        assert base64.b64decode(b64) == Path(ruta).read_bytes()
+
+    def test_imagen_envio_base64_vista_textual_lanza_valueerror(self):
+        # Una vista textual no tiene imagen que enviar (contrato T-202/T-203).
+        from voucherflow.validation.prompt_qween import imagen_envio_base64
+
+        with pytest.raises(ValueError, match="vista textual"):
+            imagen_envio_base64(_vista_texto())
+
+    def test_messages_imagen_reducida_no_excede_payload(self):
+        # End-to-end del montaje: la imagen grande en ``images`` va reducida
+        # (payload chico), no la original (que excedía el num_ctx del VLM).
+        vista = _vista_imagen(ruta=_imagen_sintetica(ancho=2200, alto=2700))
+        messages = construir_messages_gate(vista)
+        payload = messages[1]["images"][0]
+
+        # 512 px JPEG q80 en base64 queda muy por debajo de la imagen original.
+        assert len(payload) < 200_000, "el payload de la vista rápida debe ser chico"
 
 
 # ---------------------------------------------------------------------------

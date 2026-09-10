@@ -26,11 +26,15 @@ from .qween import (
     validar_y_procesar,
 )
 from .prompt_qween import (
+    CALIDAD_JPEG_ENVIO,
+    LADO_MAYOR_OBJETIVO_POR_VISTA,
+    LADO_MENOR_MINIMO_ENVIO_PX,
     SYSTEM_PROMPT_QWEEN,
     USER_SOLO_IMAGEN,
     USER_TEXTO,
     VERSION_PROMPT_QWEEN,
     construir_messages_gate,
+    imagen_envio_base64,
 )
 from .vistas import (
     CALIDAD_POR_TIPO_VISTA,
@@ -70,6 +74,10 @@ __all__ = [
     "CAMPO_GATE",
     "MAX_FRAGMENTO_TEXTO_CHARS",
     "construir_messages_gate",
+    "imagen_envio_base64",
+    "LADO_MAYOR_OBJETIVO_POR_VISTA",
+    "CALIDAD_JPEG_ENVIO",
+    "LADO_MENOR_MINIMO_ENVIO_PX",
     "VERSION_PROMPT_QWEEN",
     "SYSTEM_PROMPT_QWEEN",
     "USER_SOLO_IMAGEN",
