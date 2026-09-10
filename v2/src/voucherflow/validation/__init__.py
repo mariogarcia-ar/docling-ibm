@@ -27,6 +27,7 @@ from .qween import (
 )
 from .prompt_qween import (
     CALIDAD_JPEG_ENVIO,
+    FACTOR_PATCH_QWEN2VL,
     LADO_MAYOR_OBJETIVO_POR_VISTA,
     LADO_MENOR_MINIMO_ENVIO_PX,
     SYSTEM_PROMPT_QWEEN,
@@ -34,6 +35,7 @@ from .prompt_qween import (
     USER_TEXTO,
     VERSION_PROMPT_QWEEN,
     construir_messages_gate,
+    dimensiones_objetivo_vlm,
     imagen_envio_base64,
 )
 from .vistas import (
@@ -78,6 +80,8 @@ __all__ = [
     "LADO_MAYOR_OBJETIVO_POR_VISTA",
     "CALIDAD_JPEG_ENVIO",
     "LADO_MENOR_MINIMO_ENVIO_PX",
+    "FACTOR_PATCH_QWEN2VL",
+    "dimensiones_objetivo_vlm",
     "VERSION_PROMPT_QWEEN",
     "SYSTEM_PROMPT_QWEEN",
     "USER_SOLO_IMAGEN",

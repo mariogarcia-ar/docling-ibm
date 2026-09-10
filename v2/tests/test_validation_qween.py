@@ -284,8 +284,42 @@ class TestPromptQween:
         # El base64 decodifica a un JPEG válido (se re-codifica al reducir).
         assert base64.b64decode(b64)[:2] == b"\xff\xd8"
 
+    def test_imagen_envio_alinea_a_la_grilla_de_qwen2vl(self):
+        # Las dimensiones se alinean al preprocesador de Qwen2.5-VL (múltiplos
+        # del factor patch*merge=28) para que el servidor no re-escale y el
+        # conteo de tokens sea predecible (T-202/T-203).
+        from voucherflow.validation.prompt_qween import (
+            FACTOR_PATCH_QWEN2VL,
+            imagen_envio_base64,
+        )
+
+        assert FACTOR_PATCH_QWEN2VL == 28
+        vista = _vista_imagen(ruta=_imagen_sintetica(ancho=2200, alto=2700))
+        _b64, info = imagen_envio_base64(vista)
+
+        assert info["ancho_envio"] % FACTOR_PATCH_QWEN2VL == 0, (
+            "el ancho enviado debe ser múltiplo del patch de Qwen2.5-VL"
+        )
+        assert info["alto_envio"] % FACTOR_PATCH_QWEN2VL == 0, (
+            "el alto enviado debe ser múltiplo del patch de Qwen2.5-VL"
+        )
+        assert info["alineado_qwen2vl"] is True
+
+    def test_dimensiones_objetivo_vlm_piso_lado_menor(self):
+        # En imágenes muy alargadas el piso del lado menor evita perder detalle:
+        # no se baja el lado mayor más de lo necesario y nunca agranda.
+        from voucherflow.validation import dimensiones_objetivo_vlm
+
+        # 3000x1000 al reducir el lado mayor a 512 daría un lado menor de ~168;
+        # el piso (256) obliga a reducir menos.
+        w, h = dimensiones_objetivo_vlm(3000, 1000, 512)
+        assert min(w, h) >= 256, "debe respetar el piso del lado menor"
+        assert max(w, h) <= 3000 and min(w, h) <= 1000  # nunca agranda
+
     def test_imagen_envio_base64_no_agranda_imagen_chica(self):
-        # Imágenes más chicas que el objetivo no se agrandan (se envían tal cual).
+        # Imágenes que ya son más chicas que el objetivo no se agrandan **ni se
+        # re-encoden** (se envían tal cual): la vista barata no debe inflar
+        # píxeles/tokens (E-QWE-1).
         from voucherflow.validation.prompt_qween import imagen_envio_base64
 
         ruta = _imagen_sintetica(ancho=200, alto=150)

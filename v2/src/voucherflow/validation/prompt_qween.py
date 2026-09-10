@@ -30,7 +30,11 @@ Formato de la imagen en ``messages`` (T-202):
     verdad la vista barata (E-QWE-1: no transportar la imagen completa) y
     **evita exceder el ``num_ctx`` del VLM** (una imagen grande sin reducir
     supera los 4096 tokens del ``qwen2.5vl:3b`` y Ollama responde HTTP 400
-    ``exceed_context_size_error``). Ver :func:`imagen_envio_base64`.
+    ``exceed_context_size_error``). Las dimensiones se calculan con
+    :func:`dimensiones_objetivo_vlm`, que usa el **mismo ``smart_resize`` de
+    Qwen2.5-VL** que Docling (múltiplos de :data:`FACTOR_PATCH_QWEN2VL`), para
+    que el servidor no re-escale y el conteo de tokens sea predecible. Ver
+    :func:`imagen_envio_base64`.
   - Vista textual (``ruta_imagen_original is None``): el markdown /
     representación de F1 va en ``content`` (F2-subplan §2.4: no aplica
     thumbnail).
@@ -40,6 +44,7 @@ from __future__ import annotations
 
 import base64
 import io
+import math
 from pathlib import Path
 from typing import Any
 
@@ -135,22 +140,91 @@ CALIDAD_JPEG_ENVIO = 80
 #: imágenes muy alargadas (p. ej. capturas panorámicas) al bajar el lado mayor.
 LADO_MENOR_MINIMO_ENVIO_PX = 256
 
+#: Factor de patch*merge de Qwen2.5-VL (``patch_size=14`` × ``merge_size=2``).
+#: El preprocesador del modelo (``smart_resize``) redondea las dimensiones a
+#: múltiplos de este valor; alinearse evita que el servidor re-escale la imagen
+#: y hace **predecible** el conteo de tokens que consume (mitiga el
+#: ``exceed_context_size_error`` de Ollama; T-202/T-203).
+FACTOR_PATCH_QWEN2VL = 28
+
+
+def dimensiones_objetivo_vlm(
+    ancho: int,
+    alto: int,
+    lado_mayor_objetivo: int,
+    *,
+    lado_menor_minimo: int = LADO_MENOR_MINIMO_ENVIO_PX,
+) -> tuple[int, int]:
+    """Dimensiones objetivo alineadas al preprocesador de Qwen2.5-VL (T-202/T-203).
+
+    Usa ``docling.utils.vlm_utils.compute_qwen2vl_image_size`` — el **mismo**
+    ``smart_resize`` que Docling aplica en su pipeline VLM — para calcular las
+    dimensiones finales: clampa el lado mayor a ``lado_mayor_objetivo`` y
+    redondea a múltiplos de :data:`FACTOR_PATCH_QWEN2VL`, de modo que el
+    servidor no re-escale la imagen y el conteo de tokens sea predecible.
+
+    Se pasa ``min_pixels=0`` para **no agrandar** imágenes chicas (la vista
+    barata de E-QWE-1 no debe inflar píxeles/tokens; el presupuesto mínimo real
+    del modelo lo aplica el servidor). El **piso del lado menor**
+    (``lado_menor_minimo``) se respeta subiendo el ``max_size`` efectivo en
+    imágenes muy alargadas, sin agrandar la imagen (nunca supera sus
+    dimensiones originales).
+
+    Fallback: si la utilidad de Docling no está disponible (API semi-interna
+    que puede cambiar entre versiones; se usa en ``docling/pipeline/
+    vlm_pipeline.py``), se calcula por lado mayor con la grilla sin alinear
+    (comportamiento previo).
+
+    Devuelve ``(ancho_objetivo, alto_objetivo)``.
+    """
+    lado_mayor = max(ancho, alto)
+    lado_menor = min(ancho, alto)
+
+    # Piso del lado menor: en imágenes muy alargadas, reducir a
+    # ``lado_mayor_objetivo`` dejaría el lado menor por debajo del piso; se sube
+    # el ``max_size`` efectivo lo justo para respetarlo (sin agrandar). Como las
+    # dimensiones resultantes son múltiplos de ``FACTOR_PATCH_QWEN2VL``, el piso
+    # se alinea **hacia arriba** a la grilla (p. ej. 256 → 280) para que el
+    # resultado lo cumpla realmente y no quede en el múltiplo inferior (252).
+    max_size = lado_mayor_objetivo
+    if lado_mayor and lado_menor and lado_menor >= lado_menor_minimo:
+        piso_grilla = (
+            math.ceil(lado_menor_minimo / FACTOR_PATCH_QWEN2VL) * FACTOR_PATCH_QWEN2VL
+        )
+        requerido = math.ceil(piso_grilla * lado_mayor / lado_menor)
+        if requerido > max_size:
+            max_size = min(requerido, lado_mayor)  # nunca agranda
+
+    try:
+        from docling.utils.vlm_utils import compute_qwen2vl_image_size
+
+        tam = compute_qwen2vl_image_size(
+            width=ancho,
+            height=alto,
+            max_size=max_size,
+            min_pixels=0,  # E-QWE-1: no agrandar la vista barata
+        )
+        return int(tam.width), int(tam.height)
+    except Exception:  # API de Docling no disponible → escalado por lado mayor
+        escala = min(1.0, max_size / lado_mayor) if lado_mayor else 1.0
+        return max(1, round(ancho * escala)), max(1, round(alto * escala))
+
 
 def _bytes_imagen_para_envio(
     ruta: str | Path, lado_mayor_objetivo: int | None
 ) -> tuple[bytes, dict[str, Any]]:
     """Bytes de la imagen a enviar al modelo (reducida si aplica).
 
-    Reduce la imagen al ``lado_mayor_objetivo`` (px) manteniendo aspecto con
-    Pillow (best-effort: si no está disponible o la imagen no se puede abrir,
-    devuelve los bytes originales) y la guarda como JPEG de calidad
-    :data:`CALIDAD_JPEG_ENVIO`. Aplica el piso de lado menor
-    :data:`LADO_MENOR_MINIMO_ENVIO_PX` y **no agranda** imágenes chicas.
-    Respeta la orientación EXIF. ``lado_mayor_objetivo`` ``None`` = sin
-    reducción (vista fiel).
+    Reduce la imagen con Pillow (best-effort: si no está disponible o la imagen
+    no se puede abrir, devuelve los bytes originales) a las dimensiones que
+    calcula :func:`dimensiones_objetivo_vlm` — alineadas al ``smart_resize`` de
+    Qwen2.5-VL (múltiplos de :data:`FACTOR_PATCH_QWEN2VL`, sin agrandar,
+    respetando el piso del lado menor) — y la guarda como JPEG de calidad
+    :data:`CALIDAD_JPEG_ENVIO`. Respeta la orientación EXIF.
+    ``lado_mayor_objetivo`` ``None`` = sin reducción (vista fiel).
 
     Devuelve ``(datos, info)``; ``info`` traza la reducción (dimensiones y
-    pesos original/envío) para la evidencia y los reportes.
+    pesos original/envío, alineación) para la evidencia y los reportes.
     """
     ruta = Path(ruta)
     datos_originales = ruta.read_bytes()
@@ -176,19 +250,12 @@ def _bytes_imagen_para_envio(
             img = ImageOps.exif_transpose(img)  # respeta orientación EXIF
             ancho, alto = img.size
             img = img.convert("RGB")
-            lado_mayor, lado_menor = max(ancho, alto), min(ancho, alto)
-            escala = min(1.0, lado_mayor_objetivo / lado_mayor) if lado_mayor else 1.0
-            nuevo_mayor = max(1, round(lado_mayor * escala))
-            nuevo_menor = max(1, round(lado_menor * escala))
-            # Piso del lado menor: reducir menos en imágenes muy alargadas.
-            if (
-                nuevo_menor < LADO_MENOR_MINIMO_ENVIO_PX
-                and lado_menor > LADO_MENOR_MINIMO_ENVIO_PX
-            ):
-                escala = LADO_MENOR_MINIMO_ENVIO_PX / lado_menor
-                nuevo_mayor = max(1, round(lado_mayor * escala))
-                nuevo_menor = LADO_MENOR_MINIMO_ENVIO_PX
-            if escala >= 1.0:
+            # Solo se reduce si la imagen supera el objetivo: si ya es más
+            # chica no se toca (evita re-encodear/degradar y no agranda;
+            # E-QWE-1). Cuando se reduce, las dimensiones se alinean al
+            # preprocesador de Qwen2.5-VL (múltiplos de 28) para que el
+            # servidor no re-escale y el conteo de tokens sea predecible.
+            if max(ancho, alto) <= lado_mayor_objetivo:
                 return datos_originales, {
                     "reducida": False,
                     "motivo": (
@@ -197,12 +264,12 @@ def _bytes_imagen_para_envio(
                     ),
                     "peso_original_bytes": len(datos_originales),
                 }
-            nuevo = (
-                (nuevo_mayor, nuevo_menor)
-                if ancho >= alto
-                else (nuevo_menor, nuevo_mayor)
+            nuevo_ancho, nuevo_alto = dimensiones_objetivo_vlm(
+                ancho, alto, lado_mayor_objetivo
             )
-            reducida = img.resize(nuevo, Image.Resampling.LANCZOS)
+            reducida = img.resize(
+                (nuevo_ancho, nuevo_alto), Image.Resampling.LANCZOS
+            )
             buf = io.BytesIO()
             reducida.save(buf, "JPEG", quality=CALIDAD_JPEG_ENVIO, optimize=True)
             datos = buf.getvalue()
@@ -210,8 +277,10 @@ def _bytes_imagen_para_envio(
                 "reducida": True,
                 "ancho_original": ancho,
                 "alto_original": alto,
-                "ancho_envio": nuevo[0],
-                "alto_envio": nuevo[1],
+                "ancho_envio": nuevo_ancho,
+                "alto_envio": nuevo_alto,
+                "alineado_qwen2vl": True,
+                "factor_patch": FACTOR_PATCH_QWEN2VL,
                 "peso_original_bytes": len(datos_originales),
                 "peso_envio_bytes": len(datos),
             }
@@ -311,6 +380,8 @@ __all__ = [
     "LADO_MAYOR_OBJETIVO_POR_VISTA",
     "CALIDAD_JPEG_ENVIO",
     "LADO_MENOR_MINIMO_ENVIO_PX",
+    "FACTOR_PATCH_QWEN2VL",
+    "dimensiones_objetivo_vlm",
     "imagen_envio_base64",
     "construir_messages_gate",
 ]
