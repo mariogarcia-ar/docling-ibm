@@ -274,7 +274,7 @@
 ### 3.4 T-304 · Refactor cadena contable 01→02→03 (con contratos entre pasos) ✅ Hecho
 
 > **Estado 2026-09-10**: **Hecho** por `team implementation`. Suite completa en
-> verde (**614 passed, 10 skipped**); `python scripts/F3/t304.py` reporta **8/8**
+> verde (**655 passed, 10 skipped**, tras T-305); `python scripts/F3/t304.py` reporta **8/8**
 > escenarios y `t301.py`/`t302.py`/`t303.py` siguen en 14/14, 10/10 y 9/9. Ver
 > bitácora en [`F3.md`](F3.md) §4.
 
@@ -339,7 +339,9 @@
   `v1/document_extraction.py`, sobre el subconjunto de paridad (§2.9). ✅
 - **Archivos**: `tests/golden/F3/` (`subconjunto.json`, `README.md`, 7 casos
   sintéticos) + `scripts/F3/paridad_contable.py` + `scripts/F3/paridad_11_1.py`
-  + `tests/test_classification_paridad.py` (32 tests). ✅
+  (los dos **runners** de comparación) + `scripts/F3/t305.py` (el **reporte de
+  métricas del DoD**, que reutiliza los dos runners) +
+  `tests/test_classification_paridad.py` (40 tests). ✅
 - **Hallazgo (el mayor valor de la tarea)**: sobre **dos PDFs reales del golden**
   cuyo encabezado dice `FACTURA A`, R5 devolvía la letra **`C`**. El patrón
   portado **literal** del WIP usaba `\s+`, que se come el **salto de línea** del
@@ -384,8 +386,11 @@
   **T-303: Hecha** (pasada 1 de reglas raw por fuente), **T-304: Hecha** (cadena
   contable 01→02→03 con contratos entre pasos, checkpoints y `api.classify()`)
   y **T-305: Hecha** (paridad con v1 medida con documentos y modelos reales).
-  Suite en verde: **646 passed, 10 skipped** — 317 tests de F3 (122 de T-301 + 50
-  de T-302 + 53 de T-303 + 60 de T-304 + 32 de T-305) sobre una base de 328.
+  Suite en verde: **655 passed, 10 skipped** — 357 tests de F3 (122 de T-301 + 50
+  de T-302 + 53 de T-303 + 60 de T-304 + 40 de T-305) sobre una base de 328.
+  Herramientas de la fase: `t301.py` (14/14), `t302.py` (10/10), `t303.py` (9/9),
+  `t304.py` (8/8), `t305.py` (métricas del DoD) y `classification_pipeline.py`
+  (CLI portado de v1).
   `classify` **ya no** está en
   `test_esqueletos_lanzan_notimplemented` (quedan `extract` y `run`, F4/F5).
 - `F3.md` pasó de 🔴 Backlog a 🟡 En implementación (T-301 marcada Hecho).
@@ -399,7 +404,7 @@
   F2 con `validate`, subplan F1 §2.4 / F2 §2.7). Cuidado: `extract` y `run`
   **siguen** en la lista (F4/F5).
 - Suite default en verde al inicio (referencia: 187 tests al cierre de F1 + los
-  de F2; **646 passed / 10 skipped** tras T-301..T-305).
+  de F2; **655 passed / 10 skipped** tras T-301..T-305).
 
 ## 4. Reglas duras (no romper F0/F1/F2)
 
@@ -546,8 +551,15 @@ La salida del modelo **no** decide; reporta evidencia de lectura:
 ```bash
 cd v2 && python -m pytest tests -q          # suite default (sin Ollama/Docling real)
 python -c "import voucherflow.classification, voucherflow.rules, voucherflow.api"
-python scripts/F3/t305.py --subset golden   # métricas del DoD (requiere Ollama local)
+python scripts/F3/t305.py                   # métricas del DoD (sin Ollama)
+python scripts/F3/t305.py --subset golden   # + paridad real con v1 (requiere Ollama)
 ```
+
+- `t305.py` es el **reporte de cierre**: agrupa exactitud de letra por categoría,
+  % de alerta R7, cruce negocio-vs-documento y el default CC0006 (nivel
+  `sinteticos`, sin Ollama ni v1) y, con `--subset golden`, delega en
+  `paridad_contable.py` y `paridad_11_1.py` para la paridad real. Sale con código
+  ≠ 0 si el tramo determinista no está en el umbral.
 
 - Suite completa en verde; `classify` ya **no** está en
   `test_esqueletos_lanzan_notimplemented`.

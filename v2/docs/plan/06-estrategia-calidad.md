@@ -160,10 +160,11 @@ tests/golden/
   **Medido en T-305**: las tres al 100% sobre el tramo **determinista** del
   subconjunto (`tests/golden/F3/`); la medición sobre el golden completo sigue
   pendiente de la curación con contador (F2 §2.5).
-- **T-305**: 32 tests (`test_classification_paridad.py`) — fidelidad de los
+- **T-305**: 40 tests (`test_classification_paridad.py`) — fidelidad de los
   prompts portados contra los YAML de v1, integridad del subconjunto (rutas,
   etiquetas derivadas con sustento, sin residuos de v1), paridad de letra de los
-  casos sintéticos y la lógica de comparación de los scripts.
+  casos sintéticos, la lógica de comparación de los scripts de paridad y las
+  métricas del reporte `scripts/F3/t305.py`.
 
 ### Fase 4 — Extracción
 - **Unitarias**: normalización de campos (CUIT truncado, fechas, montos, ítems,

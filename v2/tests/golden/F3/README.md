@@ -74,6 +74,24 @@ vive en el test: la **fidelidad de los prompts portados** (los `system`/`user` d
 v2 deben ser idénticos a los YAML de `prompts/`) y la **coincidencia del
 etiquetado** del subconjunto. Esa parte corre en la suite default.
 
+### (d) Reporte agregado del DoD → `python scripts/F3/t305.py`
+
+Es el **reporte de cierre** de la fase (subplan §10). Agrupa las métricas en dos
+niveles:
+
+- `--subset sinteticos` (**default**): solo el tramo determinista (exactitud de
+  letra por categoría, % de alerta R7, cruce negocio-vs-documento y el default
+  CC0006). **Sin Ollama, sin Docling y sin v1**: corre en cualquier entorno y
+  sale con código ≠ 0 si alguna métrica no llega al umbral.
+- `--subset golden` (o `todos`): **además** delega en `paridad_contable.py` y
+  `paridad_11_1.py` para la paridad real (requiere Ollama local y `v1/`).
+
+El reporte declara explícitamente su alcance: el subconjunto **no** es el golden
+completo (la curación con contador sigue pendiente) y la exactitud del tramo
+determinista debe ser 100% (la letra la decide el motor, no el modelo), mientras
+que la paridad con v1 se informa como *paridad **o mejora*** con las dos
+exactitudes a la vista.
+
 ## Métricas reportadas (DoD de F3)
 
 | Métrica | Fuente | Objetivo |
