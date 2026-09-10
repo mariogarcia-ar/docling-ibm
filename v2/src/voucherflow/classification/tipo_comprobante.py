@@ -73,13 +73,32 @@ class TipoComprobanteResult:
 
 @dataclass
 class ClasificacionContableResult:
-    """Salida de la cadena contable 01 → 02 → 03 (E-CLAS-2)."""
+    """Salida de la cadena contable 01 → 02 → 03 (E-CLAS-2).
+
+    Los cuatro campos de v1 (``centro_costo``/``macro_categoria``/``concepto``/
+    ``codigo``) y ``reglas_aplicadas`` son el contrato congelado de F0. **T-304**
+    agrega —aditivo, con default, como permite la regla dura del subplan §4— los
+    que la cadena real ya produce y que sin lugar propio se perderían:
+
+    - ``condicion_impositiva``: la condición usada en el paso 03 (el contrato
+      pydantic ``ClasificacionContable`` de ``schemas/result.py`` ya la tiene).
+    - ``requiere_revision_humana``: lo pide el propio prompt 03 cuando la celda
+      de la tabla es "—" o trae varios códigos separados por ``/``.
+    - ``detalle``: traza de auditoría (versiones de prompt, cuenta contable,
+      candidatos de código, confianza, justificación) para ``CaseRecord``
+      (E-CONC-5).
+    """
 
     centro_costo: str | None = None
     macro_categoria: str | None = None
     concepto: str | None = None
     codigo: str | None = None
     reglas_aplicadas: list[str] = field(default_factory=list)
+
+    # --- Trazabilidad agregada en F3/T-304 (aditiva, con default) ---
+    condicion_impositiva: str | None = None
+    requiere_revision_humana: bool = False
+    detalle: dict[str, Any] = field(default_factory=dict)
 
 
 def clasificar_tipo_comprobante(
@@ -498,6 +517,142 @@ def _resultado_parcial(
     )
 
 
+def clasificar_contable(
+    markdown: str,
+    condicion_impositiva: str | None = None,
+    *,
+    pasos: Mapping[str, Any] | None = None,
+    centro_costo: str | None = None,
+    macro_categoria: str | None = None,
+    paso_03: Mapping[str, Any] | None = None,
+) -> ClasificacionContableResult:
+    """Resuelve la cadena contable 01 → 02 → 03 (F3 / T-304).
+
+    Es el contrato congelado de F0 (``clasificar_contable(markdown,
+    condicion_impositiva)``) y su implementación es la **variante pura**: recibe
+    los pasos **ya resueltos** y devuelve el resultado **sin red** (F3-subplan
+    §2.7), delegando en
+    :func:`~voucherflow.classification.contable.clasificar_pasos_contables` para
+    que elija el centro/macro principales con los **mismos** accesores que el
+    pipeline real.
+
+    Dos formas de entrada (ambas sin red):
+
+    1. ``pasos`` — el checkpoint de v1 (``{"01_centro_costo": ..., ...}``) o
+       cualquier mapping con esas claves. Es la vía natural para reusar un
+       sidecar ya calculado.
+    2. ``centro_costo`` + ``macro_categoria`` + ``paso_03`` — los tres pasos
+       sueltos, cómodo cuando el llamador ya tiene los valores (p. ej. la
+       variante pura de los tests o F5).
+
+    ``markdown`` se conserva en la firma por el contrato de F0 y viaja al
+    ``detalle`` (trazabilidad del documento clasificado): la variante pura no lo
+    usa para decidir. La cadena que **sí** llama al modelo es
+    :func:`~voucherflow.classification.contable.ejecutar_cadena`.
+
+    Argumentos:
+        markdown: descripción/markdown del documento (trazabilidad).
+        condicion_impositiva: ``21`` (default) | ``10_5`` | ``27`` | ``2_5`` |
+            ``exento_no_gravado``.
+        pasos: mapping con los pasos ya resueltos (claves de ``PASOS_CONTABLES``
+            o sus alias cortos ``01``/``02``/``03``).
+        centro_costo: código del centro de costo (alternativa a ``pasos``).
+        macro_categoria: macro categoría (alternativa a ``pasos``).
+        paso_03: JSON del paso 03 (alternativa a ``pasos``).
+
+    Devuelve:
+        :class:`ClasificacionContableResult` con ``centro_costo``,
+        ``macro_categoria``, ``concepto``, ``codigo`` y las reglas de
+        trazabilidad de la cadena (``CC-01``/``CC-02``/``CC-03``).
+
+    Lanza:
+        ``ValueError`` si no se aportaron pasos resueltos (la variante pura no
+        llama al modelo: sin datos no puede clasificar).
+        :class:`~voucherflow.classification.contable.ErrorCadenaContable` si un
+        paso no trae las opciones que la cadena necesita.
+    """
+    # Import diferido: ``contable`` importa ``prompts_contable`` y puede crecer
+    # (F4); el import local evita cargarlo cuando solo se usa el tipo/letra y
+    # mantiene el arranque del paquete liviano.
+    from .contable import clasificar_pasos_contables
+
+    paso_01, paso_02, paso_03_resuelto = _pasos_contables_de(
+        pasos=pasos,
+        centro_costo=centro_costo,
+        macro_categoria=macro_categoria,
+        paso_03=paso_03,
+    )
+    resultado = clasificar_pasos_contables(
+        paso_01, paso_02, paso_03_resuelto, condicion_impositiva=condicion_impositiva
+    )
+    resultado.detalle["markdown_chars"] = len(markdown or "")
+    return ClasificacionContableResult(
+        centro_costo=resultado.centro_costo,
+        macro_categoria=resultado.macro_categoria,
+        concepto=resultado.concepto,
+        codigo=resultado.codigo,
+        reglas_aplicadas=list(resultado.reglas_aplicadas),
+        condicion_impositiva=resultado.condicion_impositiva,
+        requiere_revision_humana=resultado.requiere_revision_humana,
+        detalle=dict(resultado.detalle),
+    )
+
+
+def _pasos_contables_de(
+    *,
+    pasos: Mapping[str, Any] | None,
+    centro_costo: str | None,
+    macro_categoria: str | None,
+    paso_03: Mapping[str, Any] | None,
+) -> tuple[Any, Any, Mapping[str, Any]]:
+    """Normaliza las dos formas de entrada de ``clasificar_contable`` (T-304).
+
+    Acepta el mapping de pasos (con las claves largas del checkpoint de v1:
+    ``01_centro_costo``/``02_macro_categoria``/``03_concepto_codigo_final``, o
+    las cortas ``01``/``02``/``03``) o los tres pasos sueltos. En la forma suelta,
+    el centro y la macro se envuelven en el shape del prompt
+    (``{"centros_costos": [{"codigo_centro_costo": ...}]}``) para que los
+    accesores ``primary_*`` los lean igual que a una respuesta del modelo: así
+    hay **un solo** camino de lectura de la cadena.
+    """
+    datos = dict(pasos or {})
+
+    def _tomar(*claves: str) -> Any:
+        for clave in claves:
+            if clave in datos and datos[clave] is not None:
+                return datos[clave]
+        return None
+
+    paso_01 = _tomar("01_centro_costo", "01")
+    paso_02 = _tomar("02_macro_categoria", "02")
+    paso_03_resuelto = _tomar("03_concepto_codigo_final", "03")
+
+    if paso_01 is None and centro_costo is not None:
+        paso_01 = {"centros_costos": [{"codigo_centro_costo": centro_costo}]}
+    if paso_02 is None and macro_categoria is not None:
+        paso_02 = {"macro_categorias": [{"macro_categoria": macro_categoria}]}
+    if paso_03_resuelto is None and paso_03 is not None:
+        paso_03_resuelto = paso_03
+
+    faltantes = [
+        nombre
+        for nombre, valor in (
+            ("01_centro_costo (o centro_costo)", paso_01),
+            ("02_macro_categoria (o macro_categoria)", paso_02),
+            ("03_concepto_codigo_final (o paso_03)", paso_03_resuelto),
+        )
+        if valor is None
+    ]
+    if faltantes:
+        raise ValueError(
+            "clasificar_contable() es la variante **pura**: necesita los pasos "
+            "ya resueltos. Faltan: "
+            f"{faltantes}. Para correr la cadena contra el modelo usá "
+            "classification.contable.ejecutar_cadena() (T-304)."
+        )
+    return paso_01, paso_02, paso_03_resuelto
+
+
 def _unicos(valores: Iterable[str]) -> list[str]:
     """Devuelve los valores sin repetir, preservando el orden de aparición."""
     vistos: set[str] = set()
@@ -507,16 +662,6 @@ def _unicos(valores: Iterable[str]) -> list[str]:
             vistos.add(valor)
             salida.append(valor)
     return salida
-
-
-def clasificar_contable(
-    markdown: str, condicion_impositiva: str | None = None
-) -> ClasificacionContableResult:
-    """Resuelve la cadena contable 01 → 02 → 03 (F3).
-
-    Esqueleto F0 — se implementa en F3 (T-304).
-    """
-    raise NotImplementedError("clasificar_contable(): se implementa en F3 (T-304).")
 
 
 __all__ = ["TipoComprobanteResult", "ClasificacionContableResult", "clasificar_tipo_comprobante", "clasificar_contable"]

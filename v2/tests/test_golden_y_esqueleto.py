@@ -149,13 +149,17 @@ class TestEsqueletoPaquete:
         # Decisión del subplan F2 §2.7 (T-203): ``validate`` sale de esta lista
         # porque ``api.validate()`` quedó implementado en F2 (delega en
         # ``validation.validar_y_procesar``/``validar_comprobante``); su
-        # cobertura vive en ``tests/test_validation_qween.py``. Los otros 3
-        # esqueletos (classify F3, extract F4, run F5) siguen pendientes.
+        # cobertura vive en ``tests/test_validation_qween.py``.
+        # Decisión del subplan F3 §3.4 (T-304): ``classify`` sale de esta lista
+        # porque ``api.classify()`` quedó implementado en F3 (motor de tipo/letra
+        # + cadena contable 01→02→03); su cobertura vive en
+        # ``tests/test_classification_contable.py``. Los otros 2 esqueletos
+        # (extract F4, run F5) siguen pendientes.
         import pytest
 
-        from voucherflow.api import classify, extract, run
+        from voucherflow.api import extract, run
 
-        for fn in (classify, extract, run):
+        for fn in (extract, run):
             with pytest.raises(NotImplementedError):
                 fn("dummy")
 

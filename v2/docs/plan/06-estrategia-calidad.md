@@ -140,11 +140,17 @@ tests/golden/
   vocabulario cerrado (D-13) reportando el valor crudo, gradación
   válida/dudosa/inválida, candidatos descartados por contradicción con blindaje
   ADR-008, y la reutilización por F4 (campos que no son la letra).
+  **T-304**: 60 tests (`test_classification_contable.py`) — contratos por paso,
+  cadena feliz con doble del cliente (y los `messages` del paso siguiente con el
+  resultado del anterior), default CC0006, checkpoints con reanudación, error con
+  resultados parciales, variante pura **coincidente** con la cadena real, y
+  `api.classify` punta a punta.
 - **Integración**: flujo VLM/LLM (mockeados) → reglas → tipo final; cadena
-  contable 01→02→03 con datos de referencia. **Hecho para tipo/letra en T-302/
-  T-303** (`scripts/F3/t302.py` corre el doble paso de punta a punta sobre 10
-  escenarios y `scripts/F3/t303.py` la pasada raw sobre 9; ambos salen con código
-  ≠ 0 si alguno falla); la cadena contable llega con T-304.
+  contable 01→02→03 con datos de referencia. **Hecho en F3**: `scripts/F3/t302.py`
+  (10 escenarios), `scripts/F3/t303.py` (9) y `scripts/F3/t304.py` (8) corren las
+  tres capas con dobles y salen con código ≠ 0 si alguno falla; la cadena real se
+  puede correr con `scripts/F3/t304.py --origen` o con el CLI portado
+  `scripts/F3/classification_pipeline.py`.
 - **Aceptación** (E-CLAS-1/2): reglas Gherkin; paridad con v1 `-M 11.1` y
   `classification_pipeline.py`. **Pendiente de T-305** (la lectura real contra
   Ollama local ya se puede correr con `scripts/F3/t302.py --origen`).

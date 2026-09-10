@@ -6,7 +6,7 @@
 > ([`../03-arquitectura/CLAS.md`](../03-arquitectura/CLAS.md) y
 > [`../03-arquitectura/RULES.md`](../03-arquitectura/RULES.md)).
 > **Fecha**: 2026-09-10 · **Rama**: `v2` · **Estado**: En implementación
-> (T-301, T-302 y T-303 hechas; T-304 y T-305 pendientes).
+> (T-301..T-304 hechas; T-305 pendiente).
 
 ## 1. Ficha del subplan
 
@@ -271,34 +271,59 @@
   el veredicto raw solo la califica. La precedencia por campo entre fuentes
   sigue siendo F4/T-404 (ADR-002).
 
-### 3.4 T-304 · Refactor cadena contable 01→02→03 (con contratos entre pasos)
+### 3.4 T-304 · Refactor cadena contable 01→02→03 (con contratos entre pasos) ✅ Hecho
+
+> **Estado 2026-09-10**: **Hecho** por `team implementation`. Suite completa en
+> verde (**614 passed, 10 skipped**); `python scripts/F3/t304.py` reporta **8/8**
+> escenarios y `t301.py`/`t302.py`/`t303.py` siguen en 14/14, 10/10 y 9/9. Ver
+> bitácora en [`F3.md`](F3.md) §4.
 
 - **Qué**: refactorizar `v1/classification_pipeline.py` a la librería con
   **contratos tipados entre pasos** (§2.7): extract → paso 01 (hasta 3 centros
   de costo) → paso 02 (hasta 3 macro categorías, entrada = 1º de 01) → paso 03
-  (concepto + código final + condición impositiva).
+  (concepto + código final + condición impositiva). ✅
 - **Archivos**:
-  - `classification/contable.py` — `PasoCentroCosto`, `PasoMacroCategoria`,
-    `PasoConceptoCodigo` (dataclasses de contrato por paso, con `codigo`,
-    `nombre`, `confianza`, `senal_usada`, `justificacion`), `primary_*()`,
-    `ejecutar_paso_01/02/03()` y `ejecutar_cadena()` (con checkpoints).
+  - `classification/prompts_contable.py` — los tres prompts de
+    `prompts/01..03-*.yaml` portados **literales** y versionados
+    (`contable-01@1`/`contable-02@1`/`contable-03@1`, ADR-005), con
+    `renderizar_user()`, `construir_messages_contable()` y la validación de la
+    condición impositiva. **Verificado**: los `system`/`user` son idénticos a
+    los YAML de v1.
+  - `classification/contable.py` — contratos por paso
+    (`OpcionCentroCosto`/`OpcionMacroCategoria`/`PasoConceptoCodigo`),
+    `primary_centro_costo()`/`primary_macro_categoria()` portados de v1,
+    `ejecutar_paso_01/02/03()`, `ejecutar_cadena()` (con checkpoints),
+    `ErrorCadenaContable`/`RespuestaContableInvalida` y la variante pura
+    `clasificar_pasos_contables()`/`ResultadoCadenaContable`.
   - `classification/tipo_comprobante.py` (ampliado) — `clasificar_contable()`
-    deja de lanzar `NotImplementedError` y es la variante pura sobre los tres
-    pasos ya resueltos.
+    deja de lanzar `NotImplementedError` y es la variante pura; el contrato
+    `ClasificacionContableResult` se amplía de forma **aditiva**.
+  - `api.py` — `classify()` implementado (motor de letra + cadena contable).
   - `__init__.py` (ampliado).
 - **Default CC0006** (criterio Gherkin de E-CLAS-2): sin señal específica, el
   paso 01 devuelve **CC0006, confianza baja, `senal_usada=none`**; se testea
-  explícitamente (también en la variante pura con `centros_costos` vacío).
+  explícitamente (y el script lo muestra en el escenario `default_cc0006`). ✅
 - **Contrato entre pasos**: si un paso no devuelve opciones, se propaga error de
   dominio con **resultados parciales** (portado de `ClassificationError` de v1:
-  `error.steps`); la cadena nunca inventa la entrada del paso siguiente.
-- **Tests** (`tests/test_classification_contable.py` + `tests/test_classification_paridad.py`):
+  `error.steps`); la cadena nunca inventa la entrada del paso siguiente. ✅
+- **Checkpoints**: `<doc>_classification.json` con el nombre y el shape de v1
+  (`{"archivo": ..., "pasos": {...}}`), escritos **después de cada paso** y de
+  forma atómica; reejecutar **no** vuelve a llamar al modelo para los pasos ya
+  resueltos. Un sidecar corrupto degrada a re-ejecutar (no rompe la corrida). ✅
+- **Tests** (`tests/test_classification_contable.py`, 60) ✅:
+  - contratos por paso (tipados, inmutables, con los campos del prompt);
   - cadena feliz con `FakeOllamaClient` (01→02→03 encadenados con el 1º de cada
-    paso; los `messages` enviados contienen la macro/centro del paso anterior);
+    paso; los `messages` del paso siguiente contienen el centro/macro anterior);
   - default CC0006 / `senal_usada=none`;
   - checkpoint: reejecutar con `*_classification.json` **no** vuelve a llamar al
-    modelo para los pasos ya resueltos (patrón v1);
-  - error a mitad de cadena → resultados parciales preservados.
+    modelo; reanudación parcial; sidecar corrupto;
+  - error a mitad de cadena → resultados parciales preservados;
+  - **variante pura sin red** (``monkeypatch`` sobre `OllamaClient`) y la
+    garantía de que **coincide** con la cadena real;
+  - `api.classify` punta a punta (letra + contable + trazabilidad).
+- **Pendiente de otras tareas**: la **medición** de paridad contra v1 sobre el
+  golden set es **T-305** (`scripts/F3/paridad_contable.py`); acá se construyó la
+  estructura y el CLI para poder correr ambos lados.
 
 ### 3.5 T-305 · Paridad con `classification_pipeline.py` y `-M 11.1` de v1
 
@@ -327,14 +352,13 @@
 
 - **Estado (2026-09-10)**: F3 en 🟡 **En implementación**. **T-301: Hecha**
   (motor de reglas R1-R7 en código + contexto tipado + `clasificar_tipo_comprobante()`),
-  **T-302: Hecha** (prompt de evidencia `tipo-comprobante@1` + lector inyectable)
-  y **T-303: Hecha** (pasada 1 de reglas raw por fuente + candidatos curados).
-  Suite en verde: **553 passed, 10 skipped** — 225 tests de F3 (122 de T-301 + 50
-  de T-302 + 53 de T-303) sobre una base de 328). **Pendientes**: T-304 y T-305.
-  `clasificar_contable()` sigue lanzando `NotImplementedError` (T-304) y
-  `api.classify()` **no** se implementa todavía (depende de T-304); la lista de
-  esqueletos de `test_esqueletos_lanzan_notimplemented` queda igual (`classify`,
-  `extract`, `run`).
+  **T-302: Hecha** (prompt de evidencia `tipo-comprobante@1` + lector inyectable),
+  **T-303: Hecha** (pasada 1 de reglas raw por fuente) y **T-304: Hecha** (cadena
+  contable 01→02→03 con contratos entre pasos, checkpoints y `api.classify()`).
+  Suite en verde: **614 passed, 10 skipped** — 285 tests de F3 (122 de T-301 + 50
+  de T-302 + 53 de T-303 + 60 de T-304) sobre una base de 328). **Pendiente**:
+  T-305. `classify` **ya no** está en
+  `test_esqueletos_lanzan_notimplemented` (quedan `extract` y `run`, F4/F5).
 - `F3.md` pasó de 🔴 Backlog a 🟡 En implementación (T-301 marcada Hecho).
 - **Punto de partida real**: ADR-006 ya aceptado en F0 (base `Rule`/`Registry`
   congelada y testeada); F1 cerrando T-105 (markdown de entrada disponible vía
@@ -346,7 +370,7 @@
   F2 con `validate`, subplan F1 §2.4 / F2 §2.7). Cuidado: `extract` y `run`
   **siguen** en la lista (F4/F5).
 - Suite default en verde al inicio (referencia: 187 tests al cierre de F1 + los
-  de F2; **553 passed / 10 skipped** tras T-301, T-302 y T-303).
+  de F2; **614 passed / 10 skipped** tras T-301..T-304).
 
 ## 4. Reglas duras (no romper F0/F1/F2)
 
@@ -446,7 +470,7 @@ La salida del modelo **no** decide; reporta evidencia de lectura:
 | `primary_macro_category(step_02)` | `primary_macro_categoria(PasoMacroCategoria)` |
 | `write_checkpoint()` (sidecar JSON) | `escribir_checkpoint()` (mismo nombre `<doc>_classification.json`) |
 | `ClassificationError(message, steps)` | `ErrorCadenaContable(message, pasos)` (resultados parciales) |
-| `--condicion-impositiva {21,10_5,27,2_5,exento_no_gravado}` | idéntico, en `clasificar_contable()` y en `scripts/F3/classification_pipeline.py` |
+| `--condicion-impositiva {21,10_5,27,2_5,exento_no_gravado}` | idéntico, en `ejecutar_cadena()`/`clasificar_contable()` y en `scripts/F3/classification_pipeline.py` (que además **valida** el valor: v1 no lo hacía) |
 
 ## 8. Archivos a crear
 
@@ -464,7 +488,7 @@ La salida del modelo **no** decide; reporta evidencia de lectura:
   patrón que `process`/`validate`)
 - `scripts/F3/classification_pipeline.py`, `scripts/F3/paridad_contable.py`,
   `scripts/F3/paridad_11_1.py`, `scripts/F3/t301.py`, `scripts/F3/t302.py`,
-  `scripts/F3/t303.py`, `scripts/F3/t305.py`
+  `scripts/F3/t303.py`, `scripts/F3/t304.py`, `scripts/F3/t305.py`
 - Tests: `tests/test_rules_contexto.py`, `tests/test_rules_tipo_comprobante.py`,
   `tests/test_rules_raw.py`, `tests/test_classification_prompt_tipo.py`,
   `tests/test_classification_contable.py`, `tests/test_classification_paridad.py`

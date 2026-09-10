@@ -128,11 +128,108 @@ def validate(origen: str, quick: bool = True) -> "ValidationResult":
 
 
 def classify(markdown: str, condicion_impositiva: str | None = None) -> VoucherResult:
-    """Clasifica tipo/letra + contable (F3).
+    """Clasifica tipo/letra + contable sobre el markdown procesado (F3).
 
-    Esqueleto F0 — se implementa en F3 (módulo ``classification``).
+    Implementación de F3 (T-304): corre dos subflujos sobre el **markdown** de
+    F1 y devuelve un :class:`~voucherflow.schemas.result.VoucherResult` con el
+    tipo/letra y la clasificación contable.
+
+    Sobre el **tipo/letra**: este método no lee la imagen — recibe texto —, así
+    que la evidencia de lectura que puede aportar es la del flujo de texto (la
+    **regex de R5** sobre el encabezado). El motor R1-R7 (T-301) decide la letra
+    cruzando eso con la condición fiscal, que T-304 todavía **no** conoce (la
+    aportará F4). Por eso el resultado es deliberadamente **parcial y honesto**:
+    ``tipo_comprobante`` sale del motor con la evidencia disponible, la certeza
+    es baja y ``campos_desconocidos`` declara las condiciones fiscales que
+    faltaron. La clasificación **contable** sí queda completa, porque solo
+    necesita el texto.
+
+    La cadena contable se ejecuta en modo **real** (``ejecutar_cadena``: pasos
+    01→02→03 contra ``OllamaClient``, con checkpoints). Si un paso falla, se
+    propaga :class:`~voucherflow.classification.contable.ErrorCadenaContable`
+    con los resultados parciales en ``error.pasos`` — no se silencia.
+
+    El import es **diferido** (dentro de la función) para no crear un ciclo en el
+    arranque del paquete: ``classification`` no importa ``api`` a nivel de módulo
+    (mismo criterio que ``process`` y ``validate``).
+
+    Argumentos:
+        markdown: markdown/OCR procesado de F1 (``api.process(...).markdown``).
+        condicion_impositiva: ``21`` (default) | ``10_5`` | ``27`` | ``2_5`` |
+            ``exento_no_gravado``.
+
+    Devuelve:
+        :class:`VoucherResult` con ``tipo_comprobante``, ``certeza``,
+        ``origen``, ``clasificacion_contable`` y la traza en ``trazabilidad``.
+
+    Lanza:
+        :class:`~voucherflow.classification.contable.ErrorCadenaContable` si un
+        paso contable no devuelve lo que la cadena necesita.
+        ``OllamaError`` si falla la comunicación con Ollama.
     """
-    raise NotImplementedError("classify(): se implementa en F3 (módulo classification).")
+    # Import diferido: evita el ciclo api -> classification -> (api).
+    from .classification.contable import ErrorCadenaContable, ejecutar_cadena
+    from .classification.prompts_contable import CONDICION_IMPOSITIVA_DEFAULT
+    from .classification.tipo_comprobante import clasificar_tipo_comprobante
+    from .models.ollama import OllamaClient
+    from .rules.contexto import ContextoTipoComprobante
+    from .schemas.evidence import Certeza, Origen
+    from .schemas.result import ClasificacionContable, EstadoResultado
+
+    condicion = condicion_impositiva or CONDICION_IMPOSITIVA_DEFAULT
+
+    # --- Tipo/letra con la única evidencia disponible en texto (R5) --------
+    # El markdown ES el texto de encabezado candidato: R5 busca en él la
+    # expresión ``FACTURA <letra>``. Las condiciones fiscales no llegan todavía
+    # (son de F4), así que el motor decide con lo que tiene y lo declara.
+    contexto = ContextoTipoComprobante(
+        texto_encabezado_llm=markdown or "",
+        campos_ausentes=["emisor.condicion_fiscal", "receptor.condicion_fiscal"],
+    )
+    tipo = clasificar_tipo_comprobante(contexto)
+
+    # --- Cadena contable 01→02→03 (real, con checkpoints) ------------------
+    resultado_contable = ejecutar_cadena(
+        OllamaClient(),
+        descripcion=markdown or "",
+        condicion_impositiva=condicion,
+    )
+
+    return VoucherResult(
+        documento_id=_identificador_de_markdown(markdown),
+        estado=EstadoResultado.revision,
+        tipo_comprobante=tipo.letra,
+        certeza=Certeza(tipo.certeza) if tipo.certeza else None,
+        origen=Origen.programa,
+        clasificacion_contable=ClasificacionContable(
+            **resultado_contable.como_clasificacion()
+        ),
+        trazabilidad={
+            "tipo_comprobante": tipo.detalle,
+            "cadena_contable": resultado_contable.detalle,
+            "requiere_revision_humana": resultado_contable.requiere_revision_humana,
+            "condicion_impositiva": condicion,
+            "nota": (
+                "T-304: la letra se decide con la evidencia de texto disponible "
+                "(R5) y las condiciones fiscales faltantes se declaran; la "
+                "cadena contable corre completa 01→02→03."
+            ),
+        },
+    )
+
+
+def _identificador_de_markdown(markdown: str) -> str:
+    """Deriva un ``documento_id`` estable del markdown (T-304).
+
+    En producción el id es el **hash sha256 del archivo** (glosario §2). Acá solo
+    hay texto, así que se usa el sha256 del markdown: es estable, no colisiona
+    entre documentos distintos y permite correlacionar llamadas. El contrato de
+    ``VoucherResult.documento_id`` exige un string no vacío.
+    """
+    import hashlib
+
+    contenido = markdown or ""
+    return hashlib.sha256(contenido.encode("utf-8")).hexdigest()
 
 
 def extract(origen: str, mode: str = "kvi") -> "CombinedEvidence":
