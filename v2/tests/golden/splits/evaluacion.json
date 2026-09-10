@@ -1,10 +1,15 @@
 {
-  "golden_version": "0.1",
-  "descripcion": "Split de evaluación del golden set inicial (F0/T-004). No calibrar reglas sobre estos casos (plan 06 §3.4).",
+  "golden_version": "0.2",
+  "descripcion": "Split de evaluación del golden set (F0/T-004; ampliado en F2/T-204 con el subconjunto acotado etiquetado). No calibrar reglas sobre estos casos (plan 06 §3.4). La exactitud del gate de F2 (T-204) se mide sobre estos casos con veredicto etiquetado.",
   "casos": [
     "img_2025-08_2D2C9343",
     "img_2026-01_009550B7",
     "img_2026-02_4FAD7638",
-    "pdf_2026-08_2DC73C08"
+    "pdf_2026-08_2DC73C08",
+    "neg_2026-05_chat_pago",
+    "neg_2026-06_correo_liquidacion",
+    "neg_2026-07_resumen_tarjeta",
+    "neg_2026-08_memo_interno",
+    "neg_2026-10_pantalla_aprobacion"
   ]
 }

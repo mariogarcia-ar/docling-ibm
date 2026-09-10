@@ -3,6 +3,11 @@
 Validan que el golden set sea íntegro (las rutas referenciadas existen, los
 splits referencian ids del CSV y no hay cruces train/eval) y que el esqueleto
 del paquete exponga los módulos de los 5 refactors sin acoplamiento a v1.
+
+**F2/T-204** agrega el etiquetado del ``veredicto`` del subconjunto acotado
+(F2-subplan §2.5): se valida que los valores pertenezcan al vocabulario del
+gate y que cada caso etiquetado declare su evidencia objetiva
+(``evidencia_veredicto``) — criterio documentado en ``tests/golden/README.md``.
 """
 
 from __future__ import annotations
@@ -19,7 +24,16 @@ class TestGoldenSet:
         with casos_csv.open(encoding="utf-8") as fh:
             reader = csv.DictReader(fh)
             assert reader.fieldnames is not None
-            for col in ("id", "ruta", "tipo_entrada", "letra", "split", "etiqueta_estado"):
+            for col in (
+                "id",
+                "ruta",
+                "tipo_entrada",
+                "letra",
+                "veredicto",
+                "evidencia_veredicto",
+                "split",
+                "etiqueta_estado",
+            ):
                 assert col in reader.fieldnames, f"Falta columna {col}"
             filas = list(reader)
         assert len(filas) >= 5, "El golden set inicial debe tener al menos 5 casos"
@@ -51,14 +65,67 @@ class TestGoldenSet:
 
     def test_calidad_pendiente_explicada(self, golden_dir):
         # Los casos de negocio sin OCR/contador deben estar marcados pendiente.
-        # Este test documenta el criterio y falla si hay un caso "verificada"
-        # sin una etiqueta de negocio real (evita falsas etiquetas).
+        # Este test documenta el criterio y falla si hay un caso "verificado"
+        # sin evidencia objetiva (evita falsas etiquetas).
+        #
+        # Ajuste F2/T-204 (documentado en tests/golden/README.md §"Etiquetado
+        # del veredicto (F2)"): el veredicto del subconjunto acotado de F2 se
+        # etiqueta con evidencia OCR/texto nativo y se registra en la columna
+        # ``evidencia_veredicto`` (no en ``letra``, que sigue pendiente porque
+        # requiere criterio de contador). Un caso con ``etiqueta_estado ==
+        # "verificada"`` debe declarar esa evidencia; si su ``letra`` sigue
+        # ``pendiente`` es válido (la letra es otra etiqueta de negocio).
         import csv
 
         with (golden_dir / "casos.csv").open(encoding="utf-8") as fh:
+            filas = list(csv.DictReader(fh))
+        for fila in filas:
+            if fila["etiqueta_estado"] == "verificada":
+                tiene_letra = fila["letra"] != "pendiente"
+                tiene_evidencia = bool(fila.get("evidencia_veredicto", "").strip())
+                assert tiene_letra or tiene_evidencia, (
+                    "Caso verificado sin evidencia objetiva: "
+                    f"{fila['id']} (letra pendiente y sin evidencia_veredicto)"
+                )
+
+    def test_veredicto_etiquetado_en_subconjunto_f2(self, golden_dir):
+        # F2/T-204 (subplan §2.5): el subconjunto acotado del golden tiene el
+        # veredicto etiquetado (deja de ser "pendiente") y el valor pertenece
+        # al vocabulario del gate (E-QWE-1). Las filas aún sin etiquetar pueden
+        # seguir "pendiente" (curación de contador pendiente para F3+).
+        import csv
+
+        validos = {"comprobante", "no_comprobante", "indeterminado", "pendiente"}
+        etiquetados = 0
+        with (golden_dir / "casos.csv").open(encoding="utf-8") as fh:
             for fila in csv.DictReader(fh):
-                if fila["etiqueta_estado"] == "verificada":
-                    assert fila["letra"] != "pendiente", "Caso verificado no puede tener letra pendiente"
+                veredicto = fila["veredicto"]
+                assert veredicto in validos, (
+                    f"Veredicto inválido en {fila['id']}: '{veredicto}' "
+                    f"(válidos: {sorted(validos)})"
+                )
+                if veredicto != "pendiente":
+                    etiquetados += 1
+                    assert fila.get("evidencia_veredicto", "").strip(), (
+                        f"El caso etiquetado {fila['id']} debe declarar "
+                        "evidencia_veredicto (T-204: OCR/texto nativo como evidencia)"
+                    )
+        assert etiquetados >= 9, (
+            "El subconjunto acotado de F2 debe tener al menos los 9 casos "
+            "etiquetados (subplan §2.5); etiquetados hoy: "
+            f"{etiquetados}"
+        )
+
+    def test_splits_declaran_golden_version(self, golden_dir):
+        # El versionado del golden set se referencia en los resultados (plan 06
+        # §3.4 / README): los splits deben declarar ``golden_version``.
+        import json
+
+        for split_file in ("reglas_train.json", "evaluacion.json"):
+            with (golden_dir / "splits" / split_file).open(encoding="utf-8") as fh:
+                data = json.load(fh)
+            assert data.get("golden_version"), f"{split_file} no declara golden_version"
+
 
 
 class TestEsqueletoPaquete:
