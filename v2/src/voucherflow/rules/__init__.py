@@ -17,6 +17,16 @@ agregan en sus propias fases.
 from __future__ import annotations
 
 from .contexto import ContextoTipoComprobante, normalizar_letra
+from .raw import (
+    GRAVEDAD_POR_REGLA,
+    REGISTRO_RAW,
+    CampoDeclarado,
+    Gravedad,
+    VeredictoRaw,
+    coincidencias_en_sustento,
+    construir_registro_raw,
+    evaluar_raw,
+)
 from .registry import Registry, Rule
 from .tipo_comprobante_rules import (
     MENSAJE_R7,
@@ -65,5 +75,14 @@ __all__ = [
     "letra_de_recuadro",
     "letra_de_encabezado",
     "letra_de_campos_totales",
+    # Reglas raw por fuente / pasada 1 (F3/T-303; las reutiliza F4/T-403).
+    "Gravedad",
+    "CampoDeclarado",
+    "VeredictoRaw",
+    "REGISTRO_RAW",
+    "GRAVEDAD_POR_REGLA",
+    "construir_registro_raw",
+    "coincidencias_en_sustento",
+    "evaluar_raw",
 ]
 

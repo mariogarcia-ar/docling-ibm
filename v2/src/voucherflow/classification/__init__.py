@@ -20,14 +20,17 @@ from .evidencia import (
     CAMPO_EXPLICACION,
     CAMPOS_TRAZABLES,
     EVIDENCIA_CAMPO_LETRA,
+    NOTA_LLM_SIN_PATRON_R5,
     ErrorEvidencia,
     EvidenciaLectura,
     LecturaTipoComprobante,
     Lector,
+    campo_declarado_de_evidencia,
     construir_source_evidence,
     contexto_desde_evidencia,
     leer_evidencia,
     parsear_evidencia_lectura,
+    veredicto_raw_de_evidencia,
 )
 from .prompt_tipo_comprobante import (
     CAMPOS_EVIDENCIA,
@@ -70,6 +73,7 @@ __all__ = [
     "EVIDENCIA_CAMPO_LETRA",
     "CAMPO_EXPLICACION",
     "CAMPOS_TRAZABLES",
+    "NOTA_LLM_SIN_PATRON_R5",
     "ErrorEvidencia",
     "Lector",
     "EvidenciaLectura",
@@ -78,4 +82,7 @@ __all__ = [
     "construir_source_evidence",
     "contexto_desde_evidencia",
     "leer_evidencia",
+    # T-303 · Pasada 1 de reglas raw por fuente (califican la evidencia).
+    "campo_declarado_de_evidencia",
+    "veredicto_raw_de_evidencia",
 ]

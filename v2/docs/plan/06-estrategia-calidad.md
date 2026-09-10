@@ -136,10 +136,15 @@ tests/golden/
   del prompt de evidencia (que el modelo no decide), construcción de `messages`
   por fuente, normalización de la lectura al vocabulario del motor, conversión a
   `SourceEvidence` y el puente completo T-302 → T-301 (R4/R5/R7).
+  **T-303**: 53 tests (`test_rules_raw.py`) — cada regla raw por separado,
+  vocabulario cerrado (D-13) reportando el valor crudo, gradación
+  válida/dudosa/inválida, candidatos descartados por contradicción con blindaje
+  ADR-008, y la reutilización por F4 (campos que no son la letra).
 - **Integración**: flujo VLM/LLM (mockeados) → reglas → tipo final; cadena
-  contable 01→02→03 con datos de referencia. **Hecho para tipo/letra en T-302**
-  (`scripts/F3/t302.py` corre el doble paso de punta a punta sobre 10 escenarios
-  y sale con código ≠ 0 si alguno falla); la cadena contable llega con T-304.
+  contable 01→02→03 con datos de referencia. **Hecho para tipo/letra en T-302/
+  T-303** (`scripts/F3/t302.py` corre el doble paso de punta a punta sobre 10
+  escenarios y `scripts/F3/t303.py` la pasada raw sobre 9; ambos salen con código
+  ≠ 0 si alguno falla); la cadena contable llega con T-304.
 - **Aceptación** (E-CLAS-1/2): reglas Gherkin; paridad con v1 `-M 11.1` y
   `classification_pipeline.py`. **Pendiente de T-305** (la lectura real contra
   Ollama local ya se puede correr con `scripts/F3/t302.py --origen`).

@@ -15,7 +15,7 @@
 | **ADRs relacionados** | ADR-006 (reglas de negocio en código vs. prompt — decisión D-6, bloqueante); ADR-002 (tabla de precedencia por campo); ADR-003 (gatillo de gaps para evidencia adicional). |
 | **Interfaces clave** | Dataclass `Rule { id, prioridad, condicion(ctx), resultado, tipo }` (ej. `REGLA_R1 = Rule(id="R1", prioridad=1, condicion=..., resultado="C", tipo="negocio")`); registro/motor: ejecutar sobre evidencia, ordenar por prioridad y registrar disparos; `rules/precedencia.py` (PREC_1..PREC_N por campo); `rules/gaps.py` (faltan_datos por gap concreto). |
 | **Responsable ciclo** | team analysis (BA/SA/PM) → team implementation |
-| **Estado de diseño** | 🟡 Motor declarativo (F0) + R1-R7 y contexto tipado (F3/T-301) + evidencia de lectura (F3/T-302) implementados; reglas raw (T-303), precedencia (T-404) y cruzadas/gaps (F5) pendientes |
+| **Estado de diseño** | 🟡 Motor declarativo (F0) + R1-R7 y contexto tipado (F3/T-301) + evidencia de lectura (F3/T-302) + reglas raw por fuente (F3/T-303) implementados; precedencia (T-404) y cruzadas/gaps (F5) pendientes |
 | **Fecha inicio** | 2026-09-10 |
 | **Fecha fin** |  |
 
@@ -30,7 +30,7 @@
 | Regla R3 (exportación → E, prioridad sobre R1/R2) | §7 + doc 02 | E-CLAS-1 | F3 / T-301 | [x] hecho (`prioridad=0`; pisa a R1/R2) |
 | Reglas R4-R6 (extracción: recuadro VLM, regex texto, inferencia por desglose) | §7 + doc 02 | E-CLAS-1 | F3 / T-301 | [x] hecho en cascada (`REGISTRO_LECTURA`) |
 | Regla R7 (conflicto financiero → alerta comprobante inválido crédito fiscal) | §7 + doc 02 | E-CLAS-1 | F3 / T-301 | [x] hecho (`condicion_r7` + `construir_alerta()`) |
-| Reglas raw por fuente (pasada 1) → `SourceEvidence.valida`/`debilidades` | §4.4 (reglas raw VLM/LLM) | E-EXT-2 | F4 / T-403 | [ ] pendiente (el insumo ya existe: T-302 deja `valida`/`debilidades` con la higiene de la lectura; falta el veredicto raw de T-303) |
+| Reglas raw por fuente (pasada 1) → `SourceEvidence.valida`/`debilidades` | §4.4 (reglas raw VLM/LLM) | E-EXT-2 | F4 / T-403 | [x] hecho en F3/T-303 (`rules/raw.py`: `RAW_CAMPO`/`RAW_VOCABULARIO`/`RAW_SUSTENTO`/`RAW_CONTRADICCION`); F4/T-403 **reutiliza** el registro (es agnóstico del dominio: recibe campos declarados, vocabulario y normalizador) |
 | Tabla de precedencia por campo (`rules/precedencia.py`, PREC_n) | §6 + ADR-002 | E-EXT-1 | F4 / T-404 | [ ] pendiente |
 | Reglas cruzadas de conclusión (negocio + fast-fail + conflicto) | §4.5 | E-CONC-1 | F5 / T-501 | [ ] pendiente |
 | Detección de gaps (`rules/gaps.py`) → gatillo de evidencia adicional | §4.5 | E-CONC-2 | F5 / T-502 | [ ] pendiente |
@@ -56,4 +56,4 @@
 | Fecha | Acción / hito | Responsable | Estado |
 |---|---|---|---|
 | 2026-09-10 | T-301 implementado: R1-R7 viven como `Rule` declarativas en `rules/tipo_comprobante_rules.py` (tres registros separados por familia: negocio/lectura/conflicto, decisión F3-subplan §2.3) y se evalúan sobre `rules/contexto.py` (`ContextoTipoComprobante`, inmutable). `registry.py` **no** se reescribió (contrato F0 congelado). Las reglas *raw* por fuente (T-303) y la precedencia por campo (T-404) se agregan en sus tareas sin tocar esta base. | team implementation | Hecho |
-| 2026-09-10 | T-302 (F3): el prompt `11.1` se reescribe como prompt de **evidencia** (`tipo-comprobante@1`) — deja de pedir `tipo_comprobante`/`confianza`/`reglas_aplicadas`/`alerta` y devuelve la lectura con fragmento de sustento (ADR-001). La lectura se normaliza al vocabulario del motor (`normalizar_letra`, el mismo de R4/R5) y se vuelca al contexto tipado de T-301; el lector es inyectable, de modo que F4/T-403 solo tiene que conectar **una** implementación de reglas raw sobre `SourceEvidence.valida`/`debilidades`. | team implementation | Hecho |
+| 2026-09-10 | T-303 (F3): la **pasada 1** de reglas raw por fuente vive en `rules/raw.py` como cuatro `Rule` declarativas del motor de F0 (`tipo="raw"`, `Registry` intacto): `RAW_CAMPO` (fuente incompleta), `RAW_VOCABULARIO` (valor fuera del vocabulario), `RAW_SUSTENTO` (el fragmento no contiene el valor) y `RAW_CONTRADICCION` (el fragmento cita otro valor). El registro es **agnóstico del dominio** (recibe `CampoDeclarado` con vocabulario/normalizador/patrón que pasa el llamador), de modo que F4/T-403 lo reutiliza sin reimplementarlo. Gradación válida/dudosa/inválida → `SourceEvidence.valida` + `debilidades`; los candidatos descartados/restantes salen de lo que el **sustento** contradice, no de lo que el modelo lista. `registry.py` **no** se reescribió (contrato F0 congelado). | team implementation | Hecho |

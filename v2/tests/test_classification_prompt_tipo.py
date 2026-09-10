@@ -53,6 +53,7 @@ from voucherflow.classification import (
     contexto_desde_evidencia,
     leer_evidencia,
     parsear_evidencia_lectura,
+    veredicto_raw_de_evidencia,
 )
 from voucherflow.classification.prompt_tipo_comprobante import (
     SYSTEM_PROMPT_POR_FUENTE,
@@ -414,7 +415,8 @@ class TestParsearEvidencia:
 
     def test_lectura_de_texto_sin_patron_r5_queda_anotada(self):
         # El motor lee la fuente de texto con la regex de R5, no con la letra
-        # suelta: si el fragmento no la contiene, se avisa (no se silencia).
+        # suelta. T-303 movió esta verificación a la pasada raw (que es quien
+        # califica la evidencia): la nota viaja en las debilidades del veredicto.
         evidencia = parsear_evidencia_lectura(
             _json_evidencia(
                 tipo_detectado_por_documento="A",
@@ -424,7 +426,8 @@ class TestParsearEvidencia:
             fuente="llm",
         )
         assert evidencia.letra == "A"
-        assert any("R5" in problema for problema in evidencia.problemas)
+        veredicto = veredicto_raw_de_evidencia(evidencia)
+        assert any("R5" in debilidad for debilidad in veredicto.debilidades)
 
     def test_fuente_declarada_distinta_queda_anotada(self):
         # La fuente autoritativa la fija el orquestador, no el modelo.
@@ -474,7 +477,11 @@ class TestSourceEvidence:
         return parsear_evidencia_lectura(_json_evidencia(**cambios), fuente="vlm")
 
     def test_source_evidence_valida_con_fragmento_y_meta(self):
-        evidencia = self._evidencia(candidatos_restantes=["A"], candidatos_descartados=["B"])
+        # T-303: los candidatos que viajan en ``meta`` son los que **calificó la
+        # pasada raw**, no los que el modelo listó por su cuenta.
+        evidencia = self._evidencia(
+            candidatos_restantes=["A"], candidatos_descartados=["B"]
+        )
         fuente_ev = construir_source_evidence(evidencia, modelo="qwen2.5vl:3b")
 
         assert isinstance(fuente_ev, SourceEvidence)
@@ -488,8 +495,10 @@ class TestSourceEvidence:
         # ADR-005: la versión del prompt viaja en meta (trazabilidad E-CONC-5).
         assert campo.meta["version_prompt"] == VERSION_PROMPT_TIPO_COMPROBANTE
         assert campo.meta["modelo"] == "qwen2.5vl:3b"
-        # Los candidatos y lo faltante acompañan la evidencia.
-        assert campo.meta["candidatos_descartados"] == ["B"]
+        # La evidencia del VLM sostiene su letra: la pasada raw no descarta nada.
+        assert campo.meta["valida"] is True
+        assert campo.meta["gravedad"] == "valida"
+        assert campo.meta["candidatos_descartados"] == []
         assert campo.meta["candidatos_restantes"] == ["A"]
         assert "timestamp" in campo.meta
 
@@ -506,21 +515,29 @@ class TestSourceEvidence:
         )
         assert construir_source_evidence(evidencia).fuente is Fuente.llm
 
-    def test_sin_sustento_la_evidencia_no_es_valida_y_lo_declara(self):
+    def test_sin_sustento_la_evidencia_queda_dudosa_y_lo_declara(self):
         # ADR-001 exige fragmento no vacío; si el modelo no lo dio, la evidencia
-        # no es válida y el problema se declara en debilidades.
+        # queda **dudosa** (T-303): el dato se puede usar como indicio, pero la
+        # debilidad queda registrada. No es ``invalida`` — la fuente declaró una
+        # letra del vocabulario — y tampoco pasa en silencio.
         evidencia = self._evidencia(tipo_detectado_por_documento_explicacion=None)
         fuente_ev = construir_source_evidence(evidencia)
-        assert fuente_ev.valida is False
+        assert fuente_ev.valida is True
         assert any("sustento" in debilidad for debilidad in fuente_ev.debilidades)
+        assert "RAW_CAMPO" in fuente_ev.reglas_aplicadas
         # El contrato pydantic se respeta igual: se explica la ausencia.
         assert fuente_ev.campos[EVIDENCIA_CAMPO_LETRA].fragmento_sustento.strip()
 
-    def test_reglas_raw_quedan_vacias_hasta_t303(self):
-        # La pasada de reglas raw por fuente es T-303 (F3-subplan §3.3): T-302
-        # deja el campo listo pero no anticipa su veredicto.
+    def test_reglas_raw_quedan_registradas(self):
+        # La pasada de reglas raw por fuente es T-303: el ``SourceEvidence`` ya
+        # trae los ids de las reglas que calificaron la evidencia (ADR-001).
         fuente_ev = construir_source_evidence(self._evidencia())
-        assert fuente_ev.reglas_aplicadas == []
+        assert fuente_ev.reglas_aplicadas == []  # lectura sana: ninguna se disparó
+        fuera_vocab = construir_source_evidence(
+            self._evidencia(tipo_detectado_por_documento="Z")
+        )
+        assert "RAW_VOCABULARIO" in fuera_vocab.reglas_aplicadas
+        assert fuera_vocab.valida is False
 
     def test_confianza_fuente_es_la_autoevaluacion_no_la_certeza(self):
         # Glosario §2.3: ``confianza_fuente`` es la autoevaluación de la fuente.

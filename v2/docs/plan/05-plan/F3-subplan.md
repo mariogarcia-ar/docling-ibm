@@ -6,7 +6,7 @@
 > ([`../03-arquitectura/CLAS.md`](../03-arquitectura/CLAS.md) y
 > [`../03-arquitectura/RULES.md`](../03-arquitectura/RULES.md)).
 > **Fecha**: 2026-09-10 · **Rama**: `v2` · **Estado**: En implementación
-> (T-301 y T-302 hechas; T-303..T-305 pendientes).
+> (T-301, T-302 y T-303 hechas; T-304 y T-305 pendientes).
 
 ## 1. Ficha del subplan
 
@@ -114,7 +114,7 @@
 ### 3.1 T-301 · Migrar R1-R7 del prompt WIP a motor de reglas en código ✅ Hecho
 
 > **Estado 2026-09-10**: **Hecho** por `team implementation`. Suite completa en
-> verde (**500 passed, 10 skipped**); `python -c "import voucherflow.classification,
+> verde (**553 passed, 10 skipped**, tras T-303); `python -c "import voucherflow.classification,
 > voucherflow.rules, voucherflow.api"` devuelve `ok` y `python scripts/F3/t301.py`
 > reporta **14/14** escenarios sintéticos coincidentes con la expectativa. Ver
 > bitácora en [`F3.md`](F3.md) §4.
@@ -163,51 +163,113 @@
   parciales (marca ✅/❌ contra la expectativa; salida no-cero si alguno falla) y
   acepta un `--contexto` JSON propio con el shape plano o el anidado del WIP
   (`emisor`/`receptor`/`ocr`), con `--preferencia-letra` y reporte `--json`.
-- **Pendiente de otras tareas**: T-303 enriquece `candidatos_descartados/
+- **Pendiente de otras tareas**: ~~T-303 enriquece `candidatos_descartados/
   restantes` con las reglas raw por fuente; T-302 puebla el contexto desde la
-  evidencia del lector.
+  evidencia del lector~~ → **ambas hechas** (T-302 §3.2 y T-303 §3.3).
 
-### 3.2 T-302 · Reescribir `11.1` para devolver **evidencia** (VLM recuadro + LLM texto)
+### 3.2 T-302 · Reescribir `11.1` para devolver **evidencia** (VLM recuadro + LLM texto) ✅ Hecho
+
+> **Estado 2026-09-10**: **Hecho** por `team implementation`. Suite completa en
+> verde (**553 passed, 10 skipped**, tras T-303); `python scripts/F3/t302.py`
+> reporta **10/10** escenarios (T-302 → T-301 de punta a punta) coincidentes con
+> la expectativa. Ver bitácora en [`F3.md`](F3.md) §4.
 
 - **Qué**: reescribir el prompt de tipo/letra para que devuelva **evidencia
   trazable** (letra del recuadro leída por el VLM, texto OCR que sustenta la
   lectura por LLM, explicación de dónde se vio) y no la decisión; el motor de
-  T-301 decide. Formalizar las reglas raw de lectura por fuente.
+  T-301 decide. ✅
 - **Archivos**:
-  - `classification/prompt_tipo_comprobante.py` — prompts versionados
-    `tipo-comprobante@1` (secciones `system`, `system_llm`, `system_vlm`) +
-    el esquema JSON de evidencia (§6) + constructor de `messages` para
-    `OllamaClient`.
-  - `classification/evidencia.py` — `EvidenciaLectura` (fuente, campo, valor,
-    `fragmento_sustento`) y conversión a `schemas.evidence.SourceEvidence`
-    (ADR-001), más el **protocolo de lector** (§2.6) y el validador de contrato
-    (`ContratoError` de `api.py` si el JSON del modelo no valida).
+  - `classification/prompt_tipo_comprobante.py` — prompt versionado
+    `tipo-comprobante@1` (base común que **declara que el modelo no decide** +
+    guía de lectura por fuente `system_vlm`/`system_llm`), el esquema JSON del
+    contrato de evidencia (§6) y `construir_messages_tipo_comprobante()` para
+    `OllamaClient` (reutiliza la reducción + base64 de F2: `imagen_envio_base64`).
+  - `classification/evidencia.py` — `EvidenciaLectura` (fuente, letra,
+    fragmento de sustento, candidatos, campos faltantes, problemas), el
+    **protocolo de lector** (§2.6), la conversión a
+    `schemas.evidence.SourceEvidence` (ADR-001), `contexto_desde_evidencia()`
+    (puebla R4/R5) y `leer_evidencia()` (corre las fuentes y conserva **ambas**
+    evidencias, ADR-002).
 - **Contrato de evidencia (ADR-001)**: cada dato leído es un `EvidenceField`
   con `campo`, `valor`, `fuente` (`vlm`/`llm`/`programa`), `fragmento_sustento`
   y `certeza`. El **recuadro** del VLM y el **texto** del LLM son evidencias
   separadas que se conservan ambas (no se colapsan).
-- **Tests** (`tests/test_classification_prompt_tipo.py`): el JSON del prompt
-  valida contra el esquema; un doble de lector devuelve evidencia VLM (recuadro)
-  y LLM (texto) → se construyen `SourceEvidence` válidas; salida sin letra →
-  `tipo_detectado_por_documento = None` con `campos_desconocidos`; JSON
-  inválido → `ContratoError`.
+- **Qué quedó fuera del prompt (ADR-006)**: `tipo_comprobante`,
+  `tipo_esperado_por_negocio`, `reglas_aplicadas`,
+  `coincide_negocio_vs_documento`, `confianza` y `alerta` (los calcula el motor
+  de T-301); `CAMPOS_FUERA_DEL_CONTRATO` lo deja explícito y hay tests que
+  verifican que no aparecen en el texto del prompt.
+- **Decisión clave documentada**: R5 no lee una letra suelta, aplica su **regex**
+  sobre `texto_encabezado_llm`, así que `contexto_desde_evidencia()` puebla ese
+  campo con el **fragmento de sustento literal** del LLM, no con la letra.
+- **Tests** (`tests/test_classification_prompt_tipo.py`, 50) ✅: contrato y
+  versión del prompt (que no decide); `messages` por fuente (imagen en base64 /
+  markdown en `content`); doble de lector con evidencia VLM y LLM →
+  `SourceEvidence` válidas y reconstruibles; salida sin letra → `None` +
+  `campos_desconocidos`; JSON inválido → `ErrorEvidencia`; y el puente completo
+  T-302 → T-301 (R4 del recuadro, R5 del texto, R7 en la discrepancia).
+- **Herramienta de inspección** ✅: `scripts/F3/t302.py` — imprime el prompt
+  (`--prompt`), corre **10 escenarios** de punta a punta con ✅/❌, acepta
+  `--json`/`--detalle` y con `--origen` corre la lectura **real** (F1 + vista de
+  revisión de F2 + Ollama local).
 
-### 3.3 T-303 · Reglas raw por fuente + candidatos descartados/restantes
+### 3.3 T-303 · Reglas raw por fuente + candidatos descartados/restantes ✅ Hecho
+
+> **Estado 2026-09-10**: **Hecho** por `team implementation`. Suite completa en
+> verde (**553 passed, 10 skipped**); `python scripts/F3/t303.py` reporta
+> **9/9** escenarios y `t301.py`/`t302.py` siguen en 14/14 y 10/10. Ver bitácora
+> en [`F3.md`](F3.md) §4.
 
 - **Qué**: reglas **raw** que validan lo que devolvió cada fuente de lectura
   (VLM/LLM) antes de usarlo como evidencia: letra fuera de {A,B,C,M,E}, texto
   que contradice la letra declarada, evidencia sin fragmento de sustento, fuente
   incompleta. Marcan `valida`/`debilidades` y alimentan la decisión con
-  trazabilidad (y `candidatos_descartados` / `candidatos_restantes`).
+  trazabilidad (y `candidatos_descartados` / `candidatos_restantes`). ✅
 - **Archivos**: `rules/raw.py` (`REGISTRO_RAW` + `evaluar_raw(fuente, campos) ->
-  VeredictoRaw`) + integración en `classification/tipo_comprobante.py`.
-- **Reutilización F4**: el mismo registro lo consume F4/T-403 para la pasada 1
-  de extracción (`SourceEvidence.valida`/`debilidades`), tal como indica
-  `RULES.md`. Se implementa **una sola vez** aquí; F4 lo reutiliza.
-- **Tests** (`tests/test_rules_raw.py`): por fuente, caso válido / letra
-  inválida / evidencia sin sustento; `candidatos_descartados` incluye la letra
-  descartada por contradicción; `candidatos_restantes` refleja las alternativas
-  viables; el veredicto raw no decide la letra final (solo la califica).
+  VeredictoRaw`) + integración en `classification/evidencia.py` y en
+  `classification/tipo_comprobante.py` (parámetro `candidatos_raw`). ✅
+- **Las cuatro reglas** (todas `Rule` del motor de F0, `tipo="raw"`):
+
+  ======================  ==============================  ====================
+  Regla                   Qué verifica                    Gravedad si dispara
+  ======================  ==============================  ====================
+  `RAW_CAMPO`             sin valor o sin sustento        `dudosa`
+  `RAW_VOCABULARIO`       valor fuera del vocabulario     `invalida`
+  `RAW_SUSTENTO`          el fragmento no sostiene el valor `dudosa`
+  `RAW_CONTRADICCION`     el fragmento cita otro valor    `dudosa`
+  ======================  ==============================  ====================
+
+- **Gradación `valida`/`dudosa`/`invalida`** (decisión documentada):
+  `SourceEvidence.valida` es booleano, así que la gravedad se degrada —
+  `invalida` → `valida=False` (violación de contrato: el valor ni siquiera
+  pertenece al vocabulario), `dudosa` → `valida=True` **con** debilidades (el
+  dato sirve como indicio, no como prueba), `valida` → sin debilidades.
+- **Reutilización F4**: el registro es **agnóstico del dominio** (trabaja sobre
+  *campos declarados*, no sobre letras): el vocabulario, el normalizador y el
+  patrón de sustento los pasa el llamador. F4/T-403 lo consume sin
+  reimplementarlo (hay tests que lo ejercitan con un CUIT y con un
+  `tipo_documento` de vocabulario cerrado). ✅
+- **Tests** (`tests/test_rules_raw.py`, 53) ✅: cada regla con su caso positivo y
+  negativo; el registro como `Rule`/`Registry` de F0; vocabulario cerrado con
+  `Z`/`090`/`099` (D-13) reportando el **valor crudo**; gradación y acumulación;
+  candidatos descartados por contradicción y el blindaje ADR-008; la integración
+  T-302 → T-303 → T-301; y la reutilización por F4.
+- **Herramienta de inspección** ✅: `scripts/F3/t303.py` — imprime el registro
+  (`--reglas`), corre **9 escenarios** de la cadena T-302 → T-303 → T-301
+  (lectura sana, letra fuera de vocabulario, tique `090`, sustento que no
+  sostiene, contradicción, fuente incompleta, recuadro del VLM sin patrón de R5,
+  dos fuentes con una débil, conflicto R7) con ✅/❌ y salida no-cero, acepta
+  `--detalle`/`--json` y `--campo` para validar un campo propio (el uso de F4).
+- **Bugs encontrados por la herramienta** (y cubiertos con tests de regresión):
+  1. `RAW_VOCABULARIO` reportaba `None` en lugar del valor crudo, porque T-302
+     normalizaba la letra antes de la pasada raw. Se agregó
+     `EvidenciaLectura.valor_crudo`.
+  2. El sostén laxo confundía la preposición española "a" con la letra A
+     ("junto **a** COD. 006"): los valores de un solo carácter ahora exigen
+     mayúscula exacta.
+- **Pendiente de otras tareas**: la **letra** la sigue decidiendo R1-R7 (T-301);
+  el veredicto raw solo la califica. La precedencia por campo entre fuentes
+  sigue siendo F4/T-404 (ADR-002).
 
 ### 3.4 T-304 · Refactor cadena contable 01→02→03 (con contratos entre pasos)
 
@@ -264,12 +326,12 @@
 ### 3.6 Avance
 
 - **Estado (2026-09-10)**: F3 en 🟡 **En implementación**. **T-301: Hecha**
-  (motor de reglas R1-R7 en código + contexto tipado + `clasificar_tipo_comprobante()`)
-  y **T-302: Hecha** (prompt de evidencia `tipo-comprobante@1` + lector
-  inyectable + `contexto_desde_evidencia()`/`leer_evidencia()`; suite en verde:
-  **500 passed, 10 skipped** — 122 tests de T-301 + 50 de T-302 sobre una base de
-  328). **Pendientes**: T-303, T-304 y
-  T-305. `clasificar_contable()` sigue lanzando `NotImplementedError` (T-304) y
+  (motor de reglas R1-R7 en código + contexto tipado + `clasificar_tipo_comprobante()`),
+  **T-302: Hecha** (prompt de evidencia `tipo-comprobante@1` + lector inyectable)
+  y **T-303: Hecha** (pasada 1 de reglas raw por fuente + candidatos curados).
+  Suite en verde: **553 passed, 10 skipped** — 225 tests de F3 (122 de T-301 + 50
+  de T-302 + 53 de T-303) sobre una base de 328). **Pendientes**: T-304 y T-305.
+  `clasificar_contable()` sigue lanzando `NotImplementedError` (T-304) y
   `api.classify()` **no** se implementa todavía (depende de T-304); la lista de
   esqueletos de `test_esqueletos_lanzan_notimplemented` queda igual (`classify`,
   `extract`, `run`).
@@ -284,7 +346,7 @@
   F2 con `validate`, subplan F1 §2.4 / F2 §2.7). Cuidado: `extract` y `run`
   **siguen** en la lista (F4/F5).
 - Suite default en verde al inicio (referencia: 187 tests al cierre de F1 + los
-  de F2; **500 passed / 10 skipped** tras T-301 y T-302).
+  de F2; **553 passed / 10 skipped** tras T-301, T-302 y T-303).
 
 ## 4. Reglas duras (no romper F0/F1/F2)
 
@@ -401,7 +463,8 @@ La salida del modelo **no** decide; reporta evidencia de lectura:
 - `src/voucherflow/api.py` (`classify` implementado; import diferido, mismo
   patrón que `process`/`validate`)
 - `scripts/F3/classification_pipeline.py`, `scripts/F3/paridad_contable.py`,
-  `scripts/F3/paridad_11_1.py`, `scripts/F3/t301.py`, `scripts/F3/t305.py`
+  `scripts/F3/paridad_11_1.py`, `scripts/F3/t301.py`, `scripts/F3/t302.py`,
+  `scripts/F3/t303.py`, `scripts/F3/t305.py`
 - Tests: `tests/test_rules_contexto.py`, `tests/test_rules_tipo_comprobante.py`,
   `tests/test_rules_raw.py`, `tests/test_classification_prompt_tipo.py`,
   `tests/test_classification_contable.py`, `tests/test_classification_paridad.py`

@@ -61,7 +61,11 @@ from ..rules.contexto import (
     letra_en_vocabulario,
     normalizar_letra,
 )
-from ..rules.tipo_comprobante_rules import extraer_letra_encabezado
+from ..rules.raw import CampoDeclarado, VeredictoRaw, evaluar_raw
+from ..rules.tipo_comprobante_rules import (
+    REGEX_LETRA_ENCABEZADO,
+    extraer_letra_encabezado,
+)
 from ..schemas.evidence import EvidenceField, Fuente, SourceEvidence, nueva_meta
 from ..settings.config import Settings, cargar_settings
 from .prompt_tipo_comprobante import (
@@ -118,18 +122,6 @@ MOTIVO_LETRA_FUERA_VOCABULARIO = (
 MOTIVO_LETRA_NO_TEXTO = (
     "El modelo devolvió 'tipo_detectado_por_documento' de tipo {tipo} en lugar "
     "de una letra; se descarta el valor y se registra el campo como faltante."
-)
-
-#: Motivo con el que se marca una lectura de texto que reporta letra pero cuyo
-#: fragmento no contiene una expresión que R5 sepa extraer
-#: (``FACTURA X``/``COMPROBANTE X``). Sin esta nota, la letra leída se perdería
-#: en silencio al pasar por la regex de R5 (el motor solo lee **texto**, no la
-#: letra suelta). No es un veredicto de contradicción — eso es T-303.
-MOTIVO_FRAGMENTO_SIN_PATRON_R5 = (
-    "La fuente de texto reportó la letra {letra!r}, pero su fragmento de "
-    "sustento no contiene una expresión 'FACTURA <letra>' ni 'COMPROBANTE "
-    "<letra>' que R5 pueda extraer; el motor no confirmará la letra con esta "
-    "evidencia (el texto crudo del encabezado es el insumo de R5)."
 )
 
 #: Motivo con el que se marca una lectura sin fragmento de sustento. El prompt
@@ -228,6 +220,12 @@ class EvidenciaLectura:
         fuente_declarada: ``fuente_lectura`` que declaró el modelo (puede ser
             ``None`` si no lo declaró, o distinta de :attr:`fuente`).
         crudo: la respuesta textual del modelo (auditoría / diagnóstico).
+        valor_crudo: lo que el modelo declaró en ``tipo_detectado_por_documento``
+            **antes** de normalizar (p. ej. ``"Z"`` o ``"factura A"``). Se
+            conserva porque la pasada de reglas raw (T-303) tiene que poder
+            reportar *qué* declaró la fuente cuando el valor queda fuera del
+            vocabulario: normalizado a ``None``, esa información se perdería.
+            El motor R1-R7 sigue viendo solo :attr:`letra` (normalizada).
     """
 
     fuente: str
@@ -239,6 +237,7 @@ class EvidenciaLectura:
     problemas: list[str] = field(default_factory=list)
     fuente_declarada: str | None = None
     crudo: str = ""
+    valor_crudo: Any = None
 
     @property
     def valida(self) -> bool:
@@ -436,15 +435,11 @@ def parsear_evidencia_lectura(
         faltantes.append(CAMPO_EXPLICACION)
         problemas.append(MOTIVO_SIN_SUSTENTO)
 
-    # --- 2.b. Coherencia lectura↔sustento en la fuente de texto -----------
-    # El motor lee la fuente de texto con la **regex de R5** sobre el texto
-    # crudo del encabezado (``texto_encabezado_llm``), no con la letra suelta.
-    # Si el fragmento no trae una expresión extraíble, la letra se perdería más
-    # adelante sin explicación: se deja anotado acá (visibilidad, no decisión).
-    if fuente == "llm" and letra is not None:
-        letra_del_fragmento = letra_en_vocabulario(extraer_letra_encabezado(fragmento))
-        if letra_del_fragmento is None:
-            problemas.append(MOTIVO_FRAGMENTO_SIN_PATRON_R5.format(letra=letra))
+    # --- 2.b. Coherencia lectura↔sustento: la califica la pasada raw ------
+    # El motor de reglas **raw** (``rules/raw.py``, T-303) es quien califica
+    # esta lectura (¿el fragmento sostiene la letra? ¿la contradice?). Acá no se
+    # duplica: se construye el ``CampoDeclarado`` con ese fin en
+    # :func:`campo_declarado_de_evidencia`.
 
     # --- 3. Candidatos ----------------------------------------------------
     # En descartados sí se excluye la letra leída (el documento la muestra, no
@@ -500,6 +495,7 @@ def parsear_evidencia_lectura(
         problemas=problemas,
         fuente_declarada=fuente_declarada,
         crudo=contenido,
+        valor_crudo=crudo_letra,
     )
 
 
@@ -508,10 +504,94 @@ def parsear_evidencia_lectura(
 # ---------------------------------------------------------------------------
 
 
+#: Nota que se agrega al motivo de una lectura de **texto** cuyo fragmento no
+#: contiene la expresión que R5 sabe extraer. Vive acá (y no en ``rules/raw.py``)
+#: porque describe la consecuencia en **este** dominio: el registro raw no debe
+#: saber que existe R5.
+NOTA_LLM_SIN_PATRON_R5 = (
+    "Además, el motor no podrá confirmar la letra con la fuente de texto: R5 "
+    "aplica su regex sobre el fragmento y no la encuentra (el texto crudo del "
+    "encabezado es el insumo de R5)."
+)
+
+
+def campo_declarado_de_evidencia(evidencia: EvidenciaLectura) -> CampoDeclarado:
+    """Traduce una :class:`EvidenciaLectura` al campo que valida la pasada raw.
+
+    Es el punto donde la evidencia de tipo/letra entra al motor de reglas raw
+    (T-303). Se declara:
+
+    - el **vocabulario** de letras del motor (``LETRAS_COMPROBANTE``: sin los
+      tiques ``090``/``099``, D-13);
+    - el **normalizador** ``normalizar_letra`` — el mismo que usan R4/R5, de modo
+      que la comparación raw y la del motor no puedan divergir;
+    - el **patrón de sustento** de R5 (``REGEX_LETRA_ENCAZADO``) **solo para la
+      fuente de texto**: la letra se da por sostenida si el fragmento trae una
+      expresión ``FACTURA <letra>``/``COMPROBANTE <letra>``. Para la fuente de
+      imagen no se aplica ese patrón: el fragmento del VLM es una *descripción*
+      de lo que vio ("Recuadro grande con 'A' junto a 'COD. 01'"), no el texto
+      OCR, así que exigirle la forma ``FACTURA X`` produciría debilidades falsas.
+      En su lugar el sostén es laxo (la letra aparece como palabra suelta), que
+      es lo que el propio prompt del VLM pide reportar;
+    - la ``nota`` :data:`NOTA_LLM_SIN_PATRON_R5` cuando corresponde (fuente de
+      texto con letra reportada que el fragmento no permite extraer).
+
+    El ``valor`` es la letra **declarada por el modelo** (el crudo
+    :attr:`EvidenciaLectura.valor_crudo`, no la normalizada): la regla de
+    vocabulario tiene que poder ver que el modelo dijo ``"Z"`` para reportarlo.
+    Si se pasara la letra ya normalizada, el valor fuera de vocabulario se
+    convertiría en ``None`` y el veredicto diría "la fuente no declaró nada"
+    cuando en realidad declaró algo inválido — que es justo lo que la pasada raw
+    existe para distinguir.
+    """
+    nota = ""
+    patron = None
+    if evidencia.fuente == "llm":
+        # Solo el texto se lee con la regex de R5 (es su insumo), así que solo
+        # ahí tiene sentido exigir la forma ``FACTURA <letra>``.
+        patron = REGEX_LETRA_ENCABEZADO
+        if (
+            evidencia.letra is not None
+            and letra_en_vocabulario(extraer_letra_encabezado(evidencia.fragmento)) is None
+        ):
+            nota = NOTA_LLM_SIN_PATRON_R5
+    return CampoDeclarado(
+        campo=EVIDENCIA_CAMPO_LETRA,
+        valor=evidencia.valor_crudo,
+        fragmento=evidencia.fragmento,
+        vocabulario=LETRAS_COMPROBANTE,
+        normalizador=normalizar_letra,
+        patron_sustento=patron,
+        nota=nota,
+    )
+
+
+def veredicto_raw_de_evidencia(
+    evidencia: EvidenciaLectura,
+    *,
+    registro: Any = None,
+) -> VeredictoRaw:
+    """Corre la **pasada 1** de reglas raw sobre una lectura (T-303).
+
+    Envuelve :func:`~voucherflow.rules.raw.evaluar_raw` con el
+    :class:`CampoDeclarado` del dominio de tipo/letra
+    (:func:`campo_declarado_de_evidencia`). La ``fuente`` del veredicto es la de
+    la lectura (``vlm``/``llm``) para que la trazabilidad apunte bien.
+
+    No decide la letra: el veredicto solo **califica** la evidencia.
+    """
+    return evaluar_raw(
+        evidencia.fuente,
+        campo_declarado_de_evidencia(evidencia),
+        registro=registro,
+    )
+
+
 def construir_source_evidence(
     evidencia: EvidenciaLectura,
     *,
     modelo: str | None = None,
+    veredicto: VeredictoRaw | None = None,
 ) -> SourceEvidence:
     """Convierte una :class:`EvidenciaLectura` en ``SourceEvidence`` (ADR-001).
 
@@ -524,10 +604,12 @@ def construir_source_evidence(
     Los candidatos y los campos faltantes viajan en ``meta`` — no como campos
     nuevos de ``EvidenceField`` — porque el vocabulario per-campo lo fija F4
     con la tabla de precedencia (T-404/ADR-002); T-302 no debe anticiparlo.
-    ``reglas_aplicadas`` queda vacío y ``valida`` toma
-    :attr:`EvidenciaLectura.valida`: el veredicto de las reglas **raw** es de
-    **T-303** (``rules/raw.py``) y se implementa una sola vez, para que F4/T-403
-    lo reutilice (F3-subplan §3.3).
+
+    ``valida``, ``debilidades`` y ``reglas_aplicadas`` los aporta la **pasada 1
+    de reglas raw** (T-303): si no se pasa un :class:`VeredictoRaw` se corre
+    :func:`veredicto_raw_de_evidencia` acá mismo, de modo que el contrato de
+    ADR-001 se cumple siempre. El veredicto **califica** la evidencia; nunca
+    decide la letra (eso es R1-R7/T-301).
 
     ``confianza_fuente`` es la autoevaluación de la fuente (glosario §2.3) y se
     deriva de la higiene de la lectura: ``alta`` solo con letra **y** sustento y
@@ -539,6 +621,7 @@ def construir_source_evidence(
         exige sustento no vacío en ``EvidenceField``. Se usa un texto explícito
         que declara la ausencia en lugar de silenciarla.
     """
+    veredicto_usado = veredicto or veredicto_raw_de_evidencia(evidencia)
     fragmento = evidencia.fragmento.strip() or (
         f"Sin fragmento de sustento reportado por la fuente '{evidencia.fuente}' "
         "(T-302); la lectura no es auditable según ADR-001."
@@ -556,9 +639,11 @@ def construir_source_evidence(
         {
             "fuente_lectura": evidencia.fuente,
             "fuente_declarada": evidencia.fuente_declarada,
-            "candidatos_descartados": list(evidencia.candidatos_descartados),
-            "candidatos_restantes": list(evidencia.candidatos_restantes),
+            "candidatos_descartados": list(veredicto_usado.candidatos_descartados),
+            "candidatos_restantes": list(veredicto_usado.candidatos_restantes),
             "campos_desconocidos": list(evidencia.campos_desconocidos),
+            "valida": veredicto_usado.valida,
+            "gravedad": veredicto_usado.gravedad.value,
         }
     )
 
@@ -573,9 +658,9 @@ def construir_source_evidence(
     return SourceEvidence(
         fuente=_FUENTE_SCHEMA[evidencia.fuente],
         campos={EVIDENCIA_CAMPO_LETRA: campo},
-        valida=evidencia.valida,
-        reglas_aplicadas=[],  # T-303 (rules/raw.py) las agrega una sola vez.
-        debilidades=list(evidencia.problemas),
+        valida=veredicto_usado.valida,
+        reglas_aplicadas=list(veredicto_usado.reglas_aplicadas),
+        debilidades=list(veredicto_usado.debilidades),
     )
 
 
@@ -664,6 +749,7 @@ class LecturaTipoComprobante:
 
     lecturas: list[EvidenciaLectura] = field(default_factory=list)
     evidencias: list[SourceEvidence] = field(default_factory=list)
+    veredictos: list[VeredictoRaw] = field(default_factory=list)
     contexto: ContextoTipoComprobante | None = None
     documento_id: str = ""
     detalle: dict[str, Any] = field(default_factory=dict)
@@ -683,6 +769,45 @@ class LecturaTipoComprobante:
             if lectura.fuente == "llm" and lectura.letra is not None:
                 return lectura.letra
         return None
+
+    @property
+    def candidatos_descartados(self) -> list[str]:
+        """Candidatos descartados por las reglas raw, agregando las fuentes.
+
+        Es la lectura curada de T-303: descarta lo que el **sustento** de una
+        fuente contradijo, no lo que el modelo simplemente listó. La consumirá
+        ``clasificar_tipo_comprobante`` (T-303) y F5 para la conclusión.
+        """
+        salida: list[str] = []
+        for veredicto in self.veredictos:
+            for valor in veredicto.candidatos_descartados:
+                if valor not in salida:
+                    salida.append(valor)
+        return salida
+
+    @property
+    def candidatos_restantes(self) -> list[str]:
+        """Candidatos que siguen vivos tras la pasada raw, agregando las fuentes."""
+        salida: list[str] = []
+        for veredicto in self.veredictos:
+            for valor in veredicto.candidatos_restantes:
+                if valor not in salida:
+                    salida.append(valor)
+        return salida
+
+    @property
+    def fuentes_validas(self) -> list[str]:
+        """Fuentes cuyo veredicto raw no quedó invalidado (T-303)."""
+        return [veredicto.fuente for veredicto in self.veredictos if veredicto.valida]
+
+    @property
+    def debilidades(self) -> list[str]:
+        """Debilidades detectadas por la pasada raw, con la fuente delante."""
+        return [
+            f"[{veredicto.fuente}] {debilidad}"
+            for veredicto in self.veredictos
+            for debilidad in veredicto.debilidades
+        ]
 
 
 def _fuentes_con_insumo(
@@ -792,6 +917,7 @@ def leer_evidencia(
 
     lecturas: list[EvidenciaLectura] = []
     evidencias: list[SourceEvidence] = []
+    veredictos: list[VeredictoRaw] = []
     modelos: dict[str, dict[str, Any]] = {}
 
     for fuente in con_insumo:
@@ -806,9 +932,22 @@ def leer_evidencia(
             num_ctx=num_ctx,
         )
         evidencia = parsear_evidencia_lectura(respuesta.contenido, fuente=fuente)
+        # Pasada 1 (reglas raw, T-303): califica la lectura **una sola vez** y
+        # alimenta tanto el SourceEvidence como los candidatos que consumirá el
+        # motor de T-301.
+        veredicto = veredicto_raw_de_evidencia(evidencia)
         lecturas.append(evidencia)
-        evidencias.append(construir_source_evidence(evidencia, modelo=modelo_usado))
-        modelos[fuente] = {"modelo": modelo_usado, "num_ctx": num_ctx}
+        veredictos.append(veredicto)
+        evidencias.append(
+            construir_source_evidence(evidencia, modelo=modelo_usado, veredicto=veredicto)
+        )
+        modelos[fuente] = {
+            "modelo": modelo_usado,
+            "num_ctx": num_ctx,
+            "valida": veredicto.valida,
+            "gravedad": veredicto.gravedad.value,
+            "reglas_raw": list(veredicto.reglas_aplicadas),
+        }
 
     contexto = contexto_base
     for evidencia in lecturas:
@@ -828,6 +967,7 @@ def leer_evidencia(
     return LecturaTipoComprobante(
         lecturas=lecturas,
         evidencias=evidencias,
+        veredictos=veredictos,
         contexto=contexto,
         documento_id=documento_id,
         detalle=detalle,
@@ -841,13 +981,15 @@ __all__ = [
     "MOTIVO_FUENTE_DECLARADA_DISTINTA",
     "MOTIVO_LETRA_FUERA_VOCABULARIO",
     "MOTIVO_LETRA_NO_TEXTO",
-    "MOTIVO_FRAGMENTO_SIN_PATRON_R5",
     "MOTIVO_SIN_SUSTENTO",
+    "NOTA_LLM_SIN_PATRON_R5",
     "ErrorEvidencia",
     "Lector",
     "EvidenciaLectura",
     "LecturaTipoComprobante",
     "parsear_evidencia_lectura",
+    "campo_declarado_de_evidencia",
+    "veredicto_raw_de_evidencia",
     "construir_source_evidence",
     "contexto_desde_evidencia",
     "leer_evidencia",
