@@ -15,7 +15,7 @@
 | **ADRs relacionados** | ADR-001 (contrato de evidencia compartido VLM/LLM — bloqueante); ADR-002 (tabla de precedencia por campo en la combinación — bloqueante); ADR-006 (reglas raw de lectura en código); ADR-007 (layout). |
 | **Interfaces clave** | `extraer()` (VLM imagen + LLM OCR en paralelo); combinación modelada como `{ campo: { "vlm": EvidenceField, "llm": EvidenceField, "resolucion": FieldResolution { ganador, regla, motivo } } }`; normalización key-value (CUIT dígitos+guiones, fechas YYYY-MM-DD, montos sin separadores, punto_venta/número de PPPPP-NNNNNNNN). |
 | **Responsable ciclo** | team analysis (BA/SA/PM) → team implementation |
-| **Estado de diseño** | 🟡 En implementación (T-401: flujos en paralelo + contrato de evidencia; T-402..T-405 pendientes) |
+| **Estado de diseño** | 🟡 En implementación (T-401: flujos en paralelo + contrato de evidencia; T-402: normalización key-value; T-403..T-405 pendientes) |
 | **Fecha inicio** | 2026-09-10 |
 | **Fecha fin** |  |
 
@@ -29,25 +29,36 @@
 | Reglas raw VLM / reglas raw LLM (pasada 1 por fuente) | §4.4 | E-EXT-2 | F4 / T-403 | [ ] pendiente (T-401 ya reutiliza el registro de T-303 para el contrato de F0; su afinación es T-403) |
 | Combinar evidencia por campo con fuente | §4.4 + §6 (nota de diseño) | E-EXT-1 | F4 / T-404 | [ ] pendiente (`combinar_evidencia` sigue esqueleto a propósito) |
 | Resolución por campo (`FieldResolution` con precedencia ADR-002) | §6 | E-EXT-1 | F4 / T-404 | [ ] pendiente |
-| Normalización key-value (CUIT, fechas, montos, punto_venta/número, ítems) | E-EXT-3 (doc 02) + §10 heredado | E-EXT-3 | F4 / T-402 | [ ] pendiente (T-401 conserva el valor crudo a propósito) |
+| Normalización key-value (CUIT, fechas, montos, punto_venta/número, ítems) | E-EXT-3 (doc 02) + §10 heredado | E-EXT-3 | F4 / T-402 | [x] hecho (`extraction/key_value.py`: reglas portadas a código de los prompts `10`/`11`/`kvi`/`kvg`; `normalizar=True` por default en `ejecutar_flujo`; el crudo sobrevive en `meta['valor_crudo']`) |
 | Contrato `EvidenceField`/`SourceEvidence` (schema pydantic, T-001) | §6 + §9 | E-EXT / E-LIB-2 | F0 / T-001 | [x] hecho (F0; consumido por T-401) |
-| Evidencia combinada (`CombinedEvidence`) como entrada de la conclusión | §4.5 + §9 | E-EXT / E-CONC | F4 → F5 / T-404→T-501 | [ ] pendiente |
+| Evidencia combinada (`CombinedEvidence`) como entrada de la conclusión | §4.5 + §9 | E-EXT / E-CONC | F4 → F5 / T-404→T-501 | [ ] pendiente (T-402 deja los valores de las dos fuentes comparables campo a campo) |
 | Paridad con `extraction_pipeline.py` (10/11) y `document_extraction.py` (kvi/kvg) | §8.2 (mapeo v1→v2) | E-EXT | F4 / T-405 | [ ] pendiente (el intérprete ya tolera el JSON plano de `kvi`/`kvg` para poder medirla) |
 
-> **Nota de alcance (T-401)**: los campos de **formato volátil** (montos, fechas,
-> `descripcion`) **no** se evalúan por sostén literal en T-401: el OCR decide los
+> **Nota de alcance (T-401/T-402)**: los campos de **formato volátil** (montos,
+> fechas, `descripcion`) **no** se evalúan por sostén literal: el OCR decide los
 > separadores de miles/decimales y el formato de fecha, así que exigir igualdad
 > literal produciría debilidades espurias. Quedan listados explícitamente en
 > `ExtraccionEvidencia.detalle["modelos"][fuente]["sosten_no_evaluado"]` (no se
-> inventa un veredicto favorable) y los cubre T-402 (normalización) + T-403
-> (reglas raw por fuente).
+> inventa un veredicto favorable). **T-402 les dio representación canónica**
+> (fecha ISO, monto numérico, texto colapsado) y **T-403** es quien afina su
+> validación raw por fuente.
+>
+> **Nota de alcance (T-402)**: normalizar **no** borra la lectura. El valor
+> publicado en el `SourceEvidence` es el canónico de E-EXT-3 y el que reportó el
+> modelo queda en `meta['valor_crudo']`; `normalizar=False` devuelve la lectura
+> cruda de T-401 completa. Un valor **no normalizable** (un monto con palabras, un
+> año de dos dígitos) **conserva el crudo con un aviso** en vez de descartarse:
+> "no normalizable" no es "ausente". Los avisos que son limitaciones reales
+> (CUIT truncado, monto ambiguo, fecha inexistente) llegan a
+> `SourceEvidence.debilidades`; los que solo documentan una decisión (el número no
+> tiene la forma `PPPPP-NNNNNNNN`) quedan en la traza sin degradar la evidencia.
 
 ## 3. Definition of Design / contratos a congelar
 
 - [x] Interfaz pública acordada: firmas de los flujos VLM/LLM devolviendo `SourceEvidence` (`extraction/flows.py::flujo_vlm`/`flujo_llm`, T-401) y de la combinación devolviendo `CombinedEvidence` (**pendiente**: T-404, `combinar_evidencia` sigue esqueleto). El lector de modelo es un parámetro inyectable (protocolo `extraction.Lector`, mismo criterio que F3-subplan §2.6).
-- [x] Contrato de entrada/salida alineado al schema de evidencia: `EvidenceField { campo, valor, fuente, fragmento_sustento, confianza_fuente, meta }` validado con pydantic — el intérprete de T-401 rechaza con error de contrato claro lo que no es JSON de objeto (`ErrorEvidencia`) y declara explícitamente el fragmento ausente (E-LIB-2).
-- [x] ADR(s) asociado(s) resueltos: ADR-001 (schema estricto por campo y prompts reescritos a evidencia: `extraccion-key-value@1` no normaliza ni decide) y ADR-002 (**parcial**: T-401 conserva ambas evidencias sin colapsar; la tabla de precedencia por campo la aplica T-404).
-- [ ] Casos de golden set / tests que lo validan: los casos de discrepancia VLM/LLM y de fuente inconsistentemente sostenida ya están cubiertos por `tests/test_extraction_flujos.py` y `scripts/F4/t401.py` (sintéticos); el subconjunto del golden y la paridad de campos normalizados contra v1 son de **T-405**.
+- [x] Contrato de entrada/salida alineado al schema de evidencia: `EvidenceField { campo, valor, fuente, fragmento_sustento, confianza_fuente, meta }` validado con pydantic — el intérprete de T-401 rechaza con error de contrato claro lo que no es JSON de objeto (`ErrorEvidencia`) y declara explícitamente el fragmento ausente (E-LIB-2). El `valor` publicado es el **normalizado** (T-402) y el crudo queda en `meta['valor_crudo']`, junto a la trazabilidad de la regla (`regla_normalizacion`, `avisos_normalizacion`, `derivado_de`).
+- [x] ADR(s) asociado(s) resueltos: ADR-001 (schema estricto por campo y prompts reescritos a evidencia: `extraccion-key-value@1` no normaliza ni decide — **la normalización vive en código**, `key_value.py`, T-402) y ADR-002 (**parcial**: T-401 conserva ambas evidencias sin colapsar; la tabla de precedencia por campo la aplica T-404).
+- [ ] Casos de golden set / tests que lo validan: los casos de discrepancia VLM/LLM y de fuente inconsistentemente sostenida ya están cubiertos por `tests/test_extraction_flujos.py` y `scripts/F4/t401.py` (sintéticos), y las reglas de normalización por `tests/test_extraction_key_value.py` (97) + `scripts/F4/t402.py` (19/19 reglas · 17/17 escenarios · 5/5 fronteras); el subconjunto del golden y la paridad de campos normalizados contra v1 son de **T-405**.
 
 ## 4. Decisiones abiertas que lo afectan
 
@@ -62,3 +73,4 @@
 | Fecha | Acción / hito | Responsable | Estado |
 |---|---|---|---|
 | 2026-09-10 | **T-401 hecha**: los flujos VLM (vista fiel de F2) y LLM (OCR/Markdown de F1) corren **en paralelo** (`ThreadPoolExecutor`, una tarea por fuente) y cada uno devuelve `SourceEvidence` con el contrato de F0 (ADR-001). Prompt de evidencia versionado `extraccion-key-value@1` (el modelo reporta valor + fragmento de sustento; no normaliza ni decide). El intérprete no inventa campos ausentes, tolera el JSON plano de v1 (`kvi`/`kvg`) y reutiliza la pasada raw de T-303; los campos de formato volátil quedan explícitamente sin evaluar por sostén (T-402/T-403). Una fuente caída no tumba a la otra; todas caídas lanzan `ErrorExtraccion`. Módulo en 🟡 En implementación. | team implementation | Hecho |
+| 2026-09-10 | **T-402 hecha**: `extraction/key_value.py` normaliza los campos clave (E-EXT-3) portando a **código** las reglas de los prompts `10`/`11`/`kvi`/`kvg`: CUIT solo dígitos y guiones propios con corte ante caracteres extraños, fechas `YYYY-MM-DD` solo completas y reales, montos numéricos sin separadores de miles (con signo y constancia de ambigüedad), `punto_venta`/`numero_comprobante` derivados del número impreso, moneda `ARS`/`USD` sin default, texto colapsado, `descripcion` en minúsculas e ítems estructurados. El `SourceEvidence` publica el valor canónico y conserva el crudo en `meta['valor_crudo']`; `normalizar=False` devuelve la lectura cruda de T-401 y la pasada raw de T-303 sigue evaluando el crudo. Regla dura: un dato ilegible conserva el crudo con aviso (no se inventa un canónico). | team implementation | Hecho |

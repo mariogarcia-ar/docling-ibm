@@ -76,6 +76,10 @@ explícito, no `if` disperso).
   `extraction/flows.py` devuelve `SourceEvidence` con `meta.version_prompt`.
   El modo plano legado de `kvi`/`kvg` sigue aceptándose en el intérprete
   (`parsear_evidencia_extraccion`) para medir la paridad de T-405.
+  **F4/T-402** cerró la otra mitad del ADR: la normalización que v1 le pedía al
+  prompt vive ahora en `extraction/key_value.py` (reglas `NORM_*` versionadas
+  como `extraccion-key-value-norm@1`) y el contrato publica el valor canónico sin
+  perder el crudo (`meta['valor_crudo']`, `normalizar=False`).
 
 **Contexto**
 Hoy cada modalidad devuelve JSON libre según el prompt (`kvi`, `kvg`, `11.1`).
@@ -113,6 +117,10 @@ se reescribe para devolver **evidencia**, no decisión final.
   **sin colapsar** (`extraction/evidencia.py::extraer_evidencia`), así que la
   combinación de T-404 tiene ambas entradas disponibles;
   `combinar_evidencia()` sigue lanzando `NotImplementedError` a propósito.
+  **Avance (F4/T-402)**: los dos lados llegan con los **mismos valores canónicos**
+  (`normalizar=True` por default), así que la comparación campo a campo de la
+  tabla de precedencia es directa — sin "ganadores" espurios por formato
+  (`"14/08/2025"` vs. `"2025-08-14"`).
 
 **Contexto**
 Cuando VLM y LLM discrepan en un campo, hay que decidir qué fuente gana por tipo

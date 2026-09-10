@@ -1,6 +1,8 @@
-"""Evidencia de extracción key-value + flujos VLM/LLM en **paralelo** (F4 / T-401).
+"""Evidencia de extracción key-value + flujos VLM/LLM en **paralelo** (F4).
 
-**Fase**: F4 (extracción) · **Tarea**: T-401 · **Épica**: E-EXT-1.
+**Fase**: F4 (extracción) · **Tareas**: T-401 (lectura y contrato de evidencia),
+T-402 (normalización de los valores) · **Épicas**: E-EXT-1 (dos flujos siempre en
+paralelo), E-EXT-3 (campos normalizados).
 
 Qué resuelve este módulo
 -----------------------
@@ -30,7 +32,14 @@ Las piezas, en el orden en que se usan:
 4. :func:`construir_source_evidence` — la conversión al contrato de F0
    (`SourceEvidence` con un `EvidenceField` por campo declarado, con su
    `fragmento_sustento` y su `meta` de trazabilidad — ADR-005).
-5. :func:`extraer_evidencia` — la **orquestación en paralelo** de las fuentes
+5. **La normalización** (T-402, ``key_value.py``): sobre la lectura cruda se
+   aplican las reglas de E-EXT-3 (CUIT cortado, fecha ISO, monto numérico,
+   ``punto_venta``/``numero_comprobante`` derivados). El valor publicado en el
+   ``SourceEvidence`` es el normalizado; el crudo queda en
+   ``meta['valor_crudo']``. Con ``normalizar=False`` se saltea (lectura cruda).
+6. **La pasada raw** (T-303, reutilizada de F3): califica la evidencia y publica
+   ``valida``/``debilidades``/``reglas_aplicadas`` en el contrato de F0.
+7. :func:`extraer_evidencia` — la **orquestación en paralelo** de las fuentes
    disponibles, con la trazabilidad de las dos corridas (doc 03 §4.4/E-EXT-1).
 
 Decisión de alcance: paralelismo real con hilos
@@ -77,9 +86,15 @@ módulo devuelve las dos `SourceEvidence` **sin colapsarlas** (ADR-001/ADR-002).
 
 Qué **no** hace T-401 (para no adelantar tareas)
 -----------------------------------------------
-* No normaliza valores (CUIT, fechas, montos, punto_venta/número): **T-402**.
 * No combina ni resuelve desacuerdos entre fuentes: **T-404**.
 * No mide paridad con v1 ni arma el `CombinedEvidence` final: **T-405/T-404**.
+
+La **normalización** de los valores NO vive acá: la aporta
+:mod:`voucherflow.extraction.key_value` (**T-402**, E-EXT-3), y
+:func:`ejecutar_flujo` la aplica entre la interpretación y la construcción del
+``SourceEvidence``. Este módulo sigue **sin** normalizar: por eso la pasada raw
+de T-303 puede correr sobre la lectura y la normalización tiene una frontera
+testable (``normalizar=False`` devuelve la lectura cruda de T-401).
 """
 
 from __future__ import annotations
@@ -105,6 +120,61 @@ from .prompt_extraccion import (
     VERSION_PROMPT_EXTRACCION,
     construir_messages_extraccion,
 )
+
+#: Import diferido de ``key_value`` (T-402).
+#:
+#: ``key_value`` importa ``CampoLectura``/``EvidenciaExtraccion`` de este módulo
+#: (los necesita como entrada), así que un import de módulo acá crearía un ciclo.
+#: La normalización se carga la primera vez que se usa (``_normalizar``), que en
+#: la práctica es la primera extracción: el costo es un ``import`` ya cacheado y
+#: el beneficio es que el módulo de evidencia sigue siendo importable solo.
+def _normalizar(
+    evidencia: "EvidenciaExtraccion",
+) -> "tuple[EvidenciaExtraccion, InformeNormalizacion]":
+    """Aplica la normalización de T-402 a una lectura (import diferido).
+
+    Devuelve ``(evidencia_normalizada, informe)``. Aislada en una función para
+    que el import diferido esté en **un** lugar y no repetido en cada punto de
+    uso (lo usan ``ejecutar_flujo`` y quien quiera normalizar una lectura ya
+    interpretada, como los consumidores de T-403/T-405).
+    """
+    from .key_value import normalizar_evidencia  # noqa: PLC0415 - rompe el ciclo
+
+    resultado = normalizar_evidencia(evidencia)
+    return resultado.evidencia, resultado.informe
+
+
+def version_normalizacion() -> str:
+    """Versión de las reglas de normalización vigentes (T-402, ADR-005).
+
+    Import diferido del mismo módulo que :func:`_normalizar`: la consola de la
+    corrida (``detalle``) y los reportes registran la versión sin forzar la
+    carga de ``key_value`` al importar ``evidencia``.
+    """
+    from .key_value import VERSION_NORMALIZACION  # noqa: PLC0415
+
+    return VERSION_NORMALIZACION
+
+
+def _detalle_normalizacion(resultado: "ResultadoFlujo") -> dict[str, Any] | None:
+    """Resumen del informe de normalización de una fuente (T-402).
+
+    Es la parte del informe que importa para la traza de la corrida: qué reglas
+    se aplicaron, cuántos campos quedaron canónicos, cuántos no se pudieron
+    normalizar y la lista de avisos. El informe completo queda en
+    ``ResultadoFlujo.informe_normalizacion``.
+    """
+    informe = resultado.informe_normalizacion
+    if informe is None:
+        return None
+    return {
+        "version": informe.version,
+        "reglas_aplicadas": list(informe.reglas_aplicadas),
+        "campos_normalizados": sorted(informe.normalizados),
+        "campos_no_normalizados": sorted(informe.no_normalizados),
+        "derivados": dict(informe.derivados),
+        "avisos": [aviso.formateado() for aviso in informe.avisos],
+    }
 
 # ---------------------------------------------------------------------------
 # Constantes del contrato de evidencia de extracción
@@ -295,11 +365,25 @@ class CampoLectura:
     valor: Any = None
     fragmento: str = ""
     valor_crudo: Any = None
+    normalizado: bool = False
+    regla_normalizacion: str | None = None
+    avisos_normalizacion: tuple[str, ...] = ()
+    derivado_de: str | None = None
 
     @property
     def con_sustento(self) -> bool:
         """True si el campo citó un fragmento de sustento no vacío (ADR-001)."""
         return bool(self.fragmento.strip())
+
+    @property
+    def es_derivado(self) -> bool:
+        """True si el campo lo calculó el programa y no lo leyó el modelo (T-402).
+
+        Ejemplo: ``punto_venta``/``numero_comprobante`` se derivan del número
+        impreso (``derivado_de='nro_comprobante'``); heredan su sostén, así que
+        no son lecturas independientes de la fuente.
+        """
+        return self.derivado_de is not None
 
 
 @dataclass(frozen=True)
@@ -849,6 +933,15 @@ def construir_source_evidence(
                     if evaluados[nombre] is not None
                     else None
                 ),
+                # Trazabilidad de la normalización (T-402/E-EXT-3): si el valor
+                # publicado es canónico (``normalizado``), con qué regla y con
+                # qué reservas (``avisos_normalizacion``). Un campo **derivado**
+                # (``punto_venta``/``numero_comprobante``) declara de dónde sale:
+                # no es una lectura independiente de la fuente.
+                "normalizado": campo_lectura.normalizado,
+                "regla_normalizacion": campo_lectura.regla_normalizacion,
+                "avisos_normalizacion": list(campo_lectura.avisos_normalizacion),
+                "derivado_de": campo_lectura.derivado_de,
             }
         )
         campos[nombre] = EvidenceField(
@@ -911,6 +1004,14 @@ class ResultadoFlujo:
     modelo: str = ""
     num_ctx: int | None = None
     duracion_s: float = 0.0
+    informe_normalizacion: Any = None
+    """Trazabilidad de la normalización de T-402 (``InformeNormalizacion``).
+
+    Es ``None`` cuando la corrida se hizo con ``normalizar=False`` (lectura
+    cruda). El tipo se deja en ``Any`` porque el import de ``key_value`` es
+    diferido (evita el ciclo de import); el contrato real es
+    :class:`~voucherflow.extraction.key_value.InformeNormalizacion`.
+    """
 
 
 @dataclass
@@ -1019,6 +1120,7 @@ def ejecutar_flujo(
     vista: Any = None,
     modelo: str | None = None,
     settings: Settings | None = None,
+    normalizar: bool = True,
 ) -> ResultadoFlujo:
     """Corre **un** flujo de extracción (VLM o LLM) y devuelve su evidencia (T-401).
 
@@ -1055,6 +1157,13 @@ def ejecutar_flujo(
     duracion = time.monotonic() - inicio
 
     evidencia = parsear_evidencia_extraccion(respuesta.contenido, fuente=fuente)
+    # Normalización (T-402): la pasada raw de T-303 se corre sobre la evidencia
+    # **cruda** (es la que puede reportar qué se leyó cuando el valor no sirve) y
+    # el ``SourceEvidence`` publica el valor **normalizado** — la representación
+    # canónica de E-EXT-3 que consumen la conclusión y la paridad con v1.
+    informe = None
+    if normalizar:
+        evidencia, informe = _normalizar(evidencia)
     veredicto = veredicto_raw_de_evidencia(evidencia)
     return ResultadoFlujo(
         fuente=fuente,
@@ -1066,6 +1175,7 @@ def ejecutar_flujo(
         modelo=modelo_usado,
         num_ctx=num_ctx,
         duracion_s=duracion,
+        informe_normalizacion=informe,
     )
 
 
@@ -1079,6 +1189,7 @@ def extraer_evidencia(
     modelo: str | None = None,
     settings: Settings | None = None,
     max_workers: int | None = None,
+    normalizar: bool = True,
 ) -> ExtraccionEvidencia:
     """Extrae la evidencia de las fuentes disponibles **en paralelo** (T-401).
 
@@ -1110,6 +1221,11 @@ def extraer_evidencia(
         modelo: modelo explícito para **todas** las fuentes (sin ``num_ctx``).
         settings: ``Settings`` para resolver modelo/``num_ctx`` por rol.
         max_workers: tope de hilos (default: una tarea por fuente con insumo).
+        normalizar: si ``True`` (default), los valores se publican en su forma
+            canónica (T-402: CUIT cortado, fecha ``YYYY-MM-DD``, monto numérico,
+            ``punto_venta``/``numero_comprobante`` derivados). ``False`` devuelve
+            la lectura **cruda** de T-401 (lo usan los tests de contrato y
+            cualquier consumidor que quiera ver lo que el modelo declaró).
 
     Devuelve:
         :class:`ExtraccionEvidencia` con las evidencias por fuente y la
@@ -1148,6 +1264,7 @@ def extraer_evidencia(
                     vista=vista,
                     modelo=modelo,
                     settings=settings_usado,
+                    normalizar=normalizar,
                 ): fuente
                 for fuente in con_insumo
             }
@@ -1174,6 +1291,8 @@ def extraer_evidencia(
 
     detalle: dict[str, Any] = {
         "version_prompt": VERSION_PROMPT_EXTRACCION,
+        "version_normalizacion": version_normalizacion() if normalizar else None,
+        "normalizado": normalizar,
         "fuentes_pedidas": pedidas,
         "fuentes_corridas": [f for f in pedidas if f in resultados],
         "fuentes_sin_insumo": sin_insumo,
@@ -1197,12 +1316,16 @@ def extraer_evidencia(
                     if _es_formato_volatil(nombre, campo.valor)
                 ),
                 "duracion_s": round(resultado.duracion_s, 4),
+                "normalizacion": _detalle_normalizacion(resultado),
             }
             for fuente, resultado in resultados_ordenados.items()
         },
         "nota": (
-            "Extracción T-401: los dos flujos corren en paralelo y conservan su "
-            "evidencia sin colapsar (ADR-001); la normalización es T-402, la "
+            "Extracción T-402: los dos flujos corren en paralelo (E-EXT-1) y sus "
+            "valores se publican en forma canónica (E-EXT-3: CUIT cortado, fecha "
+            "YYYY-MM-DD, montos numéricos, punto_venta/numero separados); el "
+            "valor crudo de cada campo queda en "
+            "``SourceEvidence.campos[campo].meta['valor_crudo']``. La "
             "combinación por campo (ADR-002) es T-404."
         ),
     }
@@ -1241,4 +1364,5 @@ __all__ = [
     "construir_source_evidence",
     "ejecutar_flujo",
     "extraer_evidencia",
+    "version_normalizacion",
 ]

@@ -1,10 +1,11 @@
 """Módulo ``extraction`` (F4) — flujos VLM + LLM en paralelo con evidencia.
 
-**Fase**: F4 (extracción) · **Tarea**: T-401 · **Épicas**: E-EXT-1, E-EXT-2.
+**Fase**: F4 (extracción) · **Tareas**: T-401, T-402 · **Épicas**: E-EXT-1, E-EXT-3.
 
 Este módulo expone la **superficie pública** de la extracción (las firmas que F0
 dejó como esqueleto) y delega la lógica en
-:mod:`voucherflow.extraction.evidencia`:
+:mod:`voucherflow.extraction.evidencia` (lectura y contrato) y
+:mod:`voucherflow.extraction.key_value` (normalización):
 
 * :func:`flujo_vlm` — corre el flujo **VLM** (lee la imagen de la vista fiel de
   F2) y devuelve ``SourceEvidence`` (contrato de F0/ADR-001).
@@ -17,6 +18,12 @@ dejó como esqueleto) y delega la lógica en
 * :func:`combinar_evidencia` — **esqueleto de T-404**: combinar por campo con la
   precedencia de ADR-002 es de esa tarea; acá sigue lanzando
   ``NotImplementedError`` a propósito.
+
+Los valores que devuelven los flujos están **normalizados** (T-402/E-EXT-3):
+CUIT cortado a dígitos y guiones propios, fechas ``YYYY-MM-DD``, montos
+numéricos, ``punto_venta``/``numero_comprobante`` derivados del número impreso.
+El valor **crudo** de cada campo se conserva en ``meta['valor_crudo']``, y
+``normalizar=False`` devuelve la lectura tal como la reportó el modelo.
 
 Nota sobre la firma de F0: ``flujo_vlm(origen, **kwargs)`` /
 ``flujo_llm(markdown, **kwargs)`` se conservan tal cual (eran el contrato
@@ -70,6 +77,7 @@ def flujo_vlm(
     lector: Lector,
     modelo: str | None = None,
     settings: Any = None,
+    normalizar: bool = True,
     **kwargs: Any,
 ) -> SourceEvidence:
     """Flujo VLM: lee la imagen y devuelve ``SourceEvidence`` (F4/T-401).
@@ -90,6 +98,9 @@ def flujo_vlm(
             declara su ``num_ctx``).
         settings: ``Settings`` para resolver el rol del modelo (default:
             ``cargar_settings()``).
+        normalizar: si ``True`` (default), el ``SourceEvidence`` publica los
+            valores en su forma canónica (T-402: CUIT cortado, fecha ISO, montos
+            numéricos); el crudo queda en ``meta['valor_crudo']``.
 
     Devuelve:
         ``SourceEvidence`` de la fuente ``vlm`` (un ``EvidenceField`` por campo
@@ -101,7 +112,12 @@ def flujo_vlm(
         ``OllamaError`` si falla la comunicación con el modelo (se propaga).
     """
     return ejecutar_flujo(
-        "vlm", lector, vista=origen, modelo=modelo, settings=settings
+        "vlm",
+        lector,
+        vista=origen,
+        modelo=modelo,
+        settings=settings,
+        normalizar=normalizar,
     ).source_evidence
 
 
@@ -111,14 +127,15 @@ def flujo_llm(
     lector: Lector,
     modelo: str | None = None,
     settings: Any = None,
+    normalizar: bool = True,
     **kwargs: Any,
 ) -> SourceEvidence:
     """Flujo LLM: lee el OCR/Markdown y devuelve ``SourceEvidence`` (F4/T-401).
 
     Implementación de T-401 sobre el ``OllamaClient`` de F0: el flujo construye
     los ``messages`` del prompt de evidencia (el markdown va en ``content``) y
-    convierte la respuesta al contrato de evidencia de F0 (ADR-001) **sin
-    normalizar los valores** (eso es T-402).
+    convierte la respuesta al contrato de evidencia de F0 (ADR-001). Los valores
+    se publican normalizados (T-402); el crudo queda en ``meta['valor_crudo']``.
 
     Argumentos:
         markdown: markdown/OCR procesado de F1
@@ -126,6 +143,7 @@ def flujo_llm(
         lector: objeto con ``ask`` (protocolo :class:`Lector`).
         modelo: modelo explícito (default: rol ``llm`` de ``Settings``).
         settings: ``Settings`` para resolver el rol del modelo.
+        normalizar: si ``True`` (default), normaliza los valores (T-402).
 
     Devuelve:
         ``SourceEvidence`` de la fuente ``llm``.
@@ -136,7 +154,12 @@ def flujo_llm(
         ``OllamaError`` si falla la comunicación con el modelo (se propaga).
     """
     return ejecutar_flujo(
-        "llm", lector, markdown=markdown, modelo=modelo, settings=settings
+        "llm",
+        lector,
+        markdown=markdown,
+        modelo=modelo,
+        settings=settings,
+        normalizar=normalizar,
     ).source_evidence
 
 
@@ -150,6 +173,7 @@ def extraer(
     modelo: str | None = None,
     settings: Any = None,
     max_workers: int | None = None,
+    normalizar: bool = True,
 ) -> ExtraccionEvidencia:
     """Corre los dos flujos **en paralelo** y devuelve la evidencia por fuente (T-401).
 
@@ -170,6 +194,8 @@ def extraer(
         settings: ``Settings`` para resolver modelo/``num_ctx`` por rol.
         max_workers: tope de hilos (default: una tarea por fuente con insumo;
             ``max_workers=1`` fuerza la serialización).
+        normalizar: si ``True`` (default), publica los valores normalizados
+            (T-402); ``False`` devuelve la lectura cruda de T-401.
 
     Devuelve:
         :class:`~voucherflow.extraction.evidencia.ExtraccionEvidencia` con las
@@ -188,6 +214,7 @@ def extraer(
         modelo=modelo,
         settings=settings,
         max_workers=max_workers,
+        normalizar=normalizar,
     )
 
 
@@ -197,10 +224,10 @@ def combinar_evidencia(
     """Combina la evidencia de las fuentes con resolución por campo (F4).
 
     Esqueleto F0 — se implementa en F4/**T-404** aplicando la precedencia
-    declarativa de ADR-002. T-401 **no** la implementa a propósito: su
-    entregable es que ambos flujos corran en paralelo devolviendo
-    ``SourceEvidence`` con el contrato de F0, y las evidencias se conservan
-    separadas (ADR-001) hasta que la precedencia por campo esté definida.
+    declarativa de ADR-002. Ni T-401 (flujos en paralelo) ni T-402
+    (normalización) la implementan a propósito: sus entregables dejan las dos
+    ``SourceEvidence`` **completas y comparables** (mismos campos, mismos
+    valores canónicos) para que la resolución por campo tenga con qué trabajar.
     """
     raise NotImplementedError(
         "combinar_evidencia(): se implementa en F4 (T-404, precedencia ADR-002). "
