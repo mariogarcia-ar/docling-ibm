@@ -27,11 +27,11 @@ La lógica de cálculo (:func:`calcular_metricas`) es **pura** y está cubierta 
 tests con datos sintéticos, sin Ollama.
 
 Uso:
-    cd v2 && python scripts/F2/t204.py --help
-    cd v2 && python scripts/F2/t204.py                 # golden etiquetado completo
-    cd v2 && python scripts/F2/t204.py --split eval    # solo el split de evaluación
-    cd v2 && python scripts/F2/t204.py --detalle       # por caso + trazabilidad
-    cd v2 && python scripts/F2/t204.py --json /tmp/t204.json
+    python scripts/F2/t204.py --help
+    python scripts/F2/t204.py                 # golden etiquetado completo
+    python scripts/F2/t204.py --split eval    # solo el split de evaluación
+    python scripts/F2/t204.py --detalle       # por caso + trazabilidad
+    python scripts/F2/t204.py --json /tmp/t204.json
 
 Salida (ejemplo):
     EXACTITUD DEL GATE          7/9 = 77.8%   (umbral 90%)
