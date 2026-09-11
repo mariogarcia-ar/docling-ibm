@@ -5,7 +5,7 @@
 > ([`F5.md`](F5.md)) y el diseño del módulo
 > ([`../03-arquitectura/CONC.md`](../03-arquitectura/CONC.md)).
 > **Fecha**: 2026-09-11 · **Rama**: `v2` · **Estado**: 🟡 En implementación
-> (T-501..T-504 hechas; T-505..T-507 pendientes).
+> (T-501..T-505 hechas; T-506..T-507 pendientes).
 
 ## 1. Ficha del subplan
 
@@ -365,16 +365,51 @@ con prompt de decisión estructurado, sin framework.
 4. **Abstenerse es una salida, no un fallo**: `candidato: null` se distingue de
    "no pude interpretar la salida".
 
-### 3.5 T-505 · Cola HITL + registro de correcciones
+### 3.5 T-505 · Cola HITL + registro de correcciones ✅ Hecha
 
-> **Estado**: pendiente. ADR-004 y ADR-009.
+> **Estado**: ✅ Hecha (2026-09-11). ADR-004 y ADR-009.
 
 - `conclusion/hitl.py`: revisión obligatoria de certeza baja (prioridad `alta`)
-  + muestreo de auditoría de certeza alta (prioridad `baja`, tasa configurable
-  sugerida 5-10%).
-- Registro de correcciones como `feedback` (alimenta reglas y prompts).
-- El muestreo debe ser **determinista y auditable** (semilla/configuración), no
-  aleatorio silencioso: un caso muestreado hoy debe poder explicarse mañana.
+  + muestreo de auditoría de certeza alta (prioridad `baja`, tasa configurable,
+  **10%** por defecto — el extremo alto de la sugerencia del ADR-004, que es el
+  que arranca la mitigación de R-03).
+- `decidir_encolado()` es **pura**: devuelve un `Encolado`
+  (`requerido`/`prioridad`/`motivo`/`explicacion`) sin tocar el resultado. La
+  materialización en el `VoucherResult` la hace `encolar_hitl()`, que además
+  registra la entrada en la cola.
+- El muestreo es **reproducible**, no aleatorio: se deriva de
+  `sha256(f"{semilla}:{documento_id}")` (`seleccionado_para_auditoria()`). El
+  ADR-004 pide un muestreo "aleatorio estratificado configurable"; con `random`
+  sin semilla la decisión de auditar un caso sería **inauditable** (no se podría
+  responder por qué ése y no aquél). Además, la selección es **estable**: el
+  mismo documento con la misma semilla cae siempre igual, así que re-procesar no
+  cambia la suerte del caso.
+- `ColaHitl` (en memoria; el store durable es T-506/ADR-009): `pendientes()`
+  **priorizada** (alta primero, R-09), `obligatorios()`, `muestreados()`,
+  `corregidos()`; el mismo caso **no se duplica** y re-encolar uno revisado no
+  borra el trabajo humano.
+- Registro de correcciones como `feedback` (alimenta reglas y prompts):
+  `registrar_correccion()` guarda campo / valor anterior / valor nuevo / motivo /
+  revisor / timestamp; `confirmar()` registra «la regla acertó» **sin** corrección
+  (sin esa distinción, la ausencia de correcciones es ambigua entre "no se
+  revisó" y "se revisó y estaba bien").
+- `feedback()` **separa** las dos razones de auditar: correcciones de certeza
+  baja → el **agente** se equivocó (señal para mover casuística a reglas, R-09);
+  correcciones de muestreo → una **regla** acierta por accidente (señal para
+  ajustarla, R-03). Mezclarlas perdería la señal de cada una.
+- `HitlSettings` (nuevo en `settings/config.py`): `muestreo_tasa` (0.10),
+  `muestreo_semilla` (0), `muestreo_activo`, `revision_obligatoria_certeza_baja`.
+  El flag de revisión obligatoria decide **de verdad** (se limpió un `or True:`
+  que lo volvía inerte) y desactivarlo **se declara** en el motivo, no se
+  silencia.
+- Suites: `tests/test_conclusion_hitl_t505.py` (58) y `scripts/F5/t505.py`
+  (6/6 escenarios + 13/13 fronteras, `% revisión obligatoria` 2/2).
+- **Cuidado al tocar las tareas anteriores**: sus tests y scripts de frontera
+  verificaban que `encolar_hitl` era esqueleto (`NotImplementedError`). Con la
+  tarea hecha, esa aserción deja de describir el sistema y se **reescribió** para
+  verificar lo que esas fronteras querían decir: que la pasada 2 / la búsqueda /
+  la consolidación / el escalado **no encolan por su cuenta** (el encolado es un
+  paso explícito), y que la política de T-505 **sí** materializa la expectativa.
 
 ### 3.6 T-506 · Trazabilidad completa `CaseRecord` persistida
 
@@ -411,8 +446,9 @@ con prompt de decisión estructurado, sin framework.
   determinístico; los prompts solo reportan lectura.
 - **La suite default corre sin Ollama ni Docling reales**: el agente y el
   `ArcaClient` entran por inyección (protocolo), igual que el `Lector` de F4.
-- **No se agregan dependencias nuevas** (el muestreo usa `random` de la stdlib
-  con semilla; la persistencia usa `json` + escritura atómica).
+- **No se agregan dependencias nuevas** (el muestreo usa `hashlib` de la stdlib
+  —no `random`: con semilla explícita por caso el muestreo queda reproducible y
+  auditable sin estado global—; la persistencia usa `json` + escritura atómica).
 - **No loop abierto** (E-CONC-2): la búsqueda de evidencia adicional tiene
   `max_reintentos=N` y al agotarlo el caso **avanza**, no reintenta.
 - **No tocar `processing`/`validation`/`classification`/`extraction`**: F5
@@ -484,20 +520,26 @@ funcion concluir(evidencia: CombinedEvidence, *, contexto_extra=None):
 
 ### T-502..T-507
 - `src/voucherflow/rules/gaps.py` (T-502) + `models/arca.py` (hook, opcional).
-- `src/voucherflow/conclusion/agent.py` (T-504) + `conclusion/hitl.py` (T-505).
+- `src/voucherflow/conclusion/agent.py` (T-504) + `conclusion/hitl.py` (T-505) +
+  `settings/config.py` (`HitlSettings`, T-505).
 - `src/voucherflow/trace/recorder.py` (T-506).
 - `tests/test_conclusion_*_t5NN.py` y `scripts/F5/t5NN.py` por tarea.
 
 ## 7. Avance
 
-- **Estado (2026-09-11)**: **T-501 hecha**; subplan creado y las decisiones de
-  alcance de §2 cerradas. La **pasada 2** corre sobre la evidencia combinada de F4
-  y produce el veredicto del caso (negocio + fast-fail + conflicto R7), con
-  `ConclusionResult` (diseño §4.5) y el `Decision` de F0 adjunto solo cuando el
-  código concluyó. Suite completa **1043 passed / 10 skipped** (94 nuevos);
-  `scripts/F5/t501.py` → **8/8** escenarios + **8/8** fronteras. T-502..T-507
-  quedan pendientes con su alcance definido en §3.2–§3.7. `F5.md` pasa de 🔴
-  Backlog a 🟡 En implementación.
+- **Estado (2026-09-11)**: **T-501..T-505 hechas**; subplan creado y las
+  decisiones de alcance de §2 cerradas. La **pasada 2** corre sobre la evidencia
+  combinada de F4 y produce el veredicto del caso (negocio + fast-fail +
+  conflicto R7), con `ConclusionResult` (diseño §4.5) y el `Decision` de F0
+  adjunto solo cuando el código concluyó. Encima se apilan la búsqueda acotada
+  (T-502), la consolidación del `VoucherResult` (T-503), el escalado al agente
+  con blindaje (T-504) y la **cola HITL con muestreo de auditoría y feedback**
+  (T-505). Suite completa **1282 passed / 10 skipped**; los **10** scripts
+  `scripts/F<n>/t*.py` salen con código 0. T-506 (persistencia del `CaseRecord`) y
+  T-507 (métricas) quedan pendientes con su alcance definido en §3.6–§3.7.
+- **Detalle por tarea**: T-501 → 94 tests + `t501.py` (8/8 + 8/8); T-502 → 73
+  tests + `t502.py` (6/6 + 8/8); T-503 → 46 tests + `t503.py` (6/6 + 8/8); T-504
+  → 62 tests + `t504.py` (6/6 + 9/9); T-505 → 58 tests + `t505.py` (6/6 + 13/13).
 - **Punto de partida real**: la evidencia combinada de F4 (T-404) está
   disponible y con el valor vigente por campo resuelto (`CampoCombinado.valor`/
   `fuente`), y el motor R1-R7 de F3 (`evaluar_negocio`, `condicion_r7`) es

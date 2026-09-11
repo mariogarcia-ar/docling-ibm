@@ -43,8 +43,9 @@ _SRC = Path(__file__).resolve().parents[2] / "src"
 if str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
 
-from voucherflow.conclusion import concluir, concluir_caso  # noqa: E402
+from voucherflow.conclusion import concluir, concluir_caso, consolidar_caso  # noqa: E402
 from voucherflow.conclusion.engine import encolar_hitl, escalar_a_agente  # noqa: E402
+from voucherflow.settings.config import HitlSettings, Settings  # noqa: E402
 from voucherflow.extraction.flows import combinar_evidencia  # noqa: E402
 from voucherflow.rules.contexto import ContextoTipoComprobante  # noqa: E402
 from voucherflow.rules.contexto_conclusion import (  # noqa: E402
@@ -404,13 +405,28 @@ def _verificar_fronteras() -> list[dict[str, Any]]:
         }
     )
 
-    # 4. No encola HITL (T-505).
-    try:
-        encolar_hitl(None)  # type: ignore[arg-type]
-        ok = False
-    except NotImplementedError:
-        ok = True
-    fronteras.append({"que": "no encola HITL (T-505 sigue siendo esqueleto)", "ok": ok})
+    # 4. La pasada 2 **no** encola: publica el veredicto. Encolar es T-505, un
+    #    paso explícito (la expectativa viaja marcada, pero materializarla es
+    #    aparte).
+    resultado_t505 = consolidar_caso(
+        _evidencia({"razon_social_emisor": "ACME"}), contexto_tipo=CTX_RI_RI
+    ).valor
+    fronteras.append(
+        {
+            "que": "la pasada 2 no encola HITL (materializar la cola es T-505)",
+            "ok": "hitl" not in resultado_t505.trazabilidad,
+        }
+    )
+
+    # 5. La política de T-505 sí funciona: un caso sin veredicto firme entra con
+    #    prioridad alta (la expectativa de T-501 se materializa).
+    encolar_hitl(resultado_t505, settings=Settings(hitl=HitlSettings(muestreo_tasa=0.0)))
+    fronteras.append(
+        {
+            "que": "T-505 materializa la expectativa: certeza baja → prioridad alta",
+            "ok": resultado_t505.hitl.requerido and resultado_t505.hitl.prioridad == "alta",
+        }
+    )
 
     # 5. La certeza se deriva de la etapa (el contrato de F0 lo exige).
     from voucherflow.schemas.evidence import CombinedEvidence, Decision

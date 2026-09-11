@@ -657,12 +657,15 @@ class TestAgenteInyectable:
 class TestFronteras:
     """Lo que el escalado NO hace (es de otras tareas de F5)."""
 
-    def test_no_encola_hitl(self):
-        # T-505: la cola es la tarea siguiente; acá solo se publica la expectativa.
-        from voucherflow.conclusion.engine import encolar_hitl
+    def test_no_encola_hitl_por_si_solo(self):
+        # El escalado **no** encola: publica la decisión del agente. Encolar es
+        # de T-505 (`encolar_hitl`), un paso explícito y aparte.
+        resultado = concluir_con_agente(
+            _evidencia(CASO_AMBIGUO), contexto_tipo=CTX_RI_RI, agente=AgenteDoble(_json_agente("B"))
+        ).resultado
 
-        with pytest.raises(NotImplementedError):
-            encolar_hitl(None)  # type: ignore[arg-type]
+        assert resultado is not None
+        assert "hitl" not in resultado.trazabilidad
 
     def test_es_determinista(self):
         a = concluir_con_agente(

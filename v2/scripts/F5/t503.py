@@ -383,17 +383,14 @@ def _verificar_fronteras() -> list[dict[str, Any]]:
         }
     )
 
-    # 6. El HITL sigue siendo esqueleto (T-505); el agente (T-504) ya existe, pero
-    #    la consolidación no lo invoca (consolida el veredicto que recibe).
-    try:
-        encolar_hitl(None)  # type: ignore[arg-type]
-        ok_hitl = False
-    except NotImplementedError:
-        ok_hitl = True
+    # 6. La consolidación no encola HITL por su cuenta: el encolado es T-505, un
+    #    paso explícito. (El agente (T-504) sí existe, pero tampoco se invoca
+    #    desde acá: la consolidación consolida el veredicto que recibe.)
+    consolidado_t505 = consolidar_caso(_evidencia(FACTURA_A), contexto_tipo=CTX_RI_RI)
     fronteras.append(
         {
-            "que": "no encola HITL (T-505 sigue siendo esqueleto)",
-            "ok": ok_hitl,
+            "que": "la consolidación no encola HITL (el encolado es un paso aparte, T-505)",
+            "ok": "hitl" not in consolidado_t505.valor.trazabilidad,
         }
     )
 

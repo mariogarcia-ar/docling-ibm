@@ -371,13 +371,15 @@ def _verificar_fronteras() -> list[dict[str, Any]]:
         }
     )
 
-    # 7. No encola HITL (T-505 sigue siendo esqueleto).
-    try:
-        encolar_hitl(None)  # type: ignore[arg-type]
-        ok_hitl = False
-    except NotImplementedError:
-        ok_hitl = True
-    fronteras.append({"que": "no encola HITL (T-505 sigue siendo esqueleto)", "ok": ok_hitl})
+    # 7. El escalado no encola HITL: publica la decisión del agente. Encolar es
+    #    T-505, un paso explícito y aparte.
+    corrida_hitl = _correr(next(e for e in _escenarios() if e["nombre"] == "el_agente_elige"))
+    fronteras.append(
+        {
+            "que": "el escalado no encola HITL (el encolado es un paso aparte, T-505)",
+            "ok": "hitl" not in corrida_hitl.resultado.trazabilidad,
+        }
+    )
 
     # 8. Es determinista y no muta la evidencia de entrada.
     original = _evidencia(CASO_AMBIGUO)

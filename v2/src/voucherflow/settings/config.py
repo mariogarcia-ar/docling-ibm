@@ -79,6 +79,36 @@ class CoolingSettings:
 
 
 @dataclass
+class HitlSettings:
+    """Política de la cola HITL y del muestreo de auditoría (ADR-004, F5/T-505).
+
+    - ``muestreo_tasa``: fracción de los casos de **certeza alta por programa**
+      que entra al muestreo de auditoría con prioridad baja. La sugerencia del
+      ADR-004 (y la que arranca el riesgo R-03) es 10%.
+    - ``muestreo_semilla``: semilla del muestreo. El ADR-004 pide "aleatorio
+      estratificado configurable"; acá el azar es **reproducible**, porque un
+      caso muestreado hoy tiene que poder explicarse mañana (si el muestreo es
+      un `random` sin semilla, la decisión de auditar es inauditable).
+    - ``muestreo_activo``: permite apagar el muestreo (p. ej. en lotes chicos o
+      durante una migración) sin perder la tasa configurada.
+    - ``revision_obligatoria_certeza_baja``: la revisión de los casos que resolvió
+      el agente es obligatoria por diseño (Gherkin E-CONC-4); el flag existe para
+      poder documentarlo como política explícita y no como comportamiento oculto.
+    """
+
+    muestreo_tasa: float = 0.10
+    muestreo_semilla: int = 0
+    muestreo_activo: bool = True
+    revision_obligatoria_certeza_baja: bool = True
+
+    def __post_init__(self) -> None:
+        if not 0.0 <= self.muestreo_tasa <= 1.0:
+            raise ValueError(
+                "muestreo_tasa debe estar entre 0 y 1 (es una fracción: 0.10 = 10%)"
+            )
+
+
+@dataclass
 class Settings:
     """Configuración raíz de la librería.
 
@@ -90,6 +120,7 @@ class Settings:
     ollama: OllamaSettings = field(default_factory=OllamaSettings)
     modelos: dict[str, ModeloRol] = field(default_factory=dict)
     cooling: CoolingSettings = field(default_factory=CoolingSettings)
+    hitl: HitlSettings = field(default_factory=HitlSettings)
     workers: int = 1
     #: Ruta del archivo YAML efectivamente cargado (si hubo).
     archivo_config: str | None = None
@@ -135,6 +166,13 @@ _DEFAULTS: dict[str, Any] = {
         "reintentar_status": [429, 502, 503, 504],
     },
     "cooling": {"enabled": False, "work_window_s": 600, "cool_down_s": 120},
+    # Cola HITL y muestreo de auditoría (ADR-004; tasa sugerida 5-10%).
+    "hitl": {
+        "muestreo_tasa": 0.10,
+        "muestreo_semilla": 0,
+        "muestreo_activo": True,
+        "revision_obligatoria_certeza_baja": True,
+    },
     # Modelos por rol (heredados de v1: VLM por defecto qwen2.5vl:3b).
     "modelos": {
         "ocr": {"rol": "ocr", "modelo": "docling"},
@@ -253,6 +291,15 @@ def _from_dict(datos: dict[str, Any], archivo: str | None = None) -> Settings:
         work_window_s=int(cooling_raw.get("work_window_s", 600)),
         cool_down_s=int(cooling_raw.get("cool_down_s", 120)),
     )
+    hitl_raw = d.get("hitl", {})
+    hitl = HitlSettings(
+        muestreo_tasa=float(hitl_raw.get("muestreo_tasa", 0.10)),
+        muestreo_semilla=int(hitl_raw.get("muestreo_semilla", 0)),
+        muestreo_activo=bool(hitl_raw.get("muestreo_activo", True)),
+        revision_obligatoria_certeza_baja=bool(
+            hitl_raw.get("revision_obligatoria_certeza_baja", True)
+        ),
+    )
     modelos = {}
     for rol, m in (d.get("modelos") or {}).items():
         modelos[rol] = ModeloRol(
@@ -266,6 +313,7 @@ def _from_dict(datos: dict[str, Any], archivo: str | None = None) -> Settings:
         ollama=ollama,
         modelos=modelos,
         cooling=cooling,
+        hitl=hitl,
         workers=int(d.get("workers", 1)),
         archivo_config=archivo,
     )
@@ -309,6 +357,7 @@ __all__ = [
     "ModeloRol",
     "OllamaSettings",
     "CoolingSettings",
+    "HitlSettings",
     "Settings",
     "cargar_settings",
     "cargar_desde_dict",

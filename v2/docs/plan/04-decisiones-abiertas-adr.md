@@ -221,7 +221,7 @@ necesito CAE para constatar) y cuáles no.
 
 ### ADR-004 · Auditoría y muestreo de casos de "certeza alta"
 
-- **Estado**: Propuesto · **Prioridad**: Media · **Decisión D-4**
+- **Estado**: ✅ **Implementado** (F5/T-505, 2026-09-11) · **Prioridad**: Media · **Decisión D-4**
 
 **Contexto**
 Una regla puede matchear por accidente (ej. agente/comisionista con más de dos
@@ -244,6 +244,26 @@ tasa inicial en Fase 1 (sugerida 5-10%).
 - + El feedback del muestreo es la señal para mover casuística del agente → regla
   o corregir reglas existentes.
 - − Carga adicional de revisión (controlada por la tasa).
+
+**Implementación (F5/T-505)**
+- Se adoptó la alternativa **(a)**. Tasa por defecto **10%** (el extremo alto de
+  la sugerencia 5-10%: es el que arranca la mitigación de R-03), configurable en
+  `HitlSettings` (`muestreo_tasa`, `muestreo_semilla`, `muestreo_activo`).
+- **Una desviación deliberada de «aleatorio»**: el muestreo es
+  **determinista y reproducible**, derivado de `sha256(f"{semilla}:{documento_id}")`
+  (`conclusion/hitl.py::seleccionado_para_auditoria()`), en lugar de un `random`
+  sin semilla. El ADR pide un muestreo «aleatorio estratificado configurable»;
+  con azar real la decisión de **auditar** un caso sería **inauditable** — no se
+  podría responder «¿por qué se revisó éste y no aquél?», que es justo la
+  pregunta que un auditor hace. La semilla cumple el rol de **estrato**
+  configurable (rota qué se audita sin cambiar la tasa) y la selección es
+  **estable**: el mismo documento con la misma semilla cae siempre igual, así que
+  re-procesar no cambia la suerte del caso.
+- El resultado del muestreo alimenta el **mismo mecanismo de feedback** que las
+  correcciones de certeza baja — pero `feedback()` los **separa**, porque dicen
+  cosas distintas: una corrección de certeza baja señala un error del **agente**
+  (R-09) y una del muestreo, una **regla** que acierta por accidente (R-03).
+- Cobertura: `tests/test_conclusion_hitl_t505.py`, `scripts/F5/t505.py`.
 
 ---
 
@@ -396,7 +416,7 @@ candidato descartado).
 
 ### ADR-009 · Persistencia de resultados y cola HITL
 
-- **Estado**: Propuesto · **Prioridad**: Media · **Decisión D-9**
+- **Estado**: 🟡 **Parcialmente implementado** (F5/T-505, 2026-09-11: cola HITL en memoria; el sidecar + SQLite quedan para T-506) · **Prioridad**: Media · **Decisión D-9**
 
 **Contexto**
 Hay que persistir resultados, evidencia y decisiones HITL (correcciones,
@@ -416,6 +436,18 @@ revisión y las correcciones, que alimente el feedback a reglas/prompts.
 - + El HITL necesita consultas ("listame casos de certeza baja") que un store
   simple resuelve mejor que leer sidecars.
 - + La corrección registrada es la semilla del feedback loop (fase futura).
+
+**Implementación (F5/T-505 — parcial)**
+- Se adoptó la alternativa **(a)**. **T-505** implementa la **cola** y sus
+  consultas (`ColaHitl`: `pendientes()` priorizada, `obligatorios()`,
+  `muestreados()`, `corregidos()`, `feedback()`) **en memoria**; la persistencia
+  durable (JSON sidecar + índice SQLite `hitl_queue`) es de **T-506**.
+- El contrato de la corrección ya quedó fijado en T-505 (`Correccion`: campo /
+  valor anterior / valor nuevo / motivo / revisor / timestamp), que es el shape
+  que la tabla `hitl_queue` va a persistir: T-506 **guarda**, no rediseña.
+- La cola nace con las consultas que el ADR pide («listame los casos de certeza
+  baja») ya resueltas en memoria, así que el store durable solo tiene que
+  hacerlas durables.
 
 ---
 

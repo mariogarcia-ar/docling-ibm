@@ -578,16 +578,16 @@ class TestFronteras:
         assert dict(original.trazabilidad) == antes
 
     def test_no_llama_al_agente_ni_encola_hitl(self):
-        # T-504 (agente) ya está implementado, pero la consolidación **no** lo
-        # invoca: consolida el veredicto que recibe. T-505 (cola HITL) sigue
-        # siendo esqueleto.
+        # La consolidación **no** invoca al agente ni encola: consolida el
+        # veredicto que recibe. El encolado (T-505) es un paso explícito aparte.
         from voucherflow.conclusion import escalar_a_agente
-        from voucherflow.conclusion.engine import encolar_hitl
 
         resultado = escalar_a_agente(_evidencia(FACTURA_A))
         assert resultado.escalado is False  # el código concluyó: no se escala
-        with pytest.raises(NotImplementedError):
-            encolar_hitl(None)  # type: ignore[arg-type]
+
+        # La consolidación tampoco aplicó la política HITL por su cuenta.
+        consolidado = consolidar_caso(_evidencia(FACTURA_A), contexto_tipo=CTX_RI_RI)
+        assert consolidado.valor.hitl.requerido is False
 
     def test_un_caso_ambiguo_no_se_consolida_como_final(self):
         # Sale marcado como revisión y sin origen: es la señal para T-504/T-505,

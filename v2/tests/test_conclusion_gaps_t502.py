@@ -829,15 +829,16 @@ class TestFronteras:
         assert len(set(buscador.consultas)) == len(buscador.consultas)
 
     def test_no_llama_al_agente_ni_encola_hitl(self):
-        # T-504 ya está implementado (agente), pero la búsqueda de evidencia no lo
-        # invoca; T-505 (cola HITL) sigue siendo esqueleto.
+        # La búsqueda de evidencia no invoca al agente ni encola en HITL: se
+        # limita a buscar. El encolado (T-505) es un paso explícito y aparte.
         from voucherflow.conclusion import escalar_a_agente
-        from voucherflow.conclusion.engine import encolar_hitl
 
-        resultado = escalar_a_agente(_evidencia(COMPLETO))
+        evidencia = _evidencia(COMPLETO)
+        resultado = escalar_a_agente(evidencia)
         assert resultado.escalado is False  # el código concluyó: no se escala
-        with pytest.raises(NotImplementedError):
-            encolar_hitl(None)  # type: ignore[arg-type]
+
+        # La búsqueda no dejó rastro del bloque HITL de T-505.
+        assert "hitl" not in evidencia.trazabilidad
 
     def test_un_caso_sin_gaps_ni_buscador_no_cambia_el_veredicto(self):
         # El hook desactivado no degrada un caso que ya estaba completo.

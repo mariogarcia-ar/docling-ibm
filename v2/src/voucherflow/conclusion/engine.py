@@ -48,8 +48,10 @@ from ..rules.gaps import (
 )
 from ..schemas.evidence import CombinedEvidence, SourceEvidence
 from ..schemas.result import ClasificacionContable, HitlDecision, VoucherResult
+from ..settings.config import Settings
 from .agent import Agente, DecisionAgente, escalar_a_agente as _escalar
 from .consolidacion import Consolidacion, consolidar
+from .hitl import ColaHitl
 
 
 def _correr_pasada_2(
@@ -254,12 +256,26 @@ def _campos_vigentes(
     return valores
 
 
-def encolar_hitl(resultado: VoucherResult) -> VoucherResult:
-    """Encola a revisión humana los casos de certeza baja + muestreo (F5).
+def encolar_hitl(
+    resultado: VoucherResult,
+    *,
+    cola: ColaHitl | None = None,
+    settings: Settings | None = None,
+) -> VoucherResult:
+    """Encola a revisión humana los casos de certeza baja + muestreo (F5/T-505).
 
-    Esqueleto F0 — se implementa en F5 (T-505).
+    Implementación de T-505: delega en
+    :func:`voucherflow.conclusion.hitl.encolar_hitl`, que aplica la política del
+    ADR-004 (certeza baja → revisión obligatoria de prioridad alta; certeza alta
+    por programa → muestreo de auditoría reproducible de prioridad baja) y
+    actualiza la ``HitlDecision`` del resultado.
+
+    Se re-exporta acá para que la fachada del motor tenga la firma que dejó el
+    esqueleto de F0.
     """
-    raise NotImplementedError("encolar_hitl(): se implementa en F5 (T-505).")
+    from .hitl import encolar_hitl as _encolar
+
+    return _encolar(resultado, cola=cola, settings=settings)
 
 
 # ---------------------------------------------------------------------------

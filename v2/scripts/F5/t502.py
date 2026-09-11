@@ -408,16 +408,12 @@ def _verificar_fronteras() -> list[dict[str, Any]]:
         }
     )
 
-    # 8. El HITL sigue siendo esqueleto (T-505).
-    try:
-        encolar_hitl(None)  # type: ignore[arg-type]
-        ok_hitl = False
-    except NotImplementedError:
-        ok_hitl = True
+    # 8. La búsqueda no encola HITL: eso es un paso explícito aparte (T-505).
+    evidencia_t505 = _evidencia(COMPLETO)
     fronteras.append(
         {
-            "que": "no encola HITL (T-505 sigue siendo esqueleto)",
-            "ok": ok_hitl,
+            "que": "la búsqueda de evidencia no encola HITL (es un paso aparte, T-505)",
+            "ok": "hitl" not in evidencia_t505.trazabilidad,
         }
     )
 

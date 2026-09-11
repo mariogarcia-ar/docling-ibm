@@ -277,6 +277,15 @@ tests/golden/
   **sin** inventar decisiones), la derivación de certeza/origen, el flujo completo
   con consolidación y las fronteras. El agente entra por protocolo: la suite corre
   **sin Ollama** y **sin red**.
+  **T-505**: 58 tests (`test_conclusion_hitl_t505.py`) — la decisión de encolar
+  (las dos ramas del Gherkin y el caso que no entra), el **muestreo de auditoría**
+  (determinismo, estabilidad de la muestra, la tasa pedida, los extremos y la
+  semilla como estrato), la **cola** (priorización de `pendientes()`, separación
+  obligatorios/muestreados, no-duplicación, re-encolar sin perder el trabajo
+  humano), la **corrección** (estructurada, acumulable, con errores explícitos),
+  la **confirmación** sin corrección, el **feedback** (separación R-09/R-03 y
+  agregado por campo) y la integración (`encolar_hitl` mutando el `hitl` y la
+  traza). Corre **sin red**: la cola es una estructura de datos.
 - **Integración**: casos del golden → distribución de `origen` y `certeza`;
   correcciones HITL registradas y disponibles para feedback.
 - **Aceptación** (E-CONC-1/2/3/4/5): código que concluye ⇒ certeza alta;
@@ -288,8 +297,11 @@ tests/golden/
   adicional puntual y sin loop abierto" también (hook desactivado, caído,
   respuesta negativa y presupuesto agotado). "agente ⇒ baja + HITL" y
   "trazabilidad completa persistida" son de T-504/T-505/T-506. `scripts/F5/t501.py`
-  corre **8/8** + **8/8**, `t502.py` **6/6** + **8/8** y `t503.py` **6/6** +
-  **8/8**, con salida ≠ 0 si falla.
+  corre **8/8** + **8/8**, `t502.py` **6/6** + **8/8**, `t503.py` **6/6** + **8/8**,
+  `t504.py` **6/6** + **9/9** y `t505.py` **6/6** + **13/13**, con salida ≠ 0 si falla.
+  **E-CONC-4 cerrada en T-505**: el HITL es autoridad final — revisión obligatoria de
+  certeza baja, muestreo reproducible de certeza alta y feedback registrado y separado
+  por motivo (el agente se equivocó vs. la regla acierta por accidente).
 - **Métricas clave** (definidas en §5): exactitud por origen, % certeza alta,
   acuerdo programa-vs-humano, cobertura HITL. **Parcial en T-501**: el
   `ConclusionResult` y la traza de la corrida ya exponen lo que las métricas

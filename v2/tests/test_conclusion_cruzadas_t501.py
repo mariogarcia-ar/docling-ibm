@@ -37,8 +37,8 @@ import pytest
 
 from voucherflow.conclusion import concluir, concluir_caso
 from voucherflow.conclusion.agent import AGENTE_NO_ESCALADO
-from voucherflow.conclusion.engine import encolar_hitl
 from voucherflow.extraction.flows import combinar_evidencia
+from voucherflow.settings.config import HitlSettings, Settings
 from voucherflow.rules.contexto import ContextoTipoComprobante
 from voucherflow.rules.contexto_conclusion import (
     CAMPOS_CRITICOS,
@@ -885,10 +885,25 @@ class TestFronteras:
         assert resultado.escalado is False
         assert resultado.desenlace == AGENTE_NO_ESCALADO
 
-    def test_no_encola_hitl(self):
-        # T-505: sigue siendo esqueleto.
-        with pytest.raises(NotImplementedError):
-            encolar_hitl(None)  # type: ignore[arg-type]
+    def test_no_encola_hitl_por_si_sola(self):
+        # La pasada 2 publica la **expectativa** de HITL (informativa, ver
+        # `cruzadas.construir_conclusion`) pero **no** encola: materializar la
+        # cola es de T-505 (`encolar_hitl`), un paso explícito y aparte.
+        from voucherflow.conclusion import encolar_hitl, consolidar_caso
+
+        # Caso ambiguo: la expectativa viaja marcada, pero nadie encoló todavía.
+        consolidado = consolidar_caso(_evidencia(BASE), contexto_tipo=CTX_RI_RI)
+        assert consolidado.valor.hitl.requerido is True
+        assert "hitl" not in consolidado.valor.trazabilidad  # el bloque de T-505
+
+        # Recién cuando se aplica la política queda registrada la decisión.
+        encolar_hitl(consolidado.valor, settings=Settings(hitl=HitlSettings(muestreo_activo=False)))
+        assert consolidado.valor.trazabilidad["hitl"]["motivo"] in {
+            "certeza_baja",
+            "muestreo_auditoria",
+            "no_aplica",
+            "revision_desactivada",
+        }
     def test_es_determinista(self):
         campos = {
             **BASE,
