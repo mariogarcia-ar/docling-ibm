@@ -15,7 +15,7 @@
 | **Fase(s) del plan** | F4 (T-401..T-405) |
 | **Prioridad MoSCoW** | Must (MVP) |
 | **Responsable ciclo** | team analysis (BA/SA/PM) → team implementation |
-| **Estado épica** | 🟡 En implementación (E-EXT-1 y E-EXT-3 hechas en T-401/T-402; E-EXT-2 pendiente) |
+| **Estado épica** | 🟡 En implementación (E-EXT-1, E-EXT-2 y E-EXT-3 hechas en T-401/T-402/T-403) |
 | **DoR cumplido** | [x] sí |
 | **Fecha inicio** | 2026-09-10 |
 | **Fecha fin** |  |
@@ -24,7 +24,7 @@
 
 - [x] Ambos flujos (VLM sobre imagen y LLM sobre OCR/Markdown) corren SIEMPRE en paralelo sobre cada comprobante, sin elegir uno por documento. *(T-401: `extraer_evidencia()` con `ThreadPoolExecutor`, una tarea por fuente; medido en `scripts/F4/t401.py`)*
 - [x] Cada flujo devuelve evidencia por campo con el mismo esquema (campo, valor, fuente, fragmento de sustento) conforme al schema `SourceEvidence` (T-001). *(`extraction/evidencia.py::construir_source_evidence`)*
-- [ ] Las reglas raw por fuente (pasada 1) marcan como debilitada a una fuente internamente inconsistente antes de combinarse. *(T-401 ya publica `valida`/`debilidades`/`reglas_aplicadas` reutilizando el registro de T-303; su afinación por campo es T-403)*
+- [x] Las reglas raw por fuente (pasada 1) marcan como debilitada a una fuente internamente inconsistente antes de combinarse. *(**T-403 hecho**: el registro de T-303 se completa con sostén por **forma canónica** (montos, fechas, CUIT) y con `RAW_COHERENCIA`, que evalúa las implicaciones de la fuente consigo misma — una Factura A sin los dos CUIT, o una Factura B con IVA discriminado, quedan *débiles* antes de combinarse. La ausencia que no se puede juzgar no se castiga y el veredicto es `dudosa`, nunca `invalida`)*
 - [ ] La combinación de evidencia resuelve por campo con precedencia (ADR-002) y conserva trazabilidad de cada fuente. *(T-401 conserva **ambas** evidencias sin colapsar; la resolución es T-404)*
 - [ ] Los campos se normalizan (CUIT, fechas ISO, montos, punto_venta/número) sin inventar datos ausentes; en modo auditoría los no-comprobantes devuelven comprobante_valido=false con motivo_rechazo. *(**T-402 hecho**: CUIT solo dígitos y guiones propios con corte ante caracteres extraños, fechas `YYYY-MM-DD` solo completas y reales, montos numéricos sin separadores, `punto_venta`/`numero_comprobante` derivados, texto colapsado, `descripcion` en minúsculas e ítems estructurados; el crudo nunca se pierde — `normalizar=False` lo devuelve entero. Falta `comprobante_valido`/`motivo_rechazo`, que son decisión de F5, no lectura)*
 - [ ] Paridad verificable con v1 sobre el golden set: equivalencia con `extraction_pipeline.py` (10/11) y `document_extraction.py` (kvi/kvg) en campos normalizados (DoD de F4 en `05-plan-ejecucion.md`). *(T-405)*
@@ -61,7 +61,7 @@ Regla: modalidades de la librería v1
 ```
 
 ### E-EXT-2 · Validación de evidencia cruda por fuente (pasada 1)
-- **Estado**: [ ] Pendiente · [ ] En desarrollo · [ ] En QA · [ ] Hecho
+- **Estado**: [ ] Pendiente · [ ] En desarrollo · [ ] En QA · [x] **Hecho** (T-403, 2026-09-10)
 - **Responsable**: team analysis / team implementation
 - **Como** sistema,
   **quiero** validar la evidencia de cada fuente por separado antes de mezclarla
@@ -114,6 +114,7 @@ Regla: validación de comprobante
 |---|---|---|---|
 | 2026-09-10 | **E-EXT-1 hecha (T-401)**: los flujos VLM y LLM corren siempre en paralelo y cada uno devuelve `SourceEvidence` con el contrato de F0 (ADR-001). Prompt de evidencia versionado `extraccion-key-value@1`; el intérprete no inventa campos, tolera el JSON plano de v1 y reutiliza la pasada raw de T-303. Suites: `tests/test_extraction_flujos.py` (75) y `scripts/F4/t401.py` (11/11 + paralelismo medido). E-EXT-2 (T-403) y E-EXT-3 (T-402) siguen pendientes. | team implementation | Hecho |
 | 2026-09-10 | **E-EXT-3 hecha (T-402)**: `extraction/key_value.py` porta a **código** las reglas de normalización que en v1 vivían dentro de los prompts `10`/`11`/`kvi`/`kvg` — CUIT solo dígitos y guiones propios con corte ante caracteres extraños (`"20-1 Ing, Brutas: 201641"` → `"20-1"`), fechas `YYYY-MM-DD` solo completas y reales, montos numéricos sin separadores de miles (signo y constancia de ambigüedad), `punto_venta`/`numero_comprobante` derivados del número impreso, moneda `ARS`/`USD` sin default, texto colapsado y ítems estructurados. Regla dura de la historia: **no inventar** — un dato ilegible conserva el crudo con aviso y el crudo de cada campo viaja en `meta['valor_crudo']`; la pasada raw de T-303 sigue viendo el crudo. Suites: `tests/test_extraction_key_value.py` (97) y `scripts/F4/t402.py` (19/19 reglas + 17/17 escenarios + 5/5 fronteras). E-EXT-2 (T-403) sigue pendiente. | team implementation | Hecho |
+| 2026-09-10 | **E-EXT-2 hecha (T-403)**: la pasada 1 por fuente se completa para la extracción. `rules/raw.py` gana los puntos de extensión que el registro de T-303 necesitaba sin dejar de ser agnóstico del dominio (`ImplicacionCoherencia`, `sostenedor`, `normalizador_valor`, `violaciones_de_coherencia` y el id `RAW_COHERENCIA`), y `extraction/evidencia.py` declara con ellos dos cosas: el **sostén por forma canónica** de montos, fechas y CUIT (lo que T-401 dejaba sin evaluar) y la **coherencia de la fuente consigo misma** — el caso textual de esta historia: una Factura A sin los dos CUIT queda **debilitada antes de combinarse** (igual que una Factura B con IVA discriminado). La ausencia que la fuente no pudo evaluar no se castiga y la gravedad es `dudosa`, nunca `invalida`. Suites: `tests/test_extraction_raw_t403.py` (37) y `scripts/F4/t403.py` (11/11 criterios de sostén + 7/7 escenarios + 4/4 fronteras). | team implementation | Hecho |
 
 ## 5. Referencias cruzadas
 

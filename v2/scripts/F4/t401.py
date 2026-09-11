@@ -113,10 +113,13 @@ def _respuesta(fuente: str, **campos: Any) -> str:
 
 
 #: Respuesta "completa" de referencia (usada como base por los escenarios).
+#: Declara los **dos CUIT** porque desde T-403/E-EXT-2 una Factura A sin el CUIT
+#: del receptor es una fuente internamente incoherente.
 _CAMPOS_BASE: dict[str, Any] = {
     "tipo_comprobante": _campo("A", "Recuadro grande con 'A' y COD. 01"),
     "razon_social_emisor": _campo("ACME S.A.", "ACME S.A."),
     "cuit_emisor": _campo("20-12345678-9", "C.U.I.T. 20-12345678-9"),
+    "cuit_receptor": _campo("27-30111222-4", "C.U.I.T. 27-30111222-4"),
     "fecha_emision": _campo("14/08/2025", "Fecha: 14/08/2025"),
     "importe_total_facturado": _campo(12345.67, "Importe Total: $12.345,67"),
 }
@@ -289,18 +292,19 @@ ESCENARIOS: list[dict[str, Any]] = [
         },
     },
     {
-        "nombre": "montos_no_se_evaluan_por_sosten",
-        "que": "los importes/fechas no se evalúan por sostén literal (formato volátil)",
+        "nombre": "montos_se_evaluan_por_forma_canonica",
+        "que": "desde T-403 los importes/fechas se evalúan contra su forma canónica",
         "por_fuente": {
             "vlm": _respuesta_base("vlm"),
             "llm": _respuesta_base("llm"),
         },
         "expectativa": {
             "corridas": ["vlm", "llm"],
-            "sosten_no_evaluado_contiene": {
-                "llm": ["importe_total_facturado", "fecha_emision"],
+            "sosten_forma_canonica_contiene": {
+                "llm": ["importe_total_facturado", "fecha_emision", "cuit_emisor"],
             },
-            "sosten_evaluado_contiene": {"llm": ["cuit_emisor", "tipo_comprobante"]},
+            # `descripcion` no se declara en la base: no queda nada sin evaluar.
+            "sosten_no_evaluado_contiene": {"llm": []},
         },
     },
     {
@@ -433,6 +437,13 @@ def _verificar(corrida: dict[str, Any], expectativa: dict[str, Any]) -> list[str
         faltan = [c for c in campos if c not in lista]
         if faltan:
             problemas.append(f"{fuente} no lista como no evaluados: {faltan}")
+    for fuente, campos in expectativa.get("sosten_forma_canonica_contiene", {}).items():
+        lista = detalle["modelos"].get(fuente, {}).get("sosten_forma_canonica", [])
+        faltan = [c for c in campos if c not in lista]
+        if faltan:
+            problemas.append(
+                f"{fuente} no lista como evaluados por forma canónica: {faltan}"
+            )
     for fuente, campos in expectativa.get("sosten_evaluado_contiene", {}).items():
         lista = detalle["modelos"].get(fuente, {}).get("sosten_no_evaluado", [])
         sobran = [c for c in campos if c in lista]

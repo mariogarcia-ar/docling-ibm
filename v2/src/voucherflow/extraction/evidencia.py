@@ -106,7 +106,12 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from typing import Any, Iterable, Mapping, Protocol, runtime_checkable
 
-from ..rules.raw import CampoDeclarado, VeredictoRaw, evaluar_raw
+from ..rules.raw import (
+    CampoDeclarado,
+    ImplicacionCoherencia,
+    VeredictoRaw,
+    evaluar_raw,
+)
 from ..schemas.evidence import (
     EvidenceField,
     Fuente,
@@ -213,9 +218,24 @@ CAMPOS_CON_VOCABULARIO: dict[str, tuple[str, ...]] = {
 #: Campos cuyo valor tiene **formato volátil** (el OCR decide separadores de
 #: miles/decimales y el formato de fecha) o que son **sintéticos** (la
 #: ``descripcion`` es una frase que resume los ítems, no un texto que se copia).
-#: Su sostén literal no se evalúa en T-401 (ver el docstring del módulo); T-402
-#: los normaliza y T-403 afina su validación raw.
+#:
+#: **T-401** no evaluaba su sostén literal: exigir igualdad literal producía
+#: debilidades **espurias** (``"Subtotal: 12.345,67"`` vs. ``12345.67``).
+#: **T-403** los cubre con un sostén **normalizado** (:data:`VOLATIL_...`): el
+#: valor canónico del campo (T-402) y el del fragmento se comparan ya sin
+#: separadores, de modo que la comparación es significativa y deja de ser
+#: espuria. ``descripcion`` queda aparte: sigue sin evaluarse porque es una frase
+#: sintética, no un texto que se copie.
 CAMPOS_SOSTEN_NO_EVALUADO: frozenset[str] = frozenset(
+    {
+        "descripcion",
+    }
+)
+
+#: Campos de **formato volátil** cuyo sostén sí se evalúa desde T-403, contra la
+#: forma canónica del valor y del fragmento (fechas y montos). Es la lista que
+#: T-401 dejaba enteramente sin evaluar y que T-402 dejó comparable.
+CAMPOS_SOSTEN_ESTRUCTURADO: frozenset[str] = frozenset(
     {
         "fecha_emision",
         "subtotal",
@@ -225,9 +245,61 @@ CAMPOS_SOSTEN_NO_EVALUADO: frozenset[str] = frozenset(
         "otros_impuestos",
         "monto_no_gravado",
         "importe_total_facturado",
-        "descripcion",
     }
 )
+
+#: Implicaciones de **coherencia de la fuente consigo misma** (F4/T-403, E-EXT-2).
+#:
+#: Cada entrada es ``campo_disparador -> (ImplicacionCoherencia, …)`` y se evalúa
+#: sobre el **conjunto** de campos que declaró la misma fuente: el objetivo es
+#: detectar la fuente que se contradice a sí misma (dice ``A`` pero no leyó el
+#: CUIT del receptor, o dice ``B`` con IVA discriminado) **antes de combinarla**
+#: con la otra.
+#:
+#: Origen de las implicaciones: la sección ``system`` de
+#: ``prompts/facturacion/11.1-deteccion_tipo_factura.yaml`` lista los conflictos
+#: de la letra con los datos tributarios ("A es débil si faltan dos CUIT o IVA
+#: discriminado", "B es incompatible con IVA discriminado", "C es incompatible
+#: con emisor Responsable Inscripto"); la regla 5 del prompt `11` de v1
+#: (``kvi``) define cómo se desglosan los importes según la letra (A discrimina;
+#: B/C/090/099 no).
+#:
+#: **Decisiones de alcance** (para no castigar lecturas honestas):
+#:
+#: * El **CUIT del receptor comercial** (``razon_social_receptor``) no es
+#:   requisito de ninguna letra: su ausencia no se reporta. El ``cuit_receptor``
+#:   **sí** es requisito de una Factura A.
+#: * ``iva`` se declara con los valores que el prompt de extracción admite para
+#:   el impuesto **no discriminado** (el numérico ``0``/``0.0`` y sus formas
+#:   textuales ``"0"``/``"0,00"``/``"0.00"``): el desglose de importes es la señal
+#:   de "A discrimina / B no discrimina" que el prompt de v1 define.
+#: * El ``monto_no_gravado`` **no** se usa como requisito: el prompt de v1 (regla
+#:   6 de ``11``) lo declara un campo de ajuste manual del contador que no se
+#:   debe calcular ni inventar, así que su ausencia nunca es una incoherencia.
+#: * La **condición fiscal del emisor** (que permitiría "C no admite emisor
+#:   Responsable Inscripto") **no** se evalúa acá: la extracción no lee esa
+#:   condición (la resuelve el padrón en F5), así que declararla sería opinar sin
+#:   evidencia.
+COHERENCIA_POR_CAMPO: dict[str, tuple[ImplicacionCoherencia, ...]] = {
+    "tipo_comprobante": (
+        ImplicacionCoherencia(
+            disparador="A",
+            motivo=(
+                "una Factura A discrimina IVA y exige el CUIT del emisor y del "
+                "receptor (regla 5 del prompt 11 de v1)."
+            ),
+            requeridos=("cuit_emisor", "cuit_receptor"),
+        ),
+        ImplicacionCoherencia(
+            disparador="B",
+            motivo=(
+                "una Factura B no discrimina IVA: su importe es único y el IVA "
+                "debe ser cero (regla 5 del prompt 11 de v1)."
+            ),
+            incompatibles={"iva": (0, 0.0, "0", "0,00", "0.00")},
+        ),
+    ),
+}
 
 #: Patrón que reconoce un valor "de formato volátil" por su **forma** (se usa
 #: para los campos que no están en la lista anterior, p. ej. los que agrega el
@@ -561,22 +633,38 @@ def _vocabulario_de(campo: str) -> tuple[str, ...] | None:
     return CAMPOS_CON_VOCABULARIO.get(campo)
 
 
+def _es_sosten_estructurado(campo: str, valor: Any) -> bool:
+    """True si el sostén del campo se evalúa contra su forma canónica (T-403).
+
+    Son los campos de formato **estructurado** (fechas y montos): su valor y el
+    texto del fragmento se escriben con formatos distintos, así que el sostén
+    literal no es significativo, pero **sí** lo es comparar números y fechas ya
+    normalizados. Es la lista que T-401 dejaba sin evaluar y que T-402 volvió
+    comparable.
+    """
+    return campo in CAMPOS_SOSTEN_ESTRUCTURADO
+
+
 def _es_formato_volatil(campo: str, valor: Any) -> bool:
-    """True si el sostén literal del campo **no** se puede evaluar (T-401).
+    """True si el sostén del campo **no se puede evaluar** (T-401/T-403).
 
     Tres casos, en orden (documentados en el docstring del módulo):
 
-    1. El campo está en :data:`CAMPOS_SOSTEN_NO_EVALUADO` (montos, fechas,
-       ``descripcion``): el OCR decide los separadores de miles/decimales y el
-       formato de fecha, y la ``descripcion`` es una frase que resume los ítems
-       (no un texto que se copia) — exigir igualdad literal produciría
-       debilidades **espurias** ("Subtotal: 12.345,67" vs. `12345.67`).
-    2. El valor es un **número JSON** (``int``/``float``): no se puede comparar
-       literalmente contra el texto del OCR, que trae separadores de miles.
+    1. El campo es **sintético** (:data:`CAMPOS_SOSTEN_NO_EVALUADO`, hoy solo
+       ``descripcion``): es una frase que resume los ítems, no un texto que se
+       copie, así que no hay nada que sostener.
+    2. El valor es un **número JSON** (``int``/``float``) de un campo que no es
+       de formato estructurado: no se sabe qué es ese campo, así que no se puede
+       comparar de forma significativa.
     3. El campo **no pertenece al vocabulario esperado** (los que agrega el modo
        genérico ``kvg``) y su valor tiene **forma de importe/fecha** (solo dígitos
-       y separadores): sin saber qué es el campo, su sostén literal no es
-       verificable.
+       y separadores): sin saber qué es el campo, su sostén no es verificable.
+
+    Los campos de formato **estructurado** (fechas y montos,
+    :data:`CAMPOS_SOSTEN_ESTRUCTURADO`) **no** caen acá: desde T-403 su sostén se
+    evalúa con un ``sostenedor`` que compara formas canónicas
+    (:func:`_sostenedor_de_campo`), así que quedan listados aparte en la traza
+    (``sosten_forma_canonica``).
 
     Para los campos esperados de texto (CUIT, razones sociales, número de
     comprobante) el sostén **sí** se evalúa: el prompt obliga a copiar el texto
@@ -584,11 +672,158 @@ def _es_formato_volatil(campo: str, valor: Any) -> bool:
     """
     if campo in CAMPOS_SOSTEN_NO_EVALUADO:
         return True
+    if campo in CAMPOS_SOSTEN_ESTRUCTURADO:
+        return False
     if isinstance(valor, (int, float)) and not isinstance(valor, bool):
         return True
     if campo not in CAMPOS_EXTRACCION and isinstance(valor, str):
         return bool(PATRON_VALOR_FORMATO_VOLATIL.match(valor.strip()))
     return False
+
+
+def _sostenedor_de_campo(campo: str) -> Any:
+    """Predicado de sostén del campo, para los de formato estructurado (T-403).
+
+    Devuelve ``None`` para los campos cuyo sostén es la contención del valor contra
+    el fragmento (texto libre y vocabularios cerrados). Para fechas, montos y
+    identificadores (CUIT) devuelve un predicado que compara **formas canónicas**:
+    es lo que permite que ``12345.67`` quede sostenido por
+    ``"Importe Total: $ 12.345,67"`` —o ``30123456789`` por
+    ``"C.U.I.T. 30-12345678-9"``— sin que el registro raw sepa qué es un importe
+    ni qué es un CUIT.
+
+    El predicado recibe ``(valor_normalizado, fragmento)`` —el contrato de
+    ``CampoDeclarado.sostenedor``— y se implementa acá (y no en ``rules/raw.py``)
+    porque **sabe del dominio**: conoce las reglas de normalización de T-402.
+    """
+    if campo == "fecha_emision":
+        return _sostiene_fecha
+    if campo in CAMPOS_SOSTEN_ESTRUCTURADO:
+        return _sostiene_monto
+    if _normalizador_canonico_de_campo(campo) is _canonico_cuit:
+        return _sostiene_identificador
+    return None
+
+
+def _normalizador_canonico_de_campo(campo: str) -> Any:
+    """Normalizador de la forma **canónica** del valor, para el sostén (T-403).
+
+    Solo los campos con regla de normalización propia (T-402) la tienen: es la
+    forma en la que el valor se compara con el fragmento sin depender de los
+    separadores que eligió el OCR (``30123456789`` ← ``30-12345678-9``). El valor
+    publicado en la evidencia **no** cambia: esto es solo para comparar.
+    """
+    from .key_value import NORM_CUIT, regla_de_campo  # noqa: PLC0415
+
+    if regla_de_campo(campo) != NORM_CUIT:
+        return None
+    return _canonico_cuit
+
+
+def _canonico_cuit(valor: Any) -> Any:
+    """CUIT/CUIL sin separadores, para comparar valor y fragmento (T-403).
+
+    ``"30-12345678-9"`` → ``"30123456789"``. Así el fragmento sostiene al valor
+    aunque el OCR lo haya impreso con puntos, barras o espacios
+    (``"C.U.I.T. 30123456789"``) y aunque el modelo lo haya declarado con
+    guiones (o al revés).
+    """
+    from .key_value import normalizar_cuit  # noqa: PLC0415
+
+    normalizado = normalizar_cuit(valor)
+    if normalizado is None:
+        return None
+    return "".join(c for c in normalizado if c.isdigit())
+
+
+def _sostiene_identificador(valor: Any, fragmento: str) -> bool:
+    """True si el fragmento contiene el identificador declarado (T-403).
+
+    Compara **secuencias de dígitos**: ``30123456789`` queda sostenido por
+    ``"C.U.I.T. 30-12345678-9"`` o por ``"CUIT 30123456789"`` (el OCR imprime los
+    identificadores fiscales con cualquier separación). El valor llega ya
+    reducido a dígitos por ``normalizador_valor``.
+
+    La comparación es por **ventana de secuencias contiguas** (no por subcadena
+    del fragmento entero): en ``"C.U.I.T. 30-12345678-9 (emisor)"`` las
+    secuencias son ``("30", "12345678", "9")`` y su ventana completa reconstruye
+    el CUIT. Así un fragmento que menciona otro identificador (``"20-12345678-9"``)
+    **no** sostiene por accidente la cola de un número distinto: solo coinciden
+    ventanas alineadas con el inicio de una secuencia.
+    """
+    if valor is None:
+        return False
+    objetivo = "".join(c for c in str(valor) if c.isdigit())
+    if not objetivo:
+        return False
+    secuencias = _secuencias_de_digitos(fragmento)
+    largo = len(objetivo)
+    for indice in range(len(secuencias)):
+        acumulado = ""
+        for secuencia in secuencias[indice:]:
+            acumulado += secuencia
+            if acumulado == objetivo:
+                return True
+            if len(acumulado) >= largo:
+                break  # ya se pasó del largo buscado: esta ventana no sirve
+    return False
+
+
+def _secuencias_de_digitos(texto: Any) -> tuple[str, ...]:
+    """Secuencias de dígitos consecutivos de un texto (T-403).
+
+    ``"C.U.I.T. 30-12345678-9 (emisor)"`` → ``("30", "12345678", "9")``. Es el
+    insumo de la comparación de identificadores: como el OCR separa los dígitos de
+    formas impredecibles, :func:`_sostiene_identificador` prueba la concatenación
+    de secuencias **contiguas** (una ventana), no de todo el fragmento: unir todo
+    el texto contendría números no relacionados y produciría falsos positivos.
+    """
+    if texto is None:
+        return ()
+    return tuple(_RE_SECUENCIA_DIGITOS.findall(str(texto)))
+
+
+#: Secuencias de dígitos consecutivos (para comparar identificadores sin
+#: depender de los separadores que eligió el OCR).
+_RE_SECUENCIA_DIGITOS = re.compile(r"\d+")
+
+
+def _sostiene_monto(valor: Any, fragmento: str) -> bool:
+    """True si el fragmento contiene el importe declarado (T-403).
+
+    Compara **importes**, no texto: extrae los números del fragmento con la
+    convención contable del signo (``"(1.234,56)"`` y ``"1.234,56-"`` son
+    negativos) y los normaliza con la **misma** función que el valor declarado
+    (:func:`~voucherflow.extraction.key_value.normalizar_monto`), de modo que
+    ``12345.67`` coincide con ``"$ 12.345,67"`` y ``-1234.56`` con
+    ``"Ajuste: (1.234,56)"``.
+
+    Importante: el ``fragmento`` que recibe es el **texto** original, no el valor
+    normalizado — la firma del ``sostenedor`` es ``(valor, fragmento)``.
+    """
+    from .key_value import montos_en_texto, normalizar_monto  # noqa: PLC0415
+
+    objetivo = normalizar_monto(valor)
+    if objetivo is None:
+        return False
+    return objetivo in montos_en_texto(fragmento)
+
+
+def _sostiene_fecha(valor: Any, fragmento: str) -> bool:
+    """True si el fragmento contiene la fecha declarada (T-403).
+
+    Compara las fechas ya normalizadas a ISO (mismo criterio que
+    :func:`~voucherflow.extraction.key_value.normalizar_fecha`): ``"2025-08-14"``
+    queda sostenido por ``"Fecha de Emisión: 14/08/2025"`` y también por un
+    fragmento que mencione varias fechas (``"Período 01/08/2025 al 31/08/2025"``
+    sostiene a las dos: exigir la primera sería una debilidad espuria).
+    """
+    from .key_value import fechas_en_texto, normalizar_fecha  # noqa: PLC0415
+
+    objetivo = normalizar_fecha(valor)
+    if objetivo is None:
+        return False
+    return objetivo in fechas_en_texto(fragmento)
 
 
 def parsear_evidencia_extraccion(contenido: str, *, fuente: str) -> EvidenciaExtraccion:
@@ -777,9 +1012,10 @@ def campo_declarado_de_campo(campo_lectura: CampoLectura) -> CampoDeclarado | No
     """Traduce un campo leído al ``CampoDeclarado`` del registro raw (T-401/T-403).
 
     Devuelve ``None`` cuando el sostén **no se puede evaluar** con las reglas
-    genéricas (ver :func:`_es_formato_volatil`): en ese caso el campo queda
-    explícitamente registrado como no evaluado (``sosten_no_evaluado``) para que
-    T-402/T-403 lo cubran, en vez de producir una debilidad espuria.
+    genéricas (ver :func:`_es_formato_volatil`): hoy solo la ``descripcion``, que
+    es una frase sintética. Hasta T-402 esa lista incluía también montos y
+    fechas; **T-403** los evalúa con un ``sostenedor`` que compara formas
+    canónicas (ver :func:`_sostenedor_de_campo`).
 
     Cuando sí se evalúa:
 
@@ -789,17 +1025,25 @@ def campo_declarado_de_campo(campo_lectura: CampoLectura) -> CampoDeclarado | No
     * el ``vocabulario`` es el cerrado del campo (si lo tiene);
     * el ``normalizador`` unifica la capitalización para comparar (``"a"`` →
       ``"A"``) sin cambiar el valor publicado;
+    * el ``sostenedor`` (T-403) resuelve el sostén de los campos de formato
+      estructurado comparando valores canónicos;
+    * la ``coherencia`` (T-403) declara las implicaciones de la fuente consigo
+      misma (E-EXT-2) cuando el campo es la letra del comprobante;
     * no se declara ``patron_sustento``: el sostén se busca por contención
       literal del valor (texto) o por vocabulario (campos cerrados).
     """
     if _es_formato_volatil(campo_lectura.campo, campo_lectura.valor):
         return None
+    campo = campo_lectura.campo
     return CampoDeclarado(
-        campo=campo_lectura.campo,
+        campo=campo,
         valor=campo_lectura.valor_crudo,
         fragmento=campo_lectura.fragmento,
-        vocabulario=_vocabulario_de(campo_lectura.campo),
+        vocabulario=_vocabulario_de(campo),
         normalizador=_normalizar_para_vocabulario,
+        normalizador_valor=_normalizador_canonico_de_campo(campo),
+        sostenedor=_sostenedor_de_campo(campo),
+        coherencia=COHERENCIA_POR_CAMPO.get(campo, ()),
         exigir_sustento=True,
     )
 
@@ -809,15 +1053,22 @@ def veredicto_raw_de_evidencia(
     *,
     registro: Any = None,
 ) -> VeredictoRaw:
-    """Corre la **pasada 1** de reglas raw sobre una lectura de extracción (T-401).
+    """Corre la **pasada 1** de reglas raw sobre una lectura de extracción (T-403).
 
     Envuelve :func:`~voucherflow.rules.raw.evaluar_raw` (el registro genérico de
-    F3/T-303, que no se reimplementa) con los campos evaluables de la lectura.
-    Los campos de formato volátil **no** entran (ver
-    :func:`campo_declarado_de_campo`), así que la ausencia de debilidades por
-    sostén en un monto no significa "está probado", sino "su sostén se evalúa en
-    T-402/T-403" — y eso queda escrito en la traza de
-    :func:`construir_source_evidence`.
+    T-303, que no se reimplementa) con **todos** los campos evaluables de la
+    lectura y las declaraciones de coherencia de T-403:
+
+    * texto y vocabularios cerrados: sostén literal (T-303);
+    * montos y fechas: sostén contra la **forma canónica** (T-403, vía
+      ``sostenedor``);
+    * coherencia de la fuente consigo misma (E-EXT-2): las implicaciones de
+      :data:`COHERENCIA_POR_CAMPO` (p. ej. letra ``A`` exige CUIT de emisor y
+      receptor e IVA discriminado) se evalúan sobre el **conjunto** de campos y
+      marcan la fuente como debilitada **antes de combinarla**.
+
+    Únicamente queda afuera la ``descripcion``, que es una frase sintética y no
+    un dato que se copie del documento.
 
     No decide nada: el veredicto solo **califica** la evidencia de la fuente.
     """
@@ -932,6 +1183,15 @@ def construir_source_evidence(
                     veredicto_usado.gravedad.value
                     if evaluados[nombre] is not None
                     else None
+                ),
+                # Trazabilidad del sostén (T-403): ``raw_evaluado`` dice si el
+                # campo entró a la pasada raw; ``sosten_estructurado`` distingue
+                # los que se validan contra su **forma canónica** (montos,
+                # fechas: ``12345.67`` vs. ``"$ 12.345,67"``) de los que se
+                # validan por contención del valor en el fragmento.
+                "sosten_estructurado": (
+                    evaluados[nombre] is not None
+                    and _sostenedor_de_campo(nombre) is not None
                 ),
                 # Trazabilidad de la normalización (T-402/E-EXT-3): si el valor
                 # publicado es canónico (``normalizado``), con qué regla y con
@@ -1315,18 +1575,26 @@ def extraer_evidencia(
                     for nombre, campo in resultado.evidencia.campos.items()
                     if _es_formato_volatil(nombre, campo.valor)
                 ),
+                "sosten_forma_canonica": sorted(
+                    nombre
+                    for nombre, campo in resultado.evidencia.campos.items()
+                    if not _es_formato_volatil(nombre, campo.valor)
+                    and _sostenedor_de_campo(nombre) is not None
+                ),
+                "incoherencias": list(resultado.veredicto.incoherencias),
                 "duracion_s": round(resultado.duracion_s, 4),
                 "normalizacion": _detalle_normalizacion(resultado),
             }
             for fuente, resultado in resultados_ordenados.items()
         },
         "nota": (
-            "Extracción T-402: los dos flujos corren en paralelo (E-EXT-1) y sus "
-            "valores se publican en forma canónica (E-EXT-3: CUIT cortado, fecha "
-            "YYYY-MM-DD, montos numéricos, punto_venta/numero separados); el "
-            "valor crudo de cada campo queda en "
-            "``SourceEvidence.campos[campo].meta['valor_crudo']``. La "
-            "combinación por campo (ADR-002) es T-404."
+            "Extracción T-403: los dos flujos corren en paralelo (E-EXT-1), cada "
+            "fuente se valida por sí sola antes de combinarse (E-EXT-2: pasada raw "
+            "de T-303 + sostén contra forma canónica de montos y fechas + "
+            "coherencia interna de la letra) y los valores se publican "
+            "normalizados (T-402/E-EXT-3) con el crudo en "
+            "``SourceEvidence.campos[campo].meta['valor_crudo']``. La combinación "
+            "por campo (ADR-002) es T-404."
         ),
     }
 
@@ -1345,7 +1613,9 @@ __all__ = [
     "VOCABULARIO_TIPO_COMPROBANTE",
     "VOCABULARIO_MONEDA",
     "CAMPOS_CON_VOCABULARIO",
+    "CAMPOS_SOSTEN_ESTRUCTURADO",
     "CAMPOS_SOSTEN_NO_EVALUADO",
+    "COHERENCIA_POR_CAMPO",
     "PATRON_VALOR_FORMATO_VOLATIL",
     "MOTIVO_SIN_SUSTENTO_CAMPO",
     "MOTIVO_CAMPO_AUSENTE",

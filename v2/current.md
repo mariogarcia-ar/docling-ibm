@@ -11,16 +11,16 @@
 | Campo | Valor |
 |---|---|
 | **Fase en curso** | **F4 — Extracción** (T-401..T-405) |
-| **Estado** | **T-401 ✅ y T-402 ✅ hechas**: los flujos VLM (vista fiel de F2) y LLM (OCR/Markdown de F1) corren **en paralelo** y devuelven `SourceEvidence` con el contrato de F0; prompt de evidencia versionado `extraccion-key-value@1`, intérprete que no inventa, pasada raw reutilizada de T-303, medición real de paralelismo y **normalización key-value** (CUIT cortado, fecha ISO, montos numéricos, `punto_venta`/`numero_comprobante` derivados) con el crudo siempre preservado. Restan T-403 (reglas raw de extracción), T-404 (combinación ADR-002) y T-405 (paridad con v1). |
+| **Estado** | **T-401, T-402 y T-403 ✅ hechas**: los flujos VLM (vista fiel de F2) y LLM (OCR/Markdown de F1) corren **en paralelo** y devuelven `SourceEvidence` con el contrato de F0; prompt de evidencia versionado `extraccion-key-value@1`, intérprete que no inventa, medición real de paralelismo, **normalización key-value** (CUIT cortado, fecha ISO, montos numéricos, `punto_venta`/`numero_comprobante` derivados) con el crudo siempre preservado y **pasada 1 por fuente** (sostén por forma canónica de montos/fechas/CUIT + coherencia interna de la fuente: una Factura A sin los dos CUIT queda debilitada antes de combinarse). Restan T-404 (combinación ADR-002) y T-405 (paridad con v1). |
 | **F0** | ✅ Fundación completada (schemas, esqueleto, golden set, adaptadores) |
 | **F1** | ✅ Implementada (T-101..T-105/ORQ, `api.process()`; paridad de integración en `@pytest.mark.integration`) |
 | **F2** | ✅ DoD verificado (T-201..T-204; doble paso qween) |
 | **F3** | ✅ DoD verificado (T-301..T-305; motor de reglas R1-R7, evidencia, reglas raw, cadena contable y paridad con v1) |
-| **F4** | 🟡 En implementación (**T-401 y T-402 hechas**; T-403..T-405 pendientes) |
+| **F4** | 🟡 En implementación (**T-401, T-402 y T-403 hechas**; T-404..T-405 pendientes) |
 | **F5–F6** | 🔴 Backlog (conclusión + HITL; CLI/batch y paridad sobre `files/`) |
 | **Paquete** | `voucherflow` v`0.1.0` (layout `src/`, ADR-007) |
 | **Contrato** | `SCHEMA_VERSION = 1.0.0` (congelado, ver criterio de cambio en `schemas/evidence.py`) |
-| **Suite de tests** | ✅ **827 tests en verde + 10 skipped** (`python -m pytest tests -q`) en env `py313_env` |
+| **Suite de tests** | ✅ **865 tests en verde + 10 skipped** (`python -m pytest tests -q`) en env `py313_env` |
 
 **Resumen**: F0 dejó la **fundación de la librería**: contratos de evidencia
 congelados, configuración centralizada, adaptadores `OllamaClient`/
@@ -108,7 +108,8 @@ pendientes.
 |---|---|---|---|
 | **T-401** (✅) | `extraction/{flows,evidencia,prompt_extraccion}.py` | Los flujos **VLM** (vista fiel de F2) y **LLM** (OCR/Markdown de F1) corren **en paralelo** (`ThreadPoolExecutor`, una tarea por fuente) y devuelven cada uno `SourceEvidence` con el contrato de F0 (ADR-001). Prompt de evidencia versionado `extraccion-key-value@1` (reporta `valor` + `fragmento_sustento` por campo; no normaliza ni decide). El intérprete no inventa campos (los lista en `campos_ausentes`), tolera el JSON plano de v1 (`kvi`/`kvg`) y reutiliza la pasada raw de T-303. Una fuente caída no tumba a la otra; todas caídas lanzan `ErrorExtraccion`. Las dos evidencias se conservan **sin colapsar** (T-404). | `test_extraction_flujos.py` (75) |
 | **T-402** (✅) | `extraction/key_value.py` | **Normalización key-value (E-EXT-3)** en código: CUIT a dígitos y guiones propios con corte ante caracteres extraños (`"20-1 Ing, Brutas: 201641"` → `"20-1"`), fechas `YYYY-MM-DD` solo si son completas y reales, montos numéricos sin separadores de miles (signo y constancia de ambigüedad), `punto_venta`/`numero_comprobante` derivados del número impreso, moneda `ARS`/`USD` sin default, texto colapsado, `descripcion` en minúsculas e ítems estructurados. **No inventa**: un dato ilegible conserva el crudo con aviso y el crudo de cada campo queda en `meta['valor_crudo']` (la pasada raw de T-303 sigue viendo el crudo). `normalizar=False` devuelve la lectura cruda de T-401. | `test_extraction_key_value.py` (97) |
-| **T-403..T-405** (🔴) | `rules/raw.py`, `rules/precedencia.py`, `tests/golden/F4/` | Reglas raw por fuente afinadas para extracción, combinación por campo (ADR-002) y paridad con v1. | — |
+| **T-403** (✅) | `rules/raw.py` + `extraction/evidencia.py` | **Pasada 1 por fuente (E-EXT-2)**: el sostén de montos, fechas y CUIT se evalúa contra la **forma canónica** (`12345.67` ← `"$ 12.345,67"`, `-1234.56` ← `"(1.234,56)"`, `2025-08-14` ← `"14/08/2025"`, `30123456789` ← `"30-12345678-9"`) y entra la **coherencia de la fuente consigo misma** (`RAW_COHERENCIA`): una Factura A sin los dos CUIT —o una B con IVA discriminado— queda **debilitada antes de combinarse**. La ausencia que no se puede juzgar no se castiga, la `descripcion` sigue sin evaluarse y el registro de T-303 queda intacto (los puntos de extensión los declara el llamador). | `test_extraction_raw_t403.py` (37) |
+| **T-404..T-405** (🔴) | `rules/precedencia.py`, `tests/golden/F4/` | Combinación por campo (ADR-002) y paridad con v1. | — |
 
 > **Inspección de T-401**: `python scripts/F4/t401.py` corre **11/11** escenarios
 > sintéticos (dos fuentes coincidiendo, discrepancia conservando ambas, campo sin
@@ -118,11 +119,12 @@ pendientes.
 > dos llamadas, no la suma). Con `--origen <doc>` corre la extracción real
 > (F1 + vista fiel de F2 + Ollama).
 >
-> **Decisión de alcance**: los campos de **formato volátil** (montos, fechas,
-> `descripcion`) no se evalúan por sostén literal en T-401 (el OCR decide
-> separadores y formato) y quedan listados en
-> `detalle["modelos"][fuente]["sosten_no_evaluado"]` para que T-403 los cubra —
-> no se inventa un veredicto favorable. **T-402 ya les dio forma canónica.**
+> **Decisión de alcance**: los campos de **formato estructurado** (montos, fechas,
+> CUIT) no se evalúan por sostén literal (el OCR decide separadores y formato)
+> pero **sí se evalúan**: desde T-403 se compara su **forma canónica** contra la
+> del fragmento. Los que tienen sostenedor propio se listan en
+> `detalle["modelos"][fuente]["sosten_forma_canonica"]`; solo la `descripcion`
+> (frase sintética) queda en `sosten_no_evaluado`.
 >
 > **Inspección de T-402**: `python scripts/F4/t402.py` corre **19/19** casos de
 > regla (el CUIT pegado al campo siguiente, nueve formas de fecha, montos con
@@ -137,6 +139,18 @@ pendientes.
 > reales del documento: se **conserva el crudo con un aviso** (que llega a
 > `SourceEvidence.debilidades` cuando es una limitación real) en lugar de
 > descartar el dato. El **0** es un importe legítimo, no una ausencia.
+>
+> **Inspección de T-403**: `python scripts/F4/t403.py` corre **11/11** criterios
+> de sostén (montos con separadores/signos/paréntesis, fechas —incluida la ventana
+> de un período—, CUIT con y sin separadores y con otro CUIT en el fragmento),
+> **7/7** escenarios de coherencia de la fuente (una `A` sin los dos CUIT, una `B`
+> con IVA discriminado, y las contrapartes que **no** deben marcarse) y **4/4**
+> fronteras. Con `--sosten --detalle` imprime el catálogo de criterios.
+>
+> **Decisión de alcance (T-403)**: la coherencia reporta la implicación que la
+> fuente **sí pudo evaluar**. Que una `B` no haya declarado el IVA **no se juzga**
+> (la ausencia ya viaja en `campos_ausentes`); castigarla premiaría al que inventa
+> datos. La gravedad es `dudosa`, nunca `inválida`: decide la combinación (T-404).
 
 ---
 
@@ -151,7 +165,7 @@ python -c "import voucherflow; print(voucherflow.__version__, voucherflow.SCHEMA
 # → 0.1.0 1.0.0
 ```
 
-### 3.2 Suite de tests (827 en verde + 10 skipped)
+### 3.2 Suite de tests (865 en verde + 10 skipped)
 
 ```bash
 cd v2
@@ -178,6 +192,7 @@ Cobertura de la suite por archivo (F0 + F1):
 | `test_classification_prompt_tipo.py` · `test_classification_contable.py` · `test_classification_paridad.py` | **F3/T-302, T-304 y T-305**: prompt de evidencia `tipo-comprobante@1` + lector inyectable; cadena contable 01→02→03 con checkpoints y contratos por paso; paridad con v1 (fidelidad de prompts portados, subconjunto del golden, regresión de R5). |
 | `test_extraction_flujos.py` | **F4/T-401**: prompt de evidencia `extraccion-key-value@1`, `messages` por fuente, intérprete (sin normalizar ni inventar; tolera el JSON plano de v1), contrato `SourceEvidence`, pasada raw reutilizada de T-303 y **paralelismo real** de los dos flujos (incluye fallos por fuente). |
 | `test_extraction_key_value.py` | **F4/T-402**: cada regla de normalización con los casos de v1 (CUIT cortado, nueve formas de fecha, montos con separadores/signos/ambigüedad, `PPPPP-NNNNNNNN` + derivados, moneda sin default, texto, `descripcion`, ítems), la regla dura de **no inventar** (crudo conservado con aviso), el informe de la corrida (reglas, normalizados/no normalizados, derivados, inmutabilidad) y la integración con el flujo y el contrato de F0. |
+| `test_extraction_raw_t403.py` | **F4/T-403**: sostén por forma canónica (montos con signo y paréntesis, fechas incluida la ventana de un período, CUIT con y sin separadores), la **coherencia de la fuente consigo misma** (`RAW_COHERENCIA`: `A` sin los dos CUIT, `B` con IVA discriminado, y los casos que no se juzgan), la trazabilidad (`RAW_COHERENCIA` / `incoherencias` / `sosten_estructurado` en la meta) y las fronteras (descripción sin evaluar, registro de T-303 intacto, esqueleto de T-404). |
 
 ### 3.3 Probar el contrato de evidencia a mano (ejemplos)
 
@@ -228,7 +243,7 @@ reglas.ids_disparados({"monto": 100, "texto": "tiene IVA"})  # ["R1", "R2"]
 - 🟡 Paridad de integración T-105 contra v1 sobre fixtures reales (tests `@pytest.mark.integration`; **F1, pendiente de corrida real**).
 - ✅ Gate "¿es comprobante?" estilo qween (**hecho en F2**, T-201..T-204).
 - ✅ Clasificar tipo/letra y cadena contable (**F3** completa: T-301..T-305 — motor de reglas R1-R7, prompt de evidencia, reglas raw, cadena contable 01→02→03 y paridad verificada con v1: **8/8** en la cadena y **5/5** de exactitud de letra vs. **2/5** de v1).
-- 🟡 **Extracción VLM/LLM con contrato de evidencia (T-401 ✅) y normalización key-value (T-402 ✅)**: `python scripts/F4/t401.py` corre **11/11** escenarios sin Ollama (prompt versionado, evidencia por fuente, paralelismo medido) y `python scripts/F4/t402.py` corre **19/19** casos de regla + **17/17** escenarios + **5/5** fronteras; con `--origen` los dos corren la extracción real (F1 + vista fiel de F2 + Ollama). Faltan las reglas raw por fuente (T-403), la combinación por campo (T-404) y la paridad con v1 (T-405).
+- 🟡 **Extracción VLM/LLM con contrato de evidencia (T-401 ✅), normalización key-value (T-402 ✅) y pasada 1 por fuente (T-403 ✅)**: `python scripts/F4/t401.py` corre **11/11** escenarios sin Ollama, `python scripts/F4/t402.py` corre **19/19** casos de regla + **17/17** escenarios + **5/5** fronteras y `python scripts/F4/t403.py` corre **11/11** criterios de sostén + **7/7** escenarios de coherencia + **4/4** fronteras; con `--origen` los tres corren la extracción real (F1 + vista fiel de F2 + Ollama). Faltan la combinación por campo (T-404) y la paridad con v1 (T-405).
 - ❌ Conclusión reglas→agente→HITL + trazabilidad persistida (llega en **F5**).
 - ❌ CLI/batch (`voucherflow …`) y paridad v1 sobre `files/` (llega en **F6**).
 
@@ -254,14 +269,16 @@ python scripts/F3/t301.py            # 14 escenarios R1..R7 contra la expectativ
 python -m pytest tests/test_rules_tipo_comprobante.py -q
 ```
 
-### 3.8 Comprobación rápida de T-401/T-402 (F4)
+### 3.8 Comprobación rápida de T-401/T-402/T-403 (F4)
 
 ```bash
 python scripts/F4/t401.py                      # 11 escenarios + paralelismo medido
 python scripts/F4/t401.py --prompt             # el prompt de evidencia versionado
 python scripts/F4/t402.py                      # 19 casos de regla + 17 escenarios + 5 fronteras
 python scripts/F4/t402.py --reglas --detalle   # el catálogo de reglas, caso por caso
-python -m pytest tests/test_extraction_flujos.py tests/test_extraction_key_value.py -q
+python scripts/F4/t403.py                      # 11 criterios de sostén + 7 escenarios + 4 fronteras
+python scripts/F4/t403.py --sosten --detalle   # el catálogo de criterios de sostén
+python -m pytest tests/test_extraction_flujos.py tests/test_extraction_key_value.py tests/test_extraction_raw_t403.py -q
 ```
 
 ```python
@@ -279,23 +296,26 @@ resultado = extraer(
     documento_id="doc-1",
 )
 resultado.evidencias_por_fuente()   # {'vlm': SourceEvidence, 'llm': SourceEvidence}
-resultado.debilidades               # ['[llm] La fuente declaró ...']
+resultado.debilidades               # ['[llm] La evidencia de la fuente es internamente ...']
 resultado.detalle["fuentes_sin_insumo"]
+resultado.detalle["modelos"]["llm"]["incoherencias"]   # T-403
 ```
 
 > Los valores que publica el `SourceEvidence` están **normalizados** (T-402: CUIT
 > cortado, fecha ISO, montos numéricos) y el valor crudo de cada campo viaja en
 > `meta['valor_crudo']`; `extraer(..., normalizar=False)` devuelve la lectura cruda
-> de T-401. Las dos evidencias se conservan **sin colapsar** (la combinación por
-> campo con precedencia ADR-002 es T-404: `combinar_evidencia` sigue lanzando
+> de T-401. Cada fuente viene además **calificada por sí sola** (T-403: sostén por
+> forma canónica y coherencia interna, E-EXT-2) antes de combinarse: las dos
+> evidencias se conservan **sin colapsar** (la combinación por campo con
+> precedencia ADR-002 es T-404: `combinar_evidencia` sigue lanzando
 > `NotImplementedError`).
 
 Las funciones de esqueleto de fases futuras (`run`, `concluir`,
 `escalar_a_agente`, `encolar_hitl`, `CaseRecorder.registrar`,
 `combinar_evidencia`) lanzan `NotImplementedError` a propósito. Ya **no** son
 esqueletos `process` (F1), `validate` (F2), `classify` (F3),
-`flujo_vlm`/`flujo_llm`/`extract` (F4/T-401) ni la normalización key-value
-(F4/T-402).
+`flujo_vlm`/`flujo_llm`/`extract` (F4/T-401), la normalización key-value
+(F4/T-402) ni la pasada 1 por fuente (F4/T-403).
 
 ---
 

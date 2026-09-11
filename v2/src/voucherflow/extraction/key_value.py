@@ -184,6 +184,22 @@ _SEPARADOR_ALIAS = re.compile(r"[_\-.]")
 # Patrones de los valores (formas que se reconocen, no vocabulario del dominio)
 # ---------------------------------------------------------------------------
 
+#: Tokens numéricos de un texto (con sus separadores): el primer carácter es un
+#: dígito y el último también, así que no se comen el punto final de una oración
+#: ni un guión suelto. Es la forma de comparar un **número** contra un fragmento
+#: sin depender de cómo lo escribió el OCR (T-403).
+_RE_NUMERO_EN_TEXTO = re.compile(r"\d[\d.,]*\d|\d")
+
+#: Monto con su signo **contextual**: paréntesis de cierre contable
+#: (``"(1.234,56)"``), signo delante o detrás (``"-1.234,56"``,
+#: ``"1.234,56-"``). El grupo 1 es el cuerpo numérico; los restantes marcan el
+#: signo. Se usa para comparar importes contra un fragmento: el OCR imprime los
+#: negativos con la convención contable y el modelo los reporta con ``-``.
+_RE_MONTO_SIGNADO = re.compile(
+    r"(?P<abre>\(\s*)?(?P<prefijo>-)?\s*(?P<cuerpo>\d[\d.,]*\d|\d)\s*"
+    r"(?P<sufijo>-)?\s*(?P<cierra>\))?"
+)
+
 #: Símbolos que se descartan de un monto antes de interpretar separadores.
 _RE_SIMBOLOS_MONTO = re.compile(r"[^\d.,\-()\s]")
 
@@ -757,6 +773,94 @@ def normalizar_moneda(valor: Any) -> str | None:
     if compacto in {"ARS", "$", "PESOS", "PESO", "ARG"}:
         return "ARS"
     return None
+
+
+def candidatos_numericos(texto: Any) -> tuple[str, ...]:
+    """Números que aparecen en un texto, con sus separadores originales (T-403).
+
+    Es el insumo de los predicados de sostén de los campos de **formato
+    volátil**: para saber si un fragmento sostiene ``12345.67`` hay que comparar
+    **números**, no texto (``"$ 12.345,67"`` y ``"12345.67"`` son el mismo
+    importe). El token conserva sus separadores para que
+    :func:`normalizar_monto` los interprete con la misma convención que usa con
+    el valor declarado — así el sostén y el valor no pueden divergir.
+
+    Devuelve los tokens en orden de aparición, sin duplicados. Un texto sin
+    dígitos devuelve tupla vacía (no se inventa ningún número).
+    """
+    if texto is None:
+        return ()
+    encontrados: list[str] = []
+    for coincidencia in _RE_NUMERO_EN_TEXTO.finditer(str(texto)):
+        token = coincidencia.group(0)
+        if token not in encontrados:
+            encontrados.append(token)
+    return tuple(encontrados)
+
+
+def montos_en_texto(texto: Any) -> tuple[int | float, ...]:
+    """Importes **con su signo** que aparecen en un texto, ya normalizados (T-403).
+
+    A diferencia de :func:`candidatos_numericos` (que devuelve el token crudo),
+    acá se interpreta la **convención contable** del signo: un importe entre
+    paréntesis (``"(1.234,56)"``), con el signo delante (``"-1.234,56"``) o
+    detrás (``"1.234,56-"``) es negativo. Es lo que permite que un ajuste
+    declarado como ``-1234.56`` quede sostenido por un fragmento que lo imprime
+    como ``"Ajuste: (1.234,56)"``.
+
+    Devuelve los importes normalizados en orden de aparición, sin duplicados. Un
+    texto sin números devuelve tupla vacía.
+    """
+    if texto is None:
+        return ()
+    encontrados: list[int | float] = []
+    for coincidencia in _RE_MONTO_SIGNADO.finditer(str(texto)):
+        cuerpo = coincidencia.group("cuerpo")
+        if not cuerpo:
+            continue
+        negativo = bool(
+            coincidencia.group("abre")
+            or coincidencia.group("prefijo")
+            or coincidencia.group("sufijo")
+            or coincidencia.group("cierra")
+        )
+        numero = normalizar_monto(cuerpo)
+        if numero is None:
+            continue
+        valor = -numero if negativo else numero
+        if valor not in encontrados:
+            encontrados.append(valor)
+    return tuple(encontrados)
+
+
+def fechas_en_texto(texto: Any) -> tuple[str, ...]:
+    """Fechas ISO que aparecen en un texto, en orden de aparición (T-403).
+
+    Usa las **mismas** funciones de normalización que el valor declarado
+    (:func:`normalizar_fecha`), así que un fragmento que menciona dos fechas
+    (``"Período 01/08/2025 al 31/08/2025"``) permite sostener cualquiera de las
+    dos: exigir la primera produciría una debilidad espuria.
+
+    Devuelve ISO ``YYYY-MM-DD`` sin duplicados. Un texto sin fecha reconocible
+    devuelve tupla vacía.
+    """
+    if texto is None:
+        return ()
+    crudo = str(texto)
+    encontradas: list[str] = []
+    for patron in (_RE_FECHA_NUMERICA, _RE_FECHA_COMPACTA, _RE_FECHA_ES):
+        for coincidencia in patron.finditer(crudo):
+            normalizada = normalizar_fecha(coincidencia.group(0))
+            if normalizada and normalizada not in encontradas:
+                encontradas.append(normalizada)
+    # ISO con hora (``2025-08-14T10:30``): el patrón anterior ya toma la fecha,
+    # pero el grupo puede incluir la hora según dónde empiece la coincidencia.
+    iso = _RE_ISO_CON_HORA.search(crudo)
+    if iso:
+        normalizada = normalizar_fecha(iso.group(0))
+        if normalizada and normalizada not in encontradas:
+            encontradas.append(normalizada)
+    return tuple(encontradas)
 
 
 def separar_comprobante(valor: Any) -> tuple[str | None, str | None]:
@@ -1337,4 +1441,8 @@ __all__ = [
     "normalizar_evidencia",
     "normalizar_evidencia_extraccion",
     "valores_normalizados",
+    # apoyo al sostén de campos estructurados (T-403)
+    "candidatos_numericos",
+    "montos_en_texto",
+    "fechas_en_texto",
 ]

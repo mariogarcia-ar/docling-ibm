@@ -5,7 +5,7 @@
 > ([`F4.md`](F4.md)) y el diseño del módulo
 > ([`../03-arquitectura/EXT.md`](../03-arquitectura/EXT.md)).
 > **Fecha**: 2026-09-10 · **Rama**: `v2` · **Estado**: En implementación
-> (T-401 y T-402 hechas; T-403..T-405 pendientes).
+> (T-401, T-402 y T-403 hechas; T-404..T-405 pendientes).
 
 ## 1. Ficha del subplan
 
@@ -14,7 +14,7 @@
 | **Fase** | F4 — Extracción (refactor de la extracción de v1) |
 | **Tareas que cubre** | T-401, T-402, T-403, T-404, T-405 (ver [`F4.md`](F4.md)) |
 | **Épicas asociadas** | E-EXT (E-EXT-1 flujos en paralelo, E-EXT-2 reglas raw, E-EXT-3 campos normalizados) |
-| **Módulos** | `voucherflow/extraction/` (`flows.py`, `evidencia.py`, `prompt_extraccion.py`, `key_value.py`) |
+| **Módulos** | `voucherflow/extraction/` (`flows.py`, `evidencia.py`, `prompt_extraccion.py`, `key_value.py`) + `voucherflow/rules/raw.py` (T-303 y su extensión de T-403) |
 | **Responsable** | team implementation |
 | **Decisiones de alcance** | Cerradas con el equipo (ver §2) |
 | **DoD de referencia** | "Dos flujos siempre en paralelo con evidencia trazable; paridad de extracción con v1 en campos normalizados sobre golden set" (DoD de F4 en `05-plan-ejecucion.md`) |
@@ -109,6 +109,32 @@
     ARS"; acá eso sería inventar una moneda que el documento no declaró. Una
     moneda no reconocida conserva el crudo con aviso — el default es una decisión
     de negocio, no de lectura.
+16. **La pasada raw de extracción se completa por dos vías, no reescribiendo el
+    registro** (T-403): el registro de T-303 sigue siendo el mismo (cuatro
+    ``Rule``); lo que crece son los **puntos de extensión por campo** que el
+    llamador declara — ``sostenedor`` (predicado de sostén equivalente) y
+    ``coherencia`` (implicaciones de la fuente consigo misma). Así el registro
+    sigue **agnóstico del dominio** y F3 no se toca.
+17. **El sostén de un valor con formato es una pregunta semántica, no textual**
+    (hallazgo de implementación de T-403): ``"1.234,56"`` **está contenido** en
+    ``"Ajuste: 1.234,56-"``, pero ese fragmento sostiene ``-1234.56``. Por eso el
+    ``sostenedor`` se consulta **antes** que la contención literal: la contención
+    sola daría falsos positivos justo en los campos donde el formato importa.
+18. **La coherencia reporta la implicación que la fuente sí pudo evaluar**
+    (T-403): si la fuente dice ``A`` sin el CUIT del receptor, eso es una
+    incoherencia (E-EXT-2 textual); si simplemente no declaró el IVA de una ``B``,
+    **no se juzga** — la ausencia ya viaja en ``campos_ausentes`` y castigarla
+    premiaría al que inventa datos. La coherencia es ``dudosa``, nunca
+    ``invalida``: una fuente inconsistente aporta un indicio contradictorio, y
+    quien decide si sirve es la combinación (T-404).
+19. **La descripción sigue sin evaluarse** (T-403): es una frase que resume los
+    ítems, no un texto que se copie del documento, así que ni la contención ni un
+    sostenedor tienen sentido. Es la única entrada que queda en
+    ``CAMPOS_SOSTEN_NO_EVALUADO``.
+20. **Las reglas de conflicto que necesitan la condición fiscal quedan afuera**
+    (alcance de T-403): "C no admite emisor Responsable Inscripto" (prompt 11.1)
+    requiere un dato que la extracción **no lee** (lo resuelve el padrón, F5).
+    Declararla con el CUIT como sustituto sería inventar una inferencia.
 
 ## 3. Alcance por tarea (T-401..T-405)
 
@@ -264,20 +290,87 @@
   caso por caso** (`--reglas --detalle`), corre **17 escenarios** con ✅/❌ y
   salida no-cero, verifica **5 fronteras** de la tarea y con `--origen` corre la
   extracción real y muestra la comparación `crudo → normalizado` por fuente.
-- **Pendiente de otras tareas**: la afinación de las reglas raw por fuente es
-  **T-403** (los campos de formato volátil ya tienen forma canónica, pero su
-  validación raw sigue pendiente); la combinación por campo es **T-404**; la
-  paridad con v1 es **T-405**.
+- **Pendiente en ese momento (ya resuelto)**: la afinación de las reglas raw por
+  fuente era **T-403** — **hecha** (ver §3.3): los campos de formato volátil ya
+  no solo tienen forma canónica, sino que su sostén **se evalúa** contra ella. La
+  combinación por campo sigue siendo **T-404**; la paridad con v1 es **T-405**.
 
-### 3.3 T-403..T-405 · Pendientes
+### 3.3 T-403 · Reglas raw por fuente (pasada 1) ✅ Hecha
+
+> **Estado 2026-09-10**: **Hecha** por `team implementation`. Suite completa en
+> verde (**865 passed, 10 skipped**, 37 nuevos); `python scripts/F4/t403.py`
+> reporta **11/11** criterios de sostén + **7/7** escenarios de coherencia +
+> **4/4** fronteras. Ver bitácora en [`F4.md`](F4.md) §4.
+
+- **Qué**: completar la **pasada 1** por fuente para la extracción —validar cada
+  fuente **antes** de combinarla (E-EXT-2)— sobre los dos huecos que T-401 había
+  declarado explícitamente: el sostén de los campos de formato volátil y la
+  coherencia de la fuente consigo misma. ✅
+- **Archivos**:
+  - `rules/raw.py` (ampliado, **sin** tocar el registro ni el motor de F0):
+    `ImplicacionCoherencia` (implicaciones que la fuente debe cumplir consigo
+    misma: ``disparador``/``requeridos``/``incompatibles``/``pendientes``),
+    `CampoDeclarado.normalizador_valor` (forma canónica del valor, solo para el
+    sostén) y `CampoDeclarado.sostenedor` (predicado
+    ``(valor_canónico, fragmento) -> bool``, **autoridad** del sostén cuando el
+    formato importa), `violaciones_de_coherencia()` y el id `RAW_COHERENCIA`
+    (con ``VeredictoRaw.incoherencias``). ✅
+  - `extraction/evidencia.py` — `CAMPOS_SOSTEN_ESTRUCTURADO` (montos y fechas,
+    que T-401 dejaba sin evaluar), `CAMPOS_SOSTEN_NO_EVALUADO` reducido a la
+    ``descripcion``, los sostenedores de dominio (`_sostiene_monto`,
+    `_sostiene_fecha`, `_sostiene_identificador`), el normalizador canónico de
+    los CUIT, `COHERENCIA_POR_CAMPO` (las implicaciones de E-EXT-2 sobre la letra)
+    y la traza (`sosten_forma_canonica`, `incoherencias`, `sosten_estructurado`
+    en la meta del campo). ✅
+  - `extraction/key_value.py` — `candidatos_numericos`, `montos_en_texto`
+    (importes con la convención contable del signo) y `fechas_en_texto`: el apoyo
+    que los sostenedores necesitan, con las **mismas** funciones de normalización
+    que publica el valor (así el sostén y el valor no pueden divergir). ✅
+  - `extraction/__init__.py` — exporta el contrato nuevo. ✅
+- **Qué se evalúa ahora** (y qué se sigue dejando afuera), por campo:
+
+  | Campo | Criterio de sostén | Desde |
+  |---|---|---|
+  | `tipo_comprobante`, `moneda` | vocabulario cerrado (T-303) | F3 |
+  | CUIT (emisor/receptor) | secuencias de dígitos (``30/12345678/9`` sostiene ``30-12345678-9``) | T-403 |
+  | razones sociales, `nro_comprobante` | contención del valor en el fragmento (T-303) | F3 |
+  | montos (`subtotal`, `iva`, total…) | importes: números con la convención contable del signo | T-403 |
+  | `fecha_emision` | fechas normalizadas a ISO (sostiene cualquiera de las del período) | T-403 |
+  | `descripcion` | **no se evalúa**: frase sintética, no un texto que se copie | T-401 |
+
+- **Coherencia de la fuente (E-EXT-2)**, declarada en `COHERENCIA_POR_CAMPO`:
+  - **Factura A sin los dos CUIT** → la fuente queda debilitada (el caso textual
+    de la historia: "dice Factura A pero no detectó los dos CUIT que esa letra
+    exige").
+  - **Factura B con IVA discriminado** → la fuente queda debilitada (regla 5 del
+    prompt `11` de v1 / prompt `11.1`).
+  - **No se juzga** lo que la fuente no pudo evaluar (una ``B`` sin IVA declarado,
+    una ``C`` sin datos tributarios): la ausencia ya viaja en `campos_ausentes` y
+    castigarla premiaría al que inventa datos.
+  - Gravedad **`dudosa`**, nunca `invalida`: la fuente inconsistente aporta un
+    indicio contradictorio, y quien decide si sirve es la combinación (T-404).
+- **Tests** (`tests/test_extraction_raw_t403.py`, 37) ✅: sostén de montos (con
+  separadores, signos y paréntesis), fechas (incluida la ventana de un período),
+  identificadores (con y sin separadores, y con otro CUIT en el fragmento),
+  coherencia en sus cuatro combinaciones, trazabilidad (`RAW_COHERENCIA`,
+  `incoherencias`, meta del campo) e integración con el flujo; más las fronteras.
+- **Herramienta de inspección** ✅: `scripts/F4/t403.py` — imprime los **criterios
+  de sostén** caso por caso (`--sosten --detalle`), corre **7 escenarios de
+  coherencia** con ✅/❌ y salida no-cero, verifica **4 fronteras** y con
+  `--origen` corre la extracción real y muestra, por fuente, el veredicto raw.
+- **Pendiente de otras tareas**: la combinación por campo es **T-404** (la
+  coherencia es una de sus entradas: deja a la fuente debilitada); la paridad con
+  v1 es **T-405**; las reglas de conflicto que dependen de la **condición fiscal**
+  del emisor quedan para el padrón/F5 (la extracción no la lee).
+
+### 3.4 T-404..T-405 · Pendientes
 
 > Se documentarán al implementarse. Alcance según
 > [`F4.md`](F4.md) §3 y el DoD de F4 en `05-plan-ejecucion.md`.
 
 | Tarea | Alcance | Archivos previstos |
 |---|---|---|
-| **T-403** | Reglas raw por fuente para **todos** los campos extraídos (incluidos los de formato volátil que T-401 dejó explícitamente sin evaluar; ya tienen valor canónico desde T-402), con trazabilidad | `rules/raw.py` (ampliado) + `extraction/evidencia.py` |
-| **T-404** | Combinación de evidencia con resolución **por campo** y precedencia ADR-002 (`CampoCombinado`/`FieldResolution`), sobre las dos `SourceEvidence` que T-401 ya entrega (con valores comparables gracias a T-402) | `rules/precedencia.py` (nuevo) + `extraction/flows.py` (`combinar_evidencia`) |
+| **T-404** | Combinación de evidencia con resolución **por campo** y precedencia ADR-002 (`CampoCombinado`/`FieldResolution`), sobre las dos `SourceEvidence` que T-401 entrega (con valores comparables gracias a T-402 y ya calificadas por fuente gracias a T-403) | `rules/precedencia.py` (nuevo) + `extraction/flows.py` (`combinar_evidencia`) |
 | **T-405** | Paridad con `extraction_pipeline.py` (10/11) y `document_extraction.py` (kvi/kvg) sobre el golden set; subconjunto de paridad y runners | `tests/golden/F4/` + `scripts/F4/paridad_*.py` |
 
 ## 4. Reglas duras (no romper F0/F2/F3)
@@ -313,7 +406,10 @@ funcion extraer_evidencia(lector, markdown, vista, normalizar=True):
         evidencia = parsear_evidencia_extraccion(respuesta.contenido, fuente)
         si normalizar:                                                # T-402
             evidencia, informe = normalizar_evidencia(evidencia)      # E-EXT-3
-        veredicto = veredicto_raw_de_evidencia(evidencia)           # reusa T-303
+        veredicto = veredicto_raw_de_evidencia(evidencia)           # T-303 + T-403
+            # RAW_CAMPO/VOCABULARIO/SUSTENTO/CONTRADICCION (T-303)
+            #   + sostén por forma canónica (montos, fechas, CUIT)
+            #   + RAW_COHERENCIA: implicaciones de la fuente (E-EXT-2)
         source    = construir_source_evidence(evidencia, veredicto) # ADR-001
     si todas las fuentes con insumo fallaron: error de dominio      # ErrorExtraccion
     retornar evidencias por fuente (orden pedido) + detalle         # sin colapsar
@@ -322,12 +418,15 @@ funcion extraer_evidencia(lector, markdown, vista, normalizar=True):
 - El `detalle` de la corrida publica: fuentes pedidas/corridas/sin insumo,
   fallos por fuente, si hubo paralelismo y el `max_workers`, por fuente el
   modelo/`num_ctx`/`valida`/`gravedad`/`reglas_raw`/cantidad de campos/
-  `sosten_no_evaluado`/duración/`normalizacion` (reglas aplicadas, campos
-  normalizados y no normalizados, derivados y avisos), la versión del prompt, la
-  versión de las reglas de normalización y la nota de alcance.
+  `sosten_no_evaluado`/`sosten_forma_canonica`/`incoherencias`/duración/
+  `normalizacion` (reglas aplicadas, campos normalizados y no normalizados,
+  derivados y avisos), la versión del prompt, la versión de las reglas de
+  normalización y la nota de alcance.
 - La **combinación** de las dos evidencias (precedencia por campo) es T-404 y no
-  ocurre acá: T-401/T-402 entregan las dos `SourceEvidence` completas, ya con
-  valores canónicos comparables campo a campo.
+  ocurre acá: T-401/T-402/T-403 entregan las dos `SourceEvidence` completas, con
+  valores canónicos comparables campo a campo y cada fuente **ya calificada por sí
+  sola** (que es la entrada que la tabla de precedencia necesita para saber qué
+  fuente está debilitada).
 
 ## 6. Archivos creados/modificados
 
@@ -347,17 +446,28 @@ funcion extraer_evidencia(lector, markdown, vista, normalizar=True):
 - `tests/test_extraction_key_value.py` (nuevo, 97 tests).
 - `scripts/F4/t402.py` (nuevo).
 
+### T-403
+- `src/voucherflow/rules/raw.py` (ampliado: `ImplicacionCoherencia`, `sostenedor`, `normalizador_valor`, `violaciones_de_coherencia`, `RAW_COHERENCIA`).
+- `src/voucherflow/extraction/evidencia.py` (`CAMPOS_SOSTEN_ESTRUCTURADO`, sostenedores de dominio, `COHERENCIA_POR_CAMPO`, traza).
+- `src/voucherflow/extraction/key_value.py` (`candidatos_numericos`, `montos_en_texto`, `fechas_en_texto`).
+- `src/voucherflow/extraction/__init__.py` (exportes).
+- `tests/test_extraction_raw_t403.py` (nuevo, 37 tests).
+- `scripts/F4/t403.py` (nuevo).
+- Ajustes de expectativas en `tests/test_extraction_flujos.py` y `scripts/F4/t401.py` (el comportamiento de T-403 reemplaza el "sin evaluar" que T-401 congelaba).
+
 ## 7. Avance
 
 - **Estado (2026-09-10)**: F4 en implementación. **T-401: Hecha** (los dos flujos
-  en paralelo devolviendo `SourceEvidence`, con prompt de evidencia versionado,
-  pasada raw reutilizada de T-303 y tolerancia a fallos por fuente) y
-  **T-402: Hecha** (normalización key-value de E-EXT-3 portada a código desde los
-  prompts `10`/`11`/`kvi`/`kvg`, con el crudo siempre preservado). Suite en
-  verde: **827 passed, 10 skipped** (75 de T-401 + 97 de T-402).
-  `F4.md` pasa de 🔴 Backlog a 🟡 En implementación.
+  en paralelo devolviendo `SourceEvidence`, con prompt de evidencia versionado y
+  tolerancia a fallos por fuente), **T-402: Hecha** (normalización key-value de
+  E-EXT-3 portada a código desde los prompts `10`/`11`/`kvi`/`kvg`, con el crudo
+  siempre preservado) y **T-403: Hecha** (pasada 1 completa: sostén por forma
+  canónica de montos/fechas/CUIT y coherencia de la fuente consigo misma,
+  E-EXT-2). Suite en verde: **865 passed, 10 skipped** (75 de T-401 + 97 de T-402
+  + 37 de T-403 sobre una base de 656). `F4.md` pasa de 🔴 Backlog a 🟡 En
+  implementación.
 - **Punto de partida real**: el contrato de evidencia de F0 está congelado y la
   vista fiel de F2 (`preparar_vista_fiel`) y el markdown de F1
   (`api.process`) están disponibles, así que T-401 pudo implementarse sin tocar
-  las fases previas (los flujos reciben esos artefactos); T-402 normaliza sobre
-  esa lectura sin volver a tocar F1/F2.
+  las fases previas (los flujos reciben esos artefactos); T-402 normaliza esa
+  lectura y T-403 la califica, también sin volver a tocar F1/F2.

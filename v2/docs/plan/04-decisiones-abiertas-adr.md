@@ -245,7 +245,14 @@ consulta/auditoría sobre el histórico (Fase futura / E-CLI HITL list).
 - **Estado**: ✅ **Aceptado** (F0, 2026-09-06) · **Prioridad**: Alta (bloqueante) · **Decisión D-6**
 - **Implementación**: base del motor declarativo (`Rule` + `Registry`) en
   `v2/src/voucherflow/rules/registry.py`; las reglas R1-R7 se migran en F3
-  (T-301).
+  (T-301) y las **raw por fuente** en F3/T-303 + **F4/T-403**. El lado de la
+  extracción quedó cerrado en **T-403**: la pasada 1 es `rules/raw.py` (registro
+  de T-303 **extendido**, no reescrito) con los puntos de extensión
+  (`CampoDeclarado.sostenedor`, `ImplicacionCoherencia`) que declara el llamador
+  — `extraction/evidencia.py` define el sostén por forma canónica de montos,
+  fechas y CUIT y las implicaciones de la fuente consigo misma (E-EXT-2). El
+  prompt de extracción (`extraccion-key-value@1`) sigue sin decidir ni validar
+  nada: reporta valor + fragmento de sustento.
 
 **Contexto**
 Hoy las reglas R1-R7 están embebidas en el prompt WIP
@@ -263,7 +270,7 @@ determinística exige reglas ejecutadas por programa (no por el modelo).
 
 **Decisión (recomendación)**
 Adoptar **(a)** (con heurísticas de lectura R4-R6 también en código, apoyadas en
-la evidencia de VLM/LLM). El prompt conserva el **conocimiento de qué buscar**
+ta la evidencia de VLM/LLM). El prompt conserva el **conocimiento de qué buscar**
 (recuadro, desglose, condiciones fiscales) pero devuelve evidencia.
 
 **Consecuencias**

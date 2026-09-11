@@ -20,11 +20,12 @@ evidencia congelado), `rules` (motor de reglas), `models` (adaptadores
 > **Estado**: Fases F0–F3 con DoD verificado y **F4 en implementación** (T-401
 > hecha: flujos VLM+LLM en paralelo devolviendo evidencia con el contrato de F0;
 > T-402 hecha: normalización key-value de los campos fiscales/comerciales;
-> T-403..T-405 pendientes). El paquete ya tiene implementadas las capacidades de
-> procesamiento (F1), validación (F2), clasificación (F3) y la extracción con
-> contrato de evidencia y campos normalizados (F4/T-401+T-402); la lógica restante
-> se implementa en sus fases (F4–F5). La suite default corre **sin** Ollama ni
-> Docling reales.
+> T-403 hecha: pasada 1 por fuente con sostén por forma canónica y coherencia
+> interna; T-404..T-405 pendientes). El paquete ya tiene implementadas las
+> capacidades de procesamiento (F1), validación (F2), clasificación (F3) y la
+> extracción con contrato de evidencia, campos normalizados y validación por
+> fuente (F4/T-401+T-402+T-403); la lógica restante se implementa en sus fases
+> (F4–F5). La suite default corre **sin** Ollama ni Docling reales.
 
 ## Instalación
 
@@ -58,7 +59,7 @@ v2/
     processing/…            # F1 (implementado)
     validation/…            # F2 (implementado)
     classification/…        # F3 (implementado)
-    extraction/…            # F4: T-401 (flujos + evidencia) y T-402 (key_value); T-403..T-405 pendientes
+    extraction/…            # F4: T-401 (flujos + evidencia), T-402 (key_value) y T-403 (raw por fuente); T-404..T-405 pendientes
     conclusion/…            # esqueleto (F5)
     rules/…                 # esqueleto (F3/F5)
     models/

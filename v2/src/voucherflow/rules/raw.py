@@ -144,11 +144,72 @@ MOTIVO_CONTRADICCION = (
     "contradice el valor declarado {declarado!r}; se registra la contradicción "
     "para auditoría (la lectura prevalece como indicio, ver T-303)."
 )
+MOTIVO_INCONSISTENCIA = (
+    "La evidencia de la fuente es internamente inconsistente: declara "
+    "{campo}={valor!r} pero {detalle} La fuente queda debilitada antes de "
+    "combinarse (T-403/E-EXT-2)."
+)
+MOTIVO_INCONSISTENCIA_FALTANTE = (
+    "La evidencia de la fuente es internamente inconsistente: declara "
+    "{campo}={valor!r} pero no leyó {faltantes}, que ese tipo de comprobante "
+    "exige. Queda como indicio incompleto hasta contrastarla con la otra fuente "
+    "(T-403/E-EXT-2)."
+)
 
 
 # ---------------------------------------------------------------------------
 # Entradas del registro raw
 # ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class ImplicacionCoherencia:
+    """Una implicación que una fuente debe cumplir **consigo misma** (F4/T-403).
+
+    Modela los requisitos que un valor de un campo (``disparador``: la letra
+    ``"A"``) impone sobre **otros** campos de esa misma fuente. Se evalúa sobre el
+    conjunto de campos (no campo por campo), así que vive acá y no como ``Rule``
+    del registro: es el punto de extensión que E-EXT-2 necesita para marcar a una
+    fuente "internamente inconsistente antes de combinarse".
+
+    Campos:
+        disparador: valor **normalizado** del campo que activa la implicación
+            (``"A"``). Se compara con el valor normalizado del campo que la
+            declara (así ``"a"`` y ``"A"`` son lo mismo).
+        motivo: explicación legible del requisito, con su origen (regla/prompt).
+        requeridos: campos que **deben estar declarados** para que la fuente sea
+            coherente (``("cuit_emisor", "cuit_receptor")`` para una Factura A).
+            Un requerido ausente se reporta como **inconsistencia por
+            implicación abierta** — no se inventa el dato, pero la fuente queda
+            como indicio incompleto (ver :func:`violaciones_de_coherencia`).
+        incompatibles: ``campo -> valores admitidos``. Si el campo afectado fue
+            **declarado** con un valor que **no** está en la lista, la fuente se
+            contradice (``{"iva": (0, "0")}`` para una Factura B, que no
+            discrimina IVA: declarar ``2100.5`` en ``iva`` es la incoherencia).
+            Se modela como "valores admitidos" y no como "valores prohibidos"
+            porque es como lo expresa la regla: *la letra B admite IVA en cero*.
+        pendientes: campos que la fuente **debe declarar para poder evaluar** la
+            implicación. Mientras no se hayan declarado, la implicación **no se
+            juzga** (ni se cumple ni se viola). Es la diferencia con
+            ``requeridos``: un campo afectado simplemente ausente (p. ej. el
+            ``razon_social_receptor``) no es un requisito del tipo de
+            comprobante, así que no se reporta; el CUIT del receptor **sí** lo es
+            para una Factura A y por eso va en ``requeridos``.
+
+    Ejemplo (Factura A, E-EXT-2)::
+
+        ImplicacionCoherencia(
+            disparador="A",
+            motivo="una Factura A discrimina IVA y exige CUIT de emisor y receptor.",
+            requeridos=("cuit_emisor", "cuit_receptor"),
+        )
+    """
+
+    disparador: Any
+    motivo: str
+    requeridos: tuple[str, ...] = ()
+    incompatibles: Mapping[str, Any] = field(default_factory=dict)
+    pendientes: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -182,6 +243,28 @@ class CampoDeclarado:
             produce la regla. Sirve para explicar la consecuencia concreta en el
             dominio sin que el registro raw sepa del dominio (p. ej. "el motor no
             podrá confirmar la letra con la regex de R5").
+        normalizador_valor: función ``valor -> valor canónico`` opcional, aplicada
+            **además** del ``normalizador``, solo para el sostén y la
+            presentación de los mensajes. Es el punto de extensión de
+            **F4/T-403**: el `valor` sigue siendo el **crudo** (la regla de
+            vocabulario necesita ver lo que la fuente dijo, T-301), pero el
+            sostén se evalúa contra la forma canónica del valor
+            (``30123456789`` ← ``30-12345678-9``). Si es ``None``, el valor
+            normalizado es el que pasa el ``normalizador``.
+        sostenedor: predicado opcional ``(valor_normalizado, fragmento) -> bool``
+            consultado como **último** recurso del sostén (:func:`valor_sostenido`,
+            punto 4). Es el punto de extensión de **F4/T-403** para los campos
+            cuyo valor y fragmento están escritos en formatos distintos y no
+            comparables por contención (``12345.67`` vs. ``"$ 12.345,67"``,
+            ``2025-08-14`` vs. ``"14/08/2025"``): el llamador sabe cómo
+            reconocerlos y el registro sigue sin saber del dominio. Si es
+            ``None``, no hay respaldo: lo que la contención no sostiene es una
+            debilidad.
+        coherencia: implicaciones que la fuente debe cumplir **consigo misma**
+            (ver :class:`ImplicacionCoherencia`). Es el punto de extensión de
+            **F4/T-403** para E-EXT-2: la regla se evalúa sobre el **conjunto**
+            de campos de la fuente, por eso vive en el campo y no en una ``Rule``
+            que ve un campo por vez.
     """
 
     campo: str
@@ -192,12 +275,37 @@ class CampoDeclarado:
     patron_sustento: re.Pattern[str] | None = None
     exigir_sustento: bool = True
     nota: str = ""
+    normalizador_valor: Any = None
+    sostenedor: Any = None
+    coherencia: tuple["ImplicacionCoherencia", ...] = ()
 
     def normalizar(self) -> Any:
-        """Valor normalizado (aplica ``normalizador`` si se declaró)."""
+        """Valor normalizado (aplica ``normalizador`` si se declaró).
+
+        Es la forma que usan la regla de **vocabulario** y la de **contradicción**
+        (comparaciones cerradas, T-303): unifica la capitalización sin cambiar el
+        valor.
+        """
         if self.normalizador is not None and self.valor is not None:
             return self.normalizador(self.valor)
         return self.valor
+
+    def valor_canonico(self) -> Any:
+        """Forma **canónica** del valor, solo para el sostén (F4/T-403).
+
+        Aplica ``normalizador`` y después ``normalizador_valor``: un CUIT
+        declarado como ``"30-12345678-9"`` se compara con el fragmento como
+        ``"30123456789"``, de modo que el fragmento sostiene al valor aunque el
+        OCR lo haya impreso con separadores (y al revés). El valor **publicado**
+        en la evidencia sigue siendo el crudo (T-402): esto es solo para comparar.
+        """
+        normalizado = self.normalizar()
+        if self.normalizador_valor is not None and normalizado is not None:
+            try:
+                return self.normalizador_valor(normalizado)
+            except Exception:  # noqa: BLE001 - un normalizador roto no rompe la pasada
+                return normalizado
+        return normalizado
 
     @property
     def valor_presente(self) -> bool:
@@ -228,13 +336,19 @@ class VeredictoRaw:
         reglas_aplicadas: ids de las reglas raw disparadas (trazabilidad
             E-CONC-5), en orden de prioridad.
         debilidades: motivos legibles de las debilidades detectadas (se copia a
-            ``SourceEvidence.debilidades``).
+            ``SourceEvidence.debilidades``). Incluye las violaciones de
+            coherencia entre campos de la fuente (F4/T-403, ``RAW_COHERENCIA``),
+            que no son ``Rule`` porque miran el conjunto y no un campo por vez.
         candidatos_descartados: valores del vocabulario **descartados** por
             contradicción (la fuente citó otro valor) o por estar fuera del
             vocabulario.
         candidatos_restantes: valores del vocabulario que **siguen vivos** (el
             declarado, y en ausencia de declaración las alternativas del
             vocabulario).
+        incoherencias: campos de la fuente que quedaron internamente
+            inconsistentes con otro campo que la misma fuente declaró (F4/T-403).
+            Lista vacía = la fuente es coherente consigo misma (o no declaró lo
+            suficiente para poder juzgarlo).
     """
 
     fuente: str
@@ -244,6 +358,7 @@ class VeredictoRaw:
     debilidades: list[str] = field(default_factory=list)
     candidatos_descartados: list[str] = field(default_factory=list)
     candidatos_restantes: list[str] = field(default_factory=list)
+    incoherencias: list[str] = field(default_factory=list)
 
     @property
     def es_valida(self) -> bool:
@@ -359,13 +474,30 @@ def valor_sostenido(campo: CampoDeclarado) -> bool:
        fragmento. Es el caso de F4/T-403, donde hay campos sin vocabulario
        cerrado; sin este fallback, todo campo libre se reportaba como no
        sostenido.
+
+    Cuando el campo declara ``sostenedor`` (F4/T-403), ese predicado es la
+    **autoridad** del sostén: sabe reconocer las formas equivalentes del valor
+    (``12345.67`` en ``"$ 12.345,67"``, ``30123456789`` en
+    ``"C.U.I.T. 30-12345678-9"``). Se consulta **antes** que la contención
+    literal, porque la contención sola daría falsos positivos justo en los campos
+    donde el formato importa: ``"1.234,56"`` está contenido en
+    ``"Ajuste: 1.234,56-"``, pero ese fragmento sostiene ``-1234.56``, no
+    ``1234.56``.
     """
-    declarado = campo.normalizar()
-    if declarado is None:
-        return False
     if campo.vocabulario is not None:
+        declarado = campo.normalizar()
+        if declarado is None:
+            return False
         return declarado in coincidencias_en_sustento(campo)
-    return str(declarado).casefold() in campo.fragmento.casefold()
+    canonico = campo.valor_canonico()
+    if canonico is None:
+        return False
+    if campo.sostenedor is not None:
+        try:
+            return bool(campo.sostenedor(canonico, campo.fragmento))
+        except Exception:  # noqa: BLE001 - un sostenedor roto no rompe la pasada
+            return False
+    return str(canonico).casefold() in campo.fragmento.casefold()
 
 
 def condicion_raw_sustento(campo: CampoDeclarado) -> bool:
@@ -399,6 +531,120 @@ def condicion_raw_contradiccion(campo: CampoDeclarado) -> bool:
 
 
 # ---------------------------------------------------------------------------
+# Coherencia entre campos de una misma fuente (F4/T-403, E-EXT-2)
+# ---------------------------------------------------------------------------
+
+
+def _valores(colector: Any) -> tuple[Any, ...]:
+    """Normaliza un colector de valores (escalar, tupla, frozenset o ``None``).
+
+    Un valor escalar se trata como colección de uno: ``"A"`` y ``("A",)`` son lo
+    mismo. Es lo que permite declarar una implicación legible
+    (``("IVA", "iva", "0", "…")``) sin obligar a envolver cada valor.
+    """
+    if colector is None:
+        return ()
+    if isinstance(colector, (str, bytes)):
+        return (colector,)
+    if isinstance(colector, Iterable):
+        return tuple(colector)
+    return (colector,)
+
+
+def _compara(campo: CampoDeclarado | None, valor: Any) -> bool:
+    """True si el campo declaró ``valor`` (comparando con su normalizador).
+
+    La comparación usa el ``normalizador`` del campo (el mismo que la regla de
+    vocabulario), de modo que ``"a"`` y ``"A"`` son el mismo valor sin que la
+    coherencia sepa del dominio. Sin normalizador, la comparación es la igualdad
+    directa.
+    """
+    if campo is None or not campo.valor_presente:
+        return False
+    return campo.normalizar() == valor
+
+
+def violaciones_de_coherencia(
+    campos: Mapping[str, CampoDeclarado],
+) -> list[str]:
+    """Implicaciones que la fuente violó **por sí sola** (F4/T-403, E-EXT-2).
+
+    Implementa la validación de coherencia que pide E-EXT-2: una fuente
+    internamente inconsistente (dice ``"A"`` pero no leyó los dos CUIT que esa
+    letra exige, o declara IVA discriminado en una ``"B"``) queda **debilitada
+    antes de combinarse** con la otra. Las implicaciones las declara el llamador
+    en :attr:`CampoDeclarado.coherencia` (ver :class:`ImplicacionCoherencia`), así
+    que el registro sigue siendo agnóstico del dominio: acá solo se evalúan.
+
+    Semántica (documentada a propósito, para que no haya ambigüedad):
+
+    * La implicación se evalúa solo si el campo que la declara normaliza al
+      ``disparador`` (``"A"``).
+    * **Requeridos**: cada campo de ``requeridos`` que la fuente **no declaró**
+      produce una violación (implicación abierta: la letra exige ese dato y la
+      fuente no lo trajo). Es exactamente el caso de E-EXT-2 — "dice Factura A
+      pero no detectó los dos CUIT que esa letra exige".
+    * **Incompatibles**: si el campo afectado fue declarado con un valor de la
+      lista, la fuente se contradice.
+    * **Pendientes**: mientras falte alguno, la implicación no se juzga (ni
+      cumple ni viola). Sirve para declarar requisitos que solo tienen sentido si
+      la fuente intentó evaluarlos.
+
+    Argumentos:
+        campos: mapping ``nombre -> CampoDeclarado`` de **una** fuente.
+
+    Devuelve:
+        Motivos legibles (uno por violación, en orden determinista: campo
+        disparador, luego requeridos y después incompatibles) listos para
+        ``debilidades``. Vacía si la fuente es coherente o si no se puede juzgar.
+    """
+    motivos: list[str] = []
+    for nombre, campo in campos.items():
+        if not campo.coherencia:
+            continue
+        disparado = campo.normalizar()
+        for implicacion in campo.coherencia:
+            if disparado != implicacion.disparador:
+                continue
+            if any(c in campos for c in implicacion.pendientes) and not all(
+                c in campos for c in implicacion.pendientes
+            ):
+                continue  # evaluación incompleta: no se juzga
+            faltantes = [
+                requerido
+                for requerido in implicacion.requeridos
+                if requerido not in campos
+            ]
+            if faltantes:
+                motivos.append(
+                    MOTIVO_INCONSISTENCIA_FALTANTE.format(
+                        campo=nombre,
+                        valor=campo.valor,
+                        faltantes=", ".join(faltantes),
+                    )
+                    + f" {implicacion.motivo}"
+                )
+            for admitido, valores_admitidos in implicacion.incompatibles.items():
+                campo_afectado = campos.get(admitido)
+                if campo_afectado is None or not campo_afectado.valor_presente:
+                    continue  # no declarado: no se inventa ni se castiga
+                if campo_afectado.normalizar() in _valores(valores_admitidos):
+                    continue  # el valor declarado es uno de los admitidos
+                motivos.append(
+                    MOTIVO_INCONSISTENCIA.format(
+                        campo=nombre,
+                        valor=campo.valor,
+                        detalle=(
+                            f"declara {admitido}={campo_afectado.valor!r}, cuando "
+                            f"admite {sorted(str(v) for v in _valores(valores_admitidos))}, y "
+                            f"{implicacion.motivo}"
+                        ),
+                    )
+                )
+    return motivos
+
+
+# ---------------------------------------------------------------------------
 # Registro de reglas raw
 # ---------------------------------------------------------------------------
 
@@ -410,6 +656,18 @@ PRIORIDAD_RAW_CAMPO = 1
 PRIORIDAD_RAW_VOCABULARIO = 2
 PRIORIDAD_RAW_SUSTENTO = 3
 PRIORIDAD_RAW_CONTRADICCION = 4
+
+#: Id con el que se **reporta** la coherencia entre campos de una fuente
+#: (F4/T-403). No es una ``Rule`` del registro —las ``Rule`` ven un campo por
+#: vez y la coherencia mira el conjunto— pero sí viaja en
+#: ``VeredictoRaw.reglas_aplicadas`` para que la trazabilidad (E-CONC-5) nombre
+#: la validación que se aplicó.
+ID_RAW_COHERENCIA = "RAW_COHERENCIA"
+
+#: Gravedad de la coherencia: es **dudosa**, no inválida. Una fuente
+#: inconsistente aporta un indicio contradictorio, no un valor que no se pueda
+#: usar: quien decide si la fuente sirve es el veredicto combinado (T-404).
+GRAVEDAD_RAW_COHERENCIA = Gravedad.dudosa
 
 
 def construir_registro_raw() -> Registry:
@@ -683,6 +941,19 @@ def evaluar_raw(
             if valor not in veredicto.candidatos_restantes:
                 veredicto.candidatos_restantes.append(valor)
 
+    # Coherencia entre campos de la **misma** fuente (F4/T-403, E-EXT-2). No es
+    # una ``Rule`` porque mira el conjunto y no un campo por vez; se evalúa al
+    # final para que los motivos queden después de los de las reglas.
+    incoherencias = violaciones_de_coherencia(
+        {campo.campo: campo for campo in lista_campos}
+    )
+    if incoherencias:
+        veredicto.reglas_aplicadas.append(ID_RAW_COHERENCIA)
+        veredicto.gravedad = _mas_grave(veredicto.gravedad, GRAVEDAD_RAW_COHERENCIA)
+        for motivo in incoherencias:
+            veredicto.debilidades.append(motivo)
+        veredicto.incoherencias = list(incoherencias)
+
     # Blindaje ADR-008 (contrato de CombinedEvidence): nunca en ambas listas.
     veredicto.candidatos_descartados = [
         v for v in veredicto.candidatos_descartados if v not in veredicto.candidatos_restantes
@@ -707,6 +978,9 @@ __all__ = [
     "MOTIVO_FUERA_VOCABULARIO",
     "MOTIVO_SIN_SOSTEN",
     "MOTIVO_CONTRADICCION",
+    "MOTIVO_INCONSISTENCIA",
+    "ID_RAW_COHERENCIA",
+    "GRAVEDAD_RAW_COHERENCIA",
     "construir_registro_raw",
     "condicion_raw_campo",
     "condicion_raw_vocabulario",
@@ -714,5 +988,6 @@ __all__ = [
     "condicion_raw_contradiccion",
     "coincidencias_en_sustento",
     "valor_sostenido",
+    "violaciones_de_coherencia",
     "evaluar_raw",
 ]

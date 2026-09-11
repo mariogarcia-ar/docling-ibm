@@ -654,8 +654,14 @@ class TestSourceEvidence:
         assert source.valida is True  # dudosa (indicio), no inválida
 
     def test_la_ausencia_de_campo_no_genera_debilidad(self):
+        # No inventar es la conducta correcta: si la fuente no declara un campo
+        # que **no** es requisito de otro, no hay debilidad que reportar. La
+        # letra "B" no impone requisitos por sí sola (y su IVA ausente no se
+        # juzga), así que el documento queda sin debilidades.
+        # (El caso "A sin los dos CUIT" sí es una debilidad desde T-403/E-EXT-2:
+        # lo cubre `tests/test_extraction_raw_t403.py`.)
         ev = parsear_evidencia_extraccion(
-            _json_extraccion(campos={"tipo_comprobante": _campo("A", "'A' y COD. 01")}),
+            _json_extraccion(campos={"tipo_comprobante": _campo("B", "'B' y COD. 06")}),
             fuente="vlm",
         )
         source = construir_source_evidence(ev)
@@ -676,7 +682,18 @@ class TestSourceEvidence:
         assert any("vocabulario" in d for d in source.debilidades)
 
     def test_la_pasada_raw_reutiliza_el_registro_de_t303(self):
-        ev = parsear_evidencia_extraccion(_json_extraccion(), fuente="vlm")
+        # La lectura declara los dos CUIT (una Factura A los exige desde
+        # T-403/E-EXT-2), así que la fuente es coherente consigo misma.
+        ev = parsear_evidencia_extraccion(
+            _json_extraccion(
+                campos={
+                    "tipo_comprobante": _campo("A", "Recuadro grande con 'A' y COD. 01"),
+                    "cuit_emisor": _campo("20-12345678-9", "C.U.I.T. 20-12345678-9"),
+                    "cuit_receptor": _campo("27-30111222-4", "C.U.I.T. 27-30111222-4"),
+                }
+            ),
+            fuente="vlm",
+        )
         veredicto = veredicto_raw_de_evidencia(ev)
         assert veredicto.fuente == "vlm"
         assert veredicto.valida is True
@@ -695,13 +712,15 @@ class TestSourceEvidence:
         assert source.valida is True  # dudosa: indicio, no prueba
         assert any("no contiene ese valor" in d for d in source.debilidades)
 
-    def test_los_campos_de_formato_volatil_no_se_evaluan_por_sosten(self):
-        # Un monto con separadores no puede compararse literalmente: se registra
-        # como no evaluado (T-402/T-403 lo cubren) sin inventar una debilidad.
+    def test_los_campos_de_formato_volatil_se_evaluan_por_forma_canonica(self):
+        # T-403: el sostén de un monto se evalúa comparando su **forma canónica**
+        # contra los números del fragmento (no por igualdad literal), así que el
+        # campo entra a la pasada raw y no produce una debilidad espuria.
         ev = parsear_evidencia_extraccion(_json_extraccion(), fuente="llm")
         source = construir_source_evidence(ev)
         meta = source.campos["importe_total_facturado"].meta
-        assert meta["raw_evaluado"] is False
+        assert meta["raw_evaluado"] is True
+        assert meta["sosten_estructurado"] is True
         assert meta["valor_coercionado_a_texto"] is False
         assert not any(
             "importe_total_facturado" in d and "no contiene" in d
@@ -748,16 +767,23 @@ class TestCampoDeclarado:
         assert declarado is not None
         assert declarado.vocabulario == VOCABULARIO_TIPO_COMPROBANTE
 
-    def test_campo_de_formato_volatil_no_se_evalua(self):
+    def test_campo_de_formato_volatil_se_evalua_por_forma_canonica(self):
+        # T-403: los montos y las fechas **sí** entran a la pasada raw, con un
+        # ``sostenedor`` que compara formas canónicas; la ``descripcion`` sigue
+        # afuera (es una frase sintética, no un dato que se copie).
+        assert campo_declarado_de_campo(
+            CampoLectura(campo="subtotal", valor="12.345,67", fragmento="Subtotal: 12.345,67")
+        ) is not None
+        assert campo_declarado_de_campo(
+            CampoLectura(campo="iva", valor=2100.5, fragmento="IVA 21%: 2.100,50")
+        ) is not None
         assert (
             campo_declarado_de_campo(
-                CampoLectura(campo="subtotal", valor="12.345,67", fragmento="Subtotal: 12.345,67")
-            )
-            is None
-        )
-        assert (
-            campo_declarado_de_campo(
-                CampoLectura(campo="iva", valor=2100.5, fragmento="IVA 21%: 2.100,50")
+                CampoLectura(
+                    campo="descripcion",
+                    valor="compra de insumos",
+                    fragmento="Compra de insumos varios",
+                )
             )
             is None
         )
@@ -929,18 +955,40 @@ class TestExtraccionParalela:
         assert resultado.detalle["modelos"]["vlm"]["duracion_s"] > 0
         assert resultado.detalle["version_prompt"] == VERSION_PROMPT_EXTRACCION
 
-    def test_sosten_no_evaluado_queda_listado_en_la_traza(self):
+    def test_sosten_no_evaluado_y_forma_canonica_quedan_en_la_traza(self):
         lector = FakeLector(contenido=_json_extraccion())
         resultado = extraer_evidencia(
             lector,
             markdown="FACTURA A",
             settings=_settings_dobles(),
         )
-        no_evaluados = resultado.detalle["modelos"]["llm"]["sosten_no_evaluado"]
-        assert "importe_total_facturado" in no_evaluados
-        assert "fecha_emision" in no_evaluados
-        # ...y los campos de texto sí se evalúan.
-        assert "cuit_emisor" not in no_evaluados
+        modelos = resultado.detalle["modelos"]["llm"]
+        # T-403: montos, fechas e identificadores se evalúan comparando su forma
+        # canónica (números, ISO, solo dígitos), porque el OCR los escribe con
+        # separadores distintos a como los reporta el modelo.
+        for campo in ("importe_total_facturado", "fecha_emision", "cuit_emisor"):
+            assert campo in modelos["sosten_forma_canonica"], campo
+        # Esta lectura no declara `descripcion` (la única que queda sin evaluar),
+        # así que la lista de no evaluados viene vacía.
+        assert modelos["sosten_no_evaluado"] == []
+        # Los campos que se validan por contención simple no aparecen en ninguna
+        # de las dos listas: se evalúan con el criterio de texto de T-303.
+        assert "razon_social_emisor" not in modelos["sosten_forma_canonica"]
+        assert "razon_social_emisor" not in modelos["sosten_no_evaluado"]
+
+    def test_la_descripcion_es_lo_unico_que_queda_sin_evaluar(self):
+        # La descripción es una frase sintética: no hay un texto del documento que
+        # la sostenga, así que ni T-303 ni T-403 la evalúan — y queda declarada.
+        lector = FakeLector(
+            contenido=_json_extraccion(
+                campos={"descripcion": _campo("compra de insumos", "Compra de insumos")}
+            )
+        )
+        resultado = extraer_evidencia(
+            lector, markdown="FACTURA A", settings=_settings_dobles()
+        )
+        modelos = resultado.detalle["modelos"]["llm"]
+        assert modelos["sosten_no_evaluado"] == ["descripcion"]
 
     def test_las_debilidades_agregan_la_fuente(self):
         lector = FakeLector(
