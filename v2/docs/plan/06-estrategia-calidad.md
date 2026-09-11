@@ -180,6 +180,14 @@ tests/golden/
   signos, `PPPPP-NNNNNNNN`, moneda sin default, ítems), la regla dura de "no
   inventar" (crudo conservado con aviso), el informe de la corrida y las
   fronteras (el crudo de T-401 sobrevive; `normalizar=False` lo devuelve entero).
+  **T-405**: 37 tests (`test_extraction_paridad.py`, 6 clases) — procedencia de
+  las reglas (`regla_v1` + `prompt_v1` + `texto_v1`), paridad de normalización
+  contra el `texto_v1` literal, la regla de "no inventar", integridad del
+  subconjunto (cobertura del contrato ∪ campos genéricos, campos de decisión
+  excluidos con motivo) y la lógica de comparación (`coincide`/`difiere`/
+  `no_comparable`, tolerancia número↔texto solo en números). El script de
+  paridad se carga por `importlib` **sin** ejecutar `main`, así que la suite
+  default no toca la red.
 - **Integración**: VLM y LLM en paralelo devuelven `SourceEvidence` válida;
   combinación con precedencia (ADR-002). **Hecho en T-401**:
   `scripts/F4/t401.py` corre **11/11** escenarios sintéticos con dobles (dos
@@ -194,10 +202,15 @@ tests/golden/
   coherencia de la fuente (E-EXT-2) y **4/4** fronteras. **Hecho en T-404**:
   `scripts/F4/t404.py` corre **8/8** escenarios de resolución y **4/4** fronteras,
   y `--manual` ejecuta el pipeline F4 completo (T-401→T-402→T-403→T-404) con la
-  lectura del modelo inyectada.
+  lectura del modelo inyectada. **Hecho en T-405**: `scripts/F4/t405.py
+  --subset determinista` (default, **sin red**) reporta reglas **20/20**,
+  paridad estructural **29/29** campos, sostén **32/32**, cobertura del modo
+  genérico **5/5** y procedencia verificada, y sale con código ≠ 0 si fallan
+  reglas, sostén o procedencia; `--subset origen` corre la paridad **real**
+  contra v1 (requiere Ollama y `v1/`).
 - **Aceptación** (E-EXT-1/2/3): ambos flujos corren siempre; reglas raw marcan
-  fuentes débiles; paridad con `kvi/kvg/10/11` en campos planos. **Parcial en
-  T-401..T-404**: "ambos flujos corren siempre" verificado (paralelismo
+  fuentes débiles; paridad con `kvi/kvg/10/11` en campos planos. **Verificado en
+  T-401..T-405**: "ambos flujos corren siempre" verificado (paralelismo
   **medido**: dos llamadas de 0,2 s tardan ≈ 0,2 s, no 0,4 s; `max_workers=1`
   serializa); "los campos se normalizan sin inventar" verificado para CUIT,
   fechas, montos, comprobante, moneda, texto e ítems (T-402); "las reglas raw
@@ -205,16 +218,26 @@ tests/golden/
   evaluables y para la coherencia interna de la fuente (T-403); "la combinación
   resuelve por campo con precedencia y conserva trazabilidad de cada fuente"
   verificado con la tabla, los cinco casos de resolución y el determinismo
-  (T-404). La paridad es **T-405**.
+  (T-404); **"paridad con kvi/kvg/10/11"** verificado en **tres niveles**
+  (T-405): normalización determinista **20/20**, contrato y sostén **29/29**
+  campos (**32/32** de sostén) y corrida real contra v1 sobre 3 documentos del
+  golden (informativa, fuera de la suite default).
 - **Métricas**: exactitud por campo sobre golden (CUIT, fecha, total, razón
   social), tasa de acuerdo VLM vs. LLM, % campos con fragmento de sustento.
-  **Pendiente**: las tres requieren el subconjunto del golden (`tests/golden/F4/`)
-  de **T-405**; T-402 deja los campos en forma canónica y T-403 evalúa su sostén,
-  que es la precondición para que la exactitud por campo sea comparable con v1.
-  El sostén de los campos de formato estructurado ya **no** queda sin evaluar:
-  desde T-403 se compara su forma canónica y los que tienen sostenedor propio se
-  listan en `detalle["modelos"][fuente]["sosten_forma_canonica"]`; solo la
-  `descripcion` sigue en `sosten_no_evaluado` (ver `EXT.md` §2).
+  **Medido en T-405 sobre el subconjunto** (`tests/golden/F4/`, versión
+  `0.1-f4`): paridad estructural de campos **29/29**, sostén estructurado
+  **32/32**, cobertura del modo genérico **5/5** y procedencia de las reglas
+  **20/20**. **Límite honesto**: esto **no** es la exactitud sobre el golden
+  completo — la curación con contador de montos/fechas sigue pendiente (F2
+  §2.5) — y el DoD de F4 admite **paridad o mejora** documentada caso por caso,
+  no un verde artificial; la corrida **real** contra v1 queda en
+  `--subset origen` porque requiere Ollama y `v1/`. T-402 deja los campos en
+  forma canónica y T-403 evalúa su sostén, que es la precondición para que la
+  exactitud por campo sea comparable con v1. El sostén de los campos de formato
+  estructurado ya **no** queda sin evaluar: desde T-403 se compara su forma
+  canónica y los que tienen sostenedor propio se listan en
+  `detalle["modelos"][fuente]["sosten_forma_canonica"]`; solo la `descripcion`
+  sigue en `sosten_no_evaluado` (ver `EXT.md` §2).
 
 ### Fase 5 — Conclusión + HITL
 - **Unitarias**: reglas cruzadas, gaps y límite de reintentos; blindaje del

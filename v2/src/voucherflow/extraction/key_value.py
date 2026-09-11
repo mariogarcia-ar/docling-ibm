@@ -131,11 +131,19 @@ CAMPOS_DERIVADOS_COMPROBANTE: tuple[str, ...] = (
 )
 
 #: Campos del **modo genérico** (``kvg``) que tienen regla propia y **no** están
-#: en el contrato del prompt fiscal (``CAMPOS_EXTRACCION``): ``kvg`` define
-#: ``productos`` como la lista de ítems del documento, así que se estructura.
+#: en el contrato del prompt fiscal (``CAMPOS_EXTRACCION``):
+#:
+#: * ``productos`` — ``kvg`` lo define como la lista de ítems del documento, así
+#:   que se estructura (``NORM_ITEMS``).
+#: * ``proveedor`` — es clave **obligatoria** de ``kvg`` (la razón social del
+#:   emisor) y el OCR la devuelve con espacios múltiples: se le aplica la misma
+#:   regla de texto que a ``razon_social_emisor`` (``NORM_TEXTO``). Lo encontró la
+#:   verificación de paridad de T-405: sin la regla, el valor conservaba el ruido
+#:   de espaciado del OCR.
+#:
 #: Se declara explícito para que el test de integridad pueda exigir que
 #: :data:`REGLA_POR_CAMPO` cubra el contrato **más** exactamente estos campos.
-CAMPOS_GENERICOS_CON_REGLA: tuple[str, ...] = ("productos",)
+CAMPOS_GENERICOS_CON_REGLA: tuple[str, ...] = ("productos", "proveedor")
 
 #: Regla de normalización de cada campo del contrato de extracción
 #: (:data:`~voucherflow.extraction.prompt_extraccion.CAMPOS_EXTRACCION`). Un
@@ -149,6 +157,7 @@ REGLA_POR_CAMPO: dict[str, str] = {
     "moneda": NORM_MONEDA,
     "razon_social_emisor": NORM_TEXTO,
     "razon_social_receptor": NORM_TEXTO,
+    "proveedor": NORM_TEXTO,
     "descripcion": NORM_TEXTO,
     "productos": NORM_ITEMS,
     "subtotal": NORM_MONTO,

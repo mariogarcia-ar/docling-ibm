@@ -17,16 +17,17 @@ evidencia congelado), `rules` (motor de reglas), `models` (adaptadores
 `OllamaClient` y `DoclingConverter`), `trace` (trazabilidad/`CaseRecord`) y
 `settings` (configuración centralizada).
 
-> **Estado**: Fases F0–F3 con DoD verificado y **F4 en implementación** (T-401:
-> flujos VLM+LLM en paralelo devolviendo evidencia con el contrato de F0; T-402:
-> normalización key-value de los campos fiscales/comerciales; T-403: pasada 1 por
-> fuente con sostén por forma canónica y coherencia interna; T-404: combinación
-> con resolución por campo según la precedencia de ADR-002; resta T-405). El
-> paquete ya tiene implementadas las capacidades de procesamiento (F1), validación
-> (F2), clasificación (F3) y la extracción completa —contrato, normalización,
-> validación por fuente y combinación— (F4/T-401..T-404); la lógica restante se
-> implementa en sus fases (F4–F5). La suite default corre **sin** Ollama ni
-> Docling reales.
+> **Estado**: Fases F0–F4 con DoD verificado. **F4 — Extracción está cerrada**
+> (T-401: flujos VLM+LLM en paralelo devolviendo evidencia con el contrato de F0;
+> T-402: normalización key-value de los campos fiscales/comerciales; T-403:
+> pasada 1 por fuente con sostén por forma canónica y coherencia interna; T-404:
+> combinación con resolución por campo según la precedencia de ADR-002; T-405:
+> paridad con v1 sobre el subconjunto del golden). El paquete ya tiene
+> implementadas las capacidades de procesamiento (F1), validación (F2),
+> clasificación (F3) y la extracción completa —contrato, normalización, validación
+> por fuente, combinación y paridad— (F4/T-401..T-405); la lógica restante se
+> implementa en sus fases (F5–F6, conclusión/HITL y CLI/batch). La suite default
+> corre **sin** Ollama ni Docling reales.
 
 ## Instalación
 
@@ -60,9 +61,9 @@ v2/
     processing/…            # F1 (implementado)
     validation/…            # F2 (implementado)
     classification/…        # F3 (implementado)
-    extraction/…            # F4: T-401 (flujos + evidencia), T-402 (key_value), T-403 (raw por fuente) y T-404 (combinación); resta T-405
+    extraction/…            # F4: T-401 (flujos + evidencia), T-402 (key_value), T-403 (raw por fuente), T-404 (combinación) y T-405 (paridad con v1)
     conclusion/…            # esqueleto (F5)
-    rules/…                 # esqueleto (F3/F5)
+    rules/…                 # F3 (R1-R7 + raw) y F4 (precedencia por campo); cruzadas/gaps en F5 (esqueleto)
     models/
       ollama.py             # OllamaClient (F0, implementado)
       docling.py            # DoclingConverter + ProcessedDocument (F0)
@@ -72,6 +73,7 @@ v2/
       config.py             # Settings (F0, implementado)
   tests/                    # suite de F0
     golden/                 # golden set inicial (índice CSV, ver README)
+    golden/F4/              # F4/T-405: subconjunto de paridad (0.1-f4) + README
 ```
 
 ## Contrato versionado

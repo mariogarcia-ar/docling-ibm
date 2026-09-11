@@ -21,18 +21,21 @@ contrato y ADR, y se registra su estado de diseño/implementación.
 | [`PROC.md`](PROC.md) | `voucherflow/processing/` | Ingestión multi-formato: detector de tipo, gate de procesabilidad, clasificador de imagen, preprocesamiento, orientación, motor OCR/VLM, enrutado PDF por página y exportación ordenada | 🟡 En implementación (T-101..T-104 + routing; falta orquestación + T-105) | F0 (T-006) + F1 (T-101..T-105) |
 | [`VAL.md`](VAL.md) | `voucherflow/validation/` | Gate "¿es comprobante?" por doble paso qween (vista rápida → revisión → vista fiel) | 🔴 Borrador | F2 (T-201..T-204) |
 | [`CLAS.md`](CLAS.md) | `voucherflow/classification/` | Tipo/letra (R1-R7 + VLM/LLM) y clasificación contable (cadena 01→02→03) | ✅ T-301..T-305 implementados (DoD de F3 verificado) | F3 (T-301..T-305) |
-| [`EXT.md`](EXT.md) | `voucherflow/extraction/` | Extracción con flujos VLM y LLM en paralelo, reglas raw (pasada 1) y combinación por campo | 🟡 En implementación (T-401..T-404 hechas: flujos, evidencia, normalización, reglas raw y combinación; resta T-405) | F4 (T-401..T-405) |
-| [`RULES.md`](RULES.md) | `voucherflow/rules/` | Motor de reglas declarativo: R1-R7, precedencia por campo, fast-fail y gaps | 🟡 R1-R7 (T-301) + evidencia (T-302) + reglas raw (T-303, ampliadas en F4/T-403) + precedencia por campo (F4/T-404); cruzadas/gaps (F5) pendientes | F0 (T-003/ADR-006) + F3 (T-301/T-303) + F4 (T-403/T-404) + F5 (T-501/T-502) |
+| [`EXT.md`](EXT.md) | `voucherflow/extraction/` | Extracción con flujos VLM y LLM en paralelo, reglas raw (pasada 1) y combinación por campo | ✅ T-401..T-405 implementados (DoD de F4 verificado; paridad con v1 medida en tres niveles) | F4 (T-401..T-405) |
+| [`RULES.md`](RULES.md) | `voucherflow/rules/` | Motor de reglas declarativo: R1-R7, precedencia por campo, fast-fail y gaps | 🟡 R1-R7 (T-301) + evidencia (T-302) + reglas raw (T-303, ampliadas en F4/T-403) + precedencia por campo (F4/T-404, validada por la paridad de F4/T-405); cruzadas/gaps (F5) pendientes | F0 (T-003/ADR-006) + F3 (T-301/T-303) + F4 (T-403/T-404) + F5 (T-501/T-502) |
 | [`CONC.md`](CONC.md) | `voucherflow/conclusion/` | Reglas cruzadas → búsqueda de evidencia adicional → agente IA → HITL → consolidación | 🔴 Borrador | F5 (T-501..T-507) |
 | [`MODELS.md`](MODELS.md) | `voucherflow/models/` | Adaptadores de modelo: `OllamaClient`, `DoclingConverter`, `ArcaClient` (opcional) | 🔴 Borrador | F0 (T-005/T-006) |
 | [`TRACE.md`](TRACE.md) | `voucherflow/trace/` | Registro por caso (`CaseRecord`), trazabilidad y persistencia (JSON sidecar) | 🔴 Borrador | F5 (T-506) + F6 (T-603) |
 | [`ORCH-CLI.md`](ORCH-CLI.md) | `voucherflow/orchestrator.py` · `api.py` + `cli/` | Orquestador del pipeline, API de alto nivel y cliente CLI (orquestador/consumidor) | 🔴 Borrador | F5/F6 (T-601..T-606) |
 
-> **Nota de estado**: los módulos de fases futuras (VAL, CLAS, EXT, CONC, RULES,
-> TRACE, ORCH-CLI, y SCHEMAS/MODELS pendientes de confirmar su trazabilidad)
-> siguen en **🔴 Borrador**. **`PROC.md` (processing)** ya pasó a **🟡 En
+> **Nota de estado**: los módulos de fases futuras (VAL, CONC, TRACE, ORCH-CLI,
+> y SCHEMAS/MODELS pendientes de confirmar su trazabilidad) siguen en **🔴
+> Borrador**. **`PROC.md` (processing)** ya pasó a **🟡 En
 > implementación** (F1): T-101..T-104 + enrutado por página hechos; falta la
 > orquestación `procesar_documento()` + `api.process()` y la paridad T-105.
+> **`CLAS.md` (classification, F3)** y **`EXT.md` (extraction, F4)** ya están
+> **✅ implementados con su DoD verificado**; **`RULES.md`** sigue parcial porque
+> le faltan las reglas cruzadas y los gaps de F5.
 
 ---
 

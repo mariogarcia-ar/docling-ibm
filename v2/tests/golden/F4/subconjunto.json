@@ -1,0 +1,282 @@
+{
+  "golden_version": "0.1-f4",
+  "descripcion": "Subconjunto de paridad de F4 (T-405). Acota la medicion a lo que tiene sustento objetivo hoy: (a) la paridad de las REGLAS DE NORMALIZACION de v2 con las que v1 pedia dentro de sus prompts 10/11/kvi/kvg, y (b) la paridad ESTRUCTURAL de la extraccion, comparando la proyeccion de la evidencia de v2 contra el JSON plano que v1 devolvia. Ver README.md del directorio.",
+  "decision_alcance": "ADR-001: v2 NO lee los campos de decision (comprobante_valido, categoria_gasto, centro_de_costo, condicion_impositiva_dominante, alicuotas_detectadas, cantidad_*, notas). La paridad se mide sobre los campos de LECTURA normalizados; los de decision quedan fuera por diseno y se declaran en 'campos_fuera_de_paridad'.",
+  "no_inventar": {
+    "regla_v1": "11 regla: no inventes / kvg: Omiti cualquier dato ausente",
+    "texto_v1": "No inventes montos, CUIT, ni fechas",
+    "regla_v2": "key_value: un valor no normalizable conserva el crudo con aviso; un dato ausente sigue ausente",
+    "casos": [
+      {"campo": "cuit_emisor", "crudo": "ilegible", "esperado": "ilegible", "nota": "se conserva el crudo, no se inventa un CUIT"},
+      {"campo": "fecha_emision", "crudo": "14/08/25", "esperado": "14/08/25", "nota": "anio de dos digitos: elegir el siglo seria inventar"},
+      {"campo": "importe_total_facturado", "crudo": "monto ilegible", "esperado": "monto ilegible", "nota": "no se convierte texto en importe"}
+    ]
+  },
+  "normalizacion": [
+    {
+      "id": "cuit_digitos_y_guiones",
+      "que": "CUIT/CUIL: solo digitos y los guiones propios, cortando ante caracteres extranos",
+      "regla_v1": "11 regla 2b / kvg IDs fiscales",
+      "prompt_v1": "prompts/11-extraction_key_value_invoice_prompt.yaml",
+      "texto_v1": "es SOLO dígitos y los guiones propios del número",
+      "regla_v2": "NORM_CUIT",
+      "casos": [
+        {"campo": "cuit_emisor", "crudo": "20-12345678-9", "esperado": "20-12345678-9"},
+        {"campo": "cuit_emisor", "crudo": "20-1 Ing, Brutas: 201641", "esperado": "20-1"},
+        {"campo": "cuit_emisor", "crudo": "C.U.I.T. Nro.: 20-1", "esperado": "20-1"},
+        {"campo": "cuit_emisor", "crudo": "20301112223", "esperado": "20301112223"},
+        {"campo": "cuit_receptor", "crudo": "27-30111222-4", "esperado": "27-30111222-4"}
+      ]
+    },
+    {
+      "id": "fechas_iso",
+      "que": "Fechas completas a YYYY-MM-DD; sin dia/mes completo no se completa",
+      "regla_v1": "kvg Normaliza",
+      "prompt_v1": "prompts/10-extraction_key_value_generic_prompt.yaml",
+      "texto_v1": "Fechas: \"YYYY-MM-DD\"",
+      "regla_v2": "NORM_FECHA",
+      "casos": [
+        {"campo": "fecha_emision", "crudo": "14/08/2025", "esperado": "2025-08-14"},
+        {"campo": "fecha_emision", "crudo": "14 de agosto de 2025", "esperado": "2025-08-14"},
+        {"campo": "fecha_emision", "crudo": "14082025", "esperado": "2025-08-14"},
+        {"campo": "fecha_emision", "crudo": "2025-08-14", "esperado": "2025-08-14"}
+      ]
+    },
+    {
+      "id": "montos_planos",
+      "que": "Montos: numero plano, punto decimal, sin miles ni simbolo",
+      "regla_v1": "kvg Normaliza",
+      "prompt_v1": "prompts/10-extraction_key_value_generic_prompt.yaml",
+      "texto_v1": "Montos: número plano",
+      "regla_v2": "NORM_MONTO",
+      "casos": [
+        {"campo": "importe_total_facturado", "crudo": "$ 12.345,67", "esperado": 12345.67},
+        {"campo": "subtotal", "crudo": "10.203,03", "esperado": 10203.03},
+        {"campo": "iva", "crudo": "0,00", "esperado": 0.0},
+        {"campo": "percepcion_iibb", "crudo": "1.234,56-", "esperado": -1234.56}
+      ]
+    },
+    {
+      "id": "comprobante_ppppp",
+      "que": "PPPPP-NNNNNNNN se separa en punto_venta y numero_comprobante",
+      "regla_v1": "kvg",
+      "prompt_v1": "prompts/10-extraction_key_value_generic_prompt.yaml",
+      "texto_v1": "Separá comprobantes \"PPPPP-NNNNNNNN\"",
+      "regla_v2": "NORM_COMPROBANTE",
+      "casos": [
+        {"campo": "nro_comprobante", "crudo": "00005-00007344", "esperado": "00005-00007344"}
+      ],
+      "derivados_esperados": {"punto_venta": "00005", "numero_comprobante": "00007344"}
+    },
+    {
+      "id": "moneda",
+      "que": "USD o U$S -> USD; sin indicio explicito, v2 NO asume ARS (diferencia deliberada)",
+      "regla_v1": "11 regla 14",
+      "prompt_v1": "prompts/11-extraction_key_value_invoice_prompt.yaml",
+      "texto_v1": "USD o \"U$S\"",
+      "regla_v2": "NORM_MONEDA",
+      "casos": [
+        {"campo": "moneda", "crudo": "u$s", "esperado": "USD"},
+        {"campo": "moneda", "crudo": "ars", "esperado": "ARS"},
+        {"campo": "moneda", "crudo": "EUR", "esperado": "EUR", "nota": "v1 asumia ARS; v2 conserva el crudo con aviso (mitiga R-02: no inventar)"}
+      ]
+    },
+    {
+      "id": "productos",
+      "que": "Items del modo generico: descripcion xcantidad - precio_unitario separados por |",
+      "regla_v1": "kvg productos",
+      "prompt_v1": "prompts/10-extraction_key_value_generic_prompt.yaml",
+      "texto_v1": "Agregá \"productos\"",
+      "regla_v2": "NORM_ITEMS",
+      "casos": [
+        {"campo": "productos", "crudo": "café x2 - 1000 | pan - 250", "esperado": "estructurado"}
+      ]
+    },
+    {
+      "id": "descripcion",
+      "que": "Descripcion: frase breve, espacios colapsados y en minusculas",
+      "regla_v1": "11 regla 8",
+      "prompt_v1": "prompts/11-extraction_key_value_invoice_prompt.yaml",
+      "texto_v1": "en minúsculas",
+      "regla_v2": "NORM_TEXTO",
+      "casos": [
+        {"campo": "descripcion", "crudo": "COMPRA  DE  INSUMOS", "esperado": "compra de insumos"},
+        {"campo": "razon_social_emisor", "crudo": "  ACME   S.A.  ", "esperado": "ACME S.A."}
+      ]
+    }
+  ],
+  "campos_paridad": [
+    "tipo_comprobante",
+    "razon_social_emisor",
+    "cuit_emisor",
+    "cuit_receptor",
+    "fecha_emision",
+    "nro_comprobante",
+    "moneda",
+    "subtotal",
+    "iva",
+    "impuestos_internos",
+    "percepcion_iibb",
+    "otros_impuestos",
+    "monto_no_gravado",
+    "importe_total_facturado",
+    "descripcion"
+  ],
+  "campos_sin_contraparte_v1": [
+    {
+      "campo": "razon_social_receptor",
+      "por_que": "v2 lo lee (esta en CAMPOS_EXTRACCION y tiene regla NORM_TEXTO) pero el prompt de factura de v1 (11) NO lo pide: no hay valor de v1 contra el que comparar, asi que no es un campo de paridad ni un faltante",
+      "v1_lo_pide": false,
+      "v2_lo_lee": true
+    }
+  ],
+  "campos_paridad_generico": ["proveedor", "monto", "productos", "cuit_emisor", "fecha"],
+  "campos_fuera_de_paridad": [
+    {"campo": "comprobante_valido", "por_que": "es una DECISION, no una lectura (ADR-001): la resuelve la conclusion (F5)"},
+    {"campo": "motivo_rechazo", "por_que": "decision de la conclusion (F5)"},
+    {"campo": "categoria_gasto", "por_que": "inferencia de negocio, no lectura del documento"},
+    {"campo": "centro_de_costo", "por_que": "lo completa la cadena contable (F3/T-304)"},
+    {"campo": "condicion_impositiva_dominante", "por_que": "dato derivado de las alicuotas; el prompt de v2 no lo pide"},
+    {"campo": "alicuotas_detectadas", "por_que": "dato derivado de las alicuotas"},
+    {"campo": "cantidad_comensales_personas", "por_que": "campo condicional que depende de categoria_gasto"},
+    {"campo": "cantidad_litros", "por_que": "campo condicional que depende de categoria_gasto"},
+    {"campo": "notas", "por_que": "texto libre del auditor, no del documento"}
+  ],
+  "extraccion": [
+    {
+      "id": "factura_a_completa",
+      "que": "Factura A con los dos CUIT, IVA discriminado y numero con guion",
+      "fuente": "llm",
+      "lectura": {
+        "tipo_comprobante": {"valor": "a", "fragmento_sustento": "FACTURA A COD. 01"},
+        "razon_social_emisor": {"valor": "  ACME   S.A. ", "fragmento_sustento": "ACME S.A."},
+        "cuit_emisor": {"valor": "C.U.I.T. 30-12345678-9", "fragmento_sustento": "C.U.I.T. 30-12345678-9"},
+        "cuit_receptor": {"valor": "27-30111222-4", "fragmento_sustento": "C.U.I.T. 27-30111222-4"},
+        "fecha_emision": {"valor": "14/08/2025", "fragmento_sustento": "Fecha de Emisión: 14/08/2025"},
+        "nro_comprobante": {"valor": "00005-00007344", "fragmento_sustento": "Nro: 00005-00007344"},
+        "moneda": {"valor": "ars", "fragmento_sustento": "Moneda: ARS"},
+        "subtotal": {"valor": "10.203,03", "fragmento_sustento": "Subtotal: $ 10.203,03"},
+        "iva": {"valor": "2.142,64", "fragmento_sustento": "IVA 21%: $ 2.142,64"},
+        "importe_total_facturado": {"valor": "$ 12.345,67", "fragmento_sustento": "Importe Total: $ 12.345,67"},
+        "descripcion": {"valor": "COMPRA DE INSUMOS", "fragmento_sustento": "Compra de insumos varios"}
+      },
+      "v1_esperado": {
+        "tipo_comprobante": "A",
+        "razon_social_emisor": "ACME S.A.",
+        "cuit_emisor": "30-12345678-9",
+        "cuit_receptor": "27-30111222-4",
+        "fecha_emision": "2025-08-14",
+        "nro_comprobante": "00005-00007344",
+        "moneda": "ARS",
+        "subtotal": 10203.03,
+        "iva": 2142.64,
+        "importe_total_facturado": 12345.67,
+        "descripcion": "compra de insumos"
+      }
+    },
+    {
+      "id": "cuit_truncado_por_ocr",
+      "que": "El caso textual de la regla 2b de v1: el CUIT pegado al campo siguiente",
+      "fuente": "llm",
+      "lectura": {
+        "tipo_comprobante": {"valor": "A", "fragmento_sustento": "FACTURA A"},
+        "cuit_emisor": {"valor": "20-1 Ing, Brutas: 201641", "fragmento_sustento": "C.U.I.T. Nro.: 20-1 Ing, Brutas: 201641"},
+        "cuit_receptor": {"valor": "27-30111222-4", "fragmento_sustento": "C.U.I.T. 27-30111222-4"}
+      },
+      "v1_esperado": {
+        "tipo_comprobante": "A",
+        "cuit_emisor": "20-1",
+        "cuit_receptor": "27-30111222-4"
+      }
+    },
+    {
+      "id": "tique_090_fecha_escrita",
+      "que": "Tique 090 con la fecha escrita en palabras",
+      "fuente": "vlm",
+      "lectura": {
+        "tipo_comprobante": {"valor": "090", "fragmento_sustento": "Boleto de colectivo '090'"},
+        "fecha_emision": {"valor": "14 de agosto de 2025", "fragmento_sustento": "Fecha: 14 de agosto de 2025"},
+        "importe_total_facturado": {"valor": "1.500,00", "fragmento_sustento": "Total: $ 1.500,00"}
+      },
+      "v1_esperado": {
+        "tipo_comprobante": "090",
+        "fecha_emision": "2025-08-14",
+        "importe_total_facturado": 1500.0
+      }
+    },
+    {
+      "id": "factura_b_no_discrimina",
+      "que": "Factura B: el prompt de v1 pedia subtotal = total e iva = 0",
+      "fuente": "llm",
+      "lectura": {
+        "tipo_comprobante": {"valor": "B", "fragmento_sustento": "FACTURA B COD. 06"},
+        "cuit_emisor": {"valor": "30-12345678-9", "fragmento_sustento": "C.U.I.T. 30-12345678-9"},
+        "importe_total_facturado": {"valor": "1.210,00", "fragmento_sustento": "Importe Total: $ 1.210,00"},
+        "subtotal": {"valor": "1.210,00", "fragmento_sustento": "Subtotal: $ 1.210,00"},
+        "iva": {"valor": "0,00", "fragmento_sustento": "IVA: 0,00"}
+      },
+      "v1_esperado": {
+        "tipo_comprobante": "B",
+        "cuit_emisor": "30-12345678-9",
+        "importe_total_facturado": 1210.0,
+        "subtotal": 1210.0,
+        "iva": 0.0
+      }
+    },
+    {
+      "id": "modo_generico_kvg",
+      "que": "Modo generico (kvg): proveedor, monto y productos del documento",
+      "fuente": "llm",
+      "campos": ["proveedor", "monto", "productos", "cuit_emisor"],
+      "lectura": {
+        "proveedor": {"valor": "Estación  de  Servicio  SUR", "fragmento_sustento": "ESTACION DE SERVICIO SUR S.A."},
+        "monto": {"valor": "12.345,67", "fragmento_sustento": "Total: $ 12.345,67"},
+        "productos": {"valor": "café x2 - 1000 | pan - 250", "fragmento_sustento": "Café x2 $1.000; Pan $250"},
+        "cuit_emisor": {"valor": "30-12345678-9", "fragmento_sustento": "CUIT 30-12345678-9"}
+      },
+      "v1_esperado_generico": {
+        "proveedor": "Estación de Servicio SUR",
+        "monto": 12345.67,
+        "cuit_emisor": "30-12345678-9"
+      },
+      "v1_esperado_items": [
+        {"descripcion": "café", "cantidad": 2, "precio_unitario": 1000},
+        {"descripcion": "pan", "cantidad": null, "precio_unitario": 250}
+      ]
+    },
+    {
+      "id": "valores_no_normalizables",
+      "que": "Un dato ilegible conserva el crudo (la regla dura de E-EXT-3 y de v1: no inventar)",
+      "fuente": "llm",
+      "lectura": {
+        "tipo_comprobante": {"valor": "A", "fragmento_sustento": "FACTURA A"},
+        "cuit_emisor": {"valor": "ilegible", "fragmento_sustento": "C.U.I.T. ilegible"},
+        "fecha_emision": {"valor": "14/08/25", "fragmento_sustento": "Fecha: 14/08/25"},
+        "importe_total_facturado": {"valor": "monto ilegible", "fragmento_sustento": "Importe Total: ilegible"}
+      },
+      "v1_esperado": {
+        "tipo_comprobante": "A",
+        "cuit_emisor": "ilegible",
+        "fecha_emision": "14/08/25",
+        "importe_total_facturado": "monto ilegible"
+      }
+    }
+  ],
+  "real": [
+    {
+      "id": "pdf_2026-02_6D03019B",
+      "ruta": "v2/tests/fixtures/golden/af9f596b-bab2-4e69-b82a-c61fcdacdcbd.pdf",
+      "por_que": "texto nativo con 'FACTURA A', CUIT y CAE: sirve para medir la extraccion real sin depender del OCR de imagen"
+    },
+    {
+      "id": "img_2026-08_1CDFCDA0",
+      "ruta": "v2/tests/fixtures/golden/66cd35e9-a0a2-4342-b4f9-4c7e7c39d6b0.pdf",
+      "por_que": "texto nativo con 'FACTURA A', CAE y Total: cubre el desglose de importes"
+    },
+    {
+      "id": "img_2025-08_2D2C9343",
+      "ruta": "v2/tests/fixtures/golden/2991f57d-c143-4b23-9f87-4dfb1214ef53.jpg",
+      "por_que": "tique con OCR 'TIQUE FACTURA A': el caso que T-305 uso para la letra; aca mide la extraccion sobre imagen"
+    }
+  ]
+}

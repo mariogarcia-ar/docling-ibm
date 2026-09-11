@@ -45,6 +45,14 @@ concluida** (si la lectura aporta una letra de tique, se conserva con certeza
 baja) en lugar de forzar A/B/C. **Cierre**: con contador, definiendo la regla y
 el mapeo antes de considerarlos clasificados.
 
+> **Nota de F4/T-405**: la paridad con v1 identificó esta diferencia como
+> **esperada por diseño** y la documenta en `tests/golden/F4/README.md`: v1
+> devolvía los **códigos** `090`/`099` tal cual los leía el prompt, mientras v2
+> normaliza la letra en código (ADR-001). Eso **no cierra D-13** — sigue
+> faltando el mapeo AFIP validado con negocio y el contador — pero deja
+> registrado que la diferencia observada en la paridad es conocida y tiene
+> motivo, no es una regresión.
+
 ### D-14 · Precedencia de la letra ante discrepancia — registrada en F3/T-301
 
 Ante discrepancia entre la letra esperada por negocio (R1/R2A/R2B) y la
@@ -75,7 +83,9 @@ explícito, no `if` disperso).
   `fragmento_sustento` por campo; **no** normaliza ni decide) y
   `extraction/flows.py` devuelve `SourceEvidence` con `meta.version_prompt`.
   El modo plano legado de `kvi`/`kvg` sigue aceptándose en el intérprete
-  (`parsear_evidencia_extraccion`) para medir la paridad de T-405.
+  (`parsear_evidencia_extraccion`) y es lo que permitió **medir la paridad** en
+  **F4/T-405** contra `extraction_pipeline.py` (10/11) y
+  `document_extraction.py` (kvi/kvg).
   **F4/T-402** cerró la otra mitad del ADR: la normalización que v1 le pedía al
   prompt vive ahora en `extraction/key_value.py` (reglas `NORM_*` versionadas
   como `extraccion-key-value-norm@1`) y el contrato publica el valor canónico sin
@@ -128,6 +138,11 @@ se reescribe para devolver **evidencia**, no decisión final.
     lectura (`hitl` > `arca` > `programa`) van siempre por delante. La resolución
     registra `ganador`/`regla`/`motivo`, respeta el veredicto de la pasada 1
     (T-403) y conserva todas las lecturas en el `CampoCombinado`.
+  * **F4/T-405**: la paridad con v1 **ejercita** la tabla sin cambiarla — los
+    tests de integridad de `tests/test_extraction_paridad.py` verifican que cada
+    campo del contrato tenga su `PrecedenciaCampo` con `regla` y `motivo`, y la
+    corrida de paridad confirma que los valores que la tabla compara son
+    **canónicos** (comparar crudo contra crudo daría ganadores espurios).
 - **Nota de contrato (F4/T-404)**: `CombinedEvidence.decision` pasó a ser
   **opcional** (default `None`) para que la combinación no tenga que inventar un
   veredicto: la certeza se deriva de la etapa que decidió (glosario §2) y la

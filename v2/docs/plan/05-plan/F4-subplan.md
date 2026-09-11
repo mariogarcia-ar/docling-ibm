@@ -4,8 +4,8 @@
 > `team implementation`. Complementa el seguimiento de la fase
 > ([`F4.md`](F4.md)) y el diseño del módulo
 > ([`../03-arquitectura/EXT.md`](../03-arquitectura/EXT.md)).
-> **Fecha**: 2026-09-10 · **Rama**: `v2` · **Estado**: En implementación
-> (T-401..T-404 hechas; resta T-405).
+> **Fecha**: 2026-09-10 · **Rama**: `v2` · **Estado**: ✅ **Completada**
+> (T-401..T-405 hechas; DoD de F4 verificado).
 
 ## 1. Ficha del subplan
 
@@ -232,12 +232,13 @@
   inválido aislado, fuente caída aislada, todas caídas) con ✅/❌ y salida no-cero,
   **mide el paralelismo** (paralelo vs. serial con demora artificial) y con
   `--origen` corre la extracción **real** (F1 + vista fiel de F2 + Ollama).
-- **Pendiente en T-401 (ya resuelto por T-402)**: la normalización de los valores
-  ya **no** está pendiente — la aporta `key_value.py` (T-402) y `ejecutar_flujo`
-  la aplica por default. Las reglas raw afinadas para extracción son **T-403**; la
-  combinación por campo con precedencia ADR-002 es **T-404** (`combinar_evidencia`
-  sigue en `NotImplementedError`); la paridad con v1 sobre el golden set es
-  **T-405**.
+- **Evolución posterior (ya resuelta)**: la normalización de los valores la
+  aporta `key_value.py` (T-402) y `ejecutar_flujo` la aplica por default; las
+  reglas raw afinadas para extracción son T-403; la combinación por campo con
+  precedencia ADR-002 es T-404 (`combinar_evidencia` **ya está implementada**, no
+  lanza `NotImplementedError`) y la paridad con v1 sobre el golden set es T-405.
+  Las cuatro están **Hechas**. En T-401 `combinar_evidencia` sí era un esqueleto:
+  eso es lo que describe el resto de esta sección.
 
 ### 3.2 T-402 · Normalización key-value (E-EXT-3) ✅ Hecha
 
@@ -320,10 +321,11 @@
   caso por caso** (`--reglas --detalle`), corre **17 escenarios** con ✅/❌ y
   salida no-cero, verifica **5 fronteras** de la tarea y con `--origen` corre la
   extracción real y muestra la comparación `crudo → normalizado` por fuente.
-- **Pendiente en ese momento (ya resuelto)**: la afinación de las reglas raw por
+- **Evolución posterior (ya resuelta)**: la afinación de las reglas raw por
   fuente era **T-403** — **hecha** (ver §3.3): los campos de formato volátil ya
   no solo tienen forma canónica, sino que su sostén **se evalúa** contra ella. La
-  combinación por campo sigue siendo **T-404**; la paridad con v1 es **T-405**.
+  combinación por campo (**T-404**) y la paridad con v1 (**T-405**) también están
+  hechas.
 
 ### 3.3 T-403 · Reglas raw por fuente (pasada 1) ✅ Hecha
 
@@ -388,10 +390,11 @@
   de sostén** caso por caso (`--sosten --detalle`), corre **7 escenarios de
   coherencia** con ✅/❌ y salida no-cero, verifica **4 fronteras** y con
   `--origen` corre la extracción real y muestra, por fuente, el veredicto raw.
-- **Pendiente de otras tareas**: la combinación por campo es **T-404** (la
-  coherencia es una de sus entradas: deja a la fuente debilitada); la paridad con
-  v1 es **T-405**; las reglas de conflicto que dependen de la **condición fiscal**
-  del emisor quedan para el padrón/F5 (la extracción no la lee).
+- **Evolución posterior (ya resuelta)**: la combinación por campo es **T-404**
+  (hecha; la coherencia es una de sus entradas: deja a la fuente debilitada) y la
+  paridad con v1 es **T-405** (hecha). Las reglas de conflicto que dependen de la
+  **condición fiscal** del emisor quedan para el padrón/F5 (la extracción no la
+  lee).
 
 ### 3.4 T-404 · Combinación de evidencia con resolución por campo ✅ Hecha
 
@@ -431,7 +434,134 @@
   | **PREC_0** regla de oro | cualquier campo fuera de la tabla (modo genérico `kvg`) | lo comprobado manda sobre lo leído y, entre lecturas, el papel (visual sobre textual) |
 
   Además, las fuentes que **no son lectura** van siempre por delante, en orden de
-  autoridad: `hitl` (corrección humana) > `arca` (padrón) > `programa` (calculado).\n- **Los cinco casos de la resolución**:\n  1. **Acuerdo** (mismo valor canónico): gana la de mayor precedencia y se\n     registra como acuerdo — el consumidor tiene **una** fuente responsable.\n  2. **Desacuerdo**: gana la de mayor precedencia **utilizable**; las otras\n     quedan en `descartadas` con el valor que declararon.\n  3. **Una sola fuente** declaró el campo: gana esa (sin desacuerdo).\n  4. **Ninguna** declaró: no se inventa un valor; queda para el gate de F5.\n  5. **Ganadora invalidada** por la pasada 1: cede a la otra fuente; si **ninguna**\n     es utilizable, gana por precedencia pero `confiable=False`.\n- **Determinismo**: la resolución no depende del orden de las fuentes ni del\n  orden de las claves del JSON (los flujos corren en paralelo, T-401); los campos\n  se resuelven en el orden del contrato del prompt y los extra al final en orden\n  alfabético.\n- **Tests** (`tests/test_extraction_combinacion_t404.py`, 45) ✅: la tabla\n  (cobertura del contrato, regla y motivo por campo, orden de lecturas, regla de\n  oro, no-lectura por delante), `resolver_campo` (los cinco casos + determinismo),\n  `combinar` (conserva lecturas, universo/orden de campos, acuerdos vs.\n  desacuerdos, errores de tipo), el contrato de F0 (`valor`/`fuente`,\n  `decision is None`, traza, `documento_id` vacío) y la integración con el\n  pipeline real (letra que discrepa, valores que T-402 volvió comparables, fuente\n  invalidada por T-403, derivados por programa, serialización).\n- **Herramienta de inspección** ✅: `scripts/F4/t404.py` — imprime la **tabla de\n  precedencia** (`--tabla`), corre **8 escenarios de resolución** con ✅/❌ y\n  salida no-cero, verifica **4 fronteras**, y con `--manual`/`--origen` muestra,\n  campo por campo, quién ganó y por qué.\n- **Pendiente**: la **paridad con v1** es **T-405**.\n\n### 3.5 T-405 · Pendiente\n\n> Se documentará al implementarse. Alcance según\n> [`F4.md`](F4.md) §3 y el DoD de F4 en `05-plan-ejecucion.md`.\n\n| Tarea | Alcance | Archivos previstos |\n|---|---|---|\n| **T-405** | Paridad con `extraction_pipeline.py` (10/11) y `document_extraction.py` (kvi/kvg) sobre el golden set; subconjunto de paridad y runners | `tests/golden/F4/` + `scripts/F4/paridad_*.py` |
+  autoridad: `hitl` (corrección humana) > `arca` (padrón) > `programa` (calculado).
+- **Los cinco casos de la resolución**:
+  1. **Acuerdo** (mismo valor canónico): gana la de mayor precedencia y se
+     registra como acuerdo — el consumidor tiene **una** fuente responsable.
+  2. **Desacuerdo**: gana la de mayor precedencia **utilizable**; las otras
+     quedan en `descartadas` con el valor que declararon.
+  3. **Una sola fuente** declaró el campo: gana esa (sin desacuerdo).
+  4. **Ninguna** declaró: no se inventa un valor; queda para el gate de F5.
+  5. **Ganadora invalidada** por la pasada 1: cede a la otra fuente; si **ninguna**
+     es utilizable, gana por precedencia pero `confiable=False`.
+- **Determinismo**: la resolución no depende del orden de las fuentes ni del
+  orden de las claves del JSON (los flujos corren en paralelo, T-401); los campos
+  se resuelven en el orden del contrato del prompt y los extra al final en orden
+  alfabético.
+- **Tests** (`tests/test_extraction_combinacion_t404.py`, 45) ✅: la tabla
+  (cobertura del contrato, regla y motivo por campo, orden de lecturas, regla de
+  oro, no-lectura por delante), `resolver_campo` (los cinco casos + determinismo),
+  `combinar` (conserva lecturas, universo/orden de campos, acuerdos vs.
+  desacuerdos, errores de tipo), el contrato de F0 (`valor`/`fuente`,
+  `decision is None`, traza, `documento_id` vacío) y la integración con el
+  pipeline real (letra que discrepa, valores que T-402 volvió comparables, fuente
+  invalidada por T-403, derivados por programa, serialización).
+- **Herramienta de inspección** ✅: `scripts/F4/t404.py` — imprime la **tabla de
+  precedencia** (`--tabla`), corre **8 escenarios de resolución** con ✅/❌ y
+  salida no-cero, verifica **4 fronteras**, y con `--manual`/`--origen` muestra,
+  campo por campo, quién ganó y por qué.
+### 3.5 T-405 · Paridad con v1 y cierre de la fase ✅ Hecha
+
+**Qué se hizo.** Se verificó que lo que F4 hace **en código** reproduce las
+reglas que v1 tenía **dentro de los prompts** (10/11 y kvi/kvg), y que la
+extracción v2 es **comparable** con la de v1 sobre el golden set. La paridad se
+mide en **tres niveles**, no en uno, porque comparar la salida de dos modelos no
+prueba nada por sí solo (ADR-001: el prompt reporta, el código decide).
+
+**Archivos.**
+
+- `tests/golden/F4/subconjunto.json` — subconjunto de paridad `0.1-f4`:
+  - `normalizacion`: **7 reglas** (`NORM_CUIT`, `NORM_FECHA`, `NORM_MONTO`,
+    `NORM_COMPROBANTE`, `NORM_VOCABULARIO`, `NORM_MONEDA`, `NORM_TEXTO`), cada
+    una citando la `regla_v1`, el `prompt_v1` de origen y el `texto_v1` literal;
+  - `no_inventar`: las fronteras de "no inventar" y el destino del valor crudo;
+  - `campos_paridad`: los **15** campos del contrato con contraparte en v1
+    (el contrato tiene 16: `razon_social_receptor` **no** lo pedía el prompt de
+    factura de v1, así que se declara en `campos_sin_contraparte_v1` — no hay
+    valor de v1 contra el que comparar);
+  - `campos_paridad_generico`: `proveedor`, `monto`, `productos`, `cuit_emisor`,
+    `fecha` (modo `kvg`);
+  - `campos_sin_contraparte_v1`: los campos que v2 lee pero v1 no pedía
+    (`razon_social_receptor`), declarados con motivo para que "no comparable" no
+    se lea como "no implementado";
+  - `campos_fuera_de_paridad`: **9** campos de decisión, con su motivo y el ADR
+    que los excluye (no son "extracción", son "conclusión": F5);
+  - `extraccion`: **6 casos** (`factura_a_completa`, `cuit_truncado_por_ocr`,
+    `tique_090_fecha_escrita`, `factura_b_no_discrimina`, `modo_generico_kvg`
+    con su clave `campos`, `valores_no_normalizables`);
+  - `real`: **3** documentos del golden para la corrida contra v1.
+- `tests/golden/F4/README.md` — por qué paridad ≠ "el mismo modelo dos veces",
+  los tres niveles de medición, la tabla de diferencias esperadas por diseño y
+  los límites honestos del alcance.
+- `scripts/F4/paridad_extraccion.py` — funciones puras y testables:
+  `campos_desde_v2()` (proyección a la forma plana de v1; omite campos ausentes),
+  `comparar()` → `coincide`/`difiere`/`no_comparable` + nota, `_equivalentes()`
+  (tolerancia número↔texto **solo** en números; dobla mayúsculas en
+  `tipo_comprobante`), `notas_de_proyeccion()`, `preparar_v1()`, `correr_v1()`,
+  `campos_desde_v1()`, `correr_v2()`. `NOTAS_ESPERADAS` explica las diferencias
+  por diseño.
+- `tests/test_extraction_paridad.py` (**39** tests, 6 clases):
+  `TestProcedenciaDeLasReglas`, `TestParidadNormalizacion`, `TestNoInventar`,
+  `TestIntegridadSubconjunto`, `TestParidadExtraccion`,
+  `TestLogicaDeComparacion`. Carga el script por `importlib` (patrón de T-305)
+  **sin** ejecutar `main`. La integridad del subconjunto incluye un guard que
+  exige que **todo** campo del contrato esté declarado (en paridad, fuera de
+  paridad o sin contraparte en v1): sin él, `razon_social_receptor` quedaba en
+  tierra de nadie y la paridad parecía cubrir 16 campos cuando cubría 15.
+- `scripts/F4/t405.py` — reporte de métricas (patrón `scripts/F3/t305.py`):
+  `metrica_reglas()`, `metrica_extraccion()` (paridad + sostén),
+  `metrica_generico()` (usa `regla_de_campo()` — no `REGLA_POR_CAMPO` — para que
+  resuelvan los alias), `metrica_norm_vs_contrato()`, `correr_origen()`.
+  `--subset determinista` (default, sin red) / `origen`. Sale con código
+  distinto de cero si fallan reglas, sostén o procedencia.
+
+**Cómo se mide (los tres niveles).**
+
+1. **Nivel 1 — normalización (determinista, sin modelos).** Cada regla v2 se
+   aplica al `texto_v1` literal del subconjunto y debe producir el mismo valor
+   canónico; y cada regla cita su origen (`regla_v1` + `prompt_v1` + `texto_v1`).
+   Es la paridad **fuerte**: no depende de que el modelo devuelva lo mismo.
+2. **Nivel 2 — contrato y sostén (determinista, sin modelos).** Los 15 campos
+   de paridad existen en el contrato F0 y el sostén estructurado se evalúa donde
+   corresponde (montos, fechas, CUIT); `descripcion` queda en
+   `sosten_no_evaluado` (un texto libre no se sostiene por forma canónica).
+3. **Nivel 3 — extracción real (con red, opcional).** Se corre v1 y v2 sobre los
+   3 documentos del golden y se comparan **campo por campo** con `comparar()`.
+   Este nivel es **informativo**: si el modelo devuelve otra cosa, `difiere` no
+   significa que v2 esté mal (para eso están los niveles 1 y 2 y los tests).
+
+**Diferencias esperadas por diseño** (NO son fallos de paridad):
+
+| Campo | v1 | v2 | Por qué es correcto |
+|---|---|---|---|
+| `tipo_comprobante` | códigos del vocabulario `090`/`099` según el prompt | normalizado a la letra (`A`/`B`/`C`) | ADR-001: el código decide, el prompt solo reporta lo que ve |
+| `moneda` | a veces asume `ARS` sin decirlo | solo `ARS` si está impreso; si no, queda crudo + aviso | no inventar (T-402): un default silencioso es una invención |
+| `descripcion` | texto tal cual del modelo | normalizado por código (espacios OCR colapsados) | regla en código, no en prompt (ADR-006) |
+
+**Métricas (`scripts/F4/t405.py --subset determinista`).**
+
+| Métrica | Resultado |
+|---|---|
+| Reglas de normalización con procedencia v1 verificada | **20/20 (100 %)** |
+| Paridad estructural de campos (contrato ∪ genéricos) | **29/29 (100 %)** |
+| Sostén estructurado evaluado donde corresponde | **32/32 (100 %)** |
+| Cobertura del modo genérico (`kvg`) | **5/5 (100 %)** |
+| Procedencia verificada | **sí** |
+
+Suite completa tras T-405: **949 passed / 10 skipped**.
+
+**Alcance honesto.** La paridad se prueba sobre el **subconjunto** documentado y
+sobre **3** documentos del golden, no sobre todo el corpus. El nivel 3 requiere
+Ollama y `v1/` presentes, así que la suite default **no** lo corre (queda en
+`--origen`). v1 y v2 no comparten el mismo prompt ni el mismo modelo: lo que se
+compara es **el resultado de las reglas**, no la salida cruda del LLM.
+
+**Hallazgo real.** La paridad destapó un hueco: `proveedor` (clave obligatoria de
+`kvg`) **no tenía** regla de normalización, así que `"Estación  de  Servicio  SUR"`
+conservaba los espacios múltiples del OCR. Se agregó `"proveedor": NORM_TEXTO` a
+`REGLA_POR_CAMPO` y `CAMPOS_GENERICOS_CON_REGLA = ("productos", "proveedor")`.
+Sin la paridad, el hueco no se habría visto: los tests de T-402/T-403 solo
+cubrían los campos del contrato de factura.
 
 ## 4. Reglas duras (no romper F0/F2/F3)
 
@@ -527,22 +657,59 @@ funcion extraer_evidencia(lector, markdown, vista, normalizar=True):
 - `scripts/F4/t404.py` (nuevo).
 - Ajustes de expectativas en `tests/test_extraction_flujos.py`, `tests/test_extraction_key_value.py` y `tests/test_extraction_raw_t403.py` (los tests que congelaban el esqueleto de `combinar_evidencia`).
 
+### T-405
+- `tests/golden/F4/subconjunto.json` (nuevo: subconjunto de paridad `0.1-f4` con reglas, procedencia, no-inventar, campos de paridad y 6 casos de extracción).
+- `tests/golden/F4/README.md` (nuevo: los tres niveles de paridad, diferencias esperadas y límites).
+- `scripts/F4/paridad_extraccion.py` (nuevo: proyección, comparación y runners de v1/v2).
+- `tests/test_extraction_paridad.py` (nuevo, 37 tests).
+- `scripts/F4/t405.py` (nuevo: métricas de la paridad).
+- `src/voucherflow/extraction/key_value.py` (`"proveedor": NORM_TEXTO` en `REGLA_POR_CAMPO` y `CAMPOS_GENERICOS_CON_REGLA` — hueco que destapó la paridad).
+
 ## 7. Avance
 
-- **Estado (2026-09-10)**: F4 en implementación. **T-401: Hecha** (los dos flujos
-  en paralelo devolviendo `SourceEvidence`, con prompt de evidencia versionado y
-  tolerancia a fallos por fuente), **T-402: Hecha** (normalización key-value de
-  E-EXT-3 portada a código desde los prompts `10`/`11`/`kvi`/`kvg`, con el crudo
-  siempre preservado), **T-403: Hecha** (pasada 1 completa: sostén por forma
-  canónica de montos/fechas/CUIT y coherencia de la fuente consigo misma) y
-  **T-404: Hecha** (combinación con resolución por campo, la tabla de precedencia
-  de ADR-002). Suite en verde: **910 passed, 10 skipped** (75 de T-401 + 97 de
-  T-402 + 37 de T-403 + 45 de T-404 sobre una base de 656). Resta **T-405**
-  (paridad con v1 sobre el golden set). `F4.md` pasa de 🔴 Backlog a 🟡 En
-  implementación.
+- **Estado (2026-09-10)**: **F4 cerrada**. Las cinco tareas están **Hechas**:
+  **T-401** (los dos flujos en paralelo devolviendo `SourceEvidence`, con prompt
+  de evidencia versionado y tolerancia a fallos por fuente), **T-402**
+  (normalización key-value de E-EXT-3 portada a código desde los prompts
+  `10`/`11`/`kvi`/`kvg`, con el crudo siempre preservado), **T-403** (pasada 1
+  completa: sostén por forma canónica de montos/fechas/CUIT y coherencia de la
+  fuente consigo misma), **T-404** (combinación con resolución por campo, la
+  tabla de precedencia de ADR-002) y **T-405** (paridad con v1 sobre el golden
+  set, en tres niveles, con las diferencias por diseño documentadas). Suite en
+  verde: **949 passed, 10 skipped** (75 de T-401 + 97 de T-402 + 37 de T-403 +
+  45 de T-404 + 39 de T-405 sobre una base de 656). Los cinco scripts de
+  inspección (`t401`..`t405`) salen con código 0. `F4.md` queda en ✅
+  **Completada** y **el DoD de F4 está verificado** (ver §7.1).
 - **Punto de partida real**: el contrato de evidencia de F0 está congelado y la
   vista fiel de F2 (`preparar_vista_fiel`) y el markdown de F1
   (`api.process`) están disponibles, así que T-401 pudo implementarse sin tocar
   las fases previas (los flujos reciben esos artefactos); T-402 normaliza esa
   lectura, T-403 la califica y T-404 la combina, también sin volver a tocar
   F1/F2.
+
+### 7.1 DoD de F4 — verificación
+
+El DoD de la fase (copia literal en `05-plan/F4.md` §2) tiene **un** criterio:
+
+> Dos flujos siempre en paralelo con evidencia trazable; paridad de extracción
+> con v1 en campos normalizados sobre golden set.
+
+| Parte del criterio | Cómo se verificó | Evidencia |
+|---|---|---|
+| **Dos flujos siempre en paralelo** | `extraer_evidencia()` corre una tarea por fuente con `ThreadPoolExecutor`; el detalle publica si hubo paralelismo y el `max_workers` | T-401: `scripts/F4/t401.py` mide **0.206 s** en paralelo vs. **0.412 s** en serie (dos llamadas de 0,2 s) |
+| **Evidencia trazable** | Cada campo lleva `fragmento_sustento`, `sosten_estructurado`, `normalizado`/`regla_normalizacion`, `derivado_de` y el veredicto raw por fuente; la `CombinedEvidence` conserva **todas** las lecturas y deja `decision = None` | T-401..T-404: tests de `test_extraction_flujos.py`, `test_extraction_raw_t403.py`, `test_extraction_combinacion_t404.py` |
+| **Paridad en campos normalizados sobre golden set** | Subconjunto `tests/golden/F4/`; la paridad se mide en 3 niveles (normalización / contrato-sostén / extracción real) | T-405: `scripts/F4/t405.py --subset determinista` → reglas **20/20**, paridad estructural **29/29**, sostén **32/32**, genérico **5/5**, procedencia ✅ |
+| **Alcance admitido del DoD** | "paridad **o mejora**", documentada caso por caso; los campos de **decisión** quedan fuera por ADR-001 | `tests/golden/F4/subconjunto.json` → `campos_fuera_de_paridad` (9 campos con motivo) y `tests/golden/F4/README.md` |
+
+**Límites declarados (lo que el DoD *no* cubre).**
+
+- La corrida **real** contra v1 no está en la suite default: requiere Ollama y
+  `v1/` presentes, así que vive en `--subset origen` / `@pytest.mark.integration`.
+- La medición es sobre el **subconjunto** documentado y **3** documentos del
+  golden, no sobre el golden completo (la curación con contador de montos/fechas
+  sigue pendiente de F2 §2.5).
+- Los campos de **decisión** (`comprobante_valido`, `categoria_gasto`,
+  `centro_de_costo`…) no se comparan: son el objetivo del rediseño, no una
+  regresión de la extracción (ADR-001).
+
+**Resultado**: DoD de F4 **verificado**. La fase queda ✅ **Completada**.
