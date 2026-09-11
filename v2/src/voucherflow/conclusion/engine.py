@@ -46,7 +46,8 @@ from ..rules.gaps import (
     detectar_gaps,
 )
 from ..schemas.evidence import CombinedEvidence, SourceEvidence
-from ..schemas.result import VoucherResult
+from ..schemas.result import ClasificacionContable, HitlDecision, VoucherResult
+from .consolidacion import Consolidacion, consolidar
 
 
 def _correr_pasada_2(
@@ -220,6 +221,9 @@ class ConclusionConBusqueda:
         gaps_restantes: los gaps que **quedaron** tras la búsqueda. Es la señal
             para el paso siguiente del flujo: si hay gaps restantes bloqueantes,
             el caso escala al agente (T-504).
+        consolidacion: el :class:`~voucherflow.conclusion.consolidacion.Consolidacion`
+            (el ``VoucherResult`` final con la traza de la certeza, T-503) cuando
+            se pidió ``consolidar=True``.
     """
 
     evidencia: CombinedEvidence
@@ -227,19 +231,28 @@ class ConclusionConBusqueda:
     deteccion: DeteccionGaps
     busqueda: ResultadoBusquedaAdicional
     gaps_restantes: list[str] = field(default_factory=list)
+    consolidacion: "Consolidacion | None" = None
+
+    @property
+    def resultado(self) -> VoucherResult | None:
+        """El ``VoucherResult`` final, si se pidió consolidar (T-503)."""
+        return self.consolidacion.valor if self.consolidacion else None
 
     @property
     def hubo_busqueda(self) -> bool:
         return self.busqueda.hubo_busqueda
 
     def como_dict(self) -> dict[str, Any]:
-        return {
+        resumen: dict[str, Any] = {
             "version": VERSION_GAPS,
             "deteccion": self.deteccion.como_dict(),
             "busqueda": self.busqueda.como_dict(),
             "gaps_restantes": list(self.gaps_restantes),
             "conclusion": self.conclusion.como_dict(),
         }
+        if self.consolidacion is not None:
+            resumen["consolidacion"] = self.consolidacion.como_dict()
+        return resumen
 
 
 def concluir_con_busqueda(
@@ -248,6 +261,8 @@ def concluir_con_busqueda(
     buscador: BuscadorEvidencia | None = None,
     presupuesto: PresupuestoBusqueda | None = None,
     contexto_tipo: ContextoTipoComprobante | None = None,
+    consolidar_resultado: bool = False,
+    clasificacion: ClasificacionContable | None = None,
 ) -> ConclusionConBusqueda:
     """Concluye y, si faltan datos, busca evidencia adicional **acotada** (T-502).
 
@@ -287,10 +302,18 @@ def concluir_con_busqueda(
         presupuesto: los topes de la búsqueda (ADR-003). Default: 3 consultas y
             2 reintentos por gap.
         contexto_tipo: el contexto fiscal opcional (ver :func:`concluir`).
+        consolidar_resultado: si es ``True``, además **consolida** el
+            ``VoucherResult`` final (T-503) y lo deja en
+            :attr:`ConclusionConBusqueda.resultado`. Es opt-in para que el paso
+            de búsqueda se pueda ejercitar solo.
+        clasificacion: la clasificación contable ya resuelta (F3/T-304) para
+            publicar en el resultado consolidado. Si no se pasa, el resultado
+            viaja sin ella (no se inventa: ver ``consolidacion.py``).
 
     Devuelve:
         :class:`ConclusionConBusqueda` con la evidencia final, el veredicto, la
-        detección, la traza de la búsqueda y los gaps que quedaron.
+        detección, la traza de la búsqueda, los gaps que quedaron y —si se pidió—
+        la consolidación (T-503).
 
     Lanza:
         ``TypeError`` si ``evidencia`` no es una ``CombinedEvidence``.
@@ -328,12 +351,71 @@ def concluir_con_busqueda(
         if campo not in busqueda.campos and campo in contexto_final.campos_ausentes
     )
 
+    consolidacion = None
+    if consolidar_resultado:
+        # T-503: el veredicto se vuelve el ``VoucherResult`` final (certeza
+        # derivada del veredicto; alta + programa ⇔ el código concluyó sin
+        # ambigüedad). Se le pasa la evidencia **ya concluida** para que la traza
+        # conserve el bloque de T-501 además del de la consolidación.
+        consolidacion = consolidar(
+            evidencia_final,
+            conclusion,
+            contexto_tipo=contexto_tipo,
+            contexto=contexto_final,
+            clasificacion=clasificacion,
+            evidencia_con_traza=evidencia_final,
+        )
+
     return ConclusionConBusqueda(
         evidencia=evidencia_final,
         conclusion=conclusion,
         deteccion=deteccion,
         busqueda=busqueda,
         gaps_restantes=gaps_restantes,
+        consolidacion=consolidacion,
+    )
+
+
+def consolidar_caso(
+    evidencia: CombinedEvidence,
+    *,
+    contexto_tipo: ContextoTipoComprobante | None = None,
+    clasificacion: ClasificacionContable | None = None,
+    hitl: HitlDecision | None = None,
+) -> Consolidacion:
+    """Concluye y **consolida** el caso en el ``VoucherResult`` final (F5/T-503).
+
+    Es el atajo cuando no hace falta la búsqueda de evidencia adicional: corre la
+    pasada 2 (T-501) y devuelve el
+    :class:`~voucherflow.conclusion.consolidacion.Consolidacion` — el contrato
+    congelado de F0 (glosario §2.4) más la traza de **por qué** la certeza quedó
+    como quedó.
+
+    Regla que implementa (Gherkin E-CONC-1, "concluye por programa"): la certeza
+    es ``alta`` con origen ``programa`` **si y solo si** el código concluyó de
+    forma consistente (``concluye``, sin alertas pendientes y con letra). Un caso
+    ambiguo sale en ``revision``, ``certeza=baja`` y **sin** ``origen``: no lo
+    decidió nadie todavía (lo tomarán T-504/T-505).
+
+    Determinística y sin red.
+
+    Argumentos:
+        evidencia: la ``CombinedEvidence`` de F4/T-404.
+        contexto_tipo: el contexto fiscal opcional (ver :func:`concluir`).
+        clasificacion: la clasificación contable ya resuelta (F3/T-304).
+        hitl: la ``HitlDecision`` a publicar (default: la del veredicto).
+    """
+    contexto, conclusion = _correr_pasada_2(evidencia, contexto_tipo)
+    # Se concluye la evidencia internamente para que la traza del resultado
+    # conserve el bloque de T-501, y se consolida sobre esa misma evidencia.
+    evidencia_concluida = _adjuntar_conclusion(evidencia, contexto, conclusion)
+    return consolidar(
+        evidencia_concluida,
+        conclusion,
+        contexto_tipo=contexto_tipo,
+        contexto=contexto,
+        clasificacion=clasificacion,
+        hitl=hitl,
     )
 
 
@@ -416,6 +498,7 @@ __all__ = [
     "concluir",
     "concluir_caso",
     "concluir_con_busqueda",
+    "consolidar_caso",
     "escalar_a_agente",
     "encolar_hitl",
     "ConclusionConBusqueda",

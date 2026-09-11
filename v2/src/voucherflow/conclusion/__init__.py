@@ -10,11 +10,17 @@ junto con la persistencia de ``CaseRecord`` (T-506).
 
 from __future__ import annotations
 
+from .consolidacion import (
+    Consolidacion,
+    consolidar,
+    es_certeza_alta_por_programa,
+)
 from .engine import (
     ConclusionConBusqueda,
     concluir,
     concluir_caso,
     concluir_con_busqueda,
+    consolidar_caso,
     encolar_hitl,
     escalar_a_agente,
 )
@@ -23,7 +29,11 @@ __all__ = [
     "concluir",
     "concluir_caso",
     "concluir_con_busqueda",
+    "consolidar_caso",
     "ConclusionConBusqueda",
+    "Consolidacion",
+    "consolidar",
+    "es_certeza_alta_por_programa",
     "escalar_a_agente",
     "encolar_hitl",
 ]

@@ -5,7 +5,7 @@
 > ([`F5.md`](F5.md)) y el diseño del módulo
 > ([`../03-arquitectura/CONC.md`](../03-arquitectura/CONC.md)).
 > **Fecha**: 2026-09-11 · **Rama**: `v2` · **Estado**: 🟡 En implementación
-> (T-501 y T-502 hechas; T-503..T-507 pendientes).
+> (T-501, T-502 y T-503 hechas; T-504..T-507 pendientes).
 
 ## 1. Ficha del subplan
 
@@ -242,18 +242,67 @@ suelen ir juntas y no son lo mismo: **qué falta** (determinístico, sin red) y
    por código, que es justo lo que ADR-002 evita. La correcta reconstruye las
    `SourceEvidence` y vuelve a combinar.
 
-### 3.3 T-503 · Consolidación "certeza alta por programa"
+### 3.3 T-503 · Consolidación "certeza alta por programa" ✅ Hecha
 
-> **Estado**: pendiente.
+> **Estado 2026-09-11**: **Hecha** por `team implementation`. Suite completa en
+> verde (**1162 passed, 10 skipped**, 46 nuevos); `python scripts/F5/t503.py`
+> reporta **6/6** escenarios de consolidación + **8/8** fronteras (exit 0).
 
-- Formaliza el contrato de la consolidación: `certeza=alta` + `origen=programa`
-  **si y solo si** el código concluyó sin ambigüedad, con `concluye=True` y sin
-  alertas de R7 pendientes.
-- Es la parte que el `Decision` de T-501 **habilita** pero no cierra: T-501
-  resuelve el veredicto, T-503 lo consolida en el `VoucherResult` (estado,
-  certeza, origen, campos, clasificación contable de F3).
-- **No** pasa por el agente IA: ese es el punto de la historia (E-CONC-1,
-  "NO pasó por el agente de IA para decidir").
+**Qué se hace.** El Gherkin de E-CONC-1, implementado:
+
+    Regla: concluye por programa
+      Dado que las reglas concluyen de forma consistente
+      Cuando se consolida el resultado
+      Entonces se marca certeza=alta y origen=programa
+      Y NO pasó por el agente de IA para decidir
+
+T-501 **resuelve** y T-502 **cubre gaps**; T-503 **publica**: convierte el
+veredicto en el contrato congelado de F0 (`VoucherResult`, glosario §2.4) que
+consume la API/CLI — estado, tipo, certeza, origen, campos planos, clasificación
+contable, HITL y traza.
+
+**La condición "sin ambigüedad"** (lo que hay que hacer verificable):
+
+| Condición | Por qué |
+|---|---|
+| `concluye` | el código alcanzó un veredicto; sin él no hay nada que consolidar |
+| **sin alertas pendientes** | el Gherkin pide que las reglas concluyan *de forma consistente*: una alerta de R7 sin resolver es lo contrario |
+| **con letra** | una aprobación sin letra sería vacía (y un `090` no es letra del motor, D-13) |
+
+**Archivos.**
+
+- `src/voucherflow/conclusion/consolidacion.py` (nuevo).
+- `src/voucherflow/conclusion/engine.py` (`consolidar_caso()`, y `consolidar_resultado=True` en `concluir_con_busqueda()`).
+- `src/voucherflow/conclusion/__init__.py` (exportes).
+- `tests/test_conclusion_consolidacion_t503.py` (nuevo, 46 tests).
+- `scripts/F5/t503.py` (nuevo).
+
+**Cómo se prueba (sin red).**
+
+- La regla en aislamiento: cada disyunto (no concluye / con alerta / sin letra)
+  baja la certeza **y lo explica**.
+- El `VoucherResult`: un aprobado y un **rechazo firme** salen con certeza alta y
+  origen programa; un caso ambiguo sale en revisión, baja y **sin** origen.
+- La derivación: el consolidador no recibe `certeza` ni `origen` (un test lo
+  verifica por firma); un `090` no se reporta como letra.
+- La clasificación contable y el HITL; la integración con T-501/T-502.
+
+**Fronteras (lo que **no** hace).**
+
+- **No** declara la certeza: la deriva del veredicto.
+- **No** inventa la clasificación contable (sin los pasos de F3 viaja sin ella).
+- **No** llama al agente (T-504) ni encola HITL (T-505).
+- **No** muta la evidencia de entrada ni re-calcula el veredicto.
+
+**Hallazgos.**
+
+1. **Un rechazo firme es certeza alta**: "esto no es válido" es una conclusión,
+   no una duda. La certeza mide *cuánto sabe el sistema*.
+2. **Una alerta abierta impide la certeza alta**: el fast-fail puede coexistir
+   con R7; mientras la alerta siga ahí, el caso no es "consistente".
+3. **El caso ambiguo no puede llevar `origen`**: no lo decidió nadie.
+4. **La traza debe conservar todas las etapas**: el primer `consolidar_caso()`
+   perdía el bloque `conclusion` de T-501 (lo destapó un test de integración).
 
 ### 3.4 T-504 · Escalado a agente IA + blindaje post-agente
 

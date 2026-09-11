@@ -262,17 +262,26 @@ tests/golden/
   veredicto) y el adaptador ARCA con una sesión HTTP falsa (**sin red**): payload,
   traducción de la respuesta, reintentos, timeout y que no se invente un código
   AFIP fuera del vocabulario (D-13).
+  **T-503**: 46 tests (`test_conclusion_consolidacion_t503.py`) — la regla de la
+  certeza en aislamiento (cada disyunto de "sin ambigüedad": no concluye / con
+  alerta pendiente / sin letra, cada uno con su motivo), el `VoucherResult`
+  consolidado (aprobado y **rechazo firme** en certeza alta; ambiguo en revisión
+  sin `origen`), la derivación (la certeza **no** es parámetro: se verifica por
+  firma), la clasificación contable y el HITL, la integración con T-501/T-502
+  (incluido que el padrón **desbloquea** la certeza alta) y las fronteras.
 - **Integración**: casos del golden → distribución de `origen` y `certeza`;
   correcciones HITL registradas y disponibles para feedback.
 - **Aceptación** (E-CONC-1/2/3/4/5): código que concluye ⇒ certeza alta;
-  agente ⇒ baja + HITL; trazabilidad completa persistida. **Parcial en
-  T-501/T-502**: "código que concluye ⇒ certeza alta" verificado (con los tres
-  desenlaces: `aprobado`, `rechazado` por fast-fail y `revision` sin decidir) y
-  "búsqueda de evidencia adicional puntual y sin loop abierto" verificado (con el
-  hook desactivado, caído, con respuesta negativa y con presupuesto agotado);
-  "agente ⇒ baja + HITL" y "trazabilidad completa persistida" son de
-  T-504/T-505/T-506. `scripts/F5/t501.py` corre **8/8** escenarios + **8/8**
-  fronteras y `scripts/F5/t502.py` **6/6** + **8/8**, con salida ≠ 0 si falla.
+  agente ⇒ baja + HITL; trazabilidad completa persistida. **Casi cerrada para
+  E-CONC-1**: el Gherkin "concluye por programa" está verificado de punta a punta
+  (reglas consistentes → `certeza=alta` + `origen=programa`, sin pasar por el
+  agente), con los tres desenlaces (aprobado, rechazado firme y revisión) y con la
+  regla de la certeza probada disyunto por disyunto; "búsqueda de evidencia
+  adicional puntual y sin loop abierto" también (hook desactivado, caído,
+  respuesta negativa y presupuesto agotado). "agente ⇒ baja + HITL" y
+  "trazabilidad completa persistida" son de T-504/T-505/T-506. `scripts/F5/t501.py`
+  corre **8/8** + **8/8**, `t502.py` **6/6** + **8/8** y `t503.py` **6/6** +
+  **8/8**, con salida ≠ 0 si falla.
 - **Métricas clave** (definidas en §5): exactitud por origen, % certeza alta,
   acuerdo programa-vs-humano, cobertura HITL. **Parcial en T-501**: el
   `ConclusionResult` y la traza de la corrida ya exponen lo que las métricas
