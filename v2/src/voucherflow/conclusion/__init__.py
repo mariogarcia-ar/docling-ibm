@@ -1,12 +1,15 @@
-"""Módulo ``conclusion`` (esqueleto — F5) — reglas → agente → HITL.
+"""Módulo ``conclusion`` — reglas → agente → HITL (F5).
 
-**Fase**: F5. En F0 se deja el esqueleto con las firmas públicas
-``concluir`` / ``escalar_a_agente`` / ``encolar_hitl``. La lógica se completa
-en F5 (engine, agent, hitl) sobre los contratos de ``schemas/`` (F0).
+**Fase**: F5. En F0 se dejó el esqueleto con las firmas públicas
+``concluir`` / ``escalar_a_agente`` / ``encolar_hitl``. **T-501** implementa
+``concluir`` (la pasada 2 de reglas cruzadas sobre la evidencia combinada, que
+produce el ``Decision`` del caso); ``escalar_a_agente`` (T-504) y
+``encolar_hitl`` (T-505) siguen siendo esqueleto y se completan en sus tareas,
+junto con la persistencia de ``CaseRecord`` (T-506).
 """
 
 from __future__ import annotations
 
-from .engine import concluir, encolar_hitl, escalar_a_agente
+from .engine import concluir, concluir_caso, encolar_hitl, escalar_a_agente
 
-__all__ = ["concluir", "escalar_a_agente", "encolar_hitl"]
+__all__ = ["concluir", "concluir_caso", "escalar_a_agente", "encolar_hitl"]
