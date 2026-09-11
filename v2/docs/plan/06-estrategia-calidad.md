@@ -286,6 +286,15 @@ tests/golden/
   la **confirmación** sin corrección, el **feedback** (separación R-09/R-03 y
   agregado por campo) y la integración (`encolar_hitl` mutando el `hitl` y la
   traza). Corre **sin red**: la cola es una estructura de datos.
+  **T-506**: 74 tests (`test_trace_recorder_t506.py`) — el **registro auditable**
+  (los cinco datos del Gherkin legibles del `CaseRecord`, sin volver a correr el
+  pipeline), la **honestidad** del registro (nada inventado; declara si la
+  evidencia por fuente es `directa` o `reconstruida_desde_campos`), el **sidecar**
+  (round-trip sin pérdida, escritura atómica sin temporales, ids con `:` o `/` que
+  no escapan del directorio), el **índice** (una fila por documento —no por corrida,
+  para no inflar los agregados—, consultas, línea corrupta que no pierde el resto) y
+  la **reconstrucción** (`reindexar()` desde los sidecars). Todo con `tmp_path`: el
+  módulo no toca el repo ni la red.
 - **Integración**: casos del golden → distribución de `origen` y `certeza`;
   correcciones HITL registradas y disponibles para feedback.
 - **Aceptación** (E-CONC-1/2/3/4/5): código que concluye ⇒ certeza alta;
@@ -296,12 +305,16 @@ tests/golden/
   regla de la certeza probada disyunto por disyunto; "búsqueda de evidencia
   adicional puntual y sin loop abierto" también (hook desactivado, caído,
   respuesta negativa y presupuesto agotado). "agente ⇒ baja + HITL" y
-  "trazabilidad completa persistida" son de T-504/T-505/T-506. `scripts/F5/t501.py`
+  "trazabilidad completa persistida" también quedó cubierta (T-506). `scripts/F5/t501.py`
   corre **8/8** + **8/8**, `t502.py` **6/6** + **8/8**, `t503.py` **6/6** + **8/8**,
-  `t504.py` **6/6** + **9/9** y `t505.py` **6/6** + **13/13**, con salida ≠ 0 si falla.
+  `t504.py` **6/6** + **9/9**, `t505.py` **6/6** + **13/13** y `t506.py` **4/4** +
+  **14/14**, con salida ≠ 0 si falla.
   **E-CONC-4 cerrada en T-505**: el HITL es autoridad final — revisión obligatoria de
   certeza baja, muestreo reproducible de certeza alta y feedback registrado y separado
   por motivo (el agente se equivocó vs. la regla acierta por accidente).
+  **E-CONC-5 cerrada en T-506**: todo caso persiste su `CaseRecord` en sidecar
+  (escritura atómica) + índice consultable, y el registro responde el Gherkin leyendo
+  el archivo. Queda T-507 (las métricas, que se calculan sobre ese índice).
 - **Métricas clave** (definidas en §5): exactitud por origen, % certeza alta,
   acuerdo programa-vs-humano, cobertura HITL. **Parcial en T-501**: el
   `ConclusionResult` y la traza de la corrida ya exponen lo que las métricas

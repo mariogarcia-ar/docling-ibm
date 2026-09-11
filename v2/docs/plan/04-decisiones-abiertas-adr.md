@@ -24,11 +24,11 @@ redacta **ADRs preliminares** (estado *propuesto*) para las más relevantes.
 | D-2 | Tabla de precedencia por campo | ideas (flujo) | Sí (bloqueante) | ADR-002 | ✅ Aceptado (F0) |
 | D-3 | Alcance de "buscar más evidencia" (gatillo + límite ARCA) | ideas (flujo + algoritmo) | Parcial (se puede dejar como hook) | ADR-003 | Propuesto (F5) |
 | D-4 | Auditoría / muestreo de "certeza alta" | ideas (flujo) | No (se diseña en conclusión) | ADR-004 | Propuesto (F5) |
-| D-5 | Trazabilidad completa y su persistencia | ideas (flujo) | Sí (requisito de negocio) | ADR-005 | ✅ Aceptado (F0) |
+| D-5 | Trazabilidad completa y su persistencia | ideas (flujo) | Sí (requisito de negocio) | ADR-005 | ✅ Implementado (F5/T-506) |
 | D-6 | Dónde viven las reglas de negocio (código vs. prompt) | v1 `11.1`/WIP R1-R7 | Sí (bloqueante) | ADR-006 | ✅ Aceptado (F0) |
 | D-7 | Organización del paquete y nombre de la librería | readme v2 | No (baja) | ADR-007 | ✅ Aceptado (F0) |
 | D-8 | Cómo se implementa el "agente de IA" de la conclusión | ideas (algoritmo) | No (baja) | ADR-008 | Propuesto (F5) |
-| D-9 | Persistencia de resultados/HITL (JSON sidecar vs. SQLite vs. servicio) | PM/NFR | No (media) | ADR-009 | Propuesto (F6) |
+| D-9 | Persistencia de resultados/HITL (JSON sidecar vs. SQLite vs. servicio) | PM/NFR | No (media) | ADR-009 | 🟡 Parcial (F5/T-505+T-506: sidecar + índice) |
 | D-10 | Política de enfriamiento por temperatura en lotes | `my_prompt.md` (contexto operativo) | No (media) | — (config) | Config (F6) |
 | D-11 | Modalidades `llm`/`vlm`/`auto` y su mapeo a los nuevos flujos | v1 `document_extraction.py` | No | — (diseño detallado) | Abierta |
 | D-12 | Volumen de `files/` como dataset: tamaño y criterio del golden set | contexto repo | No | — (ver 06) | Abierta |
@@ -269,10 +269,11 @@ tasa inicial en Fase 1 (sugerida 5-10%).
 
 ### ADR-005 · Trazabilidad completa y persistencia
 
-- **Estado**: ✅ **Aceptado** (F0, 2026-09-06) · **Prioridad**: Alta (requisito de auditoría) · **Decisión D-5**
+- **Estado**: ✅ **Implementado** (F5/T-506, 2026-09-11) · **Prioridad**: Alta (requisito de auditoría) · **Decisión D-5**
 - **Implementación**: contrato `CaseRecord` congelado en
-  `v2/src/voucherflow/schemas/result.py`; el registrador/persistencia
-  (`trace/`) se implementa en F5 (T-506).
+  `v2/src/voucherflow/schemas/result.py` (sin cambios en T-506) + registrador y
+  persistencia en `v2/src/voucherflow/trace/` (`construccion.py` arma el registro;
+  `recorder.py` lo persiste).
 
 **Contexto**
 Para justificar una clasificación fiscal ante una auditoría se necesita: versión
@@ -295,6 +296,26 @@ consulta/auditoría sobre el histórico (Fase futura / E-CLI HITL list).
 - + Compatible con el patrón de sidecars de v1 (checkpoints, reanudación).
 - + Trazabilidad desde el día 1 sin infraestructura nueva.
 - − Las consultas agregadas sobre trazabilidad requieren indexar (post-MVP).
+
+**Implementación (F5/T-506)**
+- Se adoptó la alternativa **(a)**: `CaseRecord` versionado y completo por caso, persistido
+  como **JSON sidecar** (`<documento>.case.json`) + un **índice** (`index.jsonl`).
+- El sidecar se escribe de forma **atómica** (temporal en el mismo directorio + `os.replace`
+  + `fsync`): si el proceso muere a mitad de la escritura, el sidecar anterior queda intacto
+  y nunca se lee un JSON truncado. Es el patrón de v1 y es lo que hace segura la reanudación
+  por checkpoint (F6/T-602).
+- El `CaseRecord` es una **proyección** de la corrida (`construir_case_record()`): no ejecuta
+  reglas ni modelos. Responde los cinco datos de la auditoría —versión de prompt, modelo,
+  evidencia por fuente, reglas disparadas y quién decidió— **leyendo el archivo**, sin volver
+  a correr el pipeline.
+- **Nada se inventa**: si la corrida no usó el agente, no hay modelo de agente; y como el
+  nivel de *fuente* de la pasada 1 (`valida`, `debilidades`) no viaja en la evidencia
+  combinada, el registro **declara** si la evidencia por fuente es `directa` o
+  `reconstruida_desde_campos` en lugar de aparentar una fidelidad que no tiene.
+- Cobertura: `tests/test_trace_recorder_t506.py` (74), `scripts/F5/t506.py` (4/4 + 14/14).
+- **Pendiente (consistente con este ADR)**: el índice/store SQLite para consultas agregadas
+  sobre el histórico. T-506 dejó el **índice** JSONL (una línea por caso) que resuelve las
+  consultas del MVP sin infraestructura nueva.
 
 ---
 
@@ -416,7 +437,7 @@ candidato descartado).
 
 ### ADR-009 · Persistencia de resultados y cola HITL
 
-- **Estado**: 🟡 **Parcialmente implementado** (F5/T-505, 2026-09-11: cola HITL en memoria; el sidecar + SQLite quedan para T-506) · **Prioridad**: Media · **Decisión D-9**
+- **Estado**: 🟡 **Parcialmente implementado** (F5/T-505 + T-506, 2026-09-11: cola HITL en memoria y **sidecar + índice JSONL**; el store SQLite para consultas por más dimensiones sigue pendiente) · **Prioridad**: Media · **Decisión D-9**
 
 **Contexto**
 Hay que persistir resultados, evidencia y decisiones HITL (correcciones,
@@ -448,6 +469,23 @@ revisión y las correcciones, que alimente el feedback a reglas/prompts.
 - La cola nace con las consultas que el ADR pide («listame los casos de certeza
   baja») ya resueltas en memoria, así que el store durable solo tiene que
   hacerlas durables.
+
+**Implementación (F5/T-506 — parcial)**
+- La parte de **sidecars** de la alternativa (a) está hecha: `trace/recorder.py` persiste el
+  `CaseRecord` como `<documento>.case.json` con escritura **atómica** (temporal + `os.replace`
+  + `fsync`), continuando el patrón de v1.
+- Se agregó un **índice** `index.jsonl`: una línea por caso con lo mínimo para encontrar y
+  filtrar (`buscar(estado="rechazado")`, `buscar(hitl_requerido=True)`). Es un **derivado**:
+  se hace *append* (barato y seguro en concurrencia), se **deduplica al leer** (una fila por
+  documento, porque el `CaseRecord` es por documento: una fila por corrida inflaría las
+  métricas de T-507) y `reindexar()` lo reconstruye desde los sidecars.
+- **Por qué JSONL y no SQLite todavía**: el ADR pide una tabla `hitl_queue` para las consultas
+  del HITL. Esas consultas ("listame los casos de certeza baja") ya las resuelve `ColaHitl`
+  en memoria (T-505), y las del histórico las resuelve el índice JSONL — sin infraestructura
+  nueva. El SQLite se justifica cuando haga falta consultar por **más dimensiones** o cruzar
+  histórico y cola, que es la fase posterior que este ADR ya anticipa.
+- Cobertura: `tests/test_trace_recorder_t506.py` (74), `scripts/F5/t506.py` (4/4 + 14/14).
+
 
 ---
 

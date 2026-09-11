@@ -5,7 +5,7 @@
 > ([`F5.md`](F5.md)) y el diseño del módulo
 > ([`../03-arquitectura/CONC.md`](../03-arquitectura/CONC.md)).
 > **Fecha**: 2026-09-11 · **Rama**: `v2` · **Estado**: 🟡 En implementación
-> (T-501..T-505 hechas; T-506..T-507 pendientes).
+> (T-501..T-506 hechas; T-507 pendiente).
 
 ## 1. Ficha del subplan
 
@@ -411,17 +411,40 @@ con prompt de decisión estructurado, sin framework.
   la consolidación / el escalado **no encolan por su cuenta** (el encolado es un
   paso explícito), y que la política de T-505 **sí** materializa la expectativa.
 
-### 3.6 T-506 · Trazabilidad completa `CaseRecord` persistida
+### 3.6 T-506 · Trazabilidad completa `CaseRecord` persistida ✅ Hecha
 
-> **Estado**: pendiente. ADR-005.
+> **Estado**: ✅ Hecha (2026-09-11). ADR-005 / ADR-009.
 
-- `trace/recorder.py`: `CaseRecorder.registrar()` deja de ser esqueleto.
-- Persistencia **JSON sidecar** + índice (ADR-005/ADR-009: el store SQLite para
-  consultas agregadas es posterior).
-- El `CaseRecord` (schema congelado de F0) ya tiene su shape:
-  `version_prompt`/`modelo_por_etapa`/`evidencia_por_fuente`/`reglas_disparadas`/
-  `quien_decidio`/`etapas`/`resultado`.
-- Escritura **atómica** (patrón de v1 que v2 debe respetar, §4 de los ADR).
+- Dos piezas con responsabilidades separadas, para no mezclar "armar el registro"
+  con "escribir archivos":
+  - `trace/construccion.py` **arma** el `CaseRecord` desde los artefactos de la
+    corrida (evidencia + decisión + resultado). Es una **proyección**: no ejecuta
+    reglas ni modelos.
+  - `trace/recorder.py` **persiste**: sidecar JSON + índice JSONL. `registrar()`
+    deja de ser esqueleto.
+- **El registro responde el Gherkin sin re-correr nada**: versión de prompt y
+  modelo (del `meta` que F4 ya puso en cada lectura, más el bloque `agente` de
+  T-504), evidencia por fuente, reglas disparadas y quién decidió.
+- **Sidecar** `<documento>.case.json`: el `CaseRecord` completo, con **escritura
+  atómica** (temporal en el mismo directorio + `os.replace` + `fsync`): si el
+  proceso muere a mitad, el sidecar anterior queda intacto y nunca se lee un JSON
+  truncado. Es el patrón de v1 que el §4 de los ADR manda respetar y la base de
+  la reanudación por checkpoint (F6/T-602).
+- **Índice** `index.jsonl`: una línea por caso con lo mínimo para encontrar y
+  filtrar (`buscar(estado="rechazado")`, `buscar(hitl_requerido=True)`). Es un
+  **derivado**: se hace *append* (barato y seguro en concurrencia), se
+  **deduplica al leer** (una fila por documento: el `CaseRecord` es por
+  documento, y una fila por corrida inflaría los agregados de T-507) y
+  `reindexar()` lo reconstruye desde los sidecars.
+- **Nada se inventa**: si la corrida no usó el agente, no hay modelo de agente;
+  si un dato no está, el campo viaja vacío. Un registro con huecos es auditable;
+  uno con datos inventados miente con apariencia de rigor.
+- **Alcance honesto**: el nivel de *fuente* de la pasada 1 (`valida`,
+  `debilidades`) **no viaja** en la evidencia combinada de F4. La reconstrucción
+  desde `campos` es exacta en las lecturas, y el registro **declara** cuál de los
+  dos caminos se usó (`directa` si el llamador pasa las `SourceEvidence`).
+- Suites: `tests/test_trace_recorder_t506.py` (74) y `scripts/F5/t506.py`
+  (4/4 escenarios + 14/14 fronteras).
 
 ### 3.7 T-507 · Métricas
 
@@ -522,24 +545,28 @@ funcion concluir(evidencia: CombinedEvidence, *, contexto_extra=None):
 - `src/voucherflow/rules/gaps.py` (T-502) + `models/arca.py` (hook, opcional).
 - `src/voucherflow/conclusion/agent.py` (T-504) + `conclusion/hitl.py` (T-505) +
   `settings/config.py` (`HitlSettings`, T-505).
-- `src/voucherflow/trace/recorder.py` (T-506).
-- `tests/test_conclusion_*_t5NN.py` y `scripts/F5/t5NN.py` por tarea.
+- `src/voucherflow/trace/recorder.py` + `trace/construccion.py` (T-506).
+- `tests/test_conclusion_*_t5NN.py`, `tests/test_trace_recorder_t506.py` y
+  `scripts/F5/t5NN.py` por tarea.
 
 ## 7. Avance
 
-- **Estado (2026-09-11)**: **T-501..T-505 hechas**; subplan creado y las
+- **Estado (2026-09-11)**: **T-501..T-506 hechas**; subplan creado y las
   decisiones de alcance de §2 cerradas. La **pasada 2** corre sobre la evidencia
   combinada de F4 y produce el veredicto del caso (negocio + fast-fail +
   conflicto R7), con `ConclusionResult` (diseño §4.5) y el `Decision` de F0
   adjunto solo cuando el código concluyó. Encima se apilan la búsqueda acotada
   (T-502), la consolidación del `VoucherResult` (T-503), el escalado al agente
   con blindaje (T-504) y la **cola HITL con muestreo de auditoría y feedback**
-  (T-505). Suite completa **1282 passed / 10 skipped**; los **10** scripts
-  `scripts/F<n>/t*.py` salen con código 0. T-506 (persistencia del `CaseRecord`) y
-  T-507 (métricas) quedan pendientes con su alcance definido en §3.6–§3.7.
+  (T-505) y la **trazabilidad persistida** (T-506). Suite completa
+  **1356 passed / 10 skipped**; los **11** scripts
+  `scripts/F<n>/t*.py` salen con código 0. **T-507 (métricas) queda
+  pendiente** con su alcance definido en §3.7; se calculan sobre el índice que
+  T-506 dejó consultable.
 - **Detalle por tarea**: T-501 → 94 tests + `t501.py` (8/8 + 8/8); T-502 → 73
   tests + `t502.py` (6/6 + 8/8); T-503 → 46 tests + `t503.py` (6/6 + 8/8); T-504
-  → 62 tests + `t504.py` (6/6 + 9/9); T-505 → 58 tests + `t505.py` (6/6 + 13/13).
+  → 62 tests + `t504.py` (6/6 + 9/9); T-505 → 58 tests + `t505.py` (6/6 + 13/13);
+  T-506 → 74 tests + `t506.py` (4/4 + 14/14).
 - **Punto de partida real**: la evidencia combinada de F4 (T-404) está
   disponible y con el valor vigente por campo resuelto (`CampoCombinado.valor`/
   `fuente`), y el motor R1-R7 de F3 (`evaluar_negocio`, `condicion_r7`) es
