@@ -269,6 +269,14 @@ tests/golden/
   sin `origen`), la derivación (la certeza **no** es parámetro: se verifica por
   firma), la clasificación contable y el HITL, la integración con T-501/T-502
   (incluido que el padrón **desbloquea** la certeza alta) y las fronteras.
+  **T-504**: 62 tests (`test_conclusion_agente_t504.py`) — cuándo se escala (y
+  cuándo no: un caso resuelto no gasta una llamada), qué recibe el agente
+  (evidencia + reglas que fallaron + candidatos, **sin** los descartados), el
+  **blindaje post-agente** (resucitar un descartado se rechaza y se audita, no se
+  corrige), la interpretación de la salida (tolerante al ruido del modelo pero
+  **sin** inventar decisiones), la derivación de certeza/origen, el flujo completo
+  con consolidación y las fronteras. El agente entra por protocolo: la suite corre
+  **sin Ollama** y **sin red**.
 - **Integración**: casos del golden → distribución de `origen` y `certeza`;
   correcciones HITL registradas y disponibles para feedback.
 - **Aceptación** (E-CONC-1/2/3/4/5): código que concluye ⇒ certeza alta;

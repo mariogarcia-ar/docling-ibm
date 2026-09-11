@@ -120,6 +120,12 @@ MOTIVO_AMBIGUO = (
     "revisión humana (T-505). Sin veredicto no hay origen ni certeza que "
     "consolidar."
 )
+MOTIVO_AGENTE = (
+    "El veredicto lo produjo el **agente de IA** ({desenlace}), no el código: la "
+    "certeza es baja y el origen agente_ia (glosario §2). No se consolida como "
+    "certeza alta por programa — el Gherkin E-CONC-1 exige que para eso hayan "
+    "concluido las reglas en código."
+)
 MOTIVO_SIN_CLASIFICACION = (
     "No se aportaron los pasos contables resueltos (F3/T-304), así que el "
     "resultado viaja sin la clasificación contable. No se inventa una."
@@ -191,6 +197,10 @@ def es_certeza_alta_por_programa(
     Implementa la condición del Gherkin de E-CONC-1 ("las reglas concluyen de
     forma consistente") como algo verificable:
 
+    - **lo decidió el código** (``origen == programa``): si el veredicto lo
+      produjo el **agente** (T-504), la certeza es baja y el origen
+      ``agente_ia`` aunque el veredicto esté cerrado — el Gherkin pide que la
+      certeza alta por programa venga de las reglas en código;
     - ``concluye`` — el código alcanzó un veredicto;
     - **sin alertas pendientes** — el conflicto no quedó abierto;
     - **con letra** — hay algo que afirmar.
@@ -198,6 +208,11 @@ def es_certeza_alta_por_programa(
     Devuelve ``(es_alta, motivo)``. El motivo viaja a la traza: es lo que permite
     auditar después por qué un caso quedó en certeza baja.
     """
+    if conclusion.origen == Origen.agente_ia:
+        return False, MOTIVO_AGENTE.format(
+            desenlace=conclusion.estado or "sin estado"
+        )
+
     if not conclusion.concluye:
         return False, MOTIVO_AMBIGUO
 
@@ -286,16 +301,22 @@ def consolidar(
     es_alta, motivo = es_certeza_alta_por_programa(
         conclusion, tipo_comprobante=letra
     )
+    decidido_por_agente = conclusion.origen == Origen.agente_ia
 
     resultado = VoucherResult(
         documento_id=evidencia.documento_id,
         estado=EstadoResultado(conclusion.estado),
         tipo_comprobante=letra,
         certeza=Certeza.alta if es_alta else Certeza.baja,
-        # ``origen`` solo cuando el código concluyó: si el caso quedó ambiguo, no
-        # lo decidió nadie todavía (lo llenarán T-504/T-505). Poner ``programa``
-        # afirmaría un veredicto que el código no alcanzó.
-        origen=Origen.programa if conclusion.concluye else None,
+        # ``origen`` solo cuando **alguien** concluyó: el código (``programa``) o
+        # el agente (``agente_ia``, T-504). Si el caso quedó ambiguo no lo decidió
+        # nadie todavía (lo llenarán T-504/T-505) y poner ``programa`` afirmaría
+        # un veredicto que el código no alcanzó.
+        origen=(
+            Origen.agente_ia
+            if decidido_por_agente
+            else (Origen.programa if conclusion.concluye else None)
+        ),
         campos_extraidos=_campos_planos(evidencia),
         clasificacion_contable=clasificacion,
         evidencia=evidencia,
@@ -438,6 +459,7 @@ __all__ = [
     "MOTIVO_SIN_LETRA",
     "MOTIVO_ALERTA_PENDIENTE",
     "MOTIVO_AMBIGUO",
+    "MOTIVO_AGENTE",
     "MOTIVO_SIN_CLASIFICACION",
     "Consolidacion",
     "es_certeza_alta_por_programa",

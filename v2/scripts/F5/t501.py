@@ -391,13 +391,18 @@ def _verificar_fronteras() -> list[dict[str, Any]]:
         }
     )
 
-    # 3. No llama al agente (T-504).
-    try:
-        escalar_a_agente(original, ["A"])
-        ok = False
-    except NotImplementedError:
-        ok = True
-    fronteras.append({"que": "no llama al agente IA (T-504 sigue siendo esqueleto)", "ok": ok})
+    # 3. No llama al agente: T-504 ya está implementado, pero la pasada 2 no lo
+    #    invoca. Se verifica el comportamiento real (no se escala si el código
+    #    concluyó), no que el esqueleto siga roto.
+    from voucherflow.conclusion import escalar_a_agente as _escalar_agente
+
+    escalado = _escalar_agente(original)
+    fronteras.append(
+        {
+            "que": "la pasada 2 no escala al agente (T-504 vive en su propia etapa)",
+            "ok": (not escalado.escalado) and escalado.candidato is None,
+        }
+    )
 
     # 4. No encola HITL (T-505).
     try:

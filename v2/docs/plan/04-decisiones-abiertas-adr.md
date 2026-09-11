@@ -351,15 +351,22 @@ point del mismo paquete.
 
 ### ADR-008 · Implementación del "agente de IA" de la conclusión
 
-- **Estado**: Propuesto · **Prioridad**: Baja · **Decisión D-8**
-- **Implementación (parcial, F5/T-501)**: el **blindaje** del agente empieza antes
-  del agente: `rules/contexto_conclusion.py` cura los candidatos a un **conjunto
-  cerrado** (un valor no puede estar a la vez en `candidatos_descartados` y en
-  `candidatos_restantes`, misma regla que la clasificación de F3) y el `Decision`
-  de F0 lo valida en el contrato. El agente de T-504 solo podrá elegir entre
-  `candidatos_restantes`, y su elección se validará después contra esa lista. El
-  validador del contrato ya rechaza la intersección, así que el blindaje no puede
-  "olvidarse": lo hace cumplir el schema.
+- **Estado**: ✅ **Implementado** (F5/T-504, 2026-09-11) · **Prioridad**: Baja · **Decisión D-8**
+- **Implementación (F5/T-501 + T-504)**: se adoptó la alternativa **(a)**. El
+  agente es `conclusion/agent.py` + `conclusion/prompt_agente.py` (prompt
+  versionado `conclusion-agente@1`): una **llamada a Ollama con prompt de decisión
+  estructurado**, sin framework, que recibe evidencia + reglas que fallaron +
+  `candidatos_restantes` y devuelve `{candidato, justificacion, fragmento_sustento}`.
+  El **blindaje** tiene tres capas (T-501 preparó la primera y la tercera):
+  1. **El prompt** declara el universo cerrado y **no** incluye los descartados: lo
+     que el agente no ve, no puede elegir.
+  2. **El orquestador** valida la elección contra `candidatos_restantes` y
+     **rechaza** la que sale del universo (no la corrige a un valor parecido: la
+     anomalía queda auditada en `DecisionAgente.bloques`).
+  3. **El contrato** (`schemas/evidence.py`) rechaza que un valor figure a la vez
+     como descartado y restante.
+  El agente **no declara la certeza** (se deriva de la etapa: `baja`/`agente_ia`) y
+  la decisión se consolida con revisión humana de prioridad alta.
 
 **Contexto**
 El flujo escala a un "agente de IA" que decide entre candidatos restantes.

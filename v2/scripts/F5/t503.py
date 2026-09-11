@@ -383,12 +383,8 @@ def _verificar_fronteras() -> list[dict[str, Any]]:
         }
     )
 
-    # 6. No llama al agente (T-504) ni encola HITL (T-505).
-    try:
-        escalar_a_agente(_evidencia(FACTURA_A), ["A"])
-        ok_agente = False
-    except NotImplementedError:
-        ok_agente = True
+    # 6. El HITL sigue siendo esqueleto (T-505); el agente (T-504) ya existe, pero
+    #    la consolidación no lo invoca (consolida el veredicto que recibe).
     try:
         encolar_hitl(None)  # type: ignore[arg-type]
         ok_hitl = False
@@ -396,8 +392,8 @@ def _verificar_fronteras() -> list[dict[str, Any]]:
         ok_hitl = True
     fronteras.append(
         {
-            "que": "no llama al agente (T-504) ni encola HITL (T-505)",
-            "ok": ok_agente and ok_hitl,
+            "que": "no encola HITL (T-505 sigue siendo esqueleto)",
+            "ok": ok_hitl,
         }
     )
 

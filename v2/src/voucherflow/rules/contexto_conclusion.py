@@ -326,6 +326,13 @@ class ContextoConclusion:
             letra=letra, valores=valores, tabla=COHERENCIA_POR_CAMPO
         )
 
+        # Los **candidatos** salen del motor de F3 (R1-R7), que es quien sabe
+        # comparar la letra esperada por negocio contra la detectada en el
+        # documento: de ahí sale el conjunto cerrado que el agente de T-504 solo
+        # puede respetar (ADR-008). Sin esto el universo llegaría vacío y el
+        # blindaje post-agente no tendría contra qué validar.
+        descartados, restantes = _candidatos_de_f3(contexto_armado)
+
         return cls(
             valores=valores,
             fuentes_por_campo=fuentes,
@@ -335,6 +342,8 @@ class ContextoConclusion:
             campos_criticos_ausentes=criticos_ausentes,
             campos_ausentes=ausentes,
             lectura_invalida=no_confiable,
+            candidatos_descartados=descartados,
+            candidatos_restantes=restantes,
             coherente=coherente,
             incoherencias=incoherencias,
         )
@@ -426,6 +435,31 @@ def _es_letra_valida(letra: str) -> bool:
     from .contexto import LETRAS_COMPROBANTE
 
     return letra in LETRAS_COMPROBANTE
+
+
+def _candidatos_de_f3(
+    contexto_tipo: ContextoTipoComprobante,
+) -> tuple[list[str], list[str]]:
+    """Deriva ``(descartados, restantes)`` con el motor R1-R7 de F3 (T-504).
+
+    El universo de candidatos no es una invención de la conclusión: F3 ya sabe
+    cruzar la letra **esperada por negocio** (R1-R3) contra la **detectada en el
+    documento** (R4-R6) y de ahí sale qué sobrevive y qué se descarta. Se reutiliza
+    ese motor —no se reimplementa— porque es la única fuente que tiene los
+    descartes fundados del código (ADR-008).
+
+    Devolver listas vacías es un resultado **válido**: significa que el motor no
+    pudo derivar un universo (p. ej. sin contexto fiscal ni lectura utilizable).
+    Con el universo vacío el agente **no** se escala: no habría contra qué validar
+    su elección (``MOTIVO_SIN_CANDIDATOS``).
+    """
+    try:
+        from ..classification.tipo_comprobante import clasificar_tipo_comprobante
+
+        resultado = clasificar_tipo_comprobante(contexto_tipo, preferencia_letra="documento")
+    except Exception:  # pragma: no cover - defensivo: un contexto incompleto no debe romper
+        return [], []
+    return list(resultado.candidatos_descartados), list(resultado.candidatos_restantes)
 
 
 def _resolucion_no_confiable(evidencia: CombinedEvidence, campo: str) -> bool:

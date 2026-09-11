@@ -829,11 +829,13 @@ class TestFronteras:
         assert len(set(buscador.consultas)) == len(buscador.consultas)
 
     def test_no_llama_al_agente_ni_encola_hitl(self):
-        # T-504/T-505 siguen siendo esqueleto.
-        from voucherflow.conclusion.engine import encolar_hitl, escalar_a_agente
+        # T-504 ya está implementado (agente), pero la búsqueda de evidencia no lo
+        # invoca; T-505 (cola HITL) sigue siendo esqueleto.
+        from voucherflow.conclusion import escalar_a_agente
+        from voucherflow.conclusion.engine import encolar_hitl
 
-        with pytest.raises(NotImplementedError):
-            escalar_a_agente(_evidencia(COMPLETO), ["A"])
+        resultado = escalar_a_agente(_evidencia(COMPLETO))
+        assert resultado.escalado is False  # el código concluyó: no se escala
         with pytest.raises(NotImplementedError):
             encolar_hitl(None)  # type: ignore[arg-type]
 

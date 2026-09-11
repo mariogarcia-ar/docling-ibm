@@ -5,7 +5,7 @@
 > ([`F5.md`](F5.md)) y el diseño del módulo
 > ([`../03-arquitectura/CONC.md`](../03-arquitectura/CONC.md)).
 > **Fecha**: 2026-09-11 · **Rama**: `v2` · **Estado**: 🟡 En implementación
-> (T-501, T-502 y T-503 hechas; T-504..T-507 pendientes).
+> (T-501..T-504 hechas; T-505..T-507 pendientes).
 
 ## 1. Ficha del subplan
 
@@ -304,17 +304,66 @@ contable, HITL y traza.
 4. **La traza debe conservar todas las etapas**: el primer `consolidar_caso()`
    perdía el bloque `conclusion` de T-501 (lo destapó un test de integración).
 
-### 3.4 T-504 · Escalado a agente IA + blindaje post-agente
+### 3.4 T-504 · Escalado a agente IA + blindaje post-agente ✅ Hecha
 
-> **Estado**: pendiente. ADR-008.
+> **Estado 2026-09-11**: **Hecha** por `team implementation`. Suite completa en
+> verde (**1224 passed, 10 skipped**, 62 nuevos); `python scripts/F5/t504.py`
+> reporta **6/6** escenarios de escalado + **9/9** fronteras (exit 0), con
+> `% agente` **5/5**.
 
-- `conclusion/agent.py`: el agente recibe evidencia + reglas que fallaron +
-  `candidatos_restantes`, y **solo** puede elegir entre esos.
-- **Blindaje post-agente**: se valida la elección contra `candidatos_restantes`;
-  si el agente devuelve un candidato descartado, se rechaza y se registra la
-  anomalía (el agente no puede resucitar un descartado).
-- Resultado: `certeza=baja` + `origen=agente_ia` → HITL prioridad alta.
-- El agente se inyecta por protocolo (suite default sin Ollama).
+**Qué se hace.** ADR-008 alternativa **(a)**: el agente es una llamada a Ollama
+con prompt de decisión estructurado, sin framework.
+
+| Pieza | Módulo | Rol |
+|---|---|---|
+| `escalar_a_agente()` / `DecisionAgente` | `conclusion/agent.py` | el escalado y el blindaje |
+| `AgenteOllama` / `Agente` (Protocol) | `conclusion/agent.py` | el adaptador real y el protocolo inyectable |
+| `construir_messages_agente()` | `conclusion/prompt_agente.py` | el prompt versionado `conclusion-agente@1` |
+| `concluir_con_agente()` | `conclusion/engine.py` | el pipeline completo (T-501 → T-504 → T-503) |
+
+**El blindaje, en tres capas:**
+
+| Capa | Qué hace | Por qué |
+|---|---|---|
+| El prompt | declara el universo cerrado y **no** incluye los descartados | lo que el agente no ve, no puede elegir |
+| El orquestador | valida la elección contra `candidatos_restantes` | una elección fuera del universo **se rechaza** |
+| El contrato | `Decision` rechaza la intersección descartados/restantes | lo hace cumplir el schema |
+
+**Desenlaces:** `eligio`, `eleccion_invalida` (rechazada y **auditada**),
+`se_abstuvo` (`null` es una salida válida), `fallo`, `no_escalado`.
+
+**Archivos.**
+
+- `src/voucherflow/conclusion/agent.py` (nuevo).
+- `src/voucherflow/conclusion/prompt_agente.py` (nuevo).
+- `src/voucherflow/conclusion/engine.py` (`escalar_a_agente()`, `concluir_con_agente()`, `ConclusionConAgente`).
+- `src/voucherflow/conclusion/consolidacion.py` (**corrección**: mira el origen del veredicto).
+- `src/voucherflow/rules/contexto_conclusion.py` (**corrección**: cablea los candidatos).
+- `src/voucherflow/conclusion/__init__.py` (exportes).
+- `tests/test_conclusion_agente_t504.py` (nuevo, 62 tests).
+- `scripts/F5/t504.py` (nuevo).
+
+**Fronteras (lo que **no** hace).**
+
+- **No** decide si el código concluyó (no se gasta una llamada al modelo).
+- **No** declara la certeza: se deriva de la etapa (baja / `agente_ia`).
+- **No** corrige una elección inválida: la rechaza y la audita.
+- **No** encola HITL (T-505); publica la expectativa de revisión.
+- **No** normaliza ni inventa evidencia.
+
+**Hallazgos.**
+
+1. **Bug real de T-503**: la consolidación afirmaba "certeza alta por programa"
+   para una decisión del **agente**, porque `es_certeza_alta_por_programa()` no
+   miraba la etapa que decidió.
+2. **Los candidatos llegaban vacíos**: `ContextoConclusion` declaraba las listas
+   desde T-501 pero nadie las poblaba; el motor de F3 ya las derivaba bien ("negocio
+   espera A, el documento dice B" → `['A']`/`['B']`) y se descartaban al construir
+   el contexto. Sin ese cableado el agente **nunca** se habría escalado.
+3. **Una elección inválida no se corrige**: corregir en silencio escondería la
+   desobediencia, que es justo lo que hay que poder auditar.
+4. **Abstenerse es una salida, no un fallo**: `candidato: null` se distingue de
+   "no pude interpretar la salida".
 
 ### 3.5 T-505 · Cola HITL + registro de correcciones
 

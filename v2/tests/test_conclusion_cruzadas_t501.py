@@ -36,7 +36,8 @@ from typing import Any
 import pytest
 
 from voucherflow.conclusion import concluir, concluir_caso
-from voucherflow.conclusion.engine import escalar_a_agente, encolar_hitl
+from voucherflow.conclusion.agent import AGENTE_NO_ESCALADO
+from voucherflow.conclusion.engine import encolar_hitl
 from voucherflow.extraction.flows import combinar_evidencia
 from voucherflow.rules.contexto import ContextoTipoComprobante
 from voucherflow.rules.contexto_conclusion import (
@@ -875,15 +876,19 @@ class TestFronteras:
         assert evidencia.trazabilidad["conclusion"]["faltan_datos"]
 
     def test_no_llama_al_agente(self):
-        # T-504: sigue siendo esqueleto.
-        with pytest.raises(NotImplementedError):
-            escalar_a_agente(_evidencia({**BASE, "tipo_comprobante": "A"}), ["A"])
+        # T-504: el agente ya está implementado, pero la pasada 2 (T-501) **no**
+        # lo invoca: concluir y escalar son etapas distintas. El escalado vive en
+        # `concluir_con_agente()` / `escalar_a_agente()`.
+        from voucherflow.conclusion import escalar_a_agente
+
+        resultado = escalar_a_agente(_evidencia({**BASE, "tipo_comprobante": "A"}))
+        assert resultado.escalado is False
+        assert resultado.desenlace == AGENTE_NO_ESCALADO
 
     def test_no_encola_hitl(self):
         # T-505: sigue siendo esqueleto.
         with pytest.raises(NotImplementedError):
             encolar_hitl(None)  # type: ignore[arg-type]
-
     def test_es_determinista(self):
         campos = {
             **BASE,

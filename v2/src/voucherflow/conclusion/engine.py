@@ -31,6 +31,7 @@ from typing import Any
 from ..rules.contexto import ContextoTipoComprobante
 from ..rules.contexto_conclusion import ContextoConclusion
 from ..rules.cruzadas import (
+    ESTADO_APROBADO,
     VERSION_CRUZADAS,
     ConclusionResult,
     construir_conclusion,
@@ -47,6 +48,7 @@ from ..rules.gaps import (
 )
 from ..schemas.evidence import CombinedEvidence, SourceEvidence
 from ..schemas.result import ClasificacionContable, HitlDecision, VoucherResult
+from .agent import Agente, DecisionAgente, escalar_a_agente as _escalar
 from .consolidacion import Consolidacion, consolidar
 
 
@@ -186,12 +188,70 @@ def concluir_caso(
     return conclusion
 
 
-def escalar_a_agente(evidencia: CombinedEvidence, candidatos: list[str]) -> VoucherResult:
-    """Escala a agente IA solo con los candidatos restantes (F5, ADR-008).
+def escalar_a_agente(
+    evidencia: CombinedEvidence,
+    candidatos: list[str] | None = None,
+    *,
+    contexto_tipo: ContextoTipoComprobante | None = None,
+    agente: Agente | None = None,
+    modelo: str | None = None,
+    descripcion: str | None = None,
+) -> DecisionAgente:
+    """Escala el caso al agente IA solo con los candidatos restantes (F5/T-504).
 
-    Esqueleto F0 — se implementa en F5 (T-504).
+    Implementación de T-504: corre la pasada 2 (T-501), y **solo si el código no
+    concluyó** llama al agente con la evidencia, las reglas que fallaron y el
+    universo cerrado de candidatos. Después aplica el **blindaje post-agente**.
+
+    La firma conserva los dos primeros parámetros del esqueleto de F0
+    (``evidencia``, ``candidatos``). ``candidatos`` es **opcional** y solo
+    referencial: el universo que se le ofrece al agente sale del **veredicto**
+    (``conclusion.candidatos_restantes``), que es la única fuente con los
+    descartes del código. Pasarlo no amplía el universo — si el llamador pasa
+    algo distinto, el blindaje sigue validando contra los restantes.
+
+    Argumentos:
+        evidencia: la ``CombinedEvidence`` de F4/T-404.
+        candidatos: reservado/verificable; el universo real es el del veredicto.
+        contexto_tipo: el contexto fiscal opcional (ver :func:`concluir`).
+        agente: el agente inyectable (``AgenteOllama(OllamaClient())`` en
+            producción; ``None`` deja el caso en revisión sin llamar al modelo).
+        modelo: el modelo a usar (default: el rol ``agente`` de ``Settings``).
+        descripcion: la descripción del documento, como contexto opcional.
+
+    Devuelve:
+        :class:`~voucherflow.conclusion.agent.DecisionAgente` con el desenlace,
+        el candidato aceptado (si lo hubo) y la traza del blindaje.
     """
-    raise NotImplementedError("escalar_a_agente(): se implementa en F5 (T-504).")
+    if not isinstance(evidencia, CombinedEvidence):
+        raise TypeError(
+            "escalar_a_agente() espera una CombinedEvidence (la salida de la "
+            f"combinación de F4/T-404); recibido: {type(evidencia).__name__}."
+        )
+
+    contexto, conclusion = _correr_pasada_2(evidencia, contexto_tipo)
+    return _escalar(
+        conclusion,
+        evidencia=_campos_vigentes(evidencia, contexto),
+        agente=agente,
+        modelo=modelo,
+        descripcion=descripcion,
+    )
+
+
+def _campos_vigentes(
+    evidencia: CombinedEvidence, contexto: ContextoConclusion
+) -> dict[str, Any]:
+    """``campo -> valor`` vigente que se le muestra al agente (T-404).
+
+    Se publica lo que el sistema **ya resolvió** (la resolución por precedencia),
+    no las lecturas crudas de cada fuente: el agente decide sobre el caso, no
+    sobre el desacuerdo entre flujos.
+    """
+    valores = dict(contexto.valores)
+    if contexto.letra and "tipo_comprobante" not in valores:
+        valores["tipo_comprobante"] = contexto.letra
+    return valores
 
 
 def encolar_hitl(resultado: VoucherResult) -> VoucherResult:
@@ -419,6 +479,153 @@ def consolidar_caso(
     )
 
 
+@dataclass
+class ConclusionConAgente:
+    """Resultado del pipeline de conclusión con escalado al agente (F5/T-504).
+
+    Campos:
+        evidencia: la ``CombinedEvidence`` ya concluida (con el ``Decision`` de
+            F0 si el **código** concluyó).
+        conclusion: el veredicto de la pasada 2 (T-501).
+        agente: la decisión del agente con su blindaje (T-504); ``escalado=False``
+            si no le correspondía.
+        consolidacion: el ``VoucherResult`` final (T-503), ya con la certeza y el
+            origen de la etapa que decidió.
+    """
+
+    evidencia: CombinedEvidence
+    conclusion: ConclusionResult
+    agente: DecisionAgente
+    consolidacion: Consolidacion
+
+    @property
+    def resultado(self) -> VoucherResult:
+        return self.consolidacion.valor
+
+    @property
+    def eligio_el_agente(self) -> bool:
+        return self.agente.eligio
+
+    def como_dict(self) -> dict[str, Any]:
+        return {
+            "version": VERSION_CRUZADAS,
+            "conclusion": self.conclusion.como_dict(),
+            "agente": self.agente.como_dict(),
+            "consolidacion": self.consolidacion.como_dict(),
+        }
+
+
+def concluir_con_agente(
+    evidencia: CombinedEvidence,
+    *,
+    contexto_tipo: ContextoTipoComprobante | None = None,
+    agente: Agente | None = None,
+    modelo: str | None = None,
+    descripcion: str | None = None,
+    clasificacion: ClasificacionContable | None = None,
+) -> ConclusionConAgente:
+    """Concluye el caso y, si el código no pudo, escala al agente (F5/T-504).
+
+    Es el flujo completo de la conclusión:
+
+    1. **Pasada 2** (T-501): el código intenta concluir.
+    2. **Escalado** (T-504): **solo si no concluyó**, el agente decide entre los
+       candidatos restantes, con blindaje post-agente.
+    3. **Consolidación** (T-503): el veredicto —del código o del agente— se
+       vuelve el ``VoucherResult``. La certeza y el origen se derivan de la
+       **etapa que decidió**: ``programa``/``alta`` si concluyó el código,
+       ``agente_ia``/``baja`` si decidió el agente.
+
+    Determinística y **sin red** con un `agente` doble o ``None``.
+    """
+    contexto, conclusion = _correr_pasada_2(evidencia, contexto_tipo)
+    evidencia_concluida = _adjuntar_conclusion(evidencia, contexto, conclusion)
+
+    decision_agente = _escalar(
+        conclusion,
+        evidencia=_campos_vigentes(evidencia, contexto),
+        agente=agente,
+        modelo=modelo,
+        descripcion=descripcion,
+    )
+
+    # El veredicto efectivo: si el agente decidió (eligió o se abstuvo), el caso
+    # lo resolvió el agente y la consolidación debe reflejarlo.
+    conclusion_efectiva = _conclusion_efectiva(conclusion, decision_agente)
+    consolidacion = consolidar(
+        evidencia_concluida,
+        conclusion_efectiva,
+        contexto_tipo=contexto_tipo,
+        contexto=contexto,
+        clasificacion=clasificacion,
+        hitl=decision_agente.hitl,
+    )
+    _anotar_agente(consolidacion.valor, decision_agente)
+
+    return ConclusionConAgente(
+        evidencia=evidencia_concluida,
+        conclusion=conclusion_efectiva,
+        agente=decision_agente,
+        consolidacion=consolidacion,
+    )
+
+
+def _conclusion_efectiva(
+    conclusion: ConclusionResult, decision: DecisionAgente
+) -> ConclusionResult:
+    """Veredicto efectivo: si el agente resolvió, el caso pasa a ``aprobado``.
+
+    Cuando el agente elige dentro del universo, el caso **deja de estar
+    ambiguo**: hay decisión (del agente), así que el estado deja de ser
+    ``revision``. Pero la certeza sigue siendo **baja** y el origen
+    ``agente_ia``: el cambio es de estado, no de confianza (glosario §2).
+
+    Si el agente se abstuvo, falló o su elección fue rechazada, el caso **queda
+    en revisión** con la anomalía registrada: no hay decisión que consolide.
+    """
+    if not decision.eligio:
+        return conclusion
+
+    return ConclusionResult(
+        concluye=True,
+        certeza="baja",
+        origen="agente_ia",
+        estado=ESTADO_APROBADO,
+        candidatos_descartados=list(conclusion.candidatos_descartados),
+        candidatos_restantes=list(conclusion.candidatos_restantes),
+        reglas_aplicadas=list(conclusion.reglas_aplicadas),
+        alertas=list(conclusion.alertas),
+        hitl=decision.hitl,
+        faltan_datos=list(conclusion.faltan_datos),
+        conflictos=list(conclusion.conflictos),
+        motivo=decision.motivo,
+        fast_fail=conclusion.fast_fail,
+        reglas_por_familia={
+            familia: list(ids)
+            for familia, ids in conclusion.reglas_por_familia.items()
+        },
+    )
+
+
+def _anotar_agente(resultado: VoucherResult, decision: DecisionAgente) -> None:
+    """Agrega a la traza lo que pasó con el agente (E-CONC-5).
+
+    La traza es lo que hace auditable el blindaje: si el agente propuso un
+    candidato fuera del universo, la anomalía queda registrada con el valor que
+    intentó elegir.
+    """
+    resultado.trazabilidad["agente"] = {
+        **decision.como_dict(),
+        "nota": (
+            "Escalado T-504 (E-CONC-3 / ADR-008): el agente se llama SOLO si el "
+            "código no concluyó y SOLO puede elegir entre candidatos_restantes. "
+            "La certeza y el origen se derivan de la etapa (glosario §2): el "
+            f"agente implica certeza baja y origen agente_ia. % agente "
+            f"(R-09): escalado={decision.escalado}."
+        ),
+    }
+
+
 def _fusionar_evidencia(
     evidencia: CombinedEvidence, busqueda: ResultadoBusquedaAdicional
 ) -> CombinedEvidence:
@@ -498,9 +705,11 @@ __all__ = [
     "concluir",
     "concluir_caso",
     "concluir_con_busqueda",
+    "concluir_con_agente",
     "consolidar_caso",
     "escalar_a_agente",
     "encolar_hitl",
     "ConclusionConBusqueda",
+    "ConclusionConAgente",
 ]
 

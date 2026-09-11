@@ -10,18 +10,18 @@
 
 | Campo | Valor |
 |---|---|
-| **Fase en curso** | **F5 — Conclusión + HITL** (T-501..T-507) · T-501, T-502 y T-503 ✅ hechas |
+| **Fase en curso** | **F5 — Conclusión + HITL** (T-501..T-507) · T-501..T-504 ✅ hechas |
 | **Estado** | **T-401..T-405 ✅ hechas — F4 cerrada con el DoD verificado**: los flujos VLM y LLM corren **en paralelo** devolviendo `SourceEvidence` con el contrato de F0; prompt de evidencia versionado `extraccion-key-value@1`, intérprete que no inventa, paralelismo medido, **normalización key-value** (CUIT cortado, fecha ISO, montos numéricos, `punto_venta`/`numero_comprobante` derivados) con el crudo preservado, **pasada 1 por fuente** (sostén por forma canónica + coherencia interna), **combinación con resolución por campo** (tabla de precedencia ADR-002: visual/textual/programa, conservando todas las lecturas) y **paridad con v1 medida en tres niveles** (reglas 20/20, campos 29/29, sostén 32/32). |
 | **F0** | ✅ Fundación completada (schemas, esqueleto, golden set, adaptadores) |
 | **F1** | ✅ Implementada (T-101..T-105/ORQ, `api.process()`; paridad de integración en `@pytest.mark.integration`) |
 | **F2** | ✅ DoD verificado (T-201..T-204; doble paso qween) |
 | **F3** | ✅ DoD verificado (T-301..T-305; motor de reglas R1-R7, evidencia, reglas raw, cadena contable y paridad con v1) |
 | **F4** | ✅ DoD verificado (T-401..T-405; flujos en paralelo, normalización, pasada 1, combinación por campo y paridad con v1) |
-| **F5** | 🟡 En implementación (T-501, T-502 y T-503 ✅: reglas cruzadas, búsqueda acotada y consolidación del `VoucherResult`; T-504..T-507 pendientes) |
+| **F5** | 🟡 En implementación (T-501..T-504 ✅: reglas cruzadas, búsqueda acotada, consolidación y escalado al agente IA; T-505..T-507 pendientes) |
 | **F6** | 🔴 Backlog (CLI/batch y paridad sobre `files/`) |
 | **Paquete** | `voucherflow` v`0.1.0` (layout `src/`, ADR-007) |
 | **Contrato** | `SCHEMA_VERSION = 1.0.0` (congelado, ver criterio de cambio en `schemas/evidence.py`) |
-| **Suite de tests** | ✅ **1162 tests en verde + 10 skipped** (`python -m pytest --no-header -p no:cacheprovider`) en env `py313_env` |
+| **Suite de tests** | ✅ **1224 tests en verde + 10 skipped** (`python -m pytest --no-header -p no:cacheprovider`) en env `py313_env` |
 
 **Resumen**: F0 dejó la **fundación de la librería**: contratos de evidencia
 congelados, configuración centralizada, adaptadores `OllamaClient`/
@@ -200,7 +200,8 @@ pendientes.
 | **T-501** (✅) | `rules/cruzadas.py` + `rules/contexto_conclusion.py` + `conclusion/engine.py` | **Reglas cruzadas sobre la evidencia combinada (E-CONC-1)**: la **pasada 2** mira el **valor vigente** de cada campo (la resolución por precedencia de T-404), no cada fuente como la pasada 1. Tres familias: **negocio** (`CRUZ_1`: el comprobante se sostiene solo y R1-R3 no esperan otra letra → `aprobado`), **fast-fail** (`CRUZ_3`: la letra contradice los campos —A sin los dos CUIT, B con IVA discriminado— → `rechazado` con certeza **alta**; `CRUZ_2`/`CRUZ_4`: sin letra del vocabulario o faltan campos críticos → `revision`) y **conflicto** (`CRUZ_5`: R7 y el cruce negocio-vs-documento → `revision`, **no** rechazo). `concluir()` adjunta el `Decision` de F0 (que T-404 dejó en `None`) y `concluir_caso()` devuelve el `ConclusionResult` del diseño §4.5. La coherencia de la letra **reutiliza** `COHERENCIA_POR_CAMPO` de T-403 sobre el valor vigente del caso, y el motor R1-R7 de F3 se reutiliza sin reescribirse. | `test_conclusion_cruzadas_t501.py` (94) |
 | **T-502** (✅) | `rules/gaps.py` + `models/arca.py` + `conclusion/engine.py` | **Gaps y búsqueda acotada de evidencia adicional (E-CONC-2 / ADR-003)**: `detectar_gaps()` nombra cada falta con su **criticidad** y su **objetivo concreto**, y `CATALOGO_GAPS` declara qué es buscable (el padrón **constata** comprobante/CUIT/importe/fecha, pero **no inventa** lo que solo está en el documento, como la descripción). El `PresupuestoBusqueda` tiene **dos topes**: consultas totales del caso (contra el loop abierto) y reintentos por gap (contra un proveedor intermitente). El bucle es **acotado por construcción**: lo no buscable no consume presupuesto, el proveedor **caído** reintenta, un **"consulté y no está"** no se insiste y el presupuesto agotado **corta**. El hook es **opcional** (protocolo inyectable; `ArcaClient` sin URL reporta desactivado y el caso sigue). `concluir_con_busqueda()` cierra el ciclo: concluir → detectar → buscar → **fusionar** → **re-aplicar las cruzadas de T-501**. | `test_conclusion_gaps_t502.py` (73) |
 | **T-503** (✅) | `conclusion/consolidacion.py` + `conclusion/engine.py` | **Consolidación «certeza alta por programa» (E-CONC-1)**: el Gherkin "concluye por programa" implementado. `certeza=alta` + `origen=programa` **si y solo si** el código concluyó de forma consistente: `concluye` ∧ **sin alertas pendientes** ∧ **con letra**. Arma el contrato congelado de F0 (`VoucherResult`: estado, tipo, certeza, origen, campos planos, clasificación contable, HITL y traza). Un **rechazo firme también es certeza alta** ("no es válido" es una conclusión, no una duda); una **alerta de R7 sin resolver la baja**; y un caso ambiguo sale en `revision`, `certeza=baja` y **sin** `origen`. `consolidar_caso()` y `concluir_con_busqueda(consolidar_resultado=True)` exponen el flujo completo. | `test_conclusion_consolidacion_t503.py` (46) |
-| **T-504..T-507** (🔴) | `conclusion/agent.py`, `conclusion/hitl.py`, `trace/recorder.py` | Agente IA + blindaje post-agente (T-504), cola HITL + feedback (T-505), `CaseRecord` persistido (T-506) y métricas (T-507). | — |
+| **T-504** (✅) | `conclusion/agent.py` + `conclusion/prompt_agente.py` | **Escalado al agente IA + blindaje post-agente (E-CONC-3 / ADR-008)**: el agente es una llamada a Ollama con prompt estructurado (`conclusion-agente@1`), sin framework. Se escala **solo si el código no concluyó y hay universo**. El **blindaje** tiene tres capas: el prompt no incluye los descartados, el orquestador valida la elección contra `candidatos_restantes` y el contrato rechaza la intersección. Desenlaces: `eligio`, `eleccion_invalida` (resucitar un descartado se **rechaza y se audita**, no se corrige), `se_abstuvo` (`null` es válido), `fallo` y `no_escalado`. `concluir_con_agente()` cierra el pipeline. | `test_conclusion_agente_t504.py` (62) |
+| **T-505..T-507** (🔴) | `conclusion/hitl.py`, `trace/recorder.py` | Cola HITL + feedback (T-505), `CaseRecord` persistido (T-506) y métricas (T-507). | — |
 
 > **Inspección de T-501**: `python scripts/F5/t501.py` imprime la **tabla de
 > reglas cruzadas** (id, prioridad, familia, resultado) y corre **8/8** escenarios
@@ -237,7 +238,7 @@ python -c "import voucherflow; print(voucherflow.__version__, voucherflow.SCHEMA
 # → 0.1.0 1.0.0
 ```
 
-### 3.2 Suite de tests (1162 en verde + 10 skipped)
+### 3.2 Suite de tests (1224 en verde + 10 skipped)
 ```bash
 cd v2
 python -m pytest tests -q
@@ -269,6 +270,7 @@ Cobertura de la suite por archivo (F0 + F1):
 | `test_conclusion_cruzadas_t501.py` | **F5/T-501**: el contexto de la pasada 2 (valor vigente y fuente responsable por campo, campos ausentes sobre el universo del contrato, gaps, coherencia del caso, candidatos curados), las tres familias de reglas cruzadas (negocio, fast-fail y conflicto R7) con sus escenarios, la derivación de certeza/origen por etapa (**incluido que el contrato rechaza un `Decision` de `programa` con certeza baja**), el `ConclusionResult`, el contexto fiscal inyectable, el determinismo (incluida la independencia del orden de las fuentes) y las señales de R6. |
 | `test_conclusion_gaps_t502.py` | **F5/T-502**: la detección de gaps (criticidad, objetivo concreto, orden determinista, campos fuera del catálogo), el presupuesto (los dos topes y el agotamiento), la búsqueda acotada (cubrir, reintentar lo transitorio, **no** insistir ante un "no está", hook desactivado como caso normal, corte por presupuesto, y que un buscador que lanza o devuelve otra cosa no tumbe el pipeline), la re-conclusión (el dato entra con fuente y sostén, las lecturas se conservan, cubrir el gap desbloquea el veredicto, el veredicto anterior no sobrevive) y el adaptador ARCA con una sesión HTTP falsa (**sin red**): payload del `CmpReq`, traducción de la respuesta, reintentos, timeout y que no se invente un código AFIP (D-13). |
 | `test_conclusion_consolidacion_t503.py` | **F5/T-503**: la regla de la certeza en aislamiento (cada disyunto de "sin ambigüedad": no concluye / con alerta pendiente / sin letra, cada uno con su motivo), el `VoucherResult` consolidado (aprobado y **rechazo firme** en certeza alta; ambiguo en revisión sin `origen`), la derivación (la certeza **no** es parámetro, verificado por firma), la clasificación contable y el HITL, la integración con T-501/T-502 (incluido que el padrón **desbloquea** la certeza alta) y las fronteras (no muta la evidencia, no llama al agente, es determinista). |
+| `test_conclusion_agente_t504.py` | **F5/T-504**: cuándo se escala (y cuándo no: un caso resuelto no gasta una llamada), qué recibe el agente (evidencia + reglas que fallaron + candidatos, **sin** los descartados), el **blindaje post-agente** (resucitar un descartado se rechaza y se audita, no se corrige), la interpretación de la salida (tolera el ruido del modelo pero **no** inventa decisiones), la derivación de certeza/origen (el origen es `agente_ia` solo si la elección sobrevivió), el flujo completo con consolidación (un caso del agente **no** se consolida como "certeza alta por programa") y las fronteras. El agente entra por protocolo: sin Ollama y sin red. |
 
 ### 3.3 Probar el contrato de evidencia a mano (ejemplos)
 
@@ -320,7 +322,7 @@ reglas.ids_disparados({"monto": 100, "texto": "tiene IVA"})  # ["R1", "R2"]
 - ✅ Gate "¿es comprobante?" estilo qween (**hecho en F2**, T-201..T-204).
 - ✅ Clasificar tipo/letra y cadena contable (**F3** completa: T-301..T-305 — motor de reglas R1-R7, prompt de evidencia, reglas raw, cadena contable 01→02→03 y paridad verificada con v1: **8/8** en la cadena y **5/5** de exactitud de letra vs. **2/5** de v1).
 - ✅ **Extracción VLM/LLM completa, con paridad medida (T-401 ✅, T-402 ✅, T-403 ✅, T-404 ✅, T-405 ✅)**: `python scripts/F4/t401.py` corre **11/11** escenarios sin Ollama, `t402.py` **19/19** + **17/17** + **5/5**, `t403.py` **11/11** + **7/7** + **4/4**, `t404.py` **8/8** + **4/4** (con `--manual` para ver la combinación sin GPU) y `t405.py` reporta la paridad (**reglas 20/20**, **campos 29/29**, **sostén 32/32**, **genérico 5/5**); con `--origen` los cinco corren la extracción real (F1 + vista fiel de F2 + Ollama). La paridad **real** contra v1 se corre con `t405.py --subset origen`.
-- ✅ **Conclusión: reglas cruzadas, búsqueda de evidencia y consolidación (T-501, T-502, T-503)** — la pasada 2 decide el caso, busca evidencia **acotada** si faltan datos y **consolida** el `VoucherResult` con certeza alta por programa cuando el código concluye de forma consistente. ❌ Falta el resto de F5: agente IA (T-504), cola HITL (T-505), `CaseRecord` persistido (T-506) y métricas (T-507).
+- ✅ **Conclusión: reglas cruzadas, búsqueda, consolidación y agente (T-501..T-504)** — la pasada 2 decide el caso, busca evidencia **acotada** si faltan datos, **consolida** el `VoucherResult` y escala al **agente IA** (con blindaje post-agente) cuando el código no pudo. ❌ Falta el resto de F5: cola HITL (T-505), `CaseRecord` persistido (T-506) y métricas (T-507).
 - ❌ CLI/batch (`voucherflow …`) y paridad v1 sobre `files/` (llega en **F6**).
 
 ### 3.7 Comprobación rápida de T-301 (F3)
@@ -361,7 +363,7 @@ python -m pytest tests/test_extraction_flujos.py tests/test_extraction_key_value
     tests/test_extraction_paridad.py -q
 ```
 
-### 3.9 Comprobación rápida de F5 (T-501, T-502 y T-503)
+### 3.9 Comprobación rápida de F5 (T-501..T-504)
 
 ```bash
 python scripts/F5/t501.py                      # tabla + 8 escenarios de conclusión + 8 fronteras
@@ -376,8 +378,11 @@ python scripts/F5/t503.py                      # tabla de la regla + 6 escenario
 python scripts/F5/t503.py --tabla              # solo la tabla de la regla de la certeza
 python scripts/F5/t503.py --caso rechazo_firme # un solo escenario de consolidación
 python scripts/F5/t503.py --manual             # el caso ambiguo y el aprobado, paso a paso
+python scripts/F5/t504.py                      # capas del blindaje + 6 escenarios de agente + 9 fronteras
+python scripts/F5/t504.py --capas              # solo las capas del blindaje
+python scripts/F5/t504.py --caso resucita_descartado   # el blindaje rechazando
 python -m pytest tests/test_conclusion_cruzadas_t501.py tests/test_conclusion_gaps_t502.py \
-    tests/test_conclusion_consolidacion_t503.py -q
+    tests/test_conclusion_consolidacion_t503.py tests/test_conclusion_agente_t504.py -q
 ```
 
 ```python
@@ -398,7 +403,34 @@ resultado = concluir_con_busqueda(
     consolidar_resultado=True,
 )
 resultado.resultado.certeza     # el VoucherResult final (contrato de F0)
+
+# El flujo completo con agente: si el código no concluye, decide el agente.
+from voucherflow.conclusion import AgenteOllama, concluir_con_agente
+from voucherflow.models.ollama import OllamaClient
+
+resultado = concluir_con_agente(
+    combinada,
+    contexto_tipo=ctx_fiscal,
+    agente=AgenteOllama(OllamaClient()),   # None = hook desactivado
+)
+resultado.agente.desenlace       # eligio | se_abstuvo | eleccion_invalida | fallo
+resultado.agente.bloques          # los descartados que el agente intentó (anomalía)
+resultado.resultado.origen        # agente_ia si su elección sobrevivió; None si no
 ```
+
+> **El agente NO puede resucitar un descartado** (E-CONC-3). El blindaje tiene tres
+> capas porque **pedirle al modelo no es garantizar**: el prompt no incluye los
+> descartados, el orquestador valida la elección contra `candidatos_restantes` y el
+> contrato rechaza la intersección. Una elección fuera del universo **se rechaza**
+> — no se corrige a un valor parecido: la anomalía queda auditada.
+>
+> **Abstenerse es una salida válida.** `candidato: null` ("no puedo elegir con
+> fundamento") es preferible a una decisión inventada: el caso va a revisión igual,
+> pero sin algo falso que auditar.
+>
+> **La certeza no la declara el agente**: se deriva de la etapa (glosario §2). Que
+> decida un agente implica `certeza=baja` y revisión humana de prioridad alta; el
+> **origen** es `agente_ia` solo si su elección sobrevivió al blindaje.
 
 > **La certeza se deriva, no se declara**: el consolidador **no** recibe
 > `certeza` ni `origen` — los calcula del veredicto. `alta` + `programa` **si y

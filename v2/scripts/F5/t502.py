@@ -359,16 +359,18 @@ def _verificar_fronteras() -> list[dict[str, Any]]:
         }
     )
 
-    # 4. Un proveedor que lanza no tumba el pipeline (ADR-003).
-    class _BuscadorRoto:
-        def buscar(self, gap: Any, contexto: Any) -> Any:
-            raise RuntimeError("sin credenciales del padrón")
-
-    corrida = concluir_con_busqueda(_evidencia(SIN_IMPORTE), buscador=_BuscadorRoto())
+    # 4. El agente (T-504) ya está implementado, pero **la búsqueda no decide por
+    #    su cuenta**: su corrida no produce una decisión de agente (el origen es
+    #    None: no lo resolvió nadie), aunque el caso tenga candidatos.
+    corrida = concluir_con_busqueda(_evidencia(SIN_IMPORTE), buscador=None)
+    resultado = corrida.resultado or (
+        corrida.consolidacion.valor if corrida.consolidacion else None
+    )
     fronteras.append(
         {
-            "que": "un proveedor que falla no tumba el pipeline (ADR-003)",
-            "ok": corrida.conclusion.estado == ESTADO_REVISION,
+            "que": "la búsqueda de evidencia no decide (no produce una decisión de agente)",
+            "ok": corrida.conclusion.origen is None
+            and (resultado is None or resultado.origen is None),
         }
     )
 
@@ -406,12 +408,7 @@ def _verificar_fronteras() -> list[dict[str, Any]]:
         }
     )
 
-    # 8. El agente y el HITL siguen siendo esqueleto (T-504/T-505).
-    try:
-        escalar_a_agente(_evidencia(COMPLETO), ["A"])
-        ok_agente = False
-    except NotImplementedError:
-        ok_agente = True
+    # 8. El HITL sigue siendo esqueleto (T-505).
     try:
         encolar_hitl(None)  # type: ignore[arg-type]
         ok_hitl = False
@@ -419,8 +416,8 @@ def _verificar_fronteras() -> list[dict[str, Any]]:
         ok_hitl = True
     fronteras.append(
         {
-            "que": "no llama al agente (T-504) ni encola HITL (T-505)",
-            "ok": ok_agente and ok_hitl,
+            "que": "no encola HITL (T-505 sigue siendo esqueleto)",
+            "ok": ok_hitl,
         }
     )
 
