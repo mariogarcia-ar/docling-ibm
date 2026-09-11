@@ -5,7 +5,7 @@
 > ([`F4.md`](F4.md)) y el diseño del módulo
 > ([`../03-arquitectura/EXT.md`](../03-arquitectura/EXT.md)).
 > **Fecha**: 2026-09-10 · **Rama**: `v2` · **Estado**: En implementación
-> (T-401, T-402 y T-403 hechas; T-404..T-405 pendientes).
+> (T-401..T-404 hechas; resta T-405).
 
 ## 1. Ficha del subplan
 
@@ -14,7 +14,7 @@
 | **Fase** | F4 — Extracción (refactor de la extracción de v1) |
 | **Tareas que cubre** | T-401, T-402, T-403, T-404, T-405 (ver [`F4.md`](F4.md)) |
 | **Épicas asociadas** | E-EXT (E-EXT-1 flujos en paralelo, E-EXT-2 reglas raw, E-EXT-3 campos normalizados) |
-| **Módulos** | `voucherflow/extraction/` (`flows.py`, `evidencia.py`, `prompt_extraccion.py`, `key_value.py`) + `voucherflow/rules/raw.py` (T-303 y su extensión de T-403) |
+| **Módulos** | `voucherflow/extraction/` (`flows.py`, `evidencia.py`, `prompt_extraccion.py`, `key_value.py`) + `voucherflow/rules/` (`raw.py`: T-303 y su extensión de T-403; `precedencia.py`: T-404) |
 | **Responsable** | team implementation |
 | **Decisiones de alcance** | Cerradas con el equipo (ver §2) |
 | **DoD de referencia** | "Dos flujos siempre en paralelo con evidencia trazable; paridad de extracción con v1 en campos normalizados sobre golden set" (DoD de F4 en `05-plan-ejecucion.md`) |
@@ -135,6 +135,36 @@
     (alcance de T-403): "C no admite emisor Responsable Inscripto" (prompt 11.1)
     requiere un dato que la extracción **no lee** (lo resuelve el padrón, F5).
     Declararla con el CUIT como sustituto sería inventar una inferencia.
+21. **La precedencia es un orden, no una regla del motor** (T-404): la tabla vive
+    en `rules/precedencia.py` como `PrecedenciaCampo` declarativo (con `regla` y
+    `motivo`), no como `Rule` del registro. Una `Rule` es una condición booleana
+    sobre un contexto; esto es un **orden entre fuentes** que se aplica al
+    resolver un campo. Meterlo en el motor habría forzado una `Rule` por campo y
+    por fuente.
+22. **Las fuentes que no son lectura van siempre por delante** (hallazgo de
+    implementación de T-404): el orden **no** puede ser una lista plana por campo
+    — si lo fuera, declarar "gana el visual" dejaría a `programa`/`arca`/`hitl`
+    detrás de las lecturas. La tabla decide el orden **entre lecturas**
+    (`orden_lecturas()`) y el orden total antepone siempre las no-lectura en su
+    orden de autoridad (`hitl` > `arca` > `programa`). Un dato corregido por una
+    persona o comprobado contra el padrón no se discute con una lectura.
+23. **Combinar no es decidir** (T-404): `CombinedEvidence.decision` pasa a ser
+    **opcional**. El contrato de F0 exige que la certeza se derive de la etapa que
+    decidió (glosario §2), y la combinación no decide: la decisión es de
+    F5/T-501. Antes de T-404 el campo era obligatorio, así que la combinación
+    habría tenido que **inventar** un veredicto — exactamente lo que el glosario
+    prohíbe. Es un cambio **aditivo/compatible** (default `None`), no un bump de
+    `SCHEMA_VERSION`.
+24. **La resolución respeta la pasada 1** (T-404): una fuente que T-403 dejó
+    invalidada (`valida=False`) **no gana** un campo que otra fuente sí resolvió
+    —aunque ese campo priorice su tipo de lectura— y la resolución lo deja
+    escrito. Si **ninguna** declarante es utilizable, gana igual la de mayor
+    precedencia (no se inventa un valor) pero la resolución marca
+    `confiable=False`: el dato queda como indicio.
+25. **La combinación no descarta nada** (T-404): el `CampoCombinado` conserva la
+    lectura de **todas** las fuentes con su sostén; la que pierde queda
+    registrada en la resolución ("descartadas") pero no se borra. Es lo que
+    permite auditar un caso y lo que F5 necesita para las reglas cruzadas.
 
 ## 3. Alcance por tarea (T-401..T-405)
 
@@ -363,15 +393,45 @@
   v1 es **T-405**; las reglas de conflicto que dependen de la **condición fiscal**
   del emisor quedan para el padrón/F5 (la extracción no la lee).
 
-### 3.4 T-404..T-405 · Pendientes
+### 3.4 T-404 · Combinación de evidencia con resolución por campo ✅ Hecha
 
-> Se documentarán al implementarse. Alcance según
-> [`F4.md`](F4.md) §3 y el DoD de F4 en `05-plan-ejecucion.md`.
+> **Estado 2026-09-10**: **Hecha** por `team implementation`. Suite completa en
+> verde (**910 passed, 10 skipped**, 45 nuevos); `python scripts/F4/t404.py`
+> reporta **8/8** escenarios de resolución + **4/4** fronteras, y `--manual` corre
+> el pipeline F4 completo (T-401→T-402→T-403→T-404). Ver bitácora en
+> [`F4.md`](F4.md) §4.
 
-| Tarea | Alcance | Archivos previstos |
-|---|---|---|
-| **T-404** | Combinación de evidencia con resolución **por campo** y precedencia ADR-002 (`CampoCombinado`/`FieldResolution`), sobre las dos `SourceEvidence` que T-401 entrega (con valores comparables gracias a T-402 y ya calificadas por fuente gracias a T-403) | `rules/precedencia.py` (nuevo) + `extraction/flows.py` (`combinar_evidencia`) |
-| **T-405** | Paridad con `extraction_pipeline.py` (10/11) y `document_extraction.py` (kvi/kvg) sobre el golden set; subconjunto de paridad y runners | `tests/golden/F4/` + `scripts/F4/paridad_*.py` |
+- **Qué**: combinar la evidencia de las fuentes **conservando todas las lecturas**
+  y resolver campo a campo según la precedencia de **ADR-002**, dejando la regla y
+  el motivo en la resolución (auditoría E-CONC-5). ✅
+- **Archivos**:
+  - `rules/precedencia.py` (nuevo) — `TABLA_PRECEDENCIA` (`PrecedenciaCampo` por
+    campo: `regla` `PREC_1`..`PREC_3` + `motivo` legible),
+    `resolver_campo()` (acuerdo / desacuerdo / una sola fuente / ninguna /
+    ganadora invalidada / ninguna utilizable), `combinar()` (arma los
+    `CampoCombinado`) y `resumen_combinacion()` (traza de la corrida). ✅
+  - `extraction/flows.py` — `combinar_evidencia()` **implementada** con la firma
+    congelada de F0: `CombinedEvidence` con la resolución por campo, el atajo
+    `valor`/`fuente` y la trazabilidad (`VERSION_COMBINACION`). ✅
+  - `schemas/evidence.py` — `CampoCombinado.valor`/`fuente` (aditivos: el valor
+    vigente y su responsable) y `CombinedEvidence.decision` **opcional**
+    (combinar no es decidir). ✅
+  - `rules/raw.py` — `VeredictoRaw.reglas_por_campo` (qué regla tocó a qué campo,
+    para que la resolución pueda explicar **con qué** quedó débil la fuente que no
+    gana). ✅
+  - `rules/__init__.py` y `extraction/__init__.py` — exportes. ✅
+- **La tabla por campo** (regla de oro: *lo comprobado manda para descartar; el
+  papel manda para detectar*):
+
+  | Regla | Campos | Por qué |
+  |---|---|---|
+  | **PREC_1** visual | `tipo_comprobante`, `nro_comprobante`, `razon_social_emisor`, `cuit_emisor`, `cuit_receptor` | el recuadro del encabezado, el número impreso, el membrete y los identificadores son lo que la lectura visual ve como bloque; el OCR los corta o los pega al campo siguiente (regla 2b de v1) |
+  | **PREC_2** textual | `fecha_emision`, `moneda`, `razon_social_receptor`, `descripcion` y **todos los importes** | la fecha y la moneda se leen junto a su etiqueta impresa, y el OCR conserva los dígitos y separadores que la visión puede confundir de columna |
+  | **PREC_3** programa | `punto_venta`, `numero_comprobante` | los deriva T-402 del número impreso: no se leen |
+  | **PREC_0** regla de oro | cualquier campo fuera de la tabla (modo genérico `kvg`) | lo comprobado manda sobre lo leído y, entre lecturas, el papel (visual sobre textual) |
+
+  Además, las fuentes que **no son lectura** van siempre por delante, en orden de
+  autoridad: `hitl` (corrección humana) > `arca` (padrón) > `programa` (calculado).\n- **Los cinco casos de la resolución**:\n  1. **Acuerdo** (mismo valor canónico): gana la de mayor precedencia y se\n     registra como acuerdo — el consumidor tiene **una** fuente responsable.\n  2. **Desacuerdo**: gana la de mayor precedencia **utilizable**; las otras\n     quedan en `descartadas` con el valor que declararon.\n  3. **Una sola fuente** declaró el campo: gana esa (sin desacuerdo).\n  4. **Ninguna** declaró: no se inventa un valor; queda para el gate de F5.\n  5. **Ganadora invalidada** por la pasada 1: cede a la otra fuente; si **ninguna**\n     es utilizable, gana por precedencia pero `confiable=False`.\n- **Determinismo**: la resolución no depende del orden de las fuentes ni del\n  orden de las claves del JSON (los flujos corren en paralelo, T-401); los campos\n  se resuelven en el orden del contrato del prompt y los extra al final en orden\n  alfabético.\n- **Tests** (`tests/test_extraction_combinacion_t404.py`, 45) ✅: la tabla\n  (cobertura del contrato, regla y motivo por campo, orden de lecturas, regla de\n  oro, no-lectura por delante), `resolver_campo` (los cinco casos + determinismo),\n  `combinar` (conserva lecturas, universo/orden de campos, acuerdos vs.\n  desacuerdos, errores de tipo), el contrato de F0 (`valor`/`fuente`,\n  `decision is None`, traza, `documento_id` vacío) y la integración con el\n  pipeline real (letra que discrepa, valores que T-402 volvió comparables, fuente\n  invalidada por T-403, derivados por programa, serialización).\n- **Herramienta de inspección** ✅: `scripts/F4/t404.py` — imprime la **tabla de\n  precedencia** (`--tabla`), corre **8 escenarios de resolución** con ✅/❌ y\n  salida no-cero, verifica **4 fronteras**, y con `--manual`/`--origen` muestra,\n  campo por campo, quién ganó y por qué.\n- **Pendiente**: la **paridad con v1** es **T-405**.\n\n### 3.5 T-405 · Pendiente\n\n> Se documentará al implementarse. Alcance según\n> [`F4.md`](F4.md) §3 y el DoD de F4 en `05-plan-ejecucion.md`.\n\n| Tarea | Alcance | Archivos previstos |\n|---|---|---|\n| **T-405** | Paridad con `extraction_pipeline.py` (10/11) y `document_extraction.py` (kvi/kvg) sobre el golden set; subconjunto de paridad y runners | `tests/golden/F4/` + `scripts/F4/paridad_*.py` |
 
 ## 4. Reglas duras (no romper F0/F2/F3)
 
@@ -412,6 +472,8 @@ funcion extraer_evidencia(lector, markdown, vista, normalizar=True):
             #   + RAW_COHERENCIA: implicaciones de la fuente (E-EXT-2)
         source    = construir_source_evidence(evidencia, veredicto) # ADR-001
     si todas las fuentes con insumo fallaron: error de dominio      # ErrorExtraccion
+    combinada = combinar_evidencia(documento_id, evidencias)        # T-404/ADR-002
+        # conserva todas las lecturas; resuelve campo a campo (valor + fuente)
     retornar evidencias por fuente (orden pedido) + detalle         # sin colapsar
 ```
 
@@ -422,11 +484,11 @@ funcion extraer_evidencia(lector, markdown, vista, normalizar=True):
   `normalizacion` (reglas aplicadas, campos normalizados y no normalizados,
   derivados y avisos), la versión del prompt, la versión de las reglas de
   normalización y la nota de alcance.
-- La **combinación** de las dos evidencias (precedencia por campo) es T-404 y no
-  ocurre acá: T-401/T-402/T-403 entregan las dos `SourceEvidence` completas, con
-  valores canónicos comparables campo a campo y cada fuente **ya calificada por sí
-  sola** (que es la entrada que la tabla de precedencia necesita para saber qué
-  fuente está debilitada).
+- La **combinación** de las dos evidencias (precedencia por campo) es T-404 y
+  **ya está implementada**: conserva todas las lecturas, resuelve el desacuerdo
+  con la tabla de precedencia y deja `decision` en `None` (concluir es F5). Lo que
+  esta fase entrega a F5 es la evidencia combinada con cada campo **resuelto**
+  (valor + fuente responsable) y la traza de por qué ganó esa fuente.
 
 ## 6. Archivos creados/modificados
 
@@ -455,19 +517,32 @@ funcion extraer_evidencia(lector, markdown, vista, normalizar=True):
 - `scripts/F4/t403.py` (nuevo).
 - Ajustes de expectativas en `tests/test_extraction_flujos.py` y `scripts/F4/t401.py` (el comportamiento de T-403 reemplaza el "sin evaluar" que T-401 congelaba).
 
+### T-404
+- `src/voucherflow/rules/precedencia.py` (nuevo, con la tabla y la resolución).
+- `src/voucherflow/extraction/flows.py` (`combinar_evidencia()` implementada + `VERSION_COMBINACION`).
+- `src/voucherflow/schemas/evidence.py` (`CampoCombinado.valor`/`fuente` aditivos; `CombinedEvidence.decision` opcional).
+- `src/voucherflow/rules/raw.py` (`VeredictoRaw.reglas_por_campo`).
+- `src/voucherflow/rules/__init__.py` y `src/voucherflow/extraction/__init__.py` (exportes).
+- `tests/test_extraction_combinacion_t404.py` (nuevo, 45 tests).
+- `scripts/F4/t404.py` (nuevo).
+- Ajustes de expectativas en `tests/test_extraction_flujos.py`, `tests/test_extraction_key_value.py` y `tests/test_extraction_raw_t403.py` (los tests que congelaban el esqueleto de `combinar_evidencia`).
+
 ## 7. Avance
 
 - **Estado (2026-09-10)**: F4 en implementación. **T-401: Hecha** (los dos flujos
   en paralelo devolviendo `SourceEvidence`, con prompt de evidencia versionado y
   tolerancia a fallos por fuente), **T-402: Hecha** (normalización key-value de
   E-EXT-3 portada a código desde los prompts `10`/`11`/`kvi`/`kvg`, con el crudo
-  siempre preservado) y **T-403: Hecha** (pasada 1 completa: sostén por forma
-  canónica de montos/fechas/CUIT y coherencia de la fuente consigo misma,
-  E-EXT-2). Suite en verde: **865 passed, 10 skipped** (75 de T-401 + 97 de T-402
-  + 37 de T-403 sobre una base de 656). `F4.md` pasa de 🔴 Backlog a 🟡 En
+  siempre preservado), **T-403: Hecha** (pasada 1 completa: sostén por forma
+  canónica de montos/fechas/CUIT y coherencia de la fuente consigo misma) y
+  **T-404: Hecha** (combinación con resolución por campo, la tabla de precedencia
+  de ADR-002). Suite en verde: **910 passed, 10 skipped** (75 de T-401 + 97 de
+  T-402 + 37 de T-403 + 45 de T-404 sobre una base de 656). Resta **T-405**
+  (paridad con v1 sobre el golden set). `F4.md` pasa de 🔴 Backlog a 🟡 En
   implementación.
 - **Punto de partida real**: el contrato de evidencia de F0 está congelado y la
   vista fiel de F2 (`preparar_vista_fiel`) y el markdown de F1
   (`api.process`) están disponibles, así que T-401 pudo implementarse sin tocar
   las fases previas (los flujos reciben esos artefactos); T-402 normaliza esa
-  lectura y T-403 la califica, también sin volver a tocar F1/F2.
+  lectura, T-403 la califica y T-404 la combina, también sin volver a tocar
+  F1/F2.

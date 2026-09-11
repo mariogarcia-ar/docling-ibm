@@ -1088,14 +1088,32 @@ class TestFlujosPublicos:
         assert isinstance(resultado, ExtraccionEvidencia)
         assert set(resultado.evidencias_por_fuente()) == {"vlm", "llm"}
 
-    def test_combinar_evidencia_sigue_siendo_esqueleto_de_t404(self):
-        # El entregable de T-401 no incluye la combinación por campo:
-        # la precedencia ADR-002 es de T-404.
+    def test_combinar_evidencia_esta_implementada_en_t404(self):
+        # El esqueleto de F0 se implementó en T-404 (precedencia ADR-002):
+        # combina las fuentes y devuelve el contrato de F0 con la resolución.
         from voucherflow.extraction import combinar_evidencia
 
-        with pytest.raises(NotImplementedError) as exc:
-            combinar_evidencia("doc-1", [])
-        assert "T-404" in str(exc.value)
+        lector = FakeLector(contenido=_json_extraccion())
+        resultado = extraer(
+            lector,
+            markdown="FACTURA A",
+            vista=_vista_fiel(),
+            settings=_settings_dobles(),
+        )
+        combinada = combinar_evidencia(
+            "doc-1", list(resultado.evidencias_por_fuente().values())
+        )
+        assert combinada.documento_id == "doc-1"
+        # Se resuelven todos los campos que la lectura declaró (y solo esos).
+        assert set(combinada.campos) == set(
+            resultado.por_fuente("llm").campos
+        ) | set(resultado.por_fuente("vlm").campos)
+        campo = combinada.campos["tipo_comprobante"]
+        assert campo.vlm is not None and campo.llm is not None
+        assert campo.resolucion is not None
+        assert campo.resolucion.ganador is not None
+        # ``decision`` la produce F5: acá viaja en None (combinar no es decidir).
+        assert combinada.decision is None
 
 
 # ---------------------------------------------------------------------------

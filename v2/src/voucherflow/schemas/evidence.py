@@ -195,6 +195,12 @@ class CampoCombinado(BaseModel):
     Modelo auxiliar de :class:`CombinedEvidence.campos`. Mantiene el shape
     conceptual del glosario ``{ campo: { vlm, llm, resolucion } }`` pero con
     validación declarativa por cada lado (y soporte para programa/arca/hitl).
+
+    ``resolucion`` es la **regla** aplicada (quién gana y por qué, T-404);
+    ``valor`` y ``fuente`` (T-404, opcionales) son el atajo **operativo**: el
+    valor vigente del campo y la fuente responsable. Sin ellos, cada consumidor
+    tendría que re-derivar el ganador desde ``resolucion`` y volver a buscar la
+    lectura — y dos consumidores podrían derivarlo distinto.
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -205,6 +211,14 @@ class CampoCombinado(BaseModel):
     arca: EvidenceField | None = Field(default=None, description="Evidencia de padrón ARCA/WSCDC (si se consultó).")
     hitl: EvidenceField | None = Field(default=None, description="Corrección/confirmación humana (si aplica).")
     resolucion: FieldResolution | None = None
+    valor: str | float | int | bool | None = Field(
+        default=None,
+        description="Valor vigente del campo tras la resolución (T-404); None si ninguna fuente lo declaró.",
+    )
+    fuente: Fuente | None = Field(
+        default=None,
+        description="Fuente responsable del valor vigente (la que ganó la resolución, T-404).",
+    )
 
     def fuentes_presentes(self) -> list[Fuente]:
         """Fuentes con evidencia cargada en este campo (para reglas)."""
@@ -246,13 +260,26 @@ class CombinedEvidence(BaseModel):
     Contrato principal que consumen la conclusión (F5) y el motor de reglas
     cruzadas. ``campos`` modela cada campo con :class:`CampoCombinado` (ver
     nota de modelado arriba y glosario §2.3).
+
+    ``decision`` es **opcional** (T-404): combinar la evidencia de las fuentes y
+    **concluir** el caso son etapas distintas — la combinación es de F4/T-404 y
+    la conclusión es de F5/T-501. Exigir la decisión acá obligaría a la
+    combinación a inventar un veredicto que no le corresponde. Cuando la
+    combinación se usa sola (p. ej. el CLI de extracción), viaja sin decisión;
+    con la conclusión de F5, la decisión viene completa.
     """
 
     model_config = ConfigDict(extra="forbid")
 
     documento_id: str = Field(..., min_length=1, description="Id del documento (hash sha256 del archivo).")
     campos: dict[str, CampoCombinado] = Field(default_factory=dict)
-    decision: Decision
+    decision: Decision | None = Field(
+        default=None,
+        description=(
+            "Decisión de la conclusión (F5). Es None cuando la evidencia combinada "
+            "todavía no se concluyó (T-404): combinar no es decidir."
+        ),
+    )
     trazabilidad: dict[str, Any] = Field(default_factory=dict)
 
     @field_validator("documento_id")
@@ -266,6 +293,10 @@ class CombinedEvidence(BaseModel):
     def _coherencia_decision(self) -> "CombinedEvidence":
         # Regla de oro del glosario: la certeza se deriva de la etapa que
         # decidió. programa → certeza alta; agente_ia → certeza baja (+ HITL).
+        # Si todavía no hay decisión (T-404: combinar no es decidir), no hay
+        # nada que validar.
+        if self.decision is None:
+            return self
         if self.decision.origen == Origen.programa and self.decision.certeza != Certeza.alta:
             raise ValueError(
                 "Contrato inválido: origen=programa exige certeza=alta "

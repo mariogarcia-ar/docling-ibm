@@ -87,7 +87,7 @@ from voucherflow.extraction.prompt_extraccion import (
 from voucherflow.extraction.prompt_extraccion import (
     SYSTEM_PROMPT_POR_FUENTE,
 )
-from voucherflow.schemas.evidence import SourceEvidence
+from voucherflow.schemas.evidence import Fuente, SourceEvidence
 from voucherflow.settings.config import cargar_desde_dict
 from voucherflow.validation.vistas import VistaPreparada
 
@@ -839,12 +839,22 @@ class TestAlcance:
         assert "NORM_CUIT" in debilidades
         assert "RAW_SUSTENTO" not in resultado.source_evidence.reglas_aplicadas
 
-    def test_combinar_evidencia_sigue_siendo_esqueleto_de_t404(self):
+    def test_combinar_evidencia_esta_implementada_en_t404(self):
+        # El esqueleto se implementó en T-404: devuelve el contrato de F0 con la
+        # resolución por campo (la precedencia es de T-404, no de T-402).
         from voucherflow.extraction import combinar_evidencia
 
-        with pytest.raises(NotImplementedError) as exc:
-            combinar_evidencia("doc-1", [])
-        assert "T-404" in str(exc.value)
+        lector = FakeLector(
+            _json_extraccion(fecha_emision=_campo("14/08/2025", "Fecha: 14/08/2025"))
+        )
+        resultado = ejecutar_flujo(
+            "llm", lector, markdown="FACTURA", settings=_settings_dobles()
+        )
+        combinada = combinar_evidencia("doc-1", [resultado.source_evidence])
+        campo = combinada.campos["fecha_emision"]
+        assert campo.valor == "2025-08-14"
+        assert campo.fuente is Fuente.llm
+        assert combinada.decision is None
 
     def test_la_evidencia_cruda_se_puede_recuperar(self):
         # La normalización no destruye la lectura de T-401: con

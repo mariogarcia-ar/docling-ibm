@@ -1,11 +1,13 @@
 """Módulo ``extraction`` (F4) — flujos VLM + LLM en paralelo con evidencia.
 
-**Fase**: F4 (extracción) · **Tareas**: T-401, T-402 · **Épicas**: E-EXT-1, E-EXT-3.
+**Fase**: F4 (extracción) · **Tareas**: T-401, T-402, T-404 · **Épicas**:
+E-EXT-1, E-EXT-3.
 
 Este módulo expone la **superficie pública** de la extracción (las firmas que F0
 dejó como esqueleto) y delega la lógica en
-:mod:`voucherflow.extraction.evidencia` (lectura y contrato) y
-:mod:`voucherflow.extraction.key_value` (normalización):
+:mod:`voucherflow.extraction.evidencia` (lectura y contrato),
+:mod:`voucherflow.extraction.key_value` (normalización) y
+:mod:`voucherflow.rules.precedencia` (combinación por campo):
 
 * :func:`flujo_vlm` — corre el flujo **VLM** (lee la imagen de la vista fiel de
   F2) y devuelve ``SourceEvidence`` (contrato de F0/ADR-001).
@@ -15,15 +17,16 @@ dejó como esqueleto) y delega la lógica en
 * :func:`extraer` — corre **las dos fuentes en paralelo** sobre el mismo
   comprobante (no se elige una por documento: es la regla dura de E-EXT-1) y
   conserva **ambas** evidencias sin colapsarlas.
-* :func:`combinar_evidencia` — **esqueleto de T-404**: combinar por campo con la
-  precedencia de ADR-002 es de esa tarea; acá sigue lanzando
-  ``NotImplementedError`` a propósito.
+* :func:`combinar_evidencia` — **implementada (T-404)**: aplica la tabla de
+  precedencia de ADR-002 y devuelve el ``CombinedEvidence`` con la resolución por
+  campo, conservando todas las lecturas.
 
 Los valores que devuelven los flujos están **normalizados** (T-402/E-EXT-3):
 CUIT cortado a dígitos y guiones propios, fechas ``YYYY-MM-DD``, montos
 numéricos, ``punto_venta``/``numero_comprobante`` derivados del número impreso.
 El valor **crudo** de cada campo se conserva en ``meta['valor_crudo']``, y
-``normalizar=False`` devuelve la lectura tal como la reportó el modelo.
+``normalizar=False`` devuelve la lectura tal como la reportó el modelo. Cada
+fuente llega además **calificada por sí sola** (T-403/E-EXT-2).
 
 Nota sobre la firma de F0: ``flujo_vlm(origen, **kwargs)`` /
 ``flujo_llm(markdown, **kwargs)`` se conservan tal cual (eran el contrato
@@ -38,7 +41,14 @@ from __future__ import annotations
 
 from typing import Any, Iterable
 
-from ..schemas.evidence import CombinedEvidence, SourceEvidence
+from ..rules.precedencia import (
+    combinar as rules_combinar,
+    resumen_combinacion,
+)
+from ..schemas.evidence import (
+    CombinedEvidence,
+    SourceEvidence,
+)
 from .evidencia import (
     ErrorEvidencia,
     ErrorExtraccion,
@@ -53,6 +63,18 @@ from .prompt_extraccion import (
     VERSION_PROMPT_EXTRACCION,
     construir_messages_extraccion,
 )
+
+#: Versión de la **combinación** (T-404). Se registra en la trazabilidad del
+#: ``CombinedEvidence`` para poder reproducir un caso: si cambia la tabla de
+#: precedencia o el algoritmo de resolución, sube la versión y la auditoría
+#: distingue los casos (mismo criterio que ``VERSION_PROMPT_EXTRACCION``).
+VERSION_COMBINACION = "combinacion-precedencia@1"
+
+#: Versión de la **combinación** (T-404). Se registra en la trazabilidad del
+#: ``CombinedEvidence`` para poder reproducir un caso: si cambia la tabla de
+#: precedencia o el algoritmo de resolución, sube la versión y la auditoría
+#: distingue los casos (mismo criterio que ``VERSION_PROMPT_EXTRACCION``).
+VERSION_COMBINACION = "combinacion-precedencia@1"
 
 __all__ = [
     "flujo_vlm",
@@ -221,16 +243,65 @@ def extraer(
 def combinar_evidencia(
     documento_id: str, fuentes: list[SourceEvidence]
 ) -> CombinedEvidence:
-    """Combina la evidencia de las fuentes con resolución por campo (F4).
+    """Combina la evidencia de las fuentes con resolución por campo (F4/T-404).
 
-    Esqueleto F0 — se implementa en F4/**T-404** aplicando la precedencia
-    declarativa de ADR-002. Ni T-401 (flujos en paralelo) ni T-402
-    (normalización) la implementan a propósito: sus entregables dejan las dos
-    ``SourceEvidence`` **completas y comparables** (mismos campos, mismos
-    valores canónicos) para que la resolución por campo tenga con qué trabajar.
+    Implementación del contrato congelado de F0 (misma firma que dejó el
+    esqueleto): aplica la **tabla de precedencia** de ADR-002
+    (:mod:`voucherflow.rules.precedencia`) y devuelve el ``CombinedEvidence`` que
+    consume la conclusión de F5.
+
+    Qué conserva y qué resuelve:
+
+    * **Conserva todas las lecturas**: cada campo del ``CombinedEvidence`` lleva
+      la evidencia de cada fuente presente (``vlm``, ``llm``, y las no-lectura si
+      las hubiera) — combinar **no** es descartar (ADR-001/ADR-008).
+    * **Resuelve el desacuerdo**: agrega la ``FieldResolution`` (ganador + regla
+      ``PREC_n`` + motivo) y el atajo operativo ``valor``/``fuente`` con el valor
+      vigente del campo. La resolución es independiente del orden de llegada de
+      los flujos (corren en paralelo, T-401) y de la fuente que esté debilitada:
+      una lectura que la pasada 1 marcó como **inválida** (T-403) no puede ganar
+      un campo que otra fuente sí resolvió, y la resolución lo deja por escrito.
+    * **Deja los campos ausentes como tales**: un campo que ninguna fuente
+      declaró no aparece en ``campos`` con un valor inventado; su resolución
+      registra que no se leyó (insumo del gate de F5).
+
+    Argumentos:
+        documento_id: id del documento (``sha256`` en producción, T-405/F6).
+        fuentes: las ``SourceEvidence`` de la corrida (típicamente las dos de
+            ``extraer()``; también acepta las de ``classification`` cuando la
+            extracción quiere la letra).
+
+    Devuelve:
+        ``CombinedEvidence`` con ``campos`` (lecturas + resolución), una
+        ``Decision`` **provisional** —la conclusión real es F5/T-501, así que va
+        con ``concluye=False``— y la ``trazabilidad`` de la combinación (fuentes,
+        acuerdos, desacuerdos, reglas aplicadas y lecturas descartadas).
+
+    Lanza:
+        ``TypeError`` si alguna fuente no es una ``SourceEvidence``.
+        ``ValueError`` si ``documento_id`` es vacío (contrato de F0).
     """
-    raise NotImplementedError(
-        "combinar_evidencia(): se implementa en F4 (T-404, precedencia ADR-002). "
-        "T-401 entrega las dos SourceEvidence sin colapsar; usá "
-        "extraction.extraer() para obtenerlas."
+    combinacion = rules_combinar(fuentes, documento_id=documento_id)
+    resumen = resumen_combinacion(combinacion)
+    return CombinedEvidence(
+        documento_id=documento_id,
+        campos=combinacion.campos,
+        # ``decision`` queda en ``None`` a propósito: combinar la evidencia
+        # (T-404) y concluir el caso (F5/T-501) son etapas distintas, y el
+        # contrato exige que la certeza se derive de la etapa que decidió — que
+        # todavía no ocurrió. Inventar acá un veredicto sería exactamente lo que
+        # el glosario prohíbe.
+        trazabilidad={
+            "etapa": VERSION_COMBINACION,
+            "version_combinacion": VERSION_COMBINACION,
+            "documento_id": documento_id,
+            "combinacion": resumen,
+            "nota": (
+                "Combinación T-404 (ADR-002): las lecturas de todas las fuentes "
+                "se conservan y el desacuerdo se resuelve por campo con la tabla "
+                "de precedencia. La decisión del caso la produce F5/T-501, así "
+                "que `decision` viaja en None a propósito (combinar no es "
+                "decidir)."
+            ),
+        },
     )

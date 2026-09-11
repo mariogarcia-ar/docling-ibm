@@ -349,6 +349,11 @@ class VeredictoRaw:
             inconsistentes con otro campo que la misma fuente declaró (F4/T-403).
             Lista vacía = la fuente es coherente consigo misma (o no declaró lo
             suficiente para poder juzgarlo).
+        reglas_por_campo: ``campo -> ids de las reglas raw que se dispararon por
+            ese campo`` (F4/T-404). Lo consume la combinación para explicar, en la
+            resolución, **con qué regla** quedó debilitada la fuente que no gana
+            (la alternativa sería reportar la lista de reglas de la fuente entera,
+            que no dice qué campo falla).
     """
 
     fuente: str
@@ -359,6 +364,7 @@ class VeredictoRaw:
     candidatos_descartados: list[str] = field(default_factory=list)
     candidatos_restantes: list[str] = field(default_factory=list)
     incoherencias: list[str] = field(default_factory=list)
+    reglas_por_campo: dict[str, list[str]] = field(default_factory=dict)
 
     @property
     def es_valida(self) -> bool:
@@ -927,6 +933,12 @@ def evaluar_raw(
         )
         for campo in disparos:
             veredicto.debilidades.append(_construir_motivo(regla, campo))
+            # Trazabilidad por campo (F4/T-404): qué regla tocó a qué campo. Sin
+            # esto, la combinación solo podría decir "la fuente quedó débil" sin
+            # poder señalar el campo responsable.
+            por_regla = veredicto.reglas_por_campo.setdefault(campo.campo, [])
+            if regla.id not in por_regla:
+                por_regla.append(regla.id)
 
     # Candidatos: se agregan los de todos los campos (una fuente puede aportar
     # más de un campo candidato).
@@ -953,6 +965,20 @@ def evaluar_raw(
         for motivo in incoherencias:
             veredicto.debilidades.append(motivo)
         veredicto.incoherencias = list(incoherencias)
+        # La coherencia es una propiedad del **conjunto**: se anota en el campo que
+        # la declara (el que disparó la implicación), para que la trazabilidad por
+        # campo siga siendo cierta.
+        for campo in lista_campos:
+            if not campo.coherencia:
+                continue
+            disparado = campo.normalizar()
+            if any(
+                disparado == implicacion.disparador
+                for implicacion in campo.coherencia
+            ):
+                por_regla = veredicto.reglas_por_campo.setdefault(campo.campo, [])
+                if ID_RAW_COHERENCIA not in por_regla:
+                    por_regla.append(ID_RAW_COHERENCIA)
 
     # Blindaje ADR-008 (contrato de CombinedEvidence): nunca en ambas listas.
     veredicto.candidatos_descartados = [

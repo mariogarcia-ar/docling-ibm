@@ -49,7 +49,13 @@ from .evidencia import (
     parsear_evidencia_extraccion,
     veredicto_raw_de_evidencia,
 )
-from .flows import combinar_evidencia, extraer, flujo_llm, flujo_vlm
+from .flows import (
+    VERSION_COMBINACION,
+    combinar_evidencia,
+    extraer,
+    flujo_llm,
+    flujo_vlm,
+)
 from .key_value import (
     ALIAS_FECHA,
     ALIAS_MONTO,
@@ -111,6 +117,7 @@ __all__ = [
     "flujo_llm",
     "extraer",
     "combinar_evidencia",
+    "VERSION_COMBINACION",
     # orquestación y evidencia (T-401)
     "Lector",
     "CampoLectura",

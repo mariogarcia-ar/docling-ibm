@@ -60,6 +60,7 @@ from voucherflow.rules.raw import (
     evaluar_raw,
     violaciones_de_coherencia,
 )
+from voucherflow.schemas.evidence import Fuente
 from voucherflow.settings.config import cargar_desde_dict
 from voucherflow.validation.vistas import VistaPreparada
 
@@ -598,12 +599,23 @@ class TestIntegracionYFronteras:
         assert veredicto.valida is True
         assert ev.campos["importe_total_facturado"].valor == "$ 12.345,67"
 
-    def test_combinar_evidencia_sigue_siendo_esqueleto_de_t404(self):
+    def test_combinar_evidencia_esta_implementada_en_t404(self):
+        # T-403 deja cada fuente calificada; T-404 (implementada) es la que
+        # combina. Acá se verifica la frontera: la combinación **respeta** el
+        # veredicto de la pasada 1 (una fuente inválida no gana).
         from voucherflow.extraction import combinar_evidencia
 
-        with pytest.raises(NotImplementedError) as exc:
-            combinar_evidencia("doc-1", [])
-        assert "T-404" in str(exc.value)
+        valida = _evidencia(_factura_a_completa())
+        invalida = _evidencia(
+            _factura_a_completa(tipo_comprobante=_campo("X", "Recuadro 'X'"))
+        )
+        source_invalida = construir_source_evidence(invalida)
+        assert source_invalida.valida is False
+        combinada = combinar_evidencia(
+            "doc-1", [source_invalida, construir_source_evidence(valida)]
+        )
+        assert combinada.campos["tipo_comprobante"].fuente is Fuente.llm
+        assert combinada.campos["tipo_comprobante"].valor == "A"
 
     def test_el_registro_raw_de_t303_no_se_reescribio(self):
         # T-403 extiende el **uso** del registro (sostenedor/normalizador_valor/

@@ -191,18 +191,21 @@ tests/golden/
   `scripts/F4/t402.py` corre **19/19** casos de regla, **17/17** escenarios de la
   regla dura de E-EXT-3 y **5/5** fronteras de la tarea. **Hecho en T-403**:
   `scripts/F4/t403.py` corre **11/11** criterios de sostén, **7/7** escenarios de
-  coherencia de la fuente (E-EXT-2) y **4/4** fronteras. La combinación con
-  precedencia sigue pendiente (**T-404**).
+  coherencia de la fuente (E-EXT-2) y **4/4** fronteras. **Hecho en T-404**:
+  `scripts/F4/t404.py` corre **8/8** escenarios de resolución y **4/4** fronteras,
+  y `--manual` ejecuta el pipeline F4 completo (T-401→T-402→T-403→T-404) con la
+  lectura del modelo inyectada.
 - **Aceptación** (E-EXT-1/2/3): ambos flujos corren siempre; reglas raw marcan
   fuentes débiles; paridad con `kvi/kvg/10/11` en campos planos. **Parcial en
-  T-401/T-402/T-403**: "ambos flujos corren siempre" verificado (paralelismo
+  T-401..T-404**: "ambos flujos corren siempre" verificado (paralelismo
   **medido**: dos llamadas de 0,2 s tardan ≈ 0,2 s, no 0,4 s; `max_workers=1`
   serializa); "los campos se normalizan sin inventar" verificado para CUIT,
   fechas, montos, comprobante, moneda, texto e ítems (T-402); "las reglas raw
   marcan fuentes débiles" verificado para el sostén de todos los campos
-  evaluables y para la coherencia interna de la fuente — el caso textual de
-  E-EXT-2 ("A" sin los dos CUIT) queda debilitado antes de combinarse (T-403).
-  La paridad es **T-405**.
+  evaluables y para la coherencia interna de la fuente (T-403); "la combinación
+  resuelve por campo con precedencia y conserva trazabilidad de cada fuente"
+  verificado con la tabla, los cinco casos de resolución y el determinismo
+  (T-404). La paridad es **T-405**.
 - **Métricas**: exactitud por campo sobre golden (CUIT, fecha, total, razón
   social), tasa de acuerdo VLM vs. LLM, % campos con fragmento de sustento.
   **Pendiente**: las tres requieren el subconjunto del golden (`tests/golden/F4/`)

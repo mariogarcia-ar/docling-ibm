@@ -9,14 +9,34 @@ organizadas en tres registros:
 - :data:`REGISTRO_LECTURA` (R4/R5/R6) → ``tipo_detectado_por_documento``.
 - :data:`REGISTRO_CONFLICTO` (R7) → alertas de auditoría.
 
+**F4/T-403** completa la pasada 1 por fuente en :mod:`~voucherflow.rules.raw`
+(sostén por forma canónica y coherencia interna) y **F4/T-404** agrega la tabla
+de precedencia por campo en :mod:`~voucherflow.rules.precedencia` (ADR-002).
+
 ``Rule`` y ``Registry`` se siguen exportando sin cambios (contrato congelado de
-F0). Las reglas cruzadas de F5 y la tabla de precedencia por campo de F4 se
-agregan en sus propias fases.
+F0). Las reglas cruzadas de F5 y la detección de gaps se agregan en su fase.
 """
 
 from __future__ import annotations
 
 from .contexto import ContextoTipoComprobante, normalizar_letra
+from .precedencia import (
+    ORDEN_CANONICO_FUENTES,
+    FUENTES_LECTURA,
+    FUENTES_NO_LECTURA,
+    PREC_DATO_COMPUTADO,
+    PREC_LECTURA_TEXTO,
+    PREC_LECTURA_VISUAL,
+    PREC_REGLA_DE_ORO,
+    TABLA_PRECEDENCIA,
+    CombinacionEvidencia,
+    PrecedenciaCampo,
+    ResolucionCampo,
+    combinar,
+    resolver_campo,
+    resumen_combinacion,
+    valor_de,
+)
 from .raw import (
     GRAVEDAD_POR_REGLA,
     REGISTRO_RAW,
@@ -86,5 +106,21 @@ __all__ = [
     "construir_registro_raw",
     "coincidencias_en_sustento",
     "evaluar_raw",
+    # Precedencia por campo / combinación (F4/T-404, ADR-002).
+    "ORDEN_CANONICO_FUENTES",
+    "FUENTES_LECTURA",
+    "FUENTES_NO_LECTURA",
+    "PREC_REGLA_DE_ORO",
+    "PREC_LECTURA_VISUAL",
+    "PREC_LECTURA_TEXTO",
+    "PREC_DATO_COMPUTADO",
+    "TABLA_PRECEDENCIA",
+    "PrecedenciaCampo",
+    "ResolucionCampo",
+    "CombinacionEvidencia",
+    "resolver_campo",
+    "valor_de",
+    "combinar",
+    "resumen_combinacion",
 ]
 

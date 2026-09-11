@@ -43,7 +43,7 @@
 ## 4. Decisiones abiertas que lo afectan
 
 - **ADR-001 (D-1, bloqueante)** — Adoptar schema estricto pydantic por campo vs. JSON plano; la decisión fija TODO el contrato y es la base de F3/F4/F5 (riesgo R-01).
-- **ADR-002 (D-2)** — La estructura `{ campo: { vlm, llm, resolucion } }` de `CombinedEvidence` debe soportar la tabla de precedencia; validar el shape con el workshop de precedencia.
+- **ADR-002 (D-2)** — La estructura `{ campo: { vlm, llm, resolucion } }` de `CombinedEvidence` debe soportar la tabla de precedencia; validar el shape con el workshop de precedencia. **Implementado en F4/T-404**: la tabla vive en `rules/precedencia.py` y el shape se validó en `tests/test_extraction_combinacion_t404.py` (que además cubre el atajo aditivo `CampoCombinado.valor`/`fuente` y `decision` opcional).
 - **ADR-005 (D-5)** — Definir qué campos de trazabilidad exige auditoría (versión prompt, modelo, evidencia por fuente, reglas, quién decidió) y cómo se modelan en `CaseRecord`.
 - **ADR-007 (D-7)** — Ubicación del paquete y nombres de archivo (`schemas/evidence.py`, `schemas/result.py`) dependen del layout `src/` decidido.
 
@@ -51,4 +51,5 @@
 
 | Fecha | Acción / hito | Responsable | Estado |
 |---|---|---|---|
+| 2026-09-10 | **Cambios aditivos de F4/T-404** (sin bump de `SCHEMA_VERSION`, que sigue en `1.0.0`): `CampoCombinado` gana `valor` y `fuente` (opcionales, default `None`) como **atajo operativo** — el valor vigente del campo y la fuente responsable tras la resolución por precedencia—, y `CombinedEvidence.decision` pasa a ser **opcional** (default `None`). La razón del segundo: el validador exige que la certeza se derive de la etapa que decidió (glosario §2) y la **combinación (F4/T-404) no decide** — la decisión es de F5/T-501. Con el campo obligatorio, la combinación habría tenido que inventar un veredicto. Ambos cambios son compatibles hacia atrás (los consumidores que ya construían `CombinedEvidence` con `decision` siguen funcionando); el validador de coherencia de la decisión se mantiene intacto cuando la decisión está presente. | team implementation | Hecho |
 | _(vacío)_ | | | |

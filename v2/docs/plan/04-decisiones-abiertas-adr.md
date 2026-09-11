@@ -111,16 +111,28 @@ se reescribe para devolver **evidencia**, no decisión final.
 
 - **Estado**: ✅ **Aceptado** (F0, 2026-09-06) · **Prioridad**: Alta (bloqueante) · **Decisión D-2**
 - **Implementación**: el shape de resolución por campo (`FieldResolution` +
-  `CampoCombinado`) está congelado en `schemas/evidence.py`; la tabla de
-  precedencia concreta (PREC_1…) se codifica en F4 (T-404). **Avance
-  (F4/T-401)**: los dos flujos ya entregan las dos `SourceEvidence` completas
-  **sin colapsar** (`extraction/evidencia.py::extraer_evidencia`), así que la
-  combinación de T-404 tiene ambas entradas disponibles;
-  `combinar_evidencia()` sigue lanzando `NotImplementedError` a propósito.
-  **Avance (F4/T-402)**: los dos lados llegan con los **mismos valores canónicos**
-  (`normalizar=True` por default), así que la comparación campo a campo de la
-  tabla de precedencia es directa — sin "ganadores" espurios por formato
-  (`"14/08/2025"` vs. `"2025-08-14"`).
+  `CampoCombinado`) está congelado en `schemas/evidence.py` y la tabla concreta
+  (PREC_1…) se codificó en **F4/T-404**: `rules/precedencia.py`
+  (`TABLA_PRECEDENCIA` + `resolver_campo()` + `combinar()`) y
+  `extraction/flows.py::combinar_evidencia()`.
+- **Implementación — avance por tarea**:
+  * **F4/T-401**: los dos flujos entregan las dos `SourceEvidence` completas
+    **sin colapsar** (`extraction/evidencia.py::extraer_evidencia`).
+  * **F4/T-402**: los dos lados llegan con los **mismos valores canónicos**
+    (`normalizar=True` por defecto), así que la comparación campo a campo es
+    directa — sin "ganadores" espurios por formato (`"14/08/2025"` vs.
+    `"2025-08-14"`).
+  * **F4/T-404**: la tabla está implementada con tres reglas de lectura
+    (`PREC_1` visual, `PREC_2` textual, `PREC_3` programa) más la **regla de oro**
+    (`PREC_0`) para los campos sin precedencia declarada; las fuentes que no son
+    lectura (`hitl` > `arca` > `programa`) van siempre por delante. La resolución
+    registra `ganador`/`regla`/`motivo`, respeta el veredicto de la pasada 1
+    (T-403) y conserva todas las lecturas en el `CampoCombinado`.
+- **Nota de contrato (F4/T-404)**: `CombinedEvidence.decision` pasó a ser
+  **opcional** (default `None`) para que la combinación no tenga que inventar un
+  veredicto: la certeza se deriva de la etapa que decidió (glosario §2) y la
+  decisión es de F5/T-501. Es un cambio **aditivo/compatible**, sin bump de
+  `SCHEMA_VERSION`.
 
 **Contexto**
 Cuando VLM y LLM discrepan en un campo, hay que decidir qué fuente gana por tipo
