@@ -11,13 +11,18 @@ responsabilidades distintas:
   resultado). Es una proyección: no corre reglas ni modelos.
 - :mod:`~voucherflow.trace.recorder` **persiste** el registro: sidecar JSON por
   documento (escritura atómica) + índice JSONL de una línea por caso.
+- :mod:`~voucherflow.trace.metricas` **agrega** el histórico (T-507 / E-LIB-5):
+  % certeza alta, % agente, % rechazado, acuerdo VLM/LLM, cobertura HITL y tasa de
+  alertas, calculados sobre los `CaseRecord` persistidos.
 
 Uso típico::
 
-    from voucherflow.trace import CaseRecorder, construir_case_record
+    from voucherflow.trace import CaseRecorder, construir_case_record, metricas_del_recorder
 
     caso = construir_case_record(evidencia, resultado=resultado, archivo=ruta)
-    CaseRecorder("salida/cases").registrar(caso)     # sidecar + índice
+    recorder = CaseRecorder("salida/cases")
+    recorder.registrar(caso)                # sidecar + índice
+    metricas_del_recorder(recorder)         # el reporte de la corrida
 """
 
 from __future__ import annotations
@@ -42,6 +47,20 @@ from .recorder import (
     ResultadoPersistencia,
     sidecar_para,
 )
+from .metricas import (
+    ESTADO_RECHAZADO,
+    MINIMO_LOTE_CONFIABLE,
+    VERSION_METRICAS,
+    acuerdo_vlm_llm,
+    casos_del_historico,
+    cobertura_hitl,
+    metricas_certidumbre,
+    metricas_de,
+    metricas_del_recorder,
+    metricas_rechazo,
+    resumen_legible,
+    tasa_alertas,
+)
 
 __all__ = [
     # Persistencia (sidecar + índice)
@@ -51,6 +70,19 @@ __all__ = [
     "VERSION_TRAZA",
     "NOMBRE_INDICE",
     "CAMPOS_INDICE",
+    # Métricas (T-507 / E-LIB-5)
+    "metricas_de",
+    "metricas_del_recorder",
+    "metricas_certidumbre",
+    "metricas_rechazo",
+    "acuerdo_vlm_llm",
+    "cobertura_hitl",
+    "tasa_alertas",
+    "casos_del_historico",
+    "resumen_legible",
+    "VERSION_METRICAS",
+    "MINIMO_LOTE_CONFIABLE",
+    "ESTADO_RECHAZADO",
     # Construcción del registro auditable
     "construir_case_record",
     "resumen_case_record",

@@ -295,6 +295,23 @@ tests/golden/
   para no inflar los agregados—, consultas, línea corrupta que no pierde el resto) y
   la **reconstrucción** (`reindexar()` desde los sidecars). Todo con `tmp_path`: el
   módulo no toca el repo ni la red.
+  **T-507**: 47 tests (`test_metricas_t507.py`) — cada métrica del DoD con su `n` y
+  su definición, la **honestidad del cálculo** (cada métrica con su propio
+  denominador; «no calculable» con motivo en vez de un 0% falso; lote chico
+  avisado), el **acuerdo VLM/LLM** sobre lo leído por ambas fuentes (con los
+  desacuerdos listados), la **cobertura HITL** separando obligatorios de muestreo y
+  distinguiendo encolado de revisado, la **tasa de alertas**, el reporte
+  **versionado** y la integración con el histórico de T-506. El lote sintético se
+  arma sin red ni modelos.
+  **T-506**: 74 tests (`test_trace_recorder_t506.py`) — el **registro auditable**
+  (los cinco datos del Gherkin legibles del `CaseRecord`, sin volver a correr el
+  pipeline), la **honestidad** del registro (nada inventado; declara si la
+  evidencia por fuente es `directa` o `reconstruida_desde_campos`), el **sidecar**
+  (round-trip sin pérdida, escritura atómica sin temporales, ids con `:` o `/` que
+  no escapan del directorio), el **índice** (una fila por documento —no por corrida,
+  para no inflar los agregados—, consultas, línea corrupta que no pierde el resto) y
+  la **reconstrucción** (`reindexar()` desde los sidecars). Todo con `tmp_path`: el
+  módulo no toca el repo ni la red.
 - **Integración**: casos del golden → distribución de `origen` y `certeza`;
   correcciones HITL registradas y disponibles para feedback.
 - **Aceptación** (E-CONC-1/2/3/4/5): código que concluye ⇒ certeza alta;
@@ -307,14 +324,18 @@ tests/golden/
   respuesta negativa y presupuesto agotado). "agente ⇒ baja + HITL" y
   "trazabilidad completa persistida" también quedó cubierta (T-506). `scripts/F5/t501.py`
   corre **8/8** + **8/8**, `t502.py` **6/6** + **8/8**, `t503.py` **6/6** + **8/8**,
-  `t504.py` **6/6** + **9/9**, `t505.py` **6/6** + **13/13** y `t506.py` **4/4** +
-  **14/14**, con salida ≠ 0 si falla.
+  `t504.py` **6/6** + **9/9**, `t505.py` **6/6** + **13/13**, `t506.py` **4/4** +
+  **14/14** y `t507.py` **6/6** + **11/11** (el reporte de cierre, con modo
+  `--historico DIR` para un lote real), con salida ≠ 0 si falla.
   **E-CONC-4 cerrada en T-505**: el HITL es autoridad final — revisión obligatoria de
   certeza baja, muestreo reproducible de certeza alta y feedback registrado y separado
   por motivo (el agente se equivocó vs. la regla acierta por accidente).
   **E-CONC-5 cerrada en T-506**: todo caso persiste su `CaseRecord` en sidecar
   (escritura atómica) + índice consultable, y el registro responde el Gherkin leyendo
-  el archivo. Queda T-507 (las métricas, que se calculan sobre ese índice).
+  el archivo.
+  **E-LIB-5 cerrada en T-507**: las métricas del lote (§5 de este documento) se
+  calculan sobre ese histórico, y el diagnóstico del cliente de modelos ya estaba
+  desde F0/T-005. **F5 queda cerrada con su DoD verificado**: 1403 tests en verde.
 - **Métricas clave** (definidas en §5): exactitud por origen, % certeza alta,
   acuerdo programa-vs-humano, cobertura HITL. **Parcial en T-501**: el
   `ConclusionResult` y la traza de la corrida ya exponen lo que las métricas
@@ -345,6 +366,25 @@ tests/golden/
 | **Tasa de rechazo (gate)** | no-comprobantes rechazados / total | Reportar por lote |
 | **Latencia p50/p95 por etapa** | tiempo de procesamiento, extracción, conclusión | Reportar; capturar diagnóstico ante latencia > umbral |
 | **Error de contrato** | % de respuestas de modelo que no validan el schema | < 5% |
+
+### 5.0 Medición de la tabla (implementada en F5/T-507)
+
+Las métricas de la tabla las calcula `voucherflow.trace.metricas` sobre el `CaseRecord` **persistido**
+(T-506) y las reporta `scripts/F5/t507.py`. Tres criterios de lectura, porque sin ellos el número
+engaña:
+
+- **Cada métrica usa su propio denominador y declara el resto.** Un caso sin resultado consolidado no
+  entra como «no rechazado» (no se sabe qué es) y una métrica sin denominador sale **no calculable con
+  motivo**, nunca un 0%. «No saber» no es «saber que es cero».
+- **El acuerdo VLM/LLM se mide sobre los campos que leyeron *ambas* fuentes**, no sobre el contrato
+  completo: dividir por el total haría parecer mal acuerdo lo que en realidad es cobertura.
+- **El reporte se versiona y avisa si el lote es chico.** Una métrica sin la versión con que se produjo
+  no es comparable con la próxima corrida (§6), y no se leen tendencias sobre pocos casos.
+
+Un caso que el reporte deja ver: **un rechazo solo es certeza alta si no coexiste con una alerta R7
+abierta** (el fast-fail manda el rechazo; la alerta sin resolver baja la certeza, T-503). La métrica
+separa `rechazado` de `rechazado_con_certeza_alta` para que se distinga «el fast-fail concluyó» de
+«el fast-fail derivó a revisión».
 
 ### 5.1 Criterio de salida (Go/No-Go) por fase
 

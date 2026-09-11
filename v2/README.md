@@ -17,17 +17,18 @@ evidencia congelado), `rules` (motor de reglas), `models` (adaptadores
 `OllamaClient` y `DoclingConverter`), `trace` (trazabilidad/`CaseRecord`) y
 `settings` (configuración centralizada).
 
-> **Estado**: Fases F0–F4 con DoD verificado y **F5 en curso** (T-501..T-506:
+> **Estado**: Fases F0–F5 con DoD verificado (F5 cerrada con T-501..T-507:
 > reglas cruzadas de la pasada 2 sobre la evidencia combinada —negocio, fast-fail
 > y conflicto R7—, búsqueda acotada de evidencia adicional, consolidación del
 > `VoucherResult`, escalado al agente IA con blindaje, **cola HITL** con muestreo
-> de auditoría y feedback, y **trazabilidad `CaseRecord` persistida** en sidecar
-> con escritura atómica + índice consultable). El
-> paquete ya tiene implementadas las capacidades de procesamiento (F1), validación
-> (F2), clasificación (F3) y la extracción completa —contrato, normalización,
-> validación por fuente, combinación y paridad— (F4/T-401..T-405); la lógica
-> restante se implementa en sus fases (F5: métricas; F6:
-> CLI/batch). La suite default corre **sin** Ollama ni Docling reales.
+> de auditoría y feedback, **trazabilidad `CaseRecord` persistida** en sidecar con
+> escritura atómica + índice consultable, y **métricas** del lote sobre ese
+> histórico). El
+> paquete tiene implementadas las capacidades de procesamiento (F1), validación
+> (F2), clasificación (F3), la extracción completa —contrato, normalización,
+> validación por fuente, combinación y paridad— (F4) y la conclusión con HITL (F5);
+> lo restante es **F6** (CLI/batch y paridad E2E). La suite default corre **sin**
+> Ollama ni Docling reales.
 
 ## Instalación
 
@@ -63,7 +64,7 @@ v2/
     classification/…        # F3 (implementado)
     extraction/…            # F4: T-401 (flujos + evidencia), T-402 (key_value), T-403 (raw por fuente), T-404 (combinación) y T-405 (paridad con v1)
     conclusion/…            # F5: T-501..T-505 (cruzadas, gaps, consolidación, agente, HITL)
-    trace/…                 # F5: T-506 (CaseRecord persistido: sidecar + índice)
+    trace/…                 # F5: T-506/T-507 (CaseRecord: sidecar + índice + métricas)
     rules/…                 # F3 (R1-R7 + raw), F4 (precedencia por campo) y F5 (cruzadas de la pasada 2); gaps en F5
     models/
       ollama.py             # OllamaClient (F0, implementado)

@@ -15,9 +15,9 @@
 | **ADRs relacionados** | ADR-005 (trazabilidad completa y persistencia — decisión D-5); ADR-009 (persistencia de resultados y cola HITL: sidecar + SQLite `hitl_queue`); ADR-004 (el feedback del muestreo de auditoría se registra aquí como corrección). |
 | **Interfaces clave** | `construir_case_record(evidencia, *, resultado, archivo, fuentes)` (arma el registro: es una proyección, no ejecuta reglas ni modelos); `CaseRecorder.registrar(caso)` → `ResultadoPersistencia(sidecar, indice, indexado)`; `leer(documento_id)` (round-trip al contrato congelado), `buscar(**filtros)` (consulta sobre el índice), `reindexar()` (reconstruye el índice desde los sidecars), `casos()`/`sidecars()` (lectura directa sin depender del índice). Contenido de `CaseRecord`: identidad, versiones (contrato + prompts), modelos por etapa, evidencia por fuente, reglas disparadas, quién decidió y el resultado consolidado. Persistencia: sidecar `<documento>.case.json` con **escritura atómica** (temporal + `os.replace` + `fsync`) + índice `index.jsonl` (**append**, deduplicado **al leer**: una fila por documento). Patrón de v1 heredado (`lib/pipeline.py`), base de los checkpoints de F6/T-602. |
 | **Responsable ciclo** | team analysis (BA/SA/PM) → team implementation |
-| **Estado de diseño** | ✅ Implementado (T-506: `CaseRecord` persistido en sidecar + índice) |
+| **Estado de diseño** | ✅ Implementado (T-506: `CaseRecord` persistido en sidecar + índice; T-507: métricas sobre ese histórico) |
 | **Fecha inicio** | 2026-09-11 |
-| **Fecha fin** | 2026-09-11 (T-506; T-602/T-603 de F6) |
+| **Fecha fin** | 2026-09-11 (T-506/T-507; T-602/T-603 de F6) |
 
 ## 2. Estado de trazabilidad del módulo
 
@@ -30,7 +30,7 @@
 | Sidecar JSON por resultado (resultado + evidencia + trazabilidad) | §9 (`CaseRecord`) + E-CLI-2 | E-CLI-2 | F6 / T-603 | [ ] pendiente |
 | `CaseRecord` como contrato de trazabilidad (§9) | §9 | E-CONC-5 | F0 / T-001 (schema) + F5 / T-506 | [x] hecho (contrato de F0 sin cambios — lo persiste T-506 y el round-trip sidecar → `CaseRecord` es sin pérdida) |
 | Registro de correcciones HITL como feedback (semilla de ajuste de reglas/prompts) | §4.5 (Feedback) | E-CONC-4 | F5 / T-505 | [x] hecho (`hitl.Correccion` estructurada + `ColaHitl.feedback()` separado por motivo: agente R-09 vs regla R-03; su estado viaja al `CaseRecord` en T-506) |
-| Logs estructurados por caso + diagnóstico del SDK ante latencia/status inesperado | §10 (NFR observabilidad) | E-LIB-5 | F5 / T-507 | [ ] pendiente |
+| Logs estructurados por caso + diagnóstico del SDK ante latencia/status inesperado | §10 (NFR observabilidad) | E-LIB-5 | F5 / T-507 | [x] hecho (diagnóstico del cliente en `models/ollama.py::_diagnostico` desde F0/T-005; **métricas** del lote en `trace/metricas.py` sobre el histórico de T-506) |
 
 ## 3. Definition of Design / contratos a congelar
 
@@ -51,3 +51,4 @@
 | Fecha | Acción / hito | Responsable | Estado |
 |---|---|---|---|
 | 2026-09-11 | **T-506 hecha**: el módulo deja de ser esqueleto. `construccion.py` **arma** el `CaseRecord` (proyección de la corrida: evidencia + decisión + resultado) y `recorder.py` lo **persiste** en **sidecar** (`<documento>.case.json`, escritura **atómica** por temporal + `os.replace` + `fsync`) + **índice** (`index.jsonl`, *append*, deduplicado **al leer**: una fila por documento). El registro responde el Gherkin de E-CONC-5 sin volver a correr el pipeline. Suites: `tests/test_trace_recorder_t506.py` (74) y `scripts/F5/t506.py` (4/4 + 14/14). | team implementation | Hecho |
+| 2026-09-11 | **T-507 hecha**: `metricas.py` agrega el histórico persistido y calcula las métricas del DoD de F5 (`06-estrategia-calidad.md` §5): % certeza alta por programa, % agente IA, % rechazado (con la distinción de los que fueron de **certeza alta**), **acuerdo VLM/LLM** (sobre los campos leídos por ambas fuentes, listando los desacuerdos), cobertura HITL (obligatorios vs. muestreo) y tasa de alertas R7. Cada métrica usa su propio denominador y declara el motivo cuando no es calculable; el reporte se versiona y avisa si el lote es chico. Suites: `tests/test_metricas_t507.py` (47) y `scripts/F5/t507.py` (6/6 + 11/11). | team implementation | Hecho |

@@ -10,18 +10,18 @@
 
 | Campo | Valor |
 |---|---|
-| **Fase en curso** | **F5 — Conclusión + HITL** (T-501..T-507) · T-501..T-506 ✅ hechas |
+| **Fase en curso** | **F5 — Conclusión + HITL** ✅ **cerrada** (T-501..T-507); la próxima es F6 (CLI/batch) |
 | **Estado** | **T-401..T-405 ✅ hechas — F4 cerrada con el DoD verificado**: los flujos VLM y LLM corren **en paralelo** devolviendo `SourceEvidence` con el contrato de F0; prompt de evidencia versionado `extraccion-key-value@1`, intérprete que no inventa, paralelismo medido, **normalización key-value** (CUIT cortado, fecha ISO, montos numéricos, `punto_venta`/`numero_comprobante` derivados) con el crudo preservado, **pasada 1 por fuente** (sostén por forma canónica + coherencia interna), **combinación con resolución por campo** (tabla de precedencia ADR-002: visual/textual/programa, conservando todas las lecturas) y **paridad con v1 medida en tres niveles** (reglas 20/20, campos 29/29, sostén 32/32). |
 | **F0** | ✅ Fundación completada (schemas, esqueleto, golden set, adaptadores) |
 | **F1** | ✅ Implementada (T-101..T-105/ORQ, `api.process()`; paridad de integración en `@pytest.mark.integration`) |
 | **F2** | ✅ DoD verificado (T-201..T-204; doble paso qween) |
 | **F3** | ✅ DoD verificado (T-301..T-305; motor de reglas R1-R7, evidencia, reglas raw, cadena contable y paridad con v1) |
 | **F4** | ✅ DoD verificado (T-401..T-405; flujos en paralelo, normalización, pasada 1, combinación por campo y paridad con v1) |
-| **F5** | 🟡 En implementación (T-501..T-506 ✅: reglas cruzadas, búsqueda acotada, consolidación, escalado al agente IA, cola HITL con muestreo de auditoría y trazabilidad `CaseRecord` persistida; T-507 pendiente) |
+| **F5** | ✅ **DoD verificado** (T-501..T-507: reglas cruzadas, búsqueda acotada, consolidación, escalado al agente IA, cola HITL con muestreo de auditoría, trazabilidad `CaseRecord` persistida y métricas del lote) |
 | **F6** | 🔴 Backlog (CLI/batch y paridad sobre `files/`) |
 | **Paquete** | `voucherflow` v`0.1.0` (layout `src/`, ADR-007) |
 | **Contrato** | `SCHEMA_VERSION = 1.0.0` (congelado, ver criterio de cambio en `schemas/evidence.py`) |
-| **Suite de tests** | ✅ **1356 tests en verde + 10 skipped** (`python -m pytest --no-header -p no:cacheprovider`) en env `py313_env` |
+| **Suite de tests** | ✅ **1403 tests en verde + 10 skipped** (`python -m pytest --no-header -p no:cacheprovider`) en env `py313_env` |
 
 **Resumen**: F0 dejó la **fundación de la librería**: contratos de evidencia
 congelados, configuración centralizada, adaptadores `OllamaClient`/
@@ -71,7 +71,7 @@ pendientes.
 | Validación (F2) | `validation/qween.py` | `VeredictoGate` (comprobante/no/indeterminado), `ValidationResult` |
 | Clasificación (F3) | `classification/tipo_comprobante.py` | `TipoComprobanteResult`, `ClasificacionContableResult` |
 | Extracción (F4) | `extraction/flows.py` | `flujo_vlm()`, `flujo_llm()`, `extraer()` (**implementados en T-401**); `combinar_evidencia()` (**implementada en T-404**) |
-| Conclusión (F5) | `conclusion/` + `trace/` | `concluir()`/`concluir_caso()` (**T-501**), `concluir_con_busqueda()` (**T-502**), `consolidar_caso()` (**T-503**), `concluir_con_agente()`/`escalar_a_agente()` (**T-504**), `encolar_hitl()` + `ColaHitl` (**T-505**) y `construir_case_record()` + `CaseRecorder` (**T-506**) implementadas. Sin esqueletos en F5 salvo `api.run()`/`PipelineOrchestrator.ejecutar()` (F6) |
+| Conclusión (F5) | `conclusion/` + `trace/` | `concluir()`/`concluir_caso()` (**T-501**), `concluir_con_busqueda()` (**T-502**), `consolidar_caso()` (**T-503**), `concluir_con_agente()`/`escalar_a_agente()` (**T-504**), `encolar_hitl()` + `ColaHitl` (**T-505**), `construir_case_record()` + `CaseRecorder` (**T-506**) y `metricas_del_recorder()` (**T-507**). F5 completa; quedan esqueletos solo de F6 (`api.run()`, `PipelineOrchestrator.ejecutar()`) |
 | Conclusión (F5) | `rules/contexto_conclusion.py` + `rules/cruzadas.py` | `ContextoConclusion` + `REGISTRO_CRUZADAS` (**implementados en T-501**) |
 | Conclusión (F5) | `models/arca.py` | `ArcaClient`, `ArcaResultado` (opcional, ADR-003) |
 | Trazabilidad (F5) | `trace/recorder.py` | `CaseRecorder` |
@@ -238,7 +238,7 @@ python -c "import voucherflow; print(voucherflow.__version__, voucherflow.SCHEMA
 # → 0.1.0 1.0.0
 ```
 
-### 3.2 Suite de tests (1356 en verde + 10 skipped)
+### 3.2 Suite de tests (1403 en verde + 10 skipped)
 ```bash
 cd v2
 python -m pytest tests -q
@@ -273,6 +273,7 @@ Cobertura de la suite por archivo (F0 + F1):
 | `test_conclusion_agente_t504.py` | **F5/T-504**: cuándo se escala (y cuándo no: un caso resuelto no gasta una llamada), qué recibe el agente (evidencia + reglas que fallaron + candidatos, **sin** los descartados), el **blindaje post-agente** (resucitar un descartado se rechaza y se audita, no se corrige), la interpretación de la salida (tolera el ruido del modelo pero **no** inventa decisiones), la derivación de certeza/origen (el origen es `agente_ia` solo si la elección sobrevivió), el flujo completo con consolidación (un caso del agente **no** se consolida como "certeza alta por programa") y las fronteras. El agente entra por protocolo: sin Ollama y sin red. |
 | `test_conclusion_hitl_t505.py` | **F5/T-505**: la decisión de encolar (las dos ramas del Gherkin y el caso que no entra), el **muestreo de auditoría** (determinismo, muestra estable, la tasa pedida, los extremos y la semilla como estrato), la **cola HITL** (`pendientes()` priorizada con R-09, separación obligatorios/muestreados, no-duplicación, re-encolar sin perder el trabajo humano), la **corrección** (estructurada y acumulable, con `KeyError`/`ValueError` explícitos), la **confirmación** sin corrección («la regla acertó»), el **feedback** (separación R-09/R-03 y agregado por campo) y la integración (`encolar_hitl` mutando el `hitl` y la traza, sin tocar el resto). Sin red: la cola es una estructura de datos. |
 | `test_trace_recorder_t506.py` | **F5/T-506**: el **registro auditable** (los cinco datos del Gherkin legibles del `CaseRecord` sin volver a correr el pipeline), la **honestidad** del registro (sin agente no hay modelo de agente; declara si la evidencia por fuente es `directa` o `reconstruida_desde_campos`), el **sidecar** (round-trip sin pérdida al contrato congelado, escritura atómica sin temporales, ids con `:` o `/` que no escapan del directorio), el **índice** (una fila por documento —no por corrida: si no, inflaría las métricas—, consultas por estado/quién decidió/HITL, línea corrupta que no pierde el resto) y la **reconstrucción** (`reindexar()` desde los sidecars). Todo con `tmp_path`: no toca el repo ni la red. |
+| `test_metricas_t507.py` | **F5/T-507**: cada métrica del DoD con su `n` y su definición, la **honestidad del cálculo** (cada métrica con su **propio denominador**; «no calculable» **con motivo** en vez de un 0% que miente; «no saber» ≠ «saber que es cero»; el lote chico se avisa), el **acuerdo VLM/LLM** medido sobre los campos que leyeron **ambas** fuentes (un campo de una sola es cobertura, no desacuerdo; los desacuerdos se listan), la **cobertura HITL** separando obligatorios (objetivo 100%) de muestreo (la tasa configurada) y distinguiendo **encolado** de **revisado**, la tasa de alertas R7 (incluida la distinción de cuántos rechazos fueron de certeza alta), el reporte **versionado** y la integración con el histórico de T-506. Corre sin red ni modelos: el lote se arma con evidencia inyectada. |
 
 ### 3.3 Probar el contrato de evidencia a mano (ejemplos)
 
@@ -324,7 +325,7 @@ reglas.ids_disparados({"monto": 100, "texto": "tiene IVA"})  # ["R1", "R2"]
 - ✅ Gate "¿es comprobante?" estilo qween (**hecho en F2**, T-201..T-204).
 - ✅ Clasificar tipo/letra y cadena contable (**F3** completa: T-301..T-305 — motor de reglas R1-R7, prompt de evidencia, reglas raw, cadena contable 01→02→03 y paridad verificada con v1: **8/8** en la cadena y **5/5** de exactitud de letra vs. **2/5** de v1).
 - ✅ **Extracción VLM/LLM completa, con paridad medida (T-401 ✅, T-402 ✅, T-403 ✅, T-404 ✅, T-405 ✅)**: `python scripts/F4/t401.py` corre **11/11** escenarios sin Ollama, `t402.py` **19/19** + **17/17** + **5/5**, `t403.py` **11/11** + **7/7** + **4/4**, `t404.py` **8/8** + **4/4** (con `--manual` para ver la combinación sin GPU) y `t405.py` reporta la paridad (**reglas 20/20**, **campos 29/29**, **sostén 32/32**, **genérico 5/5**); con `--origen` los cinco corren la extracción real (F1 + vista fiel de F2 + Ollama). La paridad **real** contra v1 se corre con `t405.py --subset origen`.
-- ✅ **Conclusión: reglas cruzadas, búsqueda, consolidación, agente, HITL y trazabilidad (T-501..T-506)** — la pasada 2 decide el caso, busca evidencia **acotada** si faltan datos, **consolida** el `VoucherResult`, escala al **agente IA** (con blindaje post-agente) cuando el código no pudo, **encola a revisión humana** lo que no quedó de certeza alta (prioridad alta) más un **muestreo reproducible** de los que sí (prioridad baja) con las correcciones registradas como **feedback separado por motivo** (R-03/R-09), y **persiste la trazabilidad** de cada caso (sidecar con escritura atómica + índice consultable) para que la auditoría se responda leyendo el archivo. ❌ Falta solo T-507 (las métricas, que se calculan sobre ese índice) y, en **F6**, la CLI/batch.
+- ✅ **F5 completa: conclusión + HITL + trazabilidad + métricas (T-501..T-507)** — la pasada 2 decide el caso, busca evidencia **acotada** si faltan datos, **consolida** el `VoucherResult`, escala al **agente IA** (con blindaje post-agente) cuando el código no pudo, **encola a revisión humana** lo que no quedó de certeza alta (prioridad alta) más un **muestreo reproducible** de los que sí (prioridad baja) con las correcciones registradas como **feedback separado por motivo** (R-03/R-09), **persiste la trazabilidad** de cada caso (sidecar con escritura atómica + índice consultable) para que la auditoría se responda leyendo el archivo, y **reporta las métricas** del lote sobre ese histórico (% certeza alta, % agente, % rechazado, acuerdo VLM/LLM, cobertura HITL y alertas R7). ❌ Lo que falta es **F6**: la CLI/batch y la paridad E2E.
 - ❌ CLI/batch (`voucherflow …`) y paridad v1 sobre `files/` (llega en **F6**).
 
 ### 3.7 Comprobación rápida de T-301 (F3)
@@ -365,7 +366,7 @@ python -m pytest tests/test_extraction_flujos.py tests/test_extraction_key_value
     tests/test_extraction_paridad.py -q
 ```
 
-### 3.9 Comprobación rápida de F5 (T-501..T-506)
+### 3.9 Comprobación rápida de F5 (T-501..T-507)
 
 ```bash
 python scripts/F5/t501.py                      # tabla + 8 escenarios de conclusión + 8 fronteras
@@ -391,9 +392,13 @@ python scripts/F5/t506.py                      # contrato + 4 escenarios de pers
 python scripts/F5/t506.py --indice             # el índice y sus consultas
 python scripts/F5/t506.py --caso caso_ambiguo  # la trazabilidad de un caso sin decidir
 python scripts/F5/t506.py --manual             # el round-trip de auditoría, paso a paso
+python scripts/F5/t507.py                      # métricas del DoD de F5 (lote sintético) + 11 fronteras
+python scripts/F5/t507.py --detalle            # + composición del lote y desacuerdos VLM/LLM
+python scripts/F5/t507.py --historico salida/cases  # métricas de un lote real persistido
 python -m pytest tests/test_conclusion_cruzadas_t501.py tests/test_conclusion_gaps_t502.py \
     tests/test_conclusion_consolidacion_t503.py tests/test_conclusion_agente_t504.py \
-    tests/test_conclusion_hitl_t505.py tests/test_trace_recorder_t506.py -q
+    tests/test_conclusion_hitl_t505.py tests/test_trace_recorder_t506.py \
+    tests/test_metricas_t507.py -q
 ```
 
 ```python

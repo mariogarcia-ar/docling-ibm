@@ -23,9 +23,9 @@ contrato y ADR, y se registra su estado de diseño/implementación.
 | [`CLAS.md`](CLAS.md) | `voucherflow/classification/` | Tipo/letra (R1-R7 + VLM/LLM) y clasificación contable (cadena 01→02→03) | ✅ T-301..T-305 implementados (DoD de F3 verificado) | F3 (T-301..T-305) |
 | [`EXT.md`](EXT.md) | `voucherflow/extraction/` | Extracción con flujos VLM y LLM en paralelo, reglas raw (pasada 1) y combinación por campo | ✅ T-401..T-405 implementados (DoD de F4 verificado; paridad con v1 medida en tres niveles) | F4 (T-401..T-405) |
 | [`RULES.md`](RULES.md) | `voucherflow/rules/` | Motor de reglas declarativo: R1-R7, precedencia por campo, fast-fail y gaps | 🟡 R1-R7 (T-301) + evidencia (T-302) + reglas raw (T-303, ampliadas en F4/T-403) + precedencia por campo (F4/T-404, validada por la paridad de F4/T-405); cruzadas/gaps (F5) pendientes | F0 (T-003/ADR-006) + F3 (T-301/T-303) + F4 (T-403/T-404) + F5 (T-501/T-502) |
-| [`CONC.md`](CONC.md) | `voucherflow/conclusion/` | Reglas cruzadas → búsqueda de evidencia adicional → agente IA → HITL → consolidación | 🟡 En implementación (T-501..T-506 hechas: reglas cruzadas, búsqueda acotada, consolidación, escalado al agente, cola HITL y trazabilidad persistida; T-507 pendiente) | F5 (T-501..T-507) |
+| [`CONC.md`](CONC.md) | `voucherflow/conclusion/` | Reglas cruzadas → búsqueda de evidencia adicional → agente IA → HITL → consolidación | ✅ **DoD verificado** (T-501..T-507: reglas cruzadas, búsqueda acotada, consolidación, escalado al agente, cola HITL, trazabilidad persistida y métricas) | F5 (T-501..T-507) |
 | [`MODELS.md`](MODELS.md) | `voucherflow/models/` | Adaptadores de modelo: `OllamaClient`, `DoclingConverter`, `ArcaClient` (opcional) | 🔴 Borrador | F0 (T-005/T-006) |
-| [`TRACE.md`](TRACE.md) | `voucherflow/trace/` | Registro por caso (`CaseRecord`), trazabilidad y persistencia (JSON sidecar + índice) | ✅ T-506 implementado (sidecar con escritura atómica + índice consultable; checkpoints de F6 pendientes) | F5 (T-506) + F6 (T-602/T-603) |
+| [`TRACE.md`](TRACE.md) | `voucherflow/trace/` | Registro por caso (`CaseRecord`), trazabilidad, persistencia (JSON sidecar + índice) y métricas del lote | ✅ T-506/T-507 implementados (sidecar atómico + índice + reporte de métricas; checkpoints de F6 pendientes) | F5 (T-506/T-507) + F6 (T-602/T-603) |
 | [`ORCH-CLI.md`](ORCH-CLI.md) | `voucherflow/orchestrator.py` · `api.py` + `cli/` | Orquestador del pipeline, API de alto nivel y cliente CLI (orquestador/consumidor) | 🔴 Borrador | F5/F6 (T-601..T-606) |
 
 > **Nota de estado**: los módulos de fases futuras (VAL, TRACE, ORCH-CLI,
@@ -35,11 +35,11 @@ contrato y ADR, y se registra su estado de diseño/implementación.
 > orquestación `procesar_documento()` + `api.process()` y la paridad T-105.
 > **`CLAS.md` (classification, F3)**, **`EXT.md` (extraction, F4)** y
 > **`TRACE.md` (trace, F5/T-506)** ya están **✅ implementados con su DoD verificado**;
-> **`CONC.md` (conclusion, F5)** está en **🟡 En implementación** (T-501..T-506 hechos:
+> **`CONC.md` (conclusion, F5)** ya está **✅ con su DoD verificado** (T-501..T-507:
 > reglas cruzadas de la pasada 2, búsqueda acotada de evidencia, consolidación del
-> `VoucherResult`, escalado al agente IA, cola HITL con muestreo de auditoría y
-> trazabilidad `CaseRecord` persistida; falta T-507, las métricas) y **`RULES.md`** está
-> 🟡 con el motor completo hasta F5/T-502 — solo le
+> `VoucherResult`, escalado al agente IA, cola HITL con muestreo de auditoría, trazabilidad
+> `CaseRecord` persistida y métricas del lote) y **`RULES.md`** está 🟡 con el motor
+> completo hasta F5/T-502 — solo le
 > faltan las reglas cruzadas de la casuística HITL (post-MVP).
 
 ---

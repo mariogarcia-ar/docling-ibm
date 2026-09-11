@@ -4,8 +4,8 @@
 > `team implementation`. Complementa el seguimiento de la fase
 > ([`F5.md`](F5.md)) y el diseño del módulo
 > ([`../03-arquitectura/CONC.md`](../03-arquitectura/CONC.md)).
-> **Fecha**: 2026-09-11 · **Rama**: `v2` · **Estado**: 🟡 En implementación
-> (T-501..T-506 hechas; T-507 pendiente).
+> **Fecha**: 2026-09-11 · **Rama**: `v2` · **Estado**: ✅ **DoD verificado**
+> (T-501..T-507 hechas).
 
 ## 1. Ficha del subplan
 
@@ -446,13 +446,28 @@ con prompt de decisión estructurado, sin framework.
 - Suites: `tests/test_trace_recorder_t506.py` (74) y `scripts/F5/t506.py`
   (4/4 escenarios + 14/14 fronteras).
 
-### 3.7 T-507 · Métricas
+### 3.7 T-507 · Métricas ✅ Hecha
 
-> **Estado**: pendiente. E-LIB-5.
+> **Estado**: ✅ Hecha (2026-09-11). E-LIB-5.
 
-- % certeza alta, % agente, % rechazado, acuerdo VLM/LLM (ver `06`).
-- Reporte sobre el `CaseRecord` persistido; herramienta de inspección con el
-  patrón de `scripts/F3/t305.py` y `scripts/F4/t405.py`.
+- `trace/metricas.py`: % certeza alta, % agente, % rechazado, **acuerdo VLM/LLM**,
+  cobertura HITL (obligatorios y muestreo) y tasa de alertas R7, calculados sobre
+  el `CaseRecord` persistido de T-506 (`06-estrategia-calidad.md` §5).
+- **Cada métrica usa su propio denominador y declara el resto**: un caso sin
+  resultado consolidado no entra como "no rechazado" (no se sabe qué es) y una
+  métrica sin denominador sale **no calculable con motivo**, nunca un 0% que
+  miente. El reporte avisa si el lote es chico (una tendencia no se lee sobre dos
+  casos) y lleva las versiones (librería + contrato + formato de traza) porque una
+  métrica sin ellas no es comparable con la próxima corrida (§6).
+- **El acuerdo VLM/LLM se mide sobre los campos que leyeron las dos fuentes**, no
+  sobre el contrato: un campo que solo leyó una es fuente de cobertura, no de
+  desacuerdo.
+- El **diagnóstico del cliente de modelos** (la otra mitad de E-LIB-5) ya estaba
+  desde F0/T-005 (`models/ollama.py::_diagnostico`): T-507 lo declara y no lo
+  duplica.
+- Herramienta con el patrón de `scripts/F3/t305.py` y `scripts/F4/t405.py`:
+  `scripts/F5/t507.py` (lote sintético por defecto; `--historico DIR` para un lote
+  real). Suites: `tests/test_metricas_t507.py` (47) y el script (6/6 + 11/11).
 
 ## 4. Reglas duras (no romper F0/F3/F4)
 
@@ -551,22 +566,22 @@ funcion concluir(evidencia: CombinedEvidence, *, contexto_extra=None):
 
 ## 7. Avance
 
-- **Estado (2026-09-11)**: **T-501..T-506 hechas**; subplan creado y las
-  decisiones de alcance de §2 cerradas. La **pasada 2** corre sobre la evidencia
-  combinada de F4 y produce el veredicto del caso (negocio + fast-fail +
-  conflicto R7), con `ConclusionResult` (diseño §4.5) y el `Decision` de F0
-  adjunto solo cuando el código concluyó. Encima se apilan la búsqueda acotada
-  (T-502), la consolidación del `VoucherResult` (T-503), el escalado al agente
-  con blindaje (T-504) y la **cola HITL con muestreo de auditoría y feedback**
-  (T-505) y la **trazabilidad persistida** (T-506). Suite completa
-  **1356 passed / 10 skipped**; los **11** scripts
-  `scripts/F<n>/t*.py` salen con código 0. **T-507 (métricas) queda
-  pendiente** con su alcance definido en §3.7; se calculan sobre el índice que
-  T-506 dejó consultable.
+- **Estado (2026-09-11)**: **T-501..T-507 hechas — F5 CERRADA con su DoD
+  verificado**. La **pasada 2** corre sobre la evidencia combinada de F4 y produce
+  el veredicto del caso (negocio + fast-fail + conflicto R7), con
+  `ConclusionResult` (diseño §4.5) y el `Decision` de F0 adjunto solo cuando el
+  código concluyó. Encima se apilan la búsqueda acotada (T-502), la consolidación
+  del `VoucherResult` (T-503), el escalado al agente con blindaje (T-504), la
+  **cola HITL con muestreo de auditoría y feedback** (T-505), la **trazabilidad
+  `CaseRecord` persistida** (T-506) y las **métricas** del cierre (T-507). Suite
+  completa **1403 passed / 10 skipped**; los **12** scripts `scripts/F<n>/t*.py`
+  salen con código 0.
 - **Detalle por tarea**: T-501 → 94 tests + `t501.py` (8/8 + 8/8); T-502 → 73
   tests + `t502.py` (6/6 + 8/8); T-503 → 46 tests + `t503.py` (6/6 + 8/8); T-504
   → 62 tests + `t504.py` (6/6 + 9/9); T-505 → 58 tests + `t505.py` (6/6 + 13/13);
-  T-506 → 74 tests + `t506.py` (4/4 + 14/14).
+  T-506 → 74 tests + `t506.py` (4/4 + 14/14); T-507 → 47 tests + `t507.py`
+  (6/6 + 11/11).
+
 - **Punto de partida real**: la evidencia combinada de F4 (T-404) está
   disponible y con el valor vigente por campo resuelto (`CampoCombinado.valor`/
   `fuente`), y el motor R1-R7 de F3 (`evaluar_negocio`, `condicion_r7`) es

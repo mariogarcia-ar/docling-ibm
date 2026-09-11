@@ -15,10 +15,10 @@
 | **Fase(s) del plan** | F0 (T-001/T-002/T-005) y transversal F1-F5 (cada refactor aterriza en un módulo testeable) |
 | **Prioridad MoSCoW** | Must (MVP) |
 | **Responsable ciclo** | team analysis (BA/SA/PM) → team implementation |
-| **Estado épica** | 🔴 Backlog |
-| **DoR cumplido** | [ ] pendiente |
-| **Fecha inicio** |  |
-| **Fecha fin** |  |
+| **Estado épica** | 🟡 En implementación (E-LIB-5 cerrada con T-507; el resto de las historias cierra con sus fases) |
+| **DoR cumplido** | [x] sí |
+| **Fecha inicio** | 2026-09-06 |
+| **Fecha fin** | 2026-09-11 (E-LIB-5 / T-507; las demás historias cierran con sus fases) |
 
 ## 2. Definition of Done de la épica (criterios de aceptación a nivel épica)
 
@@ -117,7 +117,7 @@ Regla: extensibilidad
 ```
 
 ### E-LIB-5 · Trazabilidad y diagnóstico (observabilidad)
-- **Estado**: [ ] Pendiente · [ ] En desarrollo · [ ] En QA · [ ] Hecho
+- **Estado**: [ ] Pendiente · [ ] En desarrollo · [ ] En QA · [x] **Hecho** (F0/T-005 + F5/T-507, 2026-09-11)
 - **Responsable**: team analysis / team implementation
 - **Como** equipo de operaciones,
   **quiero** logs estructurados, diagnóstico por caso y métricas del pipeline
@@ -138,7 +138,7 @@ Entonces se producen métricas: documentos procesados, % certeza alta, % agente,
 
 | Fecha | Acción / hito | Responsable | Estado |
 |---|---|---|---|
-|  | | | |
+| 2026-09-11 | **E-LIB-5 cerrada (F0/T-005 + F5/T-507)**: la historia tiene dos mitades y las dos están implementadas. (1) **Diagnóstico del cliente de modelos** — `models/ollama.py::_diagnostico` registra latencia, status y reintentos ante **latencia sobre el umbral** o **status inesperado** (Gherkin: "el log incluye el diagnóstico del SDK/cliente"), desde F0/T-005. (2) **Métricas del pipeline** — `trace/metricas.py` (T-507) calcula sobre el `CaseRecord` persistido de T-506: documentos procesados, % certeza alta por programa, % agente IA, % rechazado, **acuerdo VLM/LLM**, cobertura HITL (obligatorios y muestreo) y tasa de alertas R7 (`06-estrategia-calidad.md` §5). Cada métrica usa su propio denominador, declara por qué cuando no es calculable (**"no saber" ≠ "saber que es cero"**) y el reporte se versiona (librería + contrato + formato de traza) para que dos corridas sean comparables. Suites: `tests/test_metricas_t507.py` (47) y `scripts/F5/t507.py` (6/6 + 11/11, con modo `--historico DIR` para un lote real). **Nota de honestidad**: las métricas agregan el histórico; **no** recalculan el pipeline ni duplican el diagnóstico del cliente. | team implementation | Hecho |
 
 ## 5. Referencias cruzadas
 

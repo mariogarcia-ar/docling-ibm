@@ -264,6 +264,11 @@ tasa inicial en Fase 1 (sugerida 5-10%).
   cosas distintas: una corrección de certeza baja señala un error del **agente**
   (R-09) y una del muestreo, una **regla** que acierta por accidente (R-03).
 - Cobertura: `tests/test_conclusion_hitl_t505.py`, `scripts/F5/t505.py`.
+- **La tasa efectivamente revisada se mide (T-507)**: `trace/metricas.py::cobertura_hitl()` reporta
+  por separado los **obligatorios** (objetivo 100%) y los **muestreados** (objetivo: la tasa
+  configurada), porque mezclarlos daría un número comparable con ninguno de los dos objetivos. En
+  los dos casos mide **revisión efectiva**, no encolado: un caso en la cola que nadie miró está
+  encolado pero no cubierto.
 
 ---
 
@@ -312,7 +317,9 @@ consulta/auditoría sobre el histórico (Fase futura / E-CLI HITL list).
   nivel de *fuente* de la pasada 1 (`valida`, `debilidades`) no viaja en la evidencia
   combinada, el registro **declara** si la evidencia por fuente es `directa` o
   `reconstruida_desde_campos` en lugar de aparentar una fidelidad que no tiene.
-- Cobertura: `tests/test_trace_recorder_t506.py` (74), `scripts/F5/t506.py` (4/4 + 14/14).
+- Cobertura: `tests/test_trace_recorder_t506.py` (74), `scripts/F5/t506.py` (4/4 + 14/14),
+  `tests/test_metricas_t507.py` (47) y `scripts/F5/t507.py` (6/6 + 11/11: las métricas se calculan
+  sobre este histórico).
 - **Pendiente (consistente con este ADR)**: el índice/store SQLite para consultas agregadas
   sobre el histórico. T-506 dejó el **índice** JSONL (una línea por caso) que resuelve las
   consultas del MVP sin infraestructura nueva.
@@ -437,7 +444,7 @@ candidato descartado).
 
 ### ADR-009 · Persistencia de resultados y cola HITL
 
-- **Estado**: 🟡 **Parcialmente implementado** (F5/T-505 + T-506, 2026-09-11: cola HITL en memoria y **sidecar + índice JSONL**; el store SQLite para consultas por más dimensiones sigue pendiente) · **Prioridad**: Media · **Decisión D-9**
+- **Estado**: 🟡 **Parcialmente implementado** (F5/T-505 + T-506 + T-507, 2026-09-11: cola HITL en memoria, **sidecar + índice JSONL** y métricas sobre ese histórico; el store SQLite para consultas por más dimensiones sigue pendiente) · **Prioridad**: Media · **Decisión D-9**
 
 **Contexto**
 Hay que persistir resultados, evidencia y decisiones HITL (correcciones,
@@ -484,7 +491,9 @@ revisión y las correcciones, que alimente el feedback a reglas/prompts.
   en memoria (T-505), y las del histórico las resuelve el índice JSONL — sin infraestructura
   nueva. El SQLite se justifica cuando haga falta consultar por **más dimensiones** o cruzar
   histórico y cola, que es la fase posterior que este ADR ya anticipa.
-- Cobertura: `tests/test_trace_recorder_t506.py` (74), `scripts/F5/t506.py` (4/4 + 14/14).
+- Cobertura: `tests/test_trace_recorder_t506.py` (74), `scripts/F5/t506.py` (4/4 + 14/14),
+  `tests/test_metricas_t507.py` (47) y `scripts/F5/t507.py` (6/6 + 11/11: las métricas se calculan
+  sobre este histórico).
 
 
 ---
