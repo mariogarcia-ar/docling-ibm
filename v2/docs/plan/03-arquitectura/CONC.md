@@ -15,32 +15,32 @@
 | **ADRs relacionados** | ADR-002 (precedencia, insumo de reglas cruzadas); ADR-003 (búsqueda de evidencia adicional con límite — hook ARCA); ADR-004 (muestreo de auditoría de certeza alta); ADR-005 (trazabilidad `CaseRecord`); ADR-008 (implementación del agente IA); ADR-009 (persistencia resultados + cola HITL SQLite). |
 | **Interfaces clave** | `concluir(evidencia)` / `concluir_caso()`; dataclass `ConclusionResult { concluye, certeza, origen, candidatos_descartados, candidatos_restantes, reglas_aplicadas, alertas, hitl }`; flujo: evidencia combinada → reglas cruzadas → ¿faltan datos? (sí → evidencia adicional con max_reintentos=N → re-aplicar) → ¿el código concluye? (sí → consolidar certeza alta/origen programa + muestreo auditoría prioridad baja; no → agente IA entre candidatos_restantes → certeza baja/origen agente_ia + HITL prioridad alta) → persistir trazabilidad. |
 | **Responsable ciclo** | team analysis (BA/SA/PM) → team implementation |
-| **Estado de diseño** | 🔴 Borrador |
-| **Fecha inicio** |  |
+| **Estado de diseño** | 🟡 En implementación (T-501 hecha: reglas cruzadas, contexto de conclusión y `ConclusionResult`; T-502..T-507 pendientes) |
+| **Fecha inicio** | 2026-09-11 |
 | **Fecha fin** |  |
 
 ## 2. Estado de trazabilidad del módulo
 
 | Elemento de arquitectura (doc 03) | Sección | Épica/Historia | Fase/Tarea | Estado |
 |---|---|---|---|---|
-| Reglas cruzadas sobre evidencia combinada (negocio + fast-fail + conflicto R7) | §4.5 | E-CONC-1 | F5 / T-501 | [ ] pendiente |
-| Detección de gaps → búsqueda de evidencia adicional (max_reintentos=N, sin loop abierto) | §4.5 | E-CONC-2 | F5 / T-502 | [ ] pendiente |
-| Consolidar "certeza alta · origen programa" cuando el código concluye | §4.5 | E-CONC-1 | F5 / T-503 | [ ] pendiente |
+| Reglas cruzadas sobre evidencia combinada (negocio + fast-fail + conflicto R7) | §4.5 | E-CONC-1 | F5 / T-501 | [x] hecho (`rules/cruzadas.py`: `REGISTRO_CRUZADAS` con `CRUZ_1`..`CRUZ_5` como `Rule` de `tipo="cruzada"` sobre el valor vigente de cada campo, y `rules/contexto_conclusion.py::ContextoConclusion`) |
+| Detección de gaps → búsqueda de evidencia adicional (max_reintentos=N, sin loop abierto) | §4.5 | E-CONC-2 | F5 / T-502 | [ ] pendiente (`CRUZ_4` **ya detecta y reporta** el gap en `faltan_datos`: T-502 solo agrega la búsqueda) |
+| Consolidar "certeza alta · origen programa" cuando el código concluye | §4.5 | E-CONC-1 | F5 / T-503 | [ ] pendiente (T-501 ya deriva `certeza`/`origen` de la etapa; falta consolidar el `VoucherResult`) |
 | Escalado a agente IA entre `candidatos_restantes` (no puede resucitar descartados) | §4.5 | E-CONC-3 | F5 / T-504 | [ ] pendiente |
 | Consolidar "certeza baja · origen agente_ia" | §4.5 | E-CONC-3 | F5 / T-504 | [ ] pendiente |
 | HITL muestra de auditoría (certeza alta, prioridad baja) | §4.5 | E-CONC-4 | F5 / T-505 | [ ] pendiente |
 | HITL revisión obligatoria (certeza baja, prioridad alta) | §4.5 | E-CONC-4 | F5 / T-505 | [ ] pendiente |
 | Feedback → reglas y prompts (de HITL y muestreo) | §4.5 | E-CONC-4 | F5 / T-505 | [ ] pendiente |
 | Persistir trazabilidad (`CaseRecord`, sidecar + índice) | §4.5 + §4.7 | E-CONC-5 | F5 / T-506 | [ ] pendiente |
-| Dataclass `ConclusionResult` + schema `Decision`/`VoucherResult` | §4.5 + §6 | E-CONC / E-LIB-2 | F0 / T-001 | [ ] pendiente |
+| Dataclass `ConclusionResult` + schema `Decision`/`VoucherResult` | §4.5 + §6 | E-CONC / E-LIB-2 | F0 / T-001 | [x] contrato listo (`Decision`/`VoucherResult` en F0; el `ConclusionResult` del diseño §4.5 se materializa en T-501 con los mismos campos) |
 | Métricas: % certeza alta, % agente, % rechazado, acuerdo VLM/LLM | §10 (NFR) | E-LIB-5 | F5 / T-507 | [ ] pendiente |
 
 ## 3. Definition of Design / contratos a congelar
 
-- [ ] Interfaz pública acordada: dataclass `ConclusionResult { concluye, certeza, origen, candidatos_descartados, candidatos_restantes, reglas_aplicadas, alertas, hitl }` y schema `Decision`/`VoucherResult` (enumerados Certeza/Origen/estado).
-- [ ] Contrato de entrada/salida alineado al schema de evidencia: la conclusión consume `CombinedEvidence` (con resolución por campo) y produce `VoucherResult` que se persiste junto al `CaseRecord`.
-- [ ] ADR(s) asociado(s) resueltos: ADR-003 (hook ARCA con límite), ADR-004 (tasa de muestreo auditoría, sugerida 5-10%), ADR-008 (agente = llamada Ollama con prompt estructurado + blindaje post-agente), ADR-005/ADR-009 (persistencia sidecar + cola HITL SQLite).
-- [ ] Casos de golden set / tests que lo validan: casos donde el código concluye (certeza alta), casos que escalan al agente (certeza baja), casos con gap cubierto por ARCA, y casos de muestreo/corrección HITL (registro de feedback).
+- [x] Interfaz pública acordada: dataclass `ConclusionResult { concluye, certeza, origen, candidatos_descartados, candidatos_restantes, reglas_aplicadas, alertas, hitl }` y schema `Decision`/`VoucherResult` (enumerados Certeza/Origen/estado). **T-501** la materializa en `rules/cruzadas.py` (agregando `estado`, `decision`, `faltan_datos`, `conflictos`, `motivo`, `fast_fail` y `reglas_por_familia` para la traza) y expone `conclusion.concluir()` / `conclusion.concluir_caso()`.
+- [x] Contrato de entrada/salida alineado al schema de evidencia: la conclusión consume `CombinedEvidence` (con resolución por campo) y produce `VoucherResult` que se persiste junto al `CaseRecord`. **T-501** cierra el lado de la **decisión**: `concluir()` devuelve la `CombinedEvidence` con el `Decision` adjunto (solo si el código concluyó) y el `ConclusionResult` viaja en la traza; el `VoucherResult` completo (con la clasificación contable) lo consolida T-503.
+- [ ] ADR(s) asociado(s) resueltos: ADR-003 (hook ARCA con límite), ADR-004 (tasa de muestreo auditoría, sugerida 5-10%), ADR-008 (agente = llamada Ollama con prompt estructurado + blindaje post-agente), ADR-005/ADR-009 (persistencia sidecar + cola HITL SQLite). **ADR-008 parcialmente**: T-501 ya curó los candidatos a un **conjunto cerrado** (un valor no puede estar descartado y restante a la vez); el blindaje post-agente del agente real es T-504.
+- [ ] Casos de golden set / tests que lo validan: casos donde el código concluye (certeza alta), casos que escalan al agente (certeza baja), casos con gap cubierto por ARCA, y casos de muestreo/corrección HITL (registro de feedback). **T-501 cubre los tres desenlaces y el gap**: `tests/test_conclusion_cruzadas_t501.py` (94) — aprobado (negocio), rechazado (fast-fail por contradicción) y revisión (gap, R7, negocio vs. documento, letra fuera de vocabulario) — más `scripts/F5/t501.py` (8/8 escenarios + 8/8 fronteras). La búsqueda por ARCA y los casos HITL son de T-502/T-505.
 
 ## 4. Decisiones abiertas que lo afectan
 
@@ -55,4 +55,4 @@
 
 | Fecha | Acción / hito | Responsable | Estado |
 |---|---|---|---|
-| _(vacío)_ | | | |
+| 2026-09-11 | **T-501 hecha**: la **pasada 2** de reglas cruzadas corre sobre la evidencia **combinada** de F4. `rules/contexto_conclusion.py::ContextoConclusion` proyecta la resolución por campo de T-404 (valor vigente + fuente responsable) y evalúa la coherencia de la letra **reutilizando** `COHERENCIA_POR_CAMPO` de F4/T-403 (una sola definición de la tabla, dos usos: la fuente en la pasada 1, el caso en la pasada 2). `rules/cruzadas.py` declara `REGISTRO_CRUZADAS` con cinco `Rule` de `tipo="cruzada"` del motor de F0 (no se reescribe `Registry`): **negocio** (`CRUZ_1` → `aprobado`), **fast-fail** (`CRUZ_3` contradicción de la letra → `rechazado` con certeza alta; `CRUZ_2`/`CRUZ_4` falta de sostén → `revision`) y **conflicto** (`CRUZ_5` R7 + cruce negocio-vs-documento → `revision`). `conclusion/engine.py` deja de ser esqueleto: `concluir()` adjunta el `Decision` de F0 (que T-404 dejó en `None`) y `concluir_caso()` devuelve el `ConclusionResult` del diseño §4.5. **Hallazgo de contrato**: el validador de F0 exige `origen=programa ⇒ certeza=alta`, así que `Decision` es el veredicto **final** y un caso ambiguo viaja sin él (lo resolverán T-504/T-505); de ahí que el `ConclusionResult` sea necesario. Suites: `tests/test_conclusion_cruzadas_t501.py` (94) y `scripts/F5/t501.py` (8/8 + 8/8). | team implementation | Hecho |

@@ -4,8 +4,8 @@
 > `team implementation`. Complementa el seguimiento de la fase
 > ([`F5.md`](F5.md)) y el diseño del módulo
 > ([`../03-arquitectura/CONC.md`](../03-arquitectura/CONC.md)).
-> **Fecha**: 2026-09-10 · **Rama**: `v2` · **Estado**: 🟡 En implementación
-> (T-501..T-507; arranca por T-501).
+> **Fecha**: 2026-09-11 · **Rama**: `v2` · **Estado**: 🟡 En implementación
+> (T-501 hecha; T-502..T-507 pendientes).
 
 ## 1. Ficha del subplan
 
@@ -74,15 +74,15 @@
 
 ## 3. Alcance por tarea (T-501..T-507)
 
-### 3.1 T-501 · Reglas cruzadas sobre evidencia combinada (negocio + fast-fail + conflicto R7) 🟡 En implementación
+### 3.1 T-501 · Reglas cruzadas sobre evidencia combinada (negocio + fast-fail + conflicto R7) ✅ Hecha
 
-> **Estado**: en implementación. Es el arranque de F5 y el cimiento del resto:
-> T-502 busca evidencia para los gaps que esta tarea **nombra**, T-503 consolida
-> lo que esta tarea resuelve, T-504 escala lo que esta tarea **deja abierto** y
-> T-505/T-506 consumen su `Decision`.
+> **Estado 2026-09-11**: **Hecha** por `team implementation`. Suite completa en
+> verde (**1043 passed, 10 skipped**, 94 nuevos); `python scripts/F5/t501.py`
+> reporta **8/8** escenarios de conclusión + **8/8** fronteras (exit 0). `F5.md`
+> pasa de 🔴 Backlog a 🟡 En implementación.
 
 **Qué se hace.** Una **pasada 2** de reglas que corre sobre la evidencia
-**combinada** (no por fuente, como la pasada 1 de T-403) y produce el `Decision`
+**combinada** (no por fuente, como la pasada 1 de T-403) y produce el veredicto
 del caso: negocio tributario, fast-fail por letra y conflicto R7.
 
 **Apartado (1) — negocio tributario.** Se re-aplica el motor R1-R7 de F3
@@ -108,24 +108,34 @@ alerta ya definida en F3/T-301 (`construir_alerta`, `MENSAJE_R7`) y **degrada a
 detectado como B → alerta"): el sistema **no** afirma que esté mal, pide un ojo
 humano. Diferencia deliberada con el fast-fail: R7 es sospecha, no contradicción.
 
-**Salida.** Un `Decision` (schema congelado de F0) con `concluye`, `certeza`,
-`origen`, `candidatos_descartados`, `candidatos_restantes`, `reglas_aplicadas`
-(ids de las cruzadas disparadas) y `alertas`. `concluye=True` solo cuando el
-código alcanzó un veredicto (aprobado o rechazado); `concluye=False` cuando queda
-ambiguo y hay que escalar.
+**Salida.** El veredicto en dos formas, porque el contrato de F0 es más estrecho
+que el diseño:
+
+- `ConclusionResult` (el dataclass del diseño §4.5) — la vista **completa**:
+  `concluye`, `certeza`, `origen`, `estado`, candidatos, reglas aplicadas,
+  alertas, `hitl`, gaps y conflictos. Existe siempre, incluido el caso que **no**
+  concluyó.
+- `Decision` (el schema congelado de F0) — el veredicto **final**, adjunto a la
+  evidencia combinada. **Solo** se emite cuando el código concluyó: su validador
+  exige que `origen=programa` implique `certeza=alta` (glosario §2), así que un
+  caso ambiguo no puede llevarlo — no lo decidió nadie todavía, y lo resolverán el
+  agente (T-504) o el HITL (T-505).
 
 **Archivos.**
 
 - `src/voucherflow/rules/contexto_conclusion.py` (nuevo) — `ContextoConclusion`
   (`frozen=True`), construido desde la `CombinedEvidence`: valores vigentes por
-  campo, letra vigente, candidatos, coherencia e insumos usados.
+  campo, letra vigente y su fuente, coherencia del caso, gaps, campos ausentes y
+  candidatos (con la curaduría de ADR-008).
 - `src/voucherflow/rules/cruzadas.py` (nuevo) — el registro
   `REGISTRO_CRUZADAS` con las `Rule` de `tipo="cruzada"`, la evaluación
-  (`evaluar_cruzadas`) y la construcción del `Decision`.
-- `src/voucherflow/conclusion/engine.py` — `concluir()` deja de ser esqueleto:
-  arma el contexto, corre las cruzadas y combina con la clasificación de F3.
+  (`evaluar_cruzadas`) y el armado del veredicto (`construir_conclusion`,
+  `construir_decision`).
+- `src/voucherflow/conclusion/engine.py` — `concluir()` deja de ser esqueleto
+  (adjunta el `Decision` a la evidencia) y aparece `concluir_caso()` (devuelve el
+  `ConclusionResult`).
 - `src/voucherflow/conclusion/__init__.py` y `rules/__init__.py` — exportes.
-- `tests/test_conclusion_cruzadas_t501.py` (nuevo).
+- `tests/test_conclusion_cruzadas_t501.py` (nuevo, 94 tests).
 - `scripts/F5/t501.py` (nuevo).
 
 **Cómo se prueba (sin red).**
@@ -143,10 +153,32 @@ ambiguo y hay que escalar.
 
 - **No** busca evidencia adicional para los gaps que detecta (eso es T-502).
 - **No** decide la consolidación "certeza alta por programa" como contrato
-  propio (T-503 lo formaliza); acá se deja `concluye=True` con la certeza
-  derivada de la etapa.
+  propio (T-503 lo formaliza); acá se deja el veredicto con la certeza derivada de
+  la etapa.
 - **No** llama al agente IA (T-504) ni encola HITL (T-505).
 - **No** persiste nada (T-506).
+- **No** muta la evidencia de entrada: `concluir` devuelve una copia con la
+  decisión adjunta.
+
+**Hallazgos de la implementación.**
+
+1. **El contrato de F0 hace cumplir la regla de oro.** `CombinedEvidence` valida
+   que `origen=programa` implique `certeza=alta`; un primer diseño emitía un
+   `Decision` de `programa` con certeza `baja` para los casos ambiguos y el
+   validador lo rechazó. De ahí el `ConclusionResult` (§4.5) y que `Decision` se
+   adjunte solo si el código concluyó.
+2. **Dos bugs reales, detectados ejecutando**: la tabla `COHERENCIA_POR_CAMPO`
+   está indexada por **campo disparador** (`tipo_comprobante`) y no por letra (el
+   lookup por letra nunca disparaba); y el intérprete de importes no entendía el
+   formato contable (`"1.234,56"`).
+3. **La coherencia del documento alcanza para concluir.** Exigir el contexto
+   fiscal dejaba sin resolver a todo comprobante que se sostiene solo — el caso
+   que el código sí puede decidir — y lo mandaba al agente. El contexto fiscal
+   **refina** (R7 y cruce negocio-vs-documento); no es un requisito.
+4. **La rama "ninguna regla disparó" es inalcanzable por construcción**: el
+   complemento de `CRUZ_1` es exactamente la unión de los disparadores de
+   `CRUZ_2`/`CRUZ_3`/`CRUZ_4`/`CRUZ_5`. Se conserva como red de seguridad
+   (el peor caso tiene que seguir siendo `revision`, nunca aprobar por descarte).
 
 ### 3.2 T-502 · Detección de gaps + búsqueda de evidencia adicional con límite (hook ARCA)
 
@@ -301,7 +333,7 @@ funcion concluir(evidencia: CombinedEvidence, *, contexto_extra=None):
 - `src/voucherflow/rules/cruzadas.py` (nuevo).
 - `src/voucherflow/conclusion/engine.py` (implementado; deja de ser esqueleto).
 - `src/voucherflow/conclusion/__init__.py` y `src/voucherflow/rules/__init__.py` (exportes).
-- `tests/test_conclusion_cruzadas_t501.py` (nuevo).
+- `tests/test_conclusion_cruzadas_t501.py` (nuevo, 94 tests).
 - `scripts/F5/t501.py` (nuevo).
 
 ### T-502..T-507
@@ -312,15 +344,17 @@ funcion concluir(evidencia: CombinedEvidence, *, contexto_extra=None):
 
 ## 7. Avance
 
-- **Estado (2026-09-11)**: **F5 arrancada.** Subplan creado con las decisiones
-  de alcance de §2 cerradas y el alcance de las 7 tareas acotado. **T-501 en
-  implementación**: la pasada 2 (negocio + fast-fail + R7) sobre la evidencia
-  combinada de F4, con `Decision` como salida. T-502..T-507 quedan pendientes con
-  su alcance definido en §3.2–§3.7. `F5.md` pasa de 🔴 Backlog a 🟡 En
-  implementación.
+- **Estado (2026-09-11)**: **T-501 hecha**; subplan creado y las decisiones de
+  alcance de §2 cerradas. La **pasada 2** corre sobre la evidencia combinada de F4
+  y produce el veredicto del caso (negocio + fast-fail + conflicto R7), con
+  `ConclusionResult` (diseño §4.5) y el `Decision` de F0 adjunto solo cuando el
+  código concluyó. Suite completa **1043 passed / 10 skipped** (94 nuevos);
+  `scripts/F5/t501.py` → **8/8** escenarios + **8/8** fronteras. T-502..T-507
+  quedan pendientes con su alcance definido en §3.2–§3.7. `F5.md` pasa de 🔴
+  Backlog a 🟡 En implementación.
 - **Punto de partida real**: la evidencia combinada de F4 (T-404) está
   disponible y con el valor vigente por campo resuelto (`CampoCombinado.valor`/
-  `fuente`), y el motor R1-R7 de F3 (`clasificar_tipo_comprobante`) es
-  reutilizable tal cual — así que T-501 puede implementarse sin tocar F3/F4.
-  `CombinedEvidence.decision` ya es opcional (T-404) precisamente para que F5 sea
-  quien la llene.
+  `fuente`), y el motor R1-R7 de F3 (`evaluar_negocio`, `condicion_r7`) es
+  reutilizable tal cual — así que T-501 se implementó sin tocar F3/F4.
+  `CombinedEvidence.decision` ya era opcional (T-404) precisamente para que F5
+  fuera quien la llene.

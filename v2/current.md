@@ -10,17 +10,18 @@
 
 | Campo | Valor |
 |---|---|
-| **Fase en curso** | **F4 — Extracción** (T-401..T-405) · ✅ **fase completada**; próxima: F5 |
+| **Fase en curso** | **F5 — Conclusión + HITL** (T-501..T-507) · T-501 ✅ hecha |
 | **Estado** | **T-401..T-405 ✅ hechas — F4 cerrada con el DoD verificado**: los flujos VLM y LLM corren **en paralelo** devolviendo `SourceEvidence` con el contrato de F0; prompt de evidencia versionado `extraccion-key-value@1`, intérprete que no inventa, paralelismo medido, **normalización key-value** (CUIT cortado, fecha ISO, montos numéricos, `punto_venta`/`numero_comprobante` derivados) con el crudo preservado, **pasada 1 por fuente** (sostén por forma canónica + coherencia interna), **combinación con resolución por campo** (tabla de precedencia ADR-002: visual/textual/programa, conservando todas las lecturas) y **paridad con v1 medida en tres niveles** (reglas 20/20, campos 29/29, sostén 32/32). |
 | **F0** | ✅ Fundación completada (schemas, esqueleto, golden set, adaptadores) |
 | **F1** | ✅ Implementada (T-101..T-105/ORQ, `api.process()`; paridad de integración en `@pytest.mark.integration`) |
 | **F2** | ✅ DoD verificado (T-201..T-204; doble paso qween) |
 | **F3** | ✅ DoD verificado (T-301..T-305; motor de reglas R1-R7, evidencia, reglas raw, cadena contable y paridad con v1) |
 | **F4** | ✅ DoD verificado (T-401..T-405; flujos en paralelo, normalización, pasada 1, combinación por campo y paridad con v1) |
-| **F5–F6** | 🔴 Backlog (conclusión + HITL; CLI/batch y paridad sobre `files/`) |
+| **F5** | 🟡 En implementación (T-501 ✅: reglas cruzadas sobre la evidencia combinada; T-502..T-507 pendientes) |
+| **F6** | 🔴 Backlog (CLI/batch y paridad sobre `files/`) |
 | **Paquete** | `voucherflow` v`0.1.0` (layout `src/`, ADR-007) |
 | **Contrato** | `SCHEMA_VERSION = 1.0.0` (congelado, ver criterio de cambio en `schemas/evidence.py`) |
-| **Suite de tests** | ✅ **949 tests en verde + 10 skipped** (`python -m pytest --no-header -p no:cacheprovider`) en env `py313_env` |
+| **Suite de tests** | ✅ **1043 tests en verde + 10 skipped** (`python -m pytest --no-header -p no:cacheprovider`) en env `py313_env` |
 
 **Resumen**: F0 dejó la **fundación de la librería**: contratos de evidencia
 congelados, configuración centralizada, adaptadores `OllamaClient`/
@@ -70,7 +71,8 @@ pendientes.
 | Validación (F2) | `validation/qween.py` | `VeredictoGate` (comprobante/no/indeterminado), `ValidationResult` |
 | Clasificación (F3) | `classification/tipo_comprobante.py` | `TipoComprobanteResult`, `ClasificacionContableResult` |
 | Extracción (F4) | `extraction/flows.py` | `flujo_vlm()`, `flujo_llm()`, `extraer()` (**implementados en T-401**); `combinar_evidencia()` (**implementada en T-404**) |
-| Conclusión (F5) | `conclusion/engine.py` | `concluir()`, `escalar_a_agente()`, `encolar_hitl()` |
+| Conclusión (F5) | `conclusion/engine.py` | `concluir()`/`concluir_caso()` (**implementadas en T-501**); `escalar_a_agente()` (T-504) y `encolar_hitl()` (T-505) siguen esqueleto |
+| Conclusión (F5) | `rules/contexto_conclusion.py` + `rules/cruzadas.py` | `ContextoConclusion` + `REGISTRO_CRUZADAS` (**implementados en T-501**) |
 | Conclusión (F5) | `models/arca.py` | `ArcaClient`, `ArcaResultado` (opcional, ADR-003) |
 | Trazabilidad (F5) | `trace/recorder.py` | `CaseRecorder` |
 | Fachada / orquestador | `api.py`, `orchestrator.py` | Esqueleto de la API pública (`VoucherResult`) y `PipelineResult` |
@@ -191,6 +193,37 @@ pendientes.
 
 ---
 
+## 2.5 Avance de F5 (en curso)
+
+| Tarea | Módulo | Qué ofrece / se puede probar | Tests |
+|---|---|---|---|
+| **T-501** (✅) | `rules/cruzadas.py` + `rules/contexto_conclusion.py` + `conclusion/engine.py` | **Reglas cruzadas sobre la evidencia combinada (E-CONC-1)**: la **pasada 2** mira el **valor vigente** de cada campo (la resolución por precedencia de T-404), no cada fuente como la pasada 1. Tres familias: **negocio** (`CRUZ_1`: el comprobante se sostiene solo y R1-R3 no esperan otra letra → `aprobado`), **fast-fail** (`CRUZ_3`: la letra contradice los campos —A sin los dos CUIT, B con IVA discriminado— → `rechazado` con certeza **alta**; `CRUZ_2`/`CRUZ_4`: sin letra del vocabulario o faltan campos críticos → `revision`) y **conflicto** (`CRUZ_5`: R7 y el cruce negocio-vs-documento → `revision`, **no** rechazo). `concluir()` adjunta el `Decision` de F0 (que T-404 dejó en `None`) y `concluir_caso()` devuelve el `ConclusionResult` del diseño §4.5. La coherencia de la letra **reutiliza** `COHERENCIA_POR_CAMPO` de T-403 sobre el valor vigente del caso, y el motor R1-R7 de F3 se reutiliza sin reescribirse. | `test_conclusion_cruzadas_t501.py` (94) |
+| **T-502..T-507** (🔴) | `rules/gaps.py`, `conclusion/agent.py`, `conclusion/hitl.py`, `trace/recorder.py` | Gaps + hook ARCA con límite (T-502), consolidación del `VoucherResult` (T-503), agente IA + blindaje (T-504), cola HITL + feedback (T-505), `CaseRecord` persistido (T-506) y métricas (T-507). | — |
+
+> **Inspección de T-501**: `python scripts/F5/t501.py` imprime la **tabla de
+> reglas cruzadas** (id, prioridad, familia, resultado) y corre **8/8** escenarios
+> de conclusión (aprobado por negocio; rechazado por B con IVA; rechazado por A
+> sin CUIT receptor; revisión por gap; revisión por R7; revisión por negocio que
+> espera otra letra; revisión por tique `090`) más **8/8** fronteras. `--tabla`
+> muestra solo la tabla y `--manual` el caso ambiguo, que es la forma de ver la
+> conclusión **sin GPU**.
+>
+> **Decisión de alcance (T-501)**: **"está mal" y "no sé" son cosas distintas**.
+> El fast-fail (`CRUZ_3`) **rechaza** con certeza alta —el código sí resolvió, y
+> resolvió que no— mientras R7 solo **sospecha** y pide un ojo humano. Y el caso
+> ambiguo **no se aprueba por descarte**: si nada concluye, queda en `revision`
+> para el agente (T-504) o el HITL (T-505).
+>
+> **Hallazgo de contrato (T-501)**: el validador de `CombinedEvidence` exige que
+> `origen=programa` implique `certeza=alta`, así que el `Decision` de F0 es el
+> veredicto **final** y solo se adjunta cuando el código concluyó. Un caso ambiguo
+> viaja **sin** `Decision` —no lo decidió nadie todavía— y su estado completo vive
+> en el `ConclusionResult`. El contrato de F0 **rechazó** el primer diseño (que
+> emitía un `Decision` de programa con certeza baja) y eso fue lo que motivó la
+> separación.
+
+---
+
 ## 3. Qué se puede probar en esta fase (F1)
 
 ### 3.1 Rápido — instalación e import
@@ -202,7 +235,7 @@ python -c "import voucherflow; print(voucherflow.__version__, voucherflow.SCHEMA
 # → 0.1.0 1.0.0
 ```
 
-### 3.2 Suite de tests (949 en verde + 10 skipped)
+### 3.2 Suite de tests (1043 en verde + 10 skipped)
 ```bash
 cd v2
 python -m pytest tests -q
@@ -231,6 +264,7 @@ Cobertura de la suite por archivo (F0 + F1):
 | `test_extraction_raw_t403.py` | **F4/T-403**: sostén por forma canónica (montos con signo y paréntesis, fechas incluida la ventana de un período, CUIT con y sin separadores), la **coherencia de la fuente consigo misma** (`RAW_COHERENCIA`: `A` sin los dos CUIT, `B` con IVA discriminado, y los casos que no se juzgan), la trazabilidad (`RAW_COHERENCIA` / `incoherencias` / `sosten_estructurado` en la meta) y las fronteras (descripción sin evaluar, registro de T-303 intacto, esqueleto de T-404). |
 | `test_extraction_combinacion_t404.py` | **F4/T-404**: la tabla de precedencia (cobertura del contrato, regla y motivo por campo, orden de lecturas, regla de oro, fuentes no-lectura por delante), `resolver_campo` (acuerdo, desacuerdo en ambos sentidos, una sola fuente, ninguna, ganadora invalidada, ninguna utilizable, determinismo) y `combinar_evidencia` (conserva todas las lecturas, orden determinista de campos, `valor`/`fuente` por campo, `decision is None`, traza de la combinación, integración con el pipeline T-401→T-403). |
 | `test_extraction_paridad.py` | **F4/T-405**: procedencia de las reglas (cada una cita `regla_v1` + `prompt_v1` + `texto_v1`), paridad de normalización contra el `texto_v1` literal, la regla de **no inventar**, integridad del subconjunto (cobertura del contrato ∪ campos genéricos, campos de decisión excluidos con motivo, y el guard de que **todo** campo del contrato esté declarado) y la **lógica de comparación** (`coincide`/`difiere`/`no_comparable`, tolerancia número↔texto solo en números). Carga el script de paridad por `importlib` **sin** ejecutar `main`, así que la suite default no toca la red. |
+| `test_conclusion_cruzadas_t501.py` | **F5/T-501**: el contexto de la pasada 2 (valor vigente y fuente responsable por campo, campos ausentes sobre el universo del contrato, gaps, coherencia del caso, candidatos curados), las tres familias de reglas cruzadas (negocio, fast-fail y conflicto R7) con sus escenarios, la derivación de certeza/origen por etapa (**incluido que el contrato rechaza un `Decision` de `programa` con certeza baja**), el `ConclusionResult`, el contexto fiscal inyectable, el determinismo (incluida la independencia del orden de las fuentes) y las señales de R6. |
 
 ### 3.3 Probar el contrato de evidencia a mano (ejemplos)
 
@@ -282,7 +316,7 @@ reglas.ids_disparados({"monto": 100, "texto": "tiene IVA"})  # ["R1", "R2"]
 - ✅ Gate "¿es comprobante?" estilo qween (**hecho en F2**, T-201..T-204).
 - ✅ Clasificar tipo/letra y cadena contable (**F3** completa: T-301..T-305 — motor de reglas R1-R7, prompt de evidencia, reglas raw, cadena contable 01→02→03 y paridad verificada con v1: **8/8** en la cadena y **5/5** de exactitud de letra vs. **2/5** de v1).
 - ✅ **Extracción VLM/LLM completa, con paridad medida (T-401 ✅, T-402 ✅, T-403 ✅, T-404 ✅, T-405 ✅)**: `python scripts/F4/t401.py` corre **11/11** escenarios sin Ollama, `t402.py` **19/19** + **17/17** + **5/5**, `t403.py` **11/11** + **7/7** + **4/4**, `t404.py` **8/8** + **4/4** (con `--manual` para ver la combinación sin GPU) y `t405.py` reporta la paridad (**reglas 20/20**, **campos 29/29**, **sostén 32/32**, **genérico 5/5**); con `--origen` los cinco corren la extracción real (F1 + vista fiel de F2 + Ollama). La paridad **real** contra v1 se corre con `t405.py --subset origen`.
-- ❌ Conclusión reglas→agente→HITL + trazabilidad persistida (llega en **F5**).
+- ✅ **Conclusión: reglas cruzadas (T-501)** — la pasada 2 corre sobre la evidencia combinada y decide el caso. ❌ Falta el resto de F5: gaps + ARCA (T-502), consolidación del `VoucherResult` (T-503), agente IA (T-504), cola HITL (T-505), `CaseRecord` persistido (T-506) y métricas (T-507).
 - ❌ CLI/batch (`voucherflow …`) y paridad v1 sobre `files/` (llega en **F6**).
 
 ### 3.7 Comprobación rápida de T-301 (F3)
@@ -322,6 +356,45 @@ python -m pytest tests/test_extraction_flujos.py tests/test_extraction_key_value
     tests/test_extraction_raw_t403.py tests/test_extraction_combinacion_t404.py \
     tests/test_extraction_paridad.py -q
 ```
+
+### 3.9 Comprobación rápida de F5 (T-501)
+
+```bash
+python scripts/F5/t501.py                      # tabla + 8 escenarios de conclusión + 8 fronteras
+python scripts/F5/t501.py --tabla              # solo la tabla de reglas cruzadas
+python scripts/F5/t501.py --caso conflicto_r7  # un solo escenario
+python scripts/F5/t501.py --manual             # el caso ambiguo (sin Decision)
+python -m pytest tests/test_conclusion_cruzadas_t501.py -q
+```
+
+```python
+from voucherflow.conclusion import concluir, concluir_caso
+from voucherflow.extraction import combinar_evidencia
+from voucherflow.rules.contexto import ContextoTipoComprobante
+
+combinada = combinar_evidencia("doc-1", evidencias)   # F4/T-404 (decision=None)
+
+# La pasada 2 (T-501) mira el valor vigente de cada campo y decide el caso.
+resultado = concluir_caso(combinada)
+resultado.estado          # 'aprobado' | 'rechazado' | 'revision'
+resultado.certeza         # 'alta' si concluyó el código; None si queda ambiguo
+resultado.reglas_aplicadas  # ['CRUZ_1'] / ['CRUZ_3'] / ['CRUZ_4'] / ['CRUZ_5']
+resultado.faltan_datos    # los campos críticos que faltan (insumo de T-502)
+
+# Con el contexto fiscal (lo aporta F3/padrón), además detecta R7 y el cruce
+# negocio-vs-documento. Es opcional: sin él, la coherencia del documento alcanza.
+ctx = ContextoTipoComprobante(
+    emisor_condicion_fiscal="Responsable Inscripto",
+    receptor_condicion_fiscal="Responsable Inscripto",
+)
+concluir_caso(combinada, ctx).alertas    # R7: RI+RI con una B → revisión
+```
+
+> **El caso ambiguo viaja sin `Decision`**, a propósito: el `Decision` de F0
+> registra *quién* decidió y el contrato exige que `origen=programa` implique
+> `certeza=alta` (glosario §2). Si el código no pudo concluir, todavía no decidió
+> nadie: el estado completo viaja en el `ConclusionResult` y lo resolverán el
+> agente (T-504) o el HITL (T-505).
 
 ```python
 from voucherflow.extraction import extraer
@@ -365,8 +438,10 @@ Las funciones de esqueleto de fases futuras (`run`, `concluir`,
 esqueletos `process` (F1), `validate` (F2), `classify` (F3),
 `flujo_vlm`/`flujo_llm`/`extract` (F4/T-401), la normalización key-value
 (F4/T-402), la pasada 1 por fuente (F4/T-403), la combinación por campo
-(F4/T-404) ni la paridad con v1 (F4/T-405). **F4 queda cerrada** con su DoD
-verificado; lo próximo es **F5 — Conclusión + HITL** (T-501..T-507).
+(F4/T-404), la paridad con v1 (F4/T-405) ni `concluir`/`concluir_caso`
+(F5/T-501). **F4 queda cerrada** con su DoD verificado y **F5 está en curso**
+(T-501 hecha); dentro de F5 siguen siendo esqueleto `escalar_a_agente` (T-504) y
+`encolar_hitl` (T-505), cuyas firmas ya están congeladas desde F0.
 
 ---
 

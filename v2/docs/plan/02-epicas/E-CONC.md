@@ -15,15 +15,15 @@
 | **Fase(s) del plan** | F5 (T-501..T-507) |
 | **Prioridad MoSCoW** | Must (MVP) — E-CONC-1/2/3/4/5 |
 | **Responsable ciclo** | team analysis (BA/SA/PM) → team implementation |
-| **Estado épica** | 🔴 Backlog |
-| **DoR cumplido** | [ ] pendiente |
-| **Fecha inicio** |  |
+| **Estado épica** | 🟡 En implementación (T-501 hecha: E-CONC-1; E-CONC-2/3/4/5 pendientes) |
+| **DoR cumplido** | [x] sí |
+| **Fecha inicio** | 2026-09-11 |
 | **Fecha fin** |  |
 
 ## 2. Definition of Done de la épica (criterios de aceptación a nivel épica)
 
-- [ ] Se aplican reglas determinísticas de negocio tributario, fast-fail por letra y conflicto sobre la evidencia combinada (pasada 2), con resultado: concluye, certeza, origen, candidatos y reglas aplicadas.
-- [ ] Cuando el código concluye de forma consistente se marca certeza=alta y origen=programa (sin pasar por el agente IA).
+- [x] Se aplican reglas determinísticas de negocio tributario, fast-fail por letra y conflicto sobre la evidencia combinada (pasada 2), con resultado: concluye, certeza, origen, candidatos y reglas aplicadas. *(**T-501 hecho**: `rules/cruzadas.py` declara las cinco `Rule` de `tipo="cruzada"` y `conclusion/engine.py::concluir()` corre la pasada 2 sobre el valor vigente de cada campo (la resolución de T-404). `ConclusionResult` (diseño §4.5) lleva `concluye`/`certeza`/`origen`/`estado`/candidatos/reglas/alertas y el `Decision` de F0 se adjunta cuando el código concluyó. Las tres familias: **negocio** (`CRUZ_1`), **fast-fail** (`CRUZ_3` contradicción de la letra → `rechazado`; `CRUZ_2`/`CRUZ_4` falta de sostén → `revision`) y **conflicto** (`CRUZ_5` R7 y el cruce negocio-vs-documento → `revision`, no rechazo). Suites: `tests/test_conclusion_cruzadas_t501.py` (94) y `scripts/F5/t501.py` (8/8 + 8/8))*
+- [x] Cuando el código concluye de forma consistente se marca certeza=alta y origen=programa (sin pasar por el agente IA). *(**T-501 hecho**: `certeza` y `origen` se derivan de la **etapa que decidió** (glosario §2); cuando concluye el código, `origen=programa` y `certeza=alta`. El validador del contrato de F0 **hace cumplir** esa regla: rechaza un `Decision` de `programa` con certeza baja, y por eso un caso ambiguo viaja sin `Decision` (lo resolverá T-504/T-505))*
 - [ ] La búsqueda de evidencia adicional es puntual por gap concreto, con límite de reintentos y sin loop abierto (hook ARCA opcional, ADR-003).
 - [ ] El escalado a agente IA solo ocurre cuando el código no concluye y solo entre candidatos_restantes (no puede resucitar descartados); el resultado agente se marca certeza=baja y origen=agente_ia y se encola a HITL con prioridad alta.
 - [ ] HITL como autoridad final: revisión obligatoria de casos de certeza baja + muestreo periódico de auditoría de casos de certeza alta (tasa configurable), con registro de correcciones como feedback.
@@ -35,7 +35,7 @@
 ## 3. Historias de usuario y seguimiento
 
 ### E-CONC-1 · Reglas cruzadas sobre evidencia combinada (pasada 2)
-- **Estado**: [ ] Pendiente · [ ] En desarrollo · [ ] En QA · [ ] Hecho
+- **Estado**: [ ] Pendiente · [ ] En desarrollo · [ ] En QA · [x] **Hecho** (T-501, 2026-09-11)
 - **Responsable**: team analysis / team implementation
 - **Como** sistema,
   **quiero** aplicar reglas determinísticas de negocio tributario, fast-fail por
@@ -149,7 +149,7 @@ Regla: persistencia
 
 | Fecha | Acción / hito | Responsable | Estado |
 |---|---|---|---|
-|  | | | |
+| 2026-09-11 | **E-CONC-1 hecha (T-501)**: la **pasada 2** de reglas corre sobre la evidencia **combinada** de F4 (no por fuente, como la pasada 1): `rules/contexto_conclusion.py` proyecta la resolución por campo de T-404 (valor vigente + fuente responsable) y `rules/cruzadas.py` declara las cinco reglas cruzadas como `Rule` del motor de F0. **Negocio** (`CRUZ_1`: el comprobante se sostiene solo y el negocio no lo contradice → `aprobado`), **fast-fail** (`CRUZ_3`: la letra contradice los campos —A sin los dos CUIT, B con IVA discriminado— → `rechazado` con certeza **alta**, porque el código sí resolvió; `CRUZ_2`/`CRUZ_4`: falta de sostén → `revision`) y **conflicto** (`CRUZ_5`: R7 y el cruce negocio-vs-documento → `revision`, **no** rechazo: es sospecha, no contradicción). `conclusion/engine.py` deja de ser esqueleto: `concluir()` adjunta el `Decision` de F0 (que T-404 dejó en `None` a propósito) y `concluir_caso()` devuelve el `ConclusionResult` del diseño §4.5. La coherencia de la letra se evalúa **reutilizando** `COHERENCIA_POR_CAMPO` de T-403 sobre el valor vigente del caso (una sola definición de la tabla, dos usos: la fuente en la pasada 1, el caso en la pasada 2). El contexto fiscal entra como parámetro **opcional** (no son campos del contrato de extracción). Suites: `tests/test_conclusion_cruzadas_t501.py` (94) y `scripts/F5/t501.py` (8/8 escenarios + 8/8 fronteras). **Hallazgos**: el contrato de F0 rechazó un `Decision` de `programa` con certeza baja (de ahí el `ConclusionResult`); dos bugs reales detectados ejecutando (el índice de la tabla de coherencia —está por campo disparador, no por letra— y el formato contable `"1.234,56"`); y exigir contexto fiscal para concluir mandaba al agente casos que el código sí resuelve. | team implementation | Hecho |
 
 ## 5. Referencias cruzadas
 

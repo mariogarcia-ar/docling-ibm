@@ -341,6 +341,14 @@ point del mismo paquete.
 ### ADR-008 · Implementación del "agente de IA" de la conclusión
 
 - **Estado**: Propuesto · **Prioridad**: Baja · **Decisión D-8**
+- **Implementación (parcial, F5/T-501)**: el **blindaje** del agente empieza antes
+  del agente: `rules/contexto_conclusion.py` cura los candidatos a un **conjunto
+  cerrado** (un valor no puede estar a la vez en `candidatos_descartados` y en
+  `candidatos_restantes`, misma regla que la clasificación de F3) y el `Decision`
+  de F0 lo valida en el contrato. El agente de T-504 solo podrá elegir entre
+  `candidatos_restantes`, y su elección se validará después contra esa lista. El
+  validador del contrato ya rechaza la intersección, así que el blindaje no puede
+  "olvidarse": lo hace cumplir el schema.
 
 **Contexto**
 El flujo escala a un "agente de IA" que decide entre candidatos restantes.

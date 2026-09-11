@@ -241,13 +241,31 @@ tests/golden/
 
 ### Fase 5 — Conclusión + HITL
 - **Unitarias**: reglas cruzadas, gaps y límite de reintentos; blindaje del
-  agente (no puede elegir descartados) con agente mockeado.
+  agente (no puede elegir descartados) con agente mockeado. **Hecho en T-501**:
+  94 tests (`test_conclusion_cruzadas_t501.py`) — el contexto de la pasada 2
+  (`ContextoConclusion`: valor vigente y fuente responsable por campo, campos
+  ausentes sobre el universo del contrato, gaps, coherencia del caso, candidatos
+  curados), las tres familias de reglas cruzadas (negocio, fast-fail y conflicto
+  R7) con sus escenarios y fronteras, la derivación de certeza/origen por etapa
+  (**incluida la verificación de que el contrato de F0 rechaza un `Decision` de
+  `programa` con certeza baja**), el `ConclusionResult` del diseño §4.5,
+  determinismo (incluida la independencia del orden de las fuentes) y las señales
+  de R6 (desglose de IVA). El contexto fiscal entra por parámetro inyectable, así
+  que la suite default **no** depende de Ollama ni de Docling.
 - **Integración**: casos del golden → distribución de `origen` y `certeza`;
   correcciones HITL registradas y disponibles para feedback.
 - **Aceptación** (E-CONC-1/2/3/4/5): código que concluye ⇒ certeza alta;
-  agente ⇒ baja + HITL; trazabilidad completa persistida.
+  agente ⇒ baja + HITL; trazabilidad completa persistida. **Parcial en T-501**:
+  "código que concluye ⇒ certeza alta" verificado (con los tres desenlaces:
+  `aprobado`, `rechazado` por fast-fail y `revision` sin decidir); "agente ⇒ baja +
+  HITL" y "trazabilidad completa persistida" son de T-504/T-505/T-506. La
+  herramienta `scripts/F5/t501.py` corre **8/8** escenarios de conclusión y **8/8**
+  fronteras, con salida ≠ 0 si falla.
 - **Métricas clave** (definidas en §5): exactitud por origen, % certeza alta,
-  acuerdo programa-vs-humano, cobertura HITL.
+  acuerdo programa-vs-humano, cobertura HITL. **Parcial en T-501**: el
+  `ConclusionResult` y la traza de la corrida ya exponen lo que las métricas
+  agregan (estado, certeza, origen, reglas por familia, gaps); el cálculo
+  agregado es T-507.
 
 ### Fase 6 — Cliente
 - **Unitarias/integración**: subcomandos CLI, checkpoints/reanudación,
