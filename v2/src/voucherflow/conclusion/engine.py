@@ -25,6 +25,9 @@ se implementan en T-504/T-505.
 
 from __future__ import annotations
 
+from dataclasses import dataclass, field
+from typing import Any
+
 from ..rules.contexto import ContextoTipoComprobante
 from ..rules.contexto_conclusion import ContextoConclusion
 from ..rules.cruzadas import (
@@ -32,9 +35,17 @@ from ..rules.cruzadas import (
     ConclusionResult,
     construir_conclusion,
     evaluar_cruzadas,
-    resumen_cruzadas,
 )
-from ..schemas.evidence import CombinedEvidence
+from ..rules.gaps import (
+    VERSION_GAPS,
+    BuscadorEvidencia,
+    DeteccionGaps,
+    PresupuestoBusqueda,
+    ResultadoBusquedaAdicional,
+    buscar_evidencia_adicional,
+    detectar_gaps,
+)
+from ..schemas.evidence import CombinedEvidence, SourceEvidence
 from ..schemas.result import VoucherResult
 
 
@@ -102,7 +113,21 @@ def concluir(
         ``TypeError`` si ``evidencia`` no es una ``CombinedEvidence``.
     """
     contexto, conclusion = _correr_pasada_2(evidencia, contexto_tipo)
+    return _adjuntar_conclusion(evidencia, contexto, conclusion)
 
+
+def _adjuntar_conclusion(
+    evidencia: CombinedEvidence,
+    contexto: ContextoConclusion,
+    conclusion: ConclusionResult,
+) -> CombinedEvidence:
+    """Devuelve la evidencia con el veredicto adjunto y su traza (T-501).
+
+    Es el único lugar donde se arma el ``Decision`` de F0 y se anota la
+    conclusión en la trazabilidad, para que :func:`concluir` y
+    :func:`concluir_con_busqueda` (T-502) compartan exactamente el mismo camino
+    — la decisión no puede depender de si hubo búsqueda o no.
+    """
     trazabilidad = dict(evidencia.trazabilidad)
     trazabilidad["etapa"] = VERSION_CRUZADAS
     trazabilidad["conclusion"] = {
@@ -176,5 +201,223 @@ def encolar_hitl(resultado: VoucherResult) -> VoucherResult:
     raise NotImplementedError("encolar_hitl(): se implementa en F5 (T-505).")
 
 
-__all__ = ["concluir", "concluir_caso", "escalar_a_agente", "encolar_hitl"]
+# ---------------------------------------------------------------------------
+# Búsqueda de evidencia adicional (T-502, E-CONC-2 / ADR-003)
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class ConclusionConBusqueda:
+    """Resultado de concluir un caso **con** búsqueda de evidencia adicional (T-502).
+
+    Campos:
+        evidencia: la ``CombinedEvidence`` final (ya con los campos que aportó
+            la búsqueda, si hubo).
+        conclusion: el :class:`~voucherflow.rules.cruzadas.ConclusionResult` del
+            veredicto **final** (tras re-aplicar las cruzadas).
+        deteccion: los gaps que se detectaron en la primera pasada.
+        busqueda: lo que se recuperó y qué pasó con cada intento.
+        gaps_restantes: los gaps que **quedaron** tras la búsqueda. Es la señal
+            para el paso siguiente del flujo: si hay gaps restantes bloqueantes,
+            el caso escala al agente (T-504).
+    """
+
+    evidencia: CombinedEvidence
+    conclusion: ConclusionResult
+    deteccion: DeteccionGaps
+    busqueda: ResultadoBusquedaAdicional
+    gaps_restantes: list[str] = field(default_factory=list)
+
+    @property
+    def hubo_busqueda(self) -> bool:
+        return self.busqueda.hubo_busqueda
+
+    def como_dict(self) -> dict[str, Any]:
+        return {
+            "version": VERSION_GAPS,
+            "deteccion": self.deteccion.como_dict(),
+            "busqueda": self.busqueda.como_dict(),
+            "gaps_restantes": list(self.gaps_restantes),
+            "conclusion": self.conclusion.como_dict(),
+        }
+
+
+def concluir_con_busqueda(
+    evidencia: CombinedEvidence,
+    *,
+    buscador: BuscadorEvidencia | None = None,
+    presupuesto: PresupuestoBusqueda | None = None,
+    contexto_tipo: ContextoTipoComprobante | None = None,
+) -> ConclusionConBusqueda:
+    """Concluye y, si faltan datos, busca evidencia adicional **acotada** (T-502).
+
+    Implementa el paso del pseudocódigo de `algoritmo.md`:
+
+        si resultado.faltan_datos:
+            evidencia += buscar_evidencia_adicional(gaps, max_reintentos=N)
+            resultado = aplicar_reglas_cruzadas(evidencia)
+
+    Secuencia:
+
+    1. Corre la pasada 2 de T-501 sobre la evidencia original.
+    2. **Detecta los gaps** (determinístico, sin red).
+    3. Si hay gaps buscables y hay buscador, consulta con el presupuesto como
+       tope; si no hay buscador (hook desactivado, ADR-003), lo registra como
+       *no disponible* y **sigue** — el MVP no depende de ARCA.
+    4. **Fusiona** los campos recuperados en la evidencia (con su fuente y su
+       sostén) y **re-aplica las cruzadas** sobre el caso enriquecido.
+
+    La re-conclusión es lo que cierra el círculo: un dato del padrón puede
+    desbloquear el veredicto (dejar de faltar un campo crítico) o, al contrario,
+    contradecir lo que el documento decía (y entonces el fast-fail de T-501 lo
+    rechaza).
+
+    **No hay loop abierto** (E-CONC-2): la búsqueda se corre **una vez**, con el
+    presupuesto como tope. Si los gaps siguen ahí, se reportan en
+    ``gaps_restantes`` y el caso sigue al paso siguiente del flujo — no se vuelve
+    a intentar.
+
+    Es determinística y **sin red** cuando el buscador es ``None`` o un doble:
+    apta para la suite default.
+
+    Argumentos:
+        evidencia: la ``CombinedEvidence`` de F4/T-404.
+        buscador: el hook de evidencia adicional (``ArcaClient`` en producción)
+            o ``None`` si está desactivado.
+        presupuesto: los topes de la búsqueda (ADR-003). Default: 3 consultas y
+            2 reintentos por gap.
+        contexto_tipo: el contexto fiscal opcional (ver :func:`concluir`).
+
+    Devuelve:
+        :class:`ConclusionConBusqueda` con la evidencia final, el veredicto, la
+        detección, la traza de la búsqueda y los gaps que quedaron.
+
+    Lanza:
+        ``TypeError`` si ``evidencia`` no es una ``CombinedEvidence``.
+    """
+    if not isinstance(evidencia, CombinedEvidence):
+        raise TypeError(
+            "concluir_con_busqueda() espera una CombinedEvidence (la salida de la "
+            f"combinación de F4/T-404); recibido: {type(evidencia).__name__}."
+        )
+
+    # 1. La pasada 2 sobre el caso tal como llegó.
+    contexto_inicial, _ = _correr_pasada_2(evidencia, contexto_tipo)
+
+    # 2. Qué falta (determinístico).
+    deteccion = detectar_gaps(contexto_inicial)
+
+    # 3. Búsqueda acotada (no-op si no hay gaps buscables o el hook está apagado).
+    busqueda = buscar_evidencia_adicional(
+        deteccion, contexto_inicial, buscador=buscador, presupuesto=presupuesto
+    )
+
+    # 4. Fusionar lo recuperado y re-concluir sobre el caso enriquecido.
+    if busqueda.campos:
+        evidencia_final = _fusionar_evidencia(evidencia, busqueda)
+    else:
+        evidencia_final = evidencia
+
+    contexto_final, conclusion = _correr_pasada_2(evidencia_final, contexto_tipo)
+    evidencia_final = _adjuntar_conclusion(evidencia_final, contexto_final, conclusion)
+    evidencia_final = _anotar_busqueda(evidencia_final, deteccion, busqueda)
+
+    gaps_restantes = sorted(
+        campo
+        for campo in deteccion.campos_faltantes
+        if campo not in busqueda.campos and campo in contexto_final.campos_ausentes
+    )
+
+    return ConclusionConBusqueda(
+        evidencia=evidencia_final,
+        conclusion=conclusion,
+        deteccion=deteccion,
+        busqueda=busqueda,
+        gaps_restantes=gaps_restantes,
+    )
+
+
+def _fusionar_evidencia(
+    evidencia: CombinedEvidence, busqueda: ResultadoBusquedaAdicional
+) -> CombinedEvidence:
+    """Fusiona los campos recuperados en la evidencia combinada y la re-resuelve.
+
+    Los campos **no se inyectan a mano**: se reconstruyen las ``SourceEvidence``
+    a partir de las lecturas que la combinación de F4 conservó (cada
+    ``CampoCombinado`` guarda su lado ``vlm``/``llm``/``programa``/``arca``/
+    ``hitl``), se les agrega la fuente nueva (el padrón) y se vuelve a llamar a
+    la **combinación** de F4.
+
+    Esa es la forma de que el dato del padrón entre con la precedencia correcta
+    (ADR-002: una fuente que **no es lectura** va por delante de las lecturas) y
+    de que la resolución quede trazada como cualquier otra — en lugar de pisar un
+    valor por código, que sería exactamente lo que la tabla de precedencia existe
+    para evitar.
+    """
+    from ..rules.precedencia import combinar, resumen_combinacion
+    from ..schemas.evidence import Fuente
+
+    # El padrón puede aportar varios campos en una sola consulta: se agrupan por
+    # fuente para reconstruir las SourceEvidence.
+    por_fuente: dict[Fuente, dict[str, Any]] = {}
+    for campo, field in busqueda.campos.items():
+        por_fuente.setdefault(field.fuente, {})[campo] = field
+
+    # 1. Reconstruir las fuentes que ya participaban, campo por campo.
+    fuentes: dict[Fuente, dict[str, Any]] = {}
+    for campo, combinado in evidencia.campos.items():
+        for fuente in (Fuente.vlm, Fuente.llm, Fuente.programa, Fuente.arca, Fuente.hitl):
+            lectura = getattr(combinado, fuente.value, None)
+            if lectura is not None:
+                fuentes.setdefault(fuente, {})[campo] = lectura
+
+    # 2. Sumar (o completar) la fuente de la evidencia adicional.
+    for fuente, campos in por_fuente.items():
+        fuentes.setdefault(fuente, {}).update(campos)
+
+    sources = [
+        SourceEvidence(fuente=fuente, campos=campos, valida=True)
+        for fuente, campos in fuentes.items()
+        if campos
+    ]
+
+    combinacion = combinar(sources, documento_id=evidencia.documento_id)
+
+    trazabilidad = dict(evidencia.trazabilidad)
+    trazabilidad["combinacion_adicional"] = resumen_combinacion(combinacion)
+    return CombinedEvidence(
+        documento_id=evidencia.documento_id,
+        campos=combinacion.campos,
+        # ``decision`` vuelve a ``None``: se va a re-concluir sobre el caso
+        # enriquecido, así que el veredicto anterior ya no rige.
+        decision=None,
+        trazabilidad=trazabilidad,
+    )
+
+
+def _anotar_busqueda(
+    evidencia: CombinedEvidence,
+    deteccion: DeteccionGaps,
+    busqueda: ResultadoBusquedaAdicional,
+) -> CombinedEvidence:
+    """Agrega a la traza lo que pasó con la detección y la búsqueda (E-CONC-5)."""
+    trazabilidad = dict(evidencia.trazabilidad)
+    trazabilidad["gaps"] = deteccion.como_dict()
+    trazabilidad["busqueda_evidencia_adicional"] = busqueda.como_dict()
+    return CombinedEvidence(
+        documento_id=evidencia.documento_id,
+        campos=dict(evidencia.campos),
+        decision=evidencia.decision,
+        trazabilidad=trazabilidad,
+    )
+
+
+__all__ = [
+    "concluir",
+    "concluir_caso",
+    "concluir_con_busqueda",
+    "escalar_a_agente",
+    "encolar_hitl",
+    "ConclusionConBusqueda",
+]
 

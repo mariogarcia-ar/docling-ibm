@@ -252,15 +252,27 @@ tests/golden/
   determinismo (incluida la independencia del orden de las fuentes) y las señales
   de R6 (desglose de IVA). El contexto fiscal entra por parámetro inyectable, así
   que la suite default **no** depende de Ollama ni de Docling.
+  **T-502**: 73 tests (`test_conclusion_gaps_t502.py`) — la detección de gaps
+  (criticidad, objetivo concreto, orden determinista, campos fuera del catálogo),
+  el presupuesto (los dos topes y el agotamiento), la búsqueda acotada (cubrir,
+  reintentar lo transitorio, **no** insistir ante un "no está", hook desactivado
+  como caso normal, corte por presupuesto, y que un buscador que lanza o que
+  devuelve cualquier cosa no tumbe el pipeline), la re-conclusión (el dato entra
+  con su fuente y sostén, las lecturas se conservan, cubrir el gap desbloquea el
+  veredicto) y el adaptador ARCA con una sesión HTTP falsa (**sin red**): payload,
+  traducción de la respuesta, reintentos, timeout y que no se invente un código
+  AFIP fuera del vocabulario (D-13).
 - **Integración**: casos del golden → distribución de `origen` y `certeza`;
   correcciones HITL registradas y disponibles para feedback.
 - **Aceptación** (E-CONC-1/2/3/4/5): código que concluye ⇒ certeza alta;
-  agente ⇒ baja + HITL; trazabilidad completa persistida. **Parcial en T-501**:
-  "código que concluye ⇒ certeza alta" verificado (con los tres desenlaces:
-  `aprobado`, `rechazado` por fast-fail y `revision` sin decidir); "agente ⇒ baja +
-  HITL" y "trazabilidad completa persistida" son de T-504/T-505/T-506. La
-  herramienta `scripts/F5/t501.py` corre **8/8** escenarios de conclusión y **8/8**
-  fronteras, con salida ≠ 0 si falla.
+  agente ⇒ baja + HITL; trazabilidad completa persistida. **Parcial en
+  T-501/T-502**: "código que concluye ⇒ certeza alta" verificado (con los tres
+  desenlaces: `aprobado`, `rechazado` por fast-fail y `revision` sin decidir) y
+  "búsqueda de evidencia adicional puntual y sin loop abierto" verificado (con el
+  hook desactivado, caído, con respuesta negativa y con presupuesto agotado);
+  "agente ⇒ baja + HITL" y "trazabilidad completa persistida" son de
+  T-504/T-505/T-506. `scripts/F5/t501.py` corre **8/8** escenarios + **8/8**
+  fronteras y `scripts/F5/t502.py` **6/6** + **8/8**, con salida ≠ 0 si falla.
 - **Métricas clave** (definidas en §5): exactitud por origen, % certeza alta,
   acuerdo programa-vs-humano, cobertura HITL. **Parcial en T-501**: el
   `ConclusionResult` y la traza de la corrida ya exponen lo que las métricas

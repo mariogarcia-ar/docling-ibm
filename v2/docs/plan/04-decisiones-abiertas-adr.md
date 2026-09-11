@@ -179,6 +179,17 @@ campo para auditoría.
 ### ADR-003 · Alcance de "buscar más evidencia" (gatillo, límites, ARCA)
 
 - **Estado**: Propuesto · **Prioridad**: Media · **Decisión D-3**
+- **Implementación (F5/T-502)**: se adoptó la alternativa **(a)**. El **gatillo** es
+  la detección de gaps (`rules/gaps.py::detectar_gaps`, que nombra cada falta con
+  su objetivo concreto); los **límites** son los dos topes de
+  `PresupuestoBusqueda` (consultas totales del caso y reintentos por gap); y el
+  **hook ARCA es opcional**: `BuscadorEvidencia` es un protocolo inyectable y
+  `ArcaClient` sin URL reporta el hook desactivado sin romper nada. El adaptador
+  `models/arca.py` implementa el **contrato HTTP** del WSCDC; la integración real
+  (flujo **WSAA** con certificados) queda para cuando haya credenciales, que es
+  justo lo que el ADR buscaba desacoplar. Queda pendiente **con negocio** la
+  pregunta del ADR sobre qué gaps son críticos: hoy la criticidad la manda el
+  contrato (`CAMPOS_CRITICOS`) y el catálogo declara qué es buscable.
 
 **Contexto**
 El algoritmo permite consultar evidencia adicional (ej. padrón ARCA/WSCDC) para

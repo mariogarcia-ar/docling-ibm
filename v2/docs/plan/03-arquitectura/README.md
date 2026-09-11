@@ -23,7 +23,7 @@ contrato y ADR, y se registra su estado de diseño/implementación.
 | [`CLAS.md`](CLAS.md) | `voucherflow/classification/` | Tipo/letra (R1-R7 + VLM/LLM) y clasificación contable (cadena 01→02→03) | ✅ T-301..T-305 implementados (DoD de F3 verificado) | F3 (T-301..T-305) |
 | [`EXT.md`](EXT.md) | `voucherflow/extraction/` | Extracción con flujos VLM y LLM en paralelo, reglas raw (pasada 1) y combinación por campo | ✅ T-401..T-405 implementados (DoD de F4 verificado; paridad con v1 medida en tres niveles) | F4 (T-401..T-405) |
 | [`RULES.md`](RULES.md) | `voucherflow/rules/` | Motor de reglas declarativo: R1-R7, precedencia por campo, fast-fail y gaps | 🟡 R1-R7 (T-301) + evidencia (T-302) + reglas raw (T-303, ampliadas en F4/T-403) + precedencia por campo (F4/T-404, validada por la paridad de F4/T-405); cruzadas/gaps (F5) pendientes | F0 (T-003/ADR-006) + F3 (T-301/T-303) + F4 (T-403/T-404) + F5 (T-501/T-502) |
-| [`CONC.md`](CONC.md) | `voucherflow/conclusion/` | Reglas cruzadas → búsqueda de evidencia adicional → agente IA → HITL → consolidación | 🟡 En implementación (T-501 hecha: reglas cruzadas sobre la evidencia combinada; T-502..T-507 pendientes) | F5 (T-501..T-507) |
+| [`CONC.md`](CONC.md) | `voucherflow/conclusion/` | Reglas cruzadas → búsqueda de evidencia adicional → agente IA → HITL → consolidación | 🟡 En implementación (T-501/T-502 hechas: reglas cruzadas y búsqueda acotada de evidencia; T-503..T-507 pendientes) | F5 (T-501..T-507) |
 | [`MODELS.md`](MODELS.md) | `voucherflow/models/` | Adaptadores de modelo: `OllamaClient`, `DoclingConverter`, `ArcaClient` (opcional) | 🔴 Borrador | F0 (T-005/T-006) |
 | [`TRACE.md`](TRACE.md) | `voucherflow/trace/` | Registro por caso (`CaseRecord`), trazabilidad y persistencia (JSON sidecar) | 🔴 Borrador | F5 (T-506) + F6 (T-603) |
 | [`ORCH-CLI.md`](ORCH-CLI.md) | `voucherflow/orchestrator.py` · `api.py` + `cli/` | Orquestador del pipeline, API de alto nivel y cliente CLI (orquestador/consumidor) | 🔴 Borrador | F5/F6 (T-601..T-606) |
@@ -35,10 +35,10 @@ contrato y ADR, y se registra su estado de diseño/implementación.
 > orquestación `procesar_documento()` + `api.process()` y la paridad T-105.
 > **`CLAS.md` (classification, F3)** y **`EXT.md` (extraction, F4)** ya están
 > **✅ implementados con su DoD verificado**; **`CONC.md` (conclusion, F5)** está
-> en **🟡 En implementación** (T-501 hecho: reglas cruzadas sobre la evidencia
-> combinada); **`RULES.md`** sigue parcial porque le faltan las reglas cruzadas y
-> los gaps de F5 — las cruzadas de la pasada 2 ya viven en `rules/cruzadas.py`,
-> así que en el próximo cierre de tarea pasa a revisarse.
+> en **🟡 En implementación** (T-501/T-502 hechos: reglas cruzadas de la pasada 2
+> y búsqueda acotada de evidencia adicional) y **`RULES.md`** está 🟡 con el motor
+> completo hasta F5/T-502 — solo le faltan las reglas cruzadas de la casuística
+> HITL (post-MVP).
 
 ---
 

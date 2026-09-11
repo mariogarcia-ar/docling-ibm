@@ -5,7 +5,7 @@
 > ([`F5.md`](F5.md)) y el diseño del módulo
 > ([`../03-arquitectura/CONC.md`](../03-arquitectura/CONC.md)).
 > **Fecha**: 2026-09-11 · **Rama**: `v2` · **Estado**: 🟡 En implementación
-> (T-501 hecha; T-502..T-507 pendientes).
+> (T-501 y T-502 hechas; T-503..T-507 pendientes).
 
 ## 1. Ficha del subplan
 
@@ -180,19 +180,67 @@ que el diseño:
    `CRUZ_2`/`CRUZ_3`/`CRUZ_4`/`CRUZ_5`. Se conserva como red de seguridad
    (el peor caso tiene que seguir siendo `revision`, nunca aprobar por descarte).
 
-### 3.2 T-502 · Detección de gaps + búsqueda de evidencia adicional con límite (hook ARCA)
+### 3.2 T-502 · Detección de gaps + búsqueda de evidencia adicional con límite (hook ARCA) ✅ Hecha
 
-> **Estado**: pendiente. Alcance según [`F5.md`](F5.md) y ADR-003.
+> **Estado 2026-09-11**: **Hecha** por `team implementation`. Suite completa en
+> verde (**1116 passed, 10 skipped**, 73 nuevos); `python scripts/F5/t502.py`
+> reporta **6/6** escenarios de búsqueda + **8/8** fronteras (exit 0).
 
-- `rules/gaps.py`: detección de los campos que faltaron para concluir
-  (`campos_desconocidos`, la superficie que F3 ya expone y T-501 propaga).
-- Búsqueda **puntual por gap** con `max_reintentos=N` configurable — no es un
-  loop abierto (regla dura de E-CONC-2). Al agotar el límite sin resolver, el
-  caso sigue al escalado (T-504), no vuelve a intentar.
-- `ArcaClient` **opcional** (ADR-003: el hook no bloquea el MVP; la variante
-  online es Should / R-10). Se inyecta por protocolo, como el `Lector` de F4.
-- Re-aplicación de las cruzadas de T-501 tras cubrir el gap (es lo que el
-  pseudocódigo de `algoritmo.md` llama `aplicar_reglas_cruzadas` de nuevo).
+**Qué se hace.** El paso del pseudocódigo de `algoritmo.md` —"si faltan datos,
+buscar evidencia adicional con `max_reintentos=N` y re-aplicar las cruzadas"—
+implementado de modo que **no sea un loop abierto**. Se separan dos cosas que
+suelen ir juntas y no son lo mismo: **qué falta** (determinístico, sin red) y
+**cómo se busca** (el hook inyectable).
+
+| Pieza | Módulo | Qué hace |
+|---|---|---|
+| `detectar_gaps()` / `Gap` / `CATALOGO_GAPS` | `rules/gaps.py` | nombra cada falta con su **criticidad** y su **objetivo concreto**; declara qué es buscable y qué solo puede venir del documento |
+| `PresupuestoBusqueda` | `rules/gaps.py` | los **dos topes**: consultas totales del caso y reintentos por gap |
+| `buscar_evidencia_adicional()` | `rules/gaps.py` | el bucle acotado: cubre, reintenta lo transitorio, no insiste ante un "no está", y **corta** al agotar el presupuesto |
+| `BuscadorEvidencia` (Protocol) | `rules/gaps.py` | el hook inyectable (mismo criterio que el `Lector` de F4) |
+| `ArcaClient` | `models/arca.py` | el adaptador WSCDC real: arma el pedido, reintenta, traduce la respuesta; un fallo de red es *no disponible* |
+| `concluir_con_busqueda()` | `conclusion/engine.py` | el círculo completo: concluir → detectar → buscar → fusionar → **re-aplicar las cruzadas** |
+
+**Archivos.**
+
+- `src/voucherflow/rules/gaps.py` (nuevo).
+- `src/voucherflow/models/arca.py` (implementado; deja de ser esqueleto).
+- `src/voucherflow/conclusion/engine.py` (`concluir_con_busqueda()`, `ConclusionConBusqueda`).
+- `src/voucherflow/rules/__init__.py` y `src/voucherflow/conclusion/__init__.py` (exportes).
+- `tests/test_conclusion_gaps_t502.py` (nuevo, 73 tests).
+- `scripts/F5/t502.py` (nuevo).
+
+**Cómo se prueba (sin red).**
+
+- Detección: el caso completo no tiene gaps; falta un crítico → gap **bloqueante**;
+  un campo fuera del catálogo se reporta igual (informativo y no buscable).
+- Presupuesto: los dos topes, su consumo y el agotamiento.
+- Búsqueda: cubrir, reintentar lo transitorio, no insistir ante un "no está",
+  hook desactivado como caso normal, y **corte** al agotar el presupuesto.
+- Re-conclusión: cubrir el gap desbloquea el veredicto; el dato entra con su
+  fuente y su sostén; las lecturas originales se conservan; el veredicto anterior
+  no sobrevive.
+- Adaptador: payload con lo que el caso ya sabe, traducción de la respuesta,
+  reintentos, y que **no se inventa** un código AFIP fuera del vocabulario (D-13).
+
+**Fronteras (lo que **no** hace).**
+
+- **No** decide: busca y reporta; el veredicto lo produce la pasada 2.
+- **No** muta la evidencia de entrada.
+- **No** busca lo no buscable ni consulta dos veces el mismo gap resuelto.
+- **No** llama al agente (T-504) ni encola HITL (T-505).
+- **No** hay loop abierto: la búsqueda corre **una vez**, con el presupuesto como tope.
+
+**Hallazgos.**
+
+1. **El gap es un campo, no una sensación**: la búsqueda "puntual con objetivo
+   concreto" de E-CONC-2 solo es verificable si cada falta se nombra.
+2. **Reintentar no siempre tiene sentido**: un proveedor caído es transitorio
+   (se reintenta); que el padrón **haya contestado que no está** es una respuesta
+   del mundo (no se reintenta).
+3. **La fusión no puede pisar**: parchear los campos a mano gana la precedencia
+   por código, que es justo lo que ADR-002 evita. La correcta reconstruye las
+   `SourceEvidence` y vuelve a combinar.
 
 ### 3.3 T-503 · Consolidación "certeza alta por programa"
 
