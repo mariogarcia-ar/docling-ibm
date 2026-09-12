@@ -344,7 +344,8 @@ tests/golden/
 
 ### Fase 6 — Cliente
 - **Unitarias/integración**: subcomandos CLI, checkpoints/reanudación,
-  política de enfriamiento simulada, salida agregada.
+  política de enfriamiento simulada, salida agregada, **cobertura de la
+  documentación de usuario** (que la guía no se desincronice del CLI).
 - **Paridad E2E**: correr los comandos equivalentes de v1 y v2 sobre una misma
   carpeta de `files/` y comparar resultados (estructura + campos).
 - **Aceptación** (E-CLI-1/2/3): mapa de paridad documentado y verificado;
@@ -391,6 +392,25 @@ tests/golden/
   escenarios + **6/6** fronteras, con salida ≠ 0 si falla. **Falta para el DoD de
   la fase**: la salida agregada con su formato canónico (T-603) y la **medición** de
   la paridad v1→v2 sobre `files/` (T-604).
+  **T-605 cubierto**: `tests/test_docs_usuario_t605.py` (**30**) trata la
+  documentación como un **artefacto verificable**, no como texto que se revisa a
+  ojo. La guía del operador se escribe contra la **fuente factual** (el `--help`
+  real de cada subcomando, los códigos de salida de `_cmd_*`, los defaults de
+  `Settings`) y los tests la verifican contra esa fuente: **cobertura de comandos
+  en las dos direcciones** (cada uno de los once del contrato tiene sección, y la
+  referencia no documenta ninguno que no exista — un comando sin documentar es
+  indescubrible, uno inventado manda al operador a un error); **cada bandera en la
+  sección de su comando** (buscar en todo el documento sería más laxo: una bandera
+  documentada en la sección equivocada pasaría el chequeo y el operador que lee esa
+  sección no la encontraría); **bloques YAML contra los defaults reales** (un typo
+  se ignora en silencio en el merge: el sistema arrancaría con el default sin
+  avisar); **navegación** (todo enlace relativo resuelve, incluido `../../../BATCH.md`,
+  que sale del árbol de `docs/`); y las **fronteras** declaradas (el CLI no carga
+  correcciones HITL, `--force`/`--workers` solo aplican a `batch`, un rechazo firme
+  es certeza alta y `ask` no es auditable). Los tests de frontera fallan si la
+  capacidad cambia, de modo que obligan a **actualizar la doc a propósito**.
+  `scripts/F6/t605.py` corre **27/27** verificaciones (5 archivos, 11/11 comandos,
+  47 banderas en su sección, navegación y fronteras) y sale ≠ 0 si algo falta.
 
 ---
 
@@ -476,7 +496,7 @@ flowchart LR
 | E-EXT | VLM+LLM en paralelo con contrato y sustento | `SourceEvidence` por fuente |
 | E-CONC | certeza por etapa; agente acotado; HITL; trazabilidad | `VoucherResult` + `CaseRecord` |
 | E-LIB | API estable, schemas validados, config central | paquete instalable + tests |
-| E-CLI | paridad v1→v2, batch/checkpoints/enfriamiento | mapa de paridad + corridas E2E |
+| E-CLI | paridad v1→v2, batch/checkpoints/enfriamiento, documentación de usuario | mapa de paridad + corridas E2E + cobertura de la doc |
 
 ---
 

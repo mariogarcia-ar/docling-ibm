@@ -5,7 +5,7 @@
 > ([`F6.md`](F6.md)) y el diseño del módulo
 > ([`../03-arquitectura/ORCH-CLI.md`](../03-arquitectura/ORCH-CLI.md)).
 > **Fecha**: 2026-09-12 · **Rama**: `v2` · **Estado**: 🟡 **En implementación**
-> (T-601..T-604 hechas; T-605 y T-606 pendientes).
+> (T-601..T-605 hechas; T-606 pendiente).
 
 ## 1. Ficha del subplan
 
@@ -479,12 +479,101 @@ documentación), `scripts/F6/paridad_cli.py` (funciones puras + el mapa),
    con el motivo real (v2 corre **siempre** los dos flujos, así que no hay motor
    que elegir).
 
-### 3.5 T-605 · Documentación de usuario + README v2 ⬜ Pendiente
+### 3.5 T-605 · Documentación de usuario + README v2 ✅ Hecha
 
-**Qué hay que hacer**: la guía del operador (instalación, cada subcomando con su
-flag, los códigos de salida, qué hacer cuando un caso queda en revisión) y el
-`README.md` de v2 actualizado. T-601 deja el `--help` de cada comando como la
-base factual de esa documentación.
+> **Estado 2026-09-12**: **Hecha** por `team implementation`. Suite completa en
+> verde (**1606 passed, 10 skipped**, 30 nuevos); `python scripts/F6/t605.py`
+> reporta **27/27** verificaciones — exit 0.
+
+**Qué se hizo.** La guía del operador en `docs/usuario/` (cinco documentos: el
+índice, instalación, referencia de los once subcomandos, revisión humana y
+salidas) y el `README.md` de v2 con la sección *Documentación para quien opera* —
+que es lo que T-601 dejó como base factual (`--help`) convertido en guía usable.
+
+**La decisión central: la doc no repite lo que la máquina dice mejor.** El
+`--help` de cada comando sigue siendo la fuente más actualizada y la guía lo dice
+explícitamente. Lo que la guía aporta es lo que el `--help` no puede dar:
+*cuándo* usar cada comando (y cuándo no), *por qué* el resultado tiene el estado
+que tiene y *qué hacer* con él. Por eso el documento central no es la referencia
+de banderas sino el **índice**, que enseña los tres conceptos que hacen usable el
+sistema:
+
+| Concepto | Qué enseña |
+|---|---|
+| **Estado del caso** | `aprobado` / `revision` / `rechazado`, y que **un rechazo firme es una conclusión** (certeza alta), no un error de la corrida |
+| **Certeza** | Mide cuánto sabe el sistema (alta = lo decidió el código con reglas; baja = un modelo o una persona), no si el resultado "gusta" |
+| **Auditabilidad** | `--cases` + `case show` es lo que permite responder *"¿por qué se decidió así?"* |
+
+**Los límites se declaran, no se esconden.** Tres fronteras quedaron explícitas
+porque el operador las va a encontrar:
+
+- El CLI **no** carga correcciones HITL: la cola de la librería es de esa corrida
+  (`registrar_correccion` exige el caso ya encolado y lanza `KeyError` si no
+  está), así que desde la terminal la revisión es de **lectura** (`hitl list
+  --dir`, `case show`). El camino por librería se documenta con su alcance.
+- `--force` y `--workers` se aceptan en todos los comandos del pipeline pero
+  **solo `batch`** les da efecto real. `run` lo declara en su traza
+  (`detalle.force`) en vez de fingir un efecto.
+- `ask` **no** produce evidencia ni se audita: es una consulta libre. Lo que haya
+  que justificar va por `run`.
+
+**Archivos.** `docs/usuario/{README,01-instalacion,02-comandos,03-revision-humana,04-salidas}.md`
+(nuevos), `v2/README.md` (actualizado), `tests/test_docs_usuario_t605.py` (30) y
+`scripts/F6/t605.py` (el reporte).
+
+**Cómo se prueba (sin red).** La documentación es un **artefacto verificable**
+contra la fuente factual, no un texto que se revisa a ojo:
+
+- **Cobertura de comandos, en las dos direcciones**: cada uno de los once
+  subcomandos del contrato (E-CLI-1) tiene sección, y la referencia **no
+  documenta comandos que no existen**. Un comando sin documentar es
+  indescubrible; uno inventado manda al operador a un error.
+- **Banderas en la sección de su comando**: cada bandera larga que el parser
+  **real** acepta aparece en la sección de *ese* comando (o en "Banderas
+  comunes"). Buscar en todo el documento sería más laxo —una bandera documentada
+  en la sección equivocada pasaría el chequeo— y el operador que lee la sección
+  de ese comando no la encontraría.
+- **Navegación**: todo enlace relativo resuelve (incluido `../../../BATCH.md`,
+  que sale del árbol de `docs/`), y cada documento vuelve al índice.
+- **Configuración real**: las claves YAML que la guía muestra existen en los
+  defaults de `Settings`, y ningún bloque YAML usa una clave inventada (un typo
+  se ignora en silencio en el merge: el sistema arrancaría con el default sin
+  avisar).
+- **Fronteras**: la doc declara que no hay comando de correcciones, que
+  `--force`/`--workers` solo aplican a `batch`, que un rechazo firme es certeza
+  alta y que `ask` no es auditable. Si alguna de esas capacidades cambia, el test
+  falla y **obliga a actualizar la doc a propósito**.
+
+**Hallazgos de la implementación.**
+
+1. **Los tests nuevos destaparon cuatro errores en la doc recién escrita** —tres
+   enlaces relativos rotos (`../docs/plan/` desde `docs/usuario/` resolvía a
+   `docs/usuario/docs/plan/`; y `../../BATCH.md` apuntaba a `v2/BATCH.md` cuando
+   la guía vive en la **raíz del repo**) y `hitl.*` documentado en el doc de
+   instalación en vez del de revisión—. Sin los tests, los cuatro habrían
+   llegado al operador como callejones sin salida. La verificación automatizada
+   de la doc no es ceremonia.
+2. **Un defecto de edición previo en la bitácora de `F6.md`**: la fila de T-602
+   arrastraba **1759 caracteres del texto de T-601 pegados al final** (dos
+   cierres de fila en una misma línea). Se detectó al contar filas **por total**
+   (y no por fecha, que es lo que lo ocultaba) para insertar la fila nueva, y se
+   recortó por índice de línea. Tercera vez que el patrón "append a una tabla
+   markdown" muerde en esta fase.
+3. **Escribir la referencia destapó tres imprecisiones propias** que se
+   corrigieron antes de publicar: el atributo real es `entrada.correcciones`
+   (lista) y no `entrada.correccion`; `hitl` sin `--dir` **no** lee el histórico
+   (reporta la cola viva de esa corrida, que en un proceso nuevo es vacía); y el
+   filtro de `case list` valida los campos contra `CAMPOS_INDICE` y **falla**
+   ante uno desconocido en vez de devolver cero resultados (que se leería como
+   "no hay ninguno").
+
+**Fronteras de la tarea (lo que **no** hace).**
+
+- **No** implementa el comando de carga de correcciones HITL: se documenta la
+  frontera y el camino por librería. Era parte del entregable "documentación
+  lista", no un desarrollo nuevo.
+- **No** documenta la API HTTP (T-606): no existe todavía.
+- **No** duplica el `--help`: lo complementa.
 
 ### 3.6 T-606 · API HTTP (fase 2, no bloqueante) ⬜ Pendiente
 
@@ -554,21 +643,25 @@ CLI (argparse)                 Orquestador                    Librería
 
 ## 7. Avance
 
-- **Estado (2026-09-12)**: **T-601, T-602, T-603 y T-604 hechas**. El cliente existe (once
-  subcomandos), el lote corre con workers, checkpoints/reanudación y la política de
-  enfriamiento del ADR-010, y la corrida se consolida en un **único JSON agregado**
-  (índice + punteros + síntesis + métricas) que se acumula entre corridas y se
-  reconstruye del histórico. **T-604** cerró el DoD de la fase: el **mapa de
-  paridad v1→v2** en tres niveles deterministas y el **corte de v1** declarado.
-  Suite completa **1576 passed / 10 skipped** (57 nuevos de T-601 + 46 de T-602 + 41
-  de T-603 + 29 de T-604); `scripts/F6/t601.py` → **9/9** + **6/6**, `t602.py` →
-  **12/12** + **6/6**, `t603.py` → **8/8** + **9/9** y `t604.py` → mapa en verde
-  (exit 0).
+- **Estado (2026-09-12)**: **T-601, T-602, T-603, T-604 y T-605 hechas**. El
+  cliente existe (once subcomandos), el lote corre con workers,
+  checkpoints/reanudación y la política de enfriamiento del ADR-010, y la corrida
+  se consolida en un **único JSON agregado** (índice + punteros + síntesis +
+  métricas) que se acumula entre corridas y se reconstruye del histórico. **T-604**
+  cerró el DoD de la fase: el **mapa de paridad v1→v2** en tres niveles
+  deterministas y el **corte de v1** declarado. **T-605** cerró el otro extremo
+  del DoD ("documentación lista"): la **guía del operador** (`docs/usuario/`, cinco
+  documentos) y el README de v2, con la **cobertura verificada por tests** contra
+  el contrato del CLI. Suite completa **1606 passed / 10 skipped** (57 nuevos de
+  T-601 + 46 de T-602 + 41 de T-603 + 29 de T-604 + 30 de T-605);
+  `scripts/F6/t601.py` → **9/9** + **6/6**, `t602.py` → **12/12** + **6/6**,
+  `t603.py` → **8/8** + **9/9**, `t604.py` → mapa en verde y `t605.py` → **27/27**
+  (todos exit 0).
 - **Punto de partida real**: F5 dejó el `CaseRecord` persistible (`CaseRecorder`) y
   el `VoucherResult` consolidado; T-601 puso el encadenamiento y la superficie de
-  invocación; T-602 el **runner** que hace viable un lote largo; y T-603 la
-  **consolidación** que hace que el resultado de un lote se lea en un archivo.
-- **Lo que sigue**: **T-605** (la documentación de usuario: instalación, cada
-  subcomando con sus flags y códigos de salida, y qué hacer cuando un caso queda en
-  revisión — `BATCH.md` ya cubre el lote y `--help` es la base factual) y **T-606**
-  (API HTTP, fase 2 / no bloqueante). El **DoD de F6 ya está cumplido** con T-604.
+  invocación; T-602 el **runner** que hace viable un lote largo; T-603 la
+  **consolidación** que hace que el resultado de un lote se lea en un archivo; y
+  T-605 la **guía** que hace que todo eso sea usable sin leer el código.
+- **Lo que sigue**: **T-606** (API HTTP, fase 2 / no bloqueante). El **DoD de F6
+  está cumplido**: paridad con el corte de v1 declarado (T-604) y documentación
+  lista (T-605).

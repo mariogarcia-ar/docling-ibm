@@ -33,12 +33,15 @@ evidencia congelado), `rules` (motor de reglas), `models` (adaptadores
 > ADR-010 —la cuenta arranca cuando el pool está detenido, es decir cuando **todos**
 > los workers pararon—; y **T-603** la **salida agregada**: un único JSON por lote
 > con una entrada por documento (veredicto + puntero al sidecar), la síntesis y las
-> métricas; y **T-604** el **mapa de paridad v1→v2** medido en tres niveles
+> métricas"; y **T-604** el **mapa de paridad v1→v2** medido en tres niveles
 > deterministas (procedencia, superficie y artefactos) con el **corte de v1**
-> declarado. El
+> declarado; y **T-605** la **documentación de usuario** —la guía del operador
+> (`docs/usuario/`, cinco documentos: instalación, referencia de los once
+> subcomandos, salidas, revisión humana e índice) y este README— con la cobertura
+> y los enlaces **verificados por tests** contra el contrato del CLI. El
 > paquete tiene implementadas las capacidades de procesamiento (F1), validación
 > (F2), clasificación (F3), la extracción completa (F4) y la conclusión con HITL
-> (F5); de F6 faltan la documentación de usuario (T-605) y la API HTTP (T-606,
+> (F5); de F6 falta la API HTTP (T-606,
 > fase 2). La
 > suite default corre **sin** Ollama, **sin** Docling reales y **sin** red.
 
@@ -89,13 +92,17 @@ v2/
   tests/                    # suite de F0..F6
     golden/                 # golden set inicial (índice CSV, ver README)
     golden/F4/              # F4/T-405: subconjunto de paridad (0.1-f4) + README
+    golden/F6/              # F6/T-604: subconjunto de paridad CLI (0.1-f6) + README
+  docs/
+    usuario/                # F6/T-605: guía del operador (5 documentos)
+    plan/                   # documentación técnica (arquitectura, plan, ADR)
 ```
 
 ## Uso del cliente (F6/T-601)
 
 ```bash
 voucherflow run factura.pdf                 # pipeline completo de un documento
-voucherflow batch files/2025-08 -o lote.json # carpeta recursiva (secuencial; workers → T-602)
+voucherflow batch files/2025-08 -o lote.json # carpeta recursiva con workers (T-602)
 voucherflow process img.jpg -o salida/      # markdown de F1
 voucherflow classify factura.md             # tipo/letra + cadena contable (F3)
 voucherflow ask factura.pdf -q "¿Cuál es el total?"
@@ -112,6 +119,16 @@ devuelve el **código de salida** (≠ 0 si la corrida falla). Los flags comunes
 política de enfriamiento del ADR-010 (`--workers`, `--force`, `--cooling`,
 `--work-window`, `--cool-down`). Guía completa:
 [`../BATCH.md`](../BATCH.md).
+
+### Documentación para quien opera
+
+La guía del operador —instalación, cada subcomando con sus banderas y códigos de
+salida, dónde quedan los resultados y qué hacer con los casos en revisión— está
+en [`docs/usuario/`](docs/usuario/). Empieza por el
+[índice](docs/usuario/README.md).
+
+El `--help` de cada comando sigue siendo la fuente más actualizada:
+`voucherflow <comando> --help`.
 
 ```bash
 # Uso embebido (misma fachada que el CLI)
