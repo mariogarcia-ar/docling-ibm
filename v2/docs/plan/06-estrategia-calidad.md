@@ -349,7 +349,17 @@ tests/golden/
   carpeta de `files/` y comparar resultados (estructura + campos).
 - **Aceptación** (E-CLI-1/2/3): mapa de paridad documentado y verificado;
   interrupción+reanudación no repite pasos completados.
-- **T-601 cubierto**: `tests/test_cli_t601.py` (**57**) ejercita los once
+  **E-CLI-3 cubierta en T-602**: `tests/test_batch_t602.py` (**46**) verifica el
+  ciclo de vida del pool (incluido el `ProcessPoolExecutor` real con una función
+  pura, que corre en otro proceso), el transporte serializable del trabajo y del
+  resultado, los checkpoints (atómicos, con el **hash** del contenido, un `ok=False`
+  no se reutiliza, uno corrupto se reprocesa), la reanudación
+  (interrupción+reanudación no repite pasos completados: es el Gherkin E-CLI-1) y el
+  **enfriamiento del ADR-010** con reloj y ejecutor inyectados — sin procesos
+  reales y **sin dormir**. `scripts/F6/t602.py` corre **12/12** escenarios + **6/6**
+  fronteras, con modo `--manual` que imprime el ciclo paso a paso (ventana,
+  instante de "todos detenidos" y segundos enfriados).
+  **T-601 cubierto**: `tests/test_cli_t601.py` (**57**) ejercita los once
   subcomandos, la corrida completa del orquestador y las fronteras **con dobles**
   (sin Ollama, sin Docling, sin red): contrato del CLI (subcomandos y los cinco
   flags comunes), la secuencia de seis etapas, el **fast-fail del gate** (rechazo
@@ -358,8 +368,8 @@ tests/golden/
   fallo contenido, la persistencia del `CaseRecord`, `case show/list` y
   `arca check` sin configuración (ADR-003). `scripts/F6/t601.py` corre **9/9**
   escenarios + **6/6** fronteras, con salida ≠ 0 si falla. **Falta para el DoD de
-  la fase**: el pool/checkpoints/enfriamiento (T-602), la salida agregada (T-603)
-  y la **medición** de la paridad v1→v2 sobre `files/` (T-604).
+  la fase**: la salida agregada con su formato canónico (T-603) y la **medición** de
+  la paridad v1→v2 sobre `files/` (T-604).
 
 ---
 

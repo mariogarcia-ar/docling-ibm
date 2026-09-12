@@ -451,15 +451,25 @@ def _fronteras() -> list[dict[str, Any]]:
         tmp_path = Path(tmp)
         doc = _documento(tmp_path)
 
-        # --workers se acepta y se declara; el pool es T-602.
+        # --workers se acepta y se declara. Desde T-602 el lote SÍ usa workers
+        # (pool de procesos) cuando no hay orquestador inyectado; acá el entorno
+        # del script inyecta dobles, así que corre serial y lo declara en la traza.
         entorno = _entorno(tmp_path)
         main(["batch", str(tmp_path), "--workers", "8"], entorno=entorno)
         lote = json.loads(entorno.stdout.getvalue())
         fronteras.append(
             {
-                "que": "--workers se registra como solicitado; el pool real es T-602",
-                "ok": lote["max_workers_solicitado"] == 8 and lote["max_workers_aplicado"] == 1 and "T-602" in lote["nota"],
-                "detalle": f"solicitado={lote['max_workers_solicitado']} aplicado={lote['max_workers_aplicado']}",
+                "que": (
+                    "--workers se registra como solicitado; con dobles el lote corre "
+                    "serial y lo declara (el pool real es T-602, ver t602.py)"
+                ),
+                "ok": lote["max_workers_solicitado"] == 8
+                and lote["max_workers_aplicado"] == 1
+                and any("serial" in nota for nota in lote["traza_lote"]["notas"]),
+                "detalle": (
+                    f"solicitado={lote['max_workers_solicitado']} "
+                    f"aplicado={lote['max_workers_aplicado']}"
+                ),
             }
         )
 

@@ -693,7 +693,7 @@ class TestComandos:
         assert main(["run", str(documento), "--force"], entorno=entorno) == 0
         datos = json.loads(_salida(entorno))
         assert "force" in datos["detalle"]
-        assert "T-602" in datos["detalle"]["force"]
+        assert "batch" in datos["detalle"]["force"]
 
     def test_batch_carpeta_recursiva(self, entorno: EntornoCLI, tmp_path: Path):
         (tmp_path / "sub").mkdir()
@@ -716,9 +716,11 @@ class TestComandos:
         assert main(["batch", str(tmp_path), "--workers", "4"], entorno=entorno) == 0
         datos = json.loads(_salida(entorno))
         assert datos["max_workers_solicitado"] == 4
-        # El efecto real se declara (no se simula un paralelismo que no existe).
+        # El efecto real se declara: con un orquestador inyectado (los dobles no
+        # cruzan a otro proceso) el lote corre serial y lo dice en la traza, en vez
+        # de reportar un paralelismo que no existió. El pool real es T-602.
         assert datos["max_workers_aplicado"] == 1
-        assert "T-602" in datos["nota"]
+        assert any("serial" in nota for nota in datos["traza_lote"]["notas"])
 
     def test_ask_responde(self, entorno: EntornoCLI, documento: Path):
         assert main(["ask", str(documento), "-q", "¿Cuál es el total?"], entorno=entorno) == 0

@@ -512,6 +512,7 @@ class PipelineOrchestrator:
         self,
         origen: str | Path,
         *,
+        documento_id: str | None = None,
         condicion_impositiva: str | None = None,
         modelo: str | None = None,
         orientation: str = "auto",
@@ -535,6 +536,11 @@ class PipelineOrchestrator:
 
         Argumentos:
             origen: ruta del documento (pdf/imagen/office/texto).
+            documento_id: identidad del documento ya calculada por el llamador.
+                El runner de lotes (F6/T-602) lo precalcula **una vez** por
+                documento y lo pasa al worker, para que el hash no se calcule dos
+                veces ni pueda discrepar entre el padre y el proceso del worker. Si
+                es ``None`` (default) se calcula acá desde el contenido.
             condicion_impositiva: ``21`` (default) | ``10_5`` | ``27`` | ``2_5`` |
                 ``exento_no_gravado`` para la cadena contable.
             modelo: modelo a usar en las etapas que hablan con el modelo (si
@@ -565,15 +571,22 @@ class PipelineOrchestrator:
         detalle: dict[str, Any] = {"version": VERSION_ORQUESTADOR}
 
         # --- 0. Identidad del documento (hash del archivo) ----------------
-        try:
-            documento_id = identificador_de_archivo(ruta)
-        except OSError as exc:
-            return PipelineResult(
-                archivo=str(ruta),
-                ok=False,
-                error=f"No se pudo leer el archivo {ruta}: {exc}",
-                detalle=detalle,
-            )
+        if documento_id is not None:
+            # El llamador (el runner de lotes) ya lo calculó: se respeta para que
+            # el hash no se compute dos veces ni discrepe entre el padre y el
+            # worker (T-602).
+            identificador = documento_id
+        else:
+            try:
+                identificador = identificador_de_archivo(ruta)
+            except OSError as exc:
+                return PipelineResult(
+                    archivo=str(ruta),
+                    ok=False,
+                    error=f"No se pudo leer el archivo {ruta}: {exc}",
+                    detalle=detalle,
+                )
+        documento_id = identificador
 
         # --- 1. processing (F1) ------------------------------------------
         try:
@@ -816,38 +829,43 @@ class PipelineOrchestrator:
         raiz: str | Path,
         *,
         max_workers: int = 1,
+        force: bool = False,
         persistir: bool = False,
         dir_salida: str | Path | None = None,
+        cooling: Any = None,
+        ejecutor: Any = None,
+        reloj: Any = None,
         **kwargs: Any,
     ) -> list[PipelineResult]:
-        """Recorre una carpeta (o un archivo) y corre el pipeline por documento.
+        """Corre el lote con workers, checkpoints y enfriamiento (F6/T-602).
 
-        Alcance de T-601: la iteración es **secuencial y determinista** (el orden lo
-        fija :func:`iterar_documentos`). El parámetro ``max_workers`` viaja para que
-        el modo batch de **T-602** lo use con su pool (cada worker con su propio
-        convertidor de Docling), checkpoints y política de enfriamiento; acá se
-        registra en el detalle de cada corrida para que la diferencia sea auditable
-        y no silenciosa.
+        Delega en :func:`voucherflow.batch.ejecutar_lote`, que implementa el DoD de
+        T-602 (ADR-010): cada worker con **su** convertidor de Docling,
+        reanudación por checkpoint (``<doc>.batch.json``, con el **hash del
+        contenido** para que un documento cambiado no se saltee) y la política de
+        enfriamiento —cuya cuenta arranca cuando el pool está detenido, es decir
+        cuando **todos** los workers pararon.
+
+        Devuelve la lista de ``PipelineResult`` **en orden de descubrimiento** (los
+        reanudados no producen resultado: no se procesan). La traza completa del
+        lote queda en ``detalle['lote']`` de cada resultado y se puede leer con
+        :func:`voucherflow.batch.traza_del_lote`.
         """
-        documentos = iterar_documentos(raiz)
-        resultados: list[PipelineResult] = []
-        for ruta in documentos:
-            resultado = self.ejecutar(
-                ruta, persistir=persistir, dir_salida=dir_salida, **kwargs
-            )
-            resultado.detalle["lote"] = {
-                "raiz": str(raiz),
-                "max_workers_solicitado": max_workers,
-                "max_workers_aplicado": 1,
-                "secuencial": True,
-                "nota": (
-                    "T-601 recorre el lote de forma secuencial y determinista. El "
-                    "pool con workers y su convertidor por worker, los checkpoints y "
-                    "la política de enfriamiento son T-602."
-                ),
-            }
-            resultados.append(resultado)
-        return resultados
+        from .batch import ejecutar_lote as _ejecutar_lote
+
+        return _ejecutar_lote(
+            raiz,
+            orquestador=self,
+            max_workers=max_workers,
+            force=force,
+            persistir=persistir,
+            dir_salida=dir_salida,
+            cooling=cooling,
+            ejecutor=ejecutor,
+            reloj=reloj,
+            settings=self.settings,
+            **kwargs,
+        ).resultados
 
 
 def _fuentes_del_gate(gate: Any) -> list[SourceEvidence]:

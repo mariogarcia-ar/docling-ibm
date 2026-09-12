@@ -15,7 +15,7 @@
 | **ADRs relacionados** | ADR-007 (layout: CLI como entry point o paquete separado); ADR-008 (el agente es orquestado desde aquí); ADR-009 (cola HITL consultada por `case`/`hitl`); ADR-010 (política de enfriamiento del modo batch — config); ADR-005 (sidecars de salida). |
 | **Interfaces clave** | `PipelineOrchestrator` (C4 nivel 2) con métodos de sub-capacidad; API facade: `procesar_documento`, `procesar_imagen`, `validar_y_procesar`, `clasificar`, `extraer`, `concluir_caso` (E-LIB-1); CLI `voucherflow` subcomandos: `process`, `validate`, `classify`, `extract`, `extract-detect`, `run`, `batch`, `ask`, `arca`, `case`, `hitl`. |
 | **Responsable ciclo** | team analysis (BA/SA/PM) → team implementation |
-| **Estado de diseño** | 🟡 En implementación (T-601: orquestador + fachada + CLI; T-602/T-603/T-606 pendientes) |
+| **Estado de diseño** | 🟡 En implementación (T-601: orquestador + fachada + CLI; T-602: batch con workers/checkpoints/enfriamiento; T-603/T-606 pendientes) |
 | **Fecha inicio** | 2026-09-12 |
 | **Fecha fin** |  |
 
@@ -27,7 +27,7 @@
 | API de alto nivel (facade): `procesar_documento`, `procesar_imagen`, `validar_y_procesar`, `concluir_caso`, … | §8 (cliente) + §3 (NOTEBOOK) | E-LIB-1 | F5/F6 | [x] hecho (T-105/T-203/T-304/T-601) |
 | CLI `voucherflow` subcomandos (process/validate/classify/extract/run/batch/ask/arca/case/hitl) | §8.1 | E-CLI-1 | F6 / T-601 | [x] hecho |
 | CLI por archivo y por carpeta recursiva + flags (--force, --orientation, --condicion-impositiva, --model, --workers) | §8.1 | E-CLI-1 | F6 / T-601 | [x] hecho (efecto de cada flag declarado; el pool es T-602) |
-| Modo batch: workers, checkpoints/reanudación y política de enfriamiento (ADR-010) | §10 | E-CLI-1/3 | F6 / T-602 | [ ] pendiente |
+| Modo batch: workers, checkpoints/reanudación y política de enfriamiento (ADR-010) | §10 | E-CLI-1/3 | F6 / T-602 | [x] hecho |
 | Sidecars con trazabilidad y salida agregada (resultado + evidencia + trazabilidad) | §9 (`CaseRecord`) | E-CLI-2 | F6 / T-603 | [ ] pendiente (sidecar por caso vía F5/T-506 ya disponible con `--cases`) |
 | Mapa de paridad v1→v2 verificado sobre carpetas reales de `files/` | §8.2 | E-CLI | F6 / T-604 | [ ] pendiente (mapa de equivalencias en el F6-subplan §3.1) |
 | Comandos HITL/case (cola de revisión, trazabilidad completa) | §8.1 (`hitl list`, `case show`) | E-CLI / E-CONC-4 | F6 / T-601 | [x] hecho |
@@ -59,4 +59,5 @@
 
 | Fecha | Acción / hito | Responsable | Estado |
 |---|---|---|---|
-| 2026-09-12 | **T-601 implementado**: `PipelineOrchestrator.ejecutar` encadena F1→F5 (processing → validation → extraction → combinación → conclusión → traza) y puebla el `PipelineResult`; la **fachada** implementa `extract`/`run`/`ask`; y `cli/main.py` expone los **once** subcomandos con `argparse` (stdlib, sin dependencias nuevas) y `main()` que devuelve el código de salida. El **fast-fail del gate** resuelve un no-comprobante como `rechazado`/certeza `alta` **sin** extracción; `iterar_documentos` recorre la carpeta recursiva excluyendo los artefactos derivados. Suites: `tests/test_cli_t601.py` (57) y `scripts/F6/t601.py` (9/9 + 6/6). Pendientes del módulo: T-602 (pool/checkpoints/enfriamiento), T-603 (salida agregada) y T-606 (API HTTP, fase 2). | team implementation | Hecho |
+| 2026-09-12 | **T-601 implementado**: `PipelineOrchestrator.ejecutar` encadena F1→F5 (processing → validation → extraction → combinación → conclusión → traza) y puebla el `PipelineResult`; la **fachada** implementa `extract`/`run`/`ask`; y `cli/main.py` expone los **once** subcomandos con `argparse` (stdlib, sin dependencias nuevas) y `main()` que devuelve el código de salida. El **fast-fail del gate** resuelve un no-comprobante como `rechazado`/certeza `alta` **sin** extracción; `iterar_documentos` recorre la carpeta recursiva excluyendo los artefactos derivados. Suites: `tests/test_cli_t601.py` (57) y `scripts/F6/t601.py` (9/9 + 6/6). | team implementation | Hecho |
+| 2026-09-12 | **T-602 implementado**: `batch.py` corre el lote con **workers** (`ProcessPoolExecutor` con `initializer` por worker: cada proceso con su convertidor de Docling y su cliente, perezosos), **checkpoints/reanudación** (`<doc>.batch.json` atómicos con el hash del contenido; `--force` reprocesa) y el **enfriamiento del ADR-010** (olas → detener el pool → `todos_detenidos` → dormir `cool_down_s`; el último ciclo no enfría). El trabajo cruza la frontera del proceso como payload serializable. El CLI suma `--cooling on|off|auto`, `--work-window`, `--cool-down` y `--no-checkpoints`. Suites: `tests/test_batch_t602.py` (46, con reloj inyectado) y `scripts/F6/t602.py` (12/12 + 6/6). **Hallazgo**: `concurrent.futures.Future` expone `result()`, no `resultado()`; el test del pool destapó que el camino real con >1 worker habría roto (se adapta en la frontera). Pendientes del módulo: T-603 (salida agregada) y T-606 (API HTTP, fase 2). | team implementation | Hecho |

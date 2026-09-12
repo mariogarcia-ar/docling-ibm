@@ -5,7 +5,7 @@
 > ([`F6.md`](F6.md)) y el diseño del módulo
 > ([`../03-arquitectura/ORCH-CLI.md`](../03-arquitectura/ORCH-CLI.md)).
 > **Fecha**: 2026-09-12 · **Rama**: `v2` · **Estado**: 🟡 **En implementación**
-> (T-601 hecha; T-602..T-606 pendientes).
+> (T-601 y T-602 hechas; T-603..T-606 pendientes).
 
 ## 1. Ficha del subplan
 
@@ -185,21 +185,120 @@ el `CaseRecord` del rechazo se arma igual (es el caso más interesante de audita
    versionado: fingir una diferencia de prompt que no existe haría la paridad
    inauditable.
 
-### 3.2 T-602 · Modo batch con workers, checkpoints y enfriamiento (ADR-010) ⬜ Pendiente
+### 3.2 T-602 · Modo batch con workers, checkpoints y enfriamiento (ADR-010) ✅ Hecha
 
-**Qué hay que hacer** (lo que T-601 dejó preparado): el pool de
-`ProcessPoolExecutor` con **el convertidor de Docling inicializado por worker**
-(patrón `init_worker`/`process_image_worker` de `v1/full_pipeline.py`), los
-checkpoints por documento con escritura atómica (`CaseRecorder`/`write_results`)
-y la política de enfriamiento del ADR-010: tras `work_window_s` de trabajo
-continuo se detienen los workers y **la cuenta de `cool_down_s` arranca cuando
-TODOS están detenidos** (requisito explícito de `my_prompt.md`).
+> **Estado 2026-09-12**: **Hecha** por `team implementation`. Suite completa en
+> verde (**1506 passed, 10 skipped**, 46 nuevos); `python scripts/F6/t602.py`
+> reporta **12/12** escenarios + **6/6** fronteras (exit 0).
 
-**Lo que T-601 ya dejó listo**: `ejecutar_lote(max_workers=...)` con el
-descubrimiento determinista y el contrato de cada corrida; el detalle declara
-`solicitado` vs. `aplicado` para que el cambio de T-602 sea verificable en la
-traza y no silencioso. La configuración `CoolingSettings`
-(`enabled`/`work_window_s`/`cool_down_s`) ya existe en `settings/config.py`.
+**Qué se hace.** `batch.py` (nuevo) es el runner de lotes que T-601 dejó
+preparado. `orchestrator.ejecutar_lote` y `cli/main.py::_cmd_batch` delegan en
+él; el contrato de retorno de T-601 (lista de `PipelineResult`) se conserva y la
+traza del lote viaja en `detalle['lote']` de cada resultado.
+
+**(1) Workers.** `EjecutorProcesos` usa `ProcessPoolExecutor` con un
+`initializer` por worker (patrón `init_worker` de `v1/full_pipeline.py`): cada
+proceso construye **su** convertidor de Docling y **su** cliente de modelos, de
+forma **perezosa** (el costo se paga en el primer trabajo del worker, no al
+arrancar el pool, y un lote de un documento no carga modelos de más).
+
+El trabajo cruza la frontera del proceso como **dict serializable**
+(`construir_trabajo` → `resultado_a_payload` → `resultado_desde_dict`): el worker
+devuelve datos y el padre los **revalida contra los contratos congelados**. Así el
+lote no depende de que las sesiones HTTP ni los convertidores sean picklables, y
+un payload que no respeta el schema falla en la frontera y no más adelante con un
+objeto a medias.
+
+Con **1 worker** el lote corre en el proceso actual (`EjecutorSerial`,
+determinista): un proceso propio no se justifica frente al costo de serializar y
+recargar el convertidor. Con un orquestador **inyectado** (los dobles no cruzan a
+otro proceso) también cae a serial y **lo declara** en la traza, en vez de
+reportar un paralelismo que no existió.
+
+**(2) Checkpoints y reanudación.** Cada documento completado deja
+`<doc>.batch.json` —junto al documento, como el `_pipeline.json` de v1— con
+escritura **atómica** (temporal + `os.replace`, patrón F5/T-506). La corrida
+siguiente **saltea** lo completado (Gherkin E-CLI-1: "retoma desde los checkpoints
+sin repetir pasos completados") y `--force` lo reprocesa.
+
+Tres decisiones de honestidad, y las tres tienen test:
+
+| Regla | Por qué |
+|---|---|
+| El checkpoint guarda el **hash del contenido**, no el nombre | un documento que **cambió** no se saltea aunque no se pase `--force`: saltearlo afirmaría que es el mismo documento |
+| Un checkpoint con `ok=False` **no** se reutiliza | un error no es un paso completado; si se reutilizara, un documento fallido quedaría salteado **para siempre** |
+| Un checkpoint **corrupto** se trata como ausente | un derivado roto no puede hacer saltear trabajo; igual criterio que el índice de T-506 |
+
+**(3) Enfriamiento (ADR-010).** El requisito literal de `my_prompt.md` —"la
+cuenta de los 2 minutos empieza cuando todos los workers están detenidos"— se
+cumple **por construcción**: el ciclo de trabajo se organiza en **olas** del
+tamaño del pool; al vencer `work_window_s` se cierra el ciclo, se **detiene el
+pool** (`shutdown(wait=True)`: ningún worker vivo), **recién entonces** se marca
+`todos_detenidos_s` y se duerme `cool_down_s`. El **último** ciclo nunca enfría
+(no queda trabajo para reanudar). La traza guarda los tres instantes
+(`inicio_ventana_s`, `todos_detenidos_s`, `enfriado_s`), así que la semántica es
+auditable y no una promesa.
+
+**Por qué olas y no un pool que se pausa**: un proceso detenido es lo que hace
+real la pausa térmica (no consume CPU ni retiene los modelos cargados); un pool
+"pausado" pero vivo no enfría nada. Y la ola da una unidad determinista de
+planificación: la ventana se evalúa **entre** olas, así que no se interrumpe un
+documento a la mitad.
+
+**El CLI.** `--cooling on|off|auto` (respeta o fuerza `CoolingSettings.enabled`),
+`--work-window S`, `--cool-down S` (acortar la ventana sin tocar el YAML: es lo que
+hace testeable la política) y `--no-checkpoints` (ignora y no escribe, **sin**
+borrar el estado existente: apagar el mecanismo no puede destruir el lote).
+`--force` ahora **decide** de verdad; en `run` sigue sin efecto porque un documento
+suelto no tiene lote del cual reanudar, y lo declara.
+
+**Cómo se prueba (sin procesos reales, sin dormir).**
+
+- **Workers**: 1 worker = serial; varios = pool (con un espía que verifica la
+  capacidad); el trabajo y el resultado cruzan serializables; las olas respetan la
+  capacidad (5 documentos con capacidad 2 → olas de 2, 2 y 1); y el **ciclo real**
+  del `ProcessPoolExecutor` con una función pura de módulo (verifica que el trabajo
+  corrió en **otro** proceso por el `pid` del resultado).
+- **Checkpoints**: se dejan al completar, no se descubren como documentos, la
+  segunda corrida reanuda, `--force` reprocesa, el cambiado no se saltea, el fallido
+  no se reutiliza y el corrupto se reprocesa. Además: escritura atómica (sin
+  temporales), directorio no escribible declarado (no tumba el lote) y apagar los
+  checkpoints no borra nada.
+- **Enfriamiento**: el ciclo, la ventana, el instante de "todos detenidos", el
+  último ciclo sin pausa, `enabled=False` sin pausas, y que el pool se detenga en
+  cada ciclo. Todo con **reloj y ejecutor inyectados**: la suite no spawnea procesos
+  ni duerme.
+- **Fronteras**: el runner no decide (el veredicto del gate viaja intacto), no se
+  inventa checkpoint de un archivo inexistente, el contrato de T-601 se conserva y
+  el pool no acepta trabajo sin `iniciar()`.
+
+**Fronteras de la tarea (lo que **no** hace).**
+
+- **No** define la salida agregada del lote ni su formato canónico (T-603).
+- **No** cambia la persistencia de la trazabilidad: `--cases` sigue siendo el
+  `CaseRecorder` de F5/T-506.
+- **No** reintenta documentos fallidos dentro de la misma corrida (el reintento es
+  **entre corridas**, que es donde tiene sentido); los retries/backoff avanzados de
+  E-CLI-3 siguen como Should.
+- **No** mide temperaturas reales: la política es por tiempo de trabajo continuo,
+  que es lo que define el ADR-010.
+
+**Hallazgos de la implementación.**
+
+1. **Un bug real, destapado por el test del pool**: `EjecutorProcesos` devolvía el
+   `Future` de `concurrent.futures`, que expone **`result()`**, mientras el contrato
+   del runner es **`resultado()`**. El camino de **producción** con más de un worker
+   habría roto al primer lote — y los dobles no lo veían porque usaban el contrato
+   del runner. Fix: `_FuturoProceso` adapta el `Future` en la frontera. Lección: un
+   detalle de la stdlib no debe condicionar el contrato propio, y el doble tiene que
+   respetar el contrato **del componente**, no el de la librería.
+2. **Un error no es un paso completado**: la primera versión de `es_reanudable()`
+   solo miraba que existiera el checkpoint. Con eso, un documento que falló quedaría
+   salteado para siempre y el lote nunca lo reintentaría.
+3. **El hash es la identidad, no el nombre**: reanudar por nombre de archivo es la
+   trampa obvia y **silenciosa** (no falla: saltea trabajo que había que rehacer).
+   El `sha256` del contenido hace que el caso correcto sea el que sale gratis y el
+   incorrecto el que exige `--force`.
 
 ### 3.3 T-603 · Sidecars con trazabilidad y salida agregada ⬜ Pendiente
 
@@ -293,15 +392,16 @@ CLI (argparse)                 Orquestador                    Librería
 
 ## 7. Avance
 
-- **Estado (2026-09-12)**: **T-601 hecha**. El cliente existe: los once
-  subcomandos, el orquestador que encadena F1→F5 y la fachada que publica
-  `extract`/`run`/`ask`. Suite completa **1460 passed / 10 skipped** (57 nuevos);
-  `scripts/F6/t601.py` → **9/9** escenarios + **6/6** fronteras (exit 0).
-- **Punto de partida real**: F5 dejó el `CaseRecord` persistible (`CaseRecorder`)
-  y el `VoucherResult` consolidado; lo único que faltaba era **el encadenamiento**
-  y **la superficie de invocación**. Con T-601 el pipeline de extremo a extremo
-  existe y es determinista sin GPU.
-- **Lo que sigue**: T-602 (batch con workers/checkpoints/enfriamiento) es la
-  continuación natural porque T-601 dejó su punto de extensión declarado
-  (`ejecutar_lote` + `CoolingSettings`); T-603 cierra la salida agregada y T-604
-  mide la paridad para declarar el corte de v1 (el DoD de la fase).
+- **Estado (2026-09-12)**: **T-601 y T-602 hechas**. El cliente existe (once
+  subcomandos), el lote corre con workers, checkpoints/reanudación y la política de
+  enfriamiento del ADR-010. Suite completa **1506 passed / 10 skipped** (57 nuevos
+  de T-601 + 46 de T-602); `scripts/F6/t601.py` → **9/9** + **6/6** y
+  `scripts/F6/t602.py` → **12/12** + **6/6** (exit 0).
+- **Punto de partida real**: F5 dejó el `CaseRecord` persistible (`CaseRecorder`) y
+  el `VoucherResult` consolidado; T-601 puso el encadenamiento y la superficie de
+  invocación; T-602 puso el **runner** que hace viable un lote largo sobre una
+  máquina que se calienta.
+- **Lo que sigue**: **T-603** (salida agregada del lote: T-602 ya publica los
+  resultados y la traza, falta el formato canónico del agregado) y **T-604** (la
+  medición de la paridad v1→v2 sobre `files/`, que cierra el DoD de la fase; el
+  mapa de equivalencias está en §3.1).

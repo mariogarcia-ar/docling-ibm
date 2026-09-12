@@ -519,9 +519,8 @@ revisión y las correcciones, que alimente el feedback a reglas/prompts.
 
 ### ADR-010 · Política de enfriamiento por temperatura (config)
 
-- **Estado**: 🟡 **Parcialmente preparado** (F6/T-601, 2026-09-12: la configuración
-  y el punto de extensión existen; la política se implementa en **T-602**) ·
-  **Prioridad**: Media · **Decisión D-10**
+- **Estado**: ✅ **Implementado** (F6/T-602, 2026-09-12) · **Prioridad**: Media ·
+  **Decisión D-10**
 
 **Contexto**
 En `my_prompt.md` (operativo) se documenta: tras ~10 min de procesamiento el
@@ -539,7 +538,7 @@ checkpoints permiten reanudar sin reprocesar.
 - + Evita degradación térmica en lotes largos.
 - + La política es testeable sin hardware real (simulación con ventanas cortas).
 
-**Implementación (F6/T-601 — preparado, no implementado)**
+**Implementación (F6/T-601 — preparado)**
 - `settings/config.py` ya tiene `CoolingSettings` (`enabled=False`,
   `work_window_s=600`, `cool_down_s=120`) desde F0: la configuración que el ADR
   pide existe y es cargable por YAML/env.
@@ -551,6 +550,30 @@ checkpoints permiten reanudar sin reprocesar.
   **verificable en la traza**, no silencioso.
 - El modo batch de T-601 **no** simula la pausa: aceptar `--workers` y no decir
   qué hizo sería peor que no aceptarlo.
+
+**Implementación (F6/T-602 — la política)**
+- `batch.py` implementa la recomendación **al pie de la letra**: el ciclo se
+  organiza en **olas** del tamaño del pool; al vencer `work_window_s` se cierra el
+  ciclo y se **detiene el pool** (`shutdown(wait=True)`: ningún worker vivo);
+  **recién entonces** se marca `todos_detenidos_s` y se duerme `cool_down_s`. La
+  cuenta arranca, por construcción, cuando **TODOS** los workers están detenidos
+  —que es exactamente lo que el ADR pide y lo que la v1 no podía garantizar con un
+  pool pausado pero vivo.
+- **Por qué detener el pool y no pausarlo**: un proceso detenido es lo que hace
+  real la pausa térmica (no consume CPU ni retiene los modelos cargados). Un pool
+  "pausado" que sigue vivo no enfría nada.
+- El **último** ciclo no enfría: no queda trabajo para reanudar, y dormir dos
+  minutos para terminar sería tiempo perdido.
+- La traza guarda los **tres instantes** (`inicio_ventana_s`, `todos_detenidos_s`,
+  `enfriado_s`) y la política aplicada (`cooling`), así que la semántica es
+  auditable. El CLI expone `--cooling on|off|auto`, `--work-window S` y
+  `--cool-down S` para acortar la ventana sin tocar el YAML (es lo que hace la
+  política testeable en una máquina distinta de la de referencia).
+- **Verificación sin hardware**: el reloj y el ejecutor se inyectan, así que el
+  ciclo de enfriamiento se prueba **sin dormir** y sin procesos reales
+  (`scripts/F6/t602.py` 12/12 + 6/6; `tests/test_batch_t602.py` 46).
+- **Nota**: la política es por **tiempo de trabajo continuo**, no mide
+  temperaturas reales — es lo que este ADR define.
 
 ---
 

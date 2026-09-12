@@ -112,19 +112,17 @@ class ErrorCLI(RuntimeError):
 def _agregar_comunes(parser: argparse.ArgumentParser) -> None:
     """Opciones que comparten los subcomandos que llaman al pipeline.
 
-    ``--force`` se acepta por paridad de contrato (E-CLI-1) y se resuelve como
-    "no saltear lo ya procesado": en T-601 cada corrida reprocesa, así que el
-    flag se documenta como **no-op explícito** hasta que el checkpoint de T-602
-    lo convierta en la diferencia entre reprocesar y reanudar. Declararlo evita
-    que el operador crea que tiene un efecto que no tiene.
+    ``--force`` (E-CLI-1) reprocesa los documentos que ya tienen checkpoint
+    válido: es la diferencia entre **reanudar** (default) y **rehacer** el lote
+    (T-602). Un checkpoint de un documento que cambió de contenido no se
+    reutiliza aunque no se pase ``--force``: el hash del archivo es lo que decide.
     """
     parser.add_argument(
         "--force",
         action="store_true",
         help=(
-            "Reprocesa aunque existan salidas previas. En T-601 la corrida ya "
-            "reprocesa siempre (el checkpoint/reanudación es T-602): el flag se "
-            "acepta por paridad y su efecto se declara en la traza."
+            "Reprocesa los documentos que ya tienen checkpoint válido. Sin el flag, "
+            "el lote reanuda y saltea lo completado (E-CLI-1, T-602)."
         ),
     )
     parser.add_argument(
@@ -148,8 +146,9 @@ def _agregar_comunes(parser: argparse.ArgumentParser) -> None:
         type=int,
         default=1,
         help=(
-            "Workers del modo batch. En T-601 el lote corre secuencial y el "
-            "número se registra como solicitado; el pool real es T-602."
+            "Workers del modo batch (T-602): cada worker inicializa su propio "
+            "convertidor de Docling. Con 1 worker el lote corre en el proceso "
+            "actual (determinista)."
         ),
     )
 
@@ -202,13 +201,44 @@ def construir_parser() -> argparse.ArgumentParser:
     p.add_argument("--no-agente", action="store_true", help="No escala al agente IA si el código no concluye.")
     _agregar_comunes(p)
 
-    p = sub.add_parser("batch", help="Pipeline completo de una carpeta recursiva (F6; workers en T-602).")
+    p = sub.add_parser("batch", help="Pipeline completo de una carpeta recursiva (F6/T-602: workers + checkpoints + enfriamiento).")
     p.add_argument("origen", help="Carpeta (o archivo) a procesar.")
     p.add_argument("-o", "--output", default=None, help="Archivo JSON con la salida agregada.")
     p.add_argument("--cases", default=None, metavar="DIR", help="Persiste los CaseRecord (sidecar + índice).")
     p.add_argument("--clasificar-contable", action="store_true")
     p.add_argument("--no-gate", action="store_true")
     p.add_argument("--no-agente", action="store_true")
+    p.add_argument(
+        "--cooling",
+        choices=["auto", "on", "off"],
+        default="auto",
+        help=(
+            "Enfriamiento por temperatura (ADR-010): 'auto' usa la configuración "
+            "(CoolingSettings.enabled), 'on'/'off' la fuerzan para esta corrida."
+        ),
+    )
+    p.add_argument(
+        "--work-window",
+        type=int,
+        default=None,
+        metavar="S",
+        help="Segundos de trabajo continuo antes de detener los workers (ADR-010; default: config).",
+    )
+    p.add_argument(
+        "--cool-down",
+        type=int,
+        default=None,
+        metavar="S",
+        help=(
+            "Segundos de enfriamiento, contados desde que TODOS los workers están "
+            "detenidos (ADR-010; default: config)."
+        ),
+    )
+    p.add_argument(
+        "--no-checkpoints",
+        action="store_true",
+        help="Ignora y no escribe checkpoints: reprocesa todo el lote sin reanudar.",
+    )
     _agregar_comunes(p)
 
     p = sub.add_parser("ask", help="Pregunta puntual sobre un documento (equivale a v1/ask.py).")
@@ -509,7 +539,13 @@ def _opciones_pipeline(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def _cmd_run(args: argparse.Namespace, entorno: EntornoCLI) -> int:
-    """``run``: pipeline completo de **un** archivo (F6/T-601)."""
+    """``run``: pipeline completo de **un** archivo (F6/T-601).
+
+    ``--force`` **no** cambia el resultado de ``run``: reprocesa siempre, porque un
+    documento suelto no tiene lote del cual reanudar. El flag se declara así en la
+    traza en vez de fingir un efecto (la reanudación por checkpoint es del lote,
+    T-602).
+    """
     ruta = entorno.ruta(args.origen)
     resultado = entorno.orch().ejecutar(
         ruta,
@@ -519,8 +555,9 @@ def _cmd_run(args: argparse.Namespace, entorno: EntornoCLI) -> int:
     )
     if args.force:
         resultado.detalle["force"] = (
-            "Aceptado por paridad (E-CLI-1): en T-601 la corrida reprocesa siempre "
-            "y el checkpoint/reanudación llega con T-602."
+            "`run` reprocesa siempre (un documento suelto no tiene lote del cual "
+            "reanudar): el checkpoint/reanudación con --force aplica a `batch` "
+            "(T-602)."
         )
     _json_salida(_resultado_a_dict(resultado), args.output, entorno)
     entorno.log(_resumen_legible(resultado))
@@ -528,42 +565,113 @@ def _cmd_run(args: argparse.Namespace, entorno: EntornoCLI) -> int:
 
 
 def _cmd_batch(args: argparse.Namespace, entorno: EntornoCLI) -> int:
-    """``batch``: pipeline completo de una **carpeta recursiva** (F6/T-601).
+    """``batch``: pipeline completo de una **carpeta recursiva** (F6/T-602).
 
-    El recorrido es secuencial y determinista (T-601); el pool con workers,
-    checkpoints y enfriamiento es T-602. ``--workers`` viaja al orquestador y su
-    efecto real (aplicado/secuencial) queda en el detalle de cada corrida.
+    Corre el lote con workers, checkpoints y enfriamiento (ADR-010):
+
+    - **workers**: ``--workers N`` → pool de procesos con **un convertidor de
+      Docling por worker** (patrón ``init_worker`` de v1). Con 1 worker el lote
+      corre en el proceso actual (determinista).
+    - **checkpoints/reanudación**: cada documento completado deja
+      ``<doc>.batch.json`` (con el hash de su contenido) y la corrida siguiente
+      lo **saltea**; ``--force`` reprocesa. Un documento que **cambió** no se
+      saltea aunque no se pase ``--force``.
+    - **enfriamiento**: al vencer ``--work-window`` se detiene el pool y **recién
+      entonces** arranca la cuenta de ``--cool-down`` (todos los workers
+      detenidos, ADR-010). El último ciclo nunca enfría.
+
+    La salida agregada incluye la **traza del lote**: workers aplicados,
+    reanudados, ciclos con ``todos_detenidos_s`` y segundos enfriados. El
+    formato del agregado canónico es T-603.
     """
     raiz = entorno.ruta(args.origen)
-    resultados = entorno.orch().ejecutar_lote(
+    from ..batch import ejecutar_lote
+
+    politica = _politica_cooling(args, entorno)
+    resultado_lote = ejecutar_lote(
         raiz,
+        orquestador=entorno.orch(),
         max_workers=args.workers,
+        force=args.force,
         persistir=bool(args.cases),
         dir_salida=args.cases,
+        cooling=politica,
+        checkpoints=None if not args.no_checkpoints else _CheckpointsDesactivados(),
+        settings=entorno.orch().settings_efectivos(),
         **_opciones_pipeline(args),
     )
-    if not resultados:
+    resultados = resultado_lote.resultados
+    traza = resultado_lote.traza
+
+    if not resultados and not traza.reanudados:
         raise ErrorCLI(f"No hay documentos procesables en {raiz}.")
 
     ok = sum(1 for r in resultados if r.ok)
     resumen = {
         "version": VERSION_CLI,
         "raiz": str(raiz),
-        "documentos": len(resultados),
+        "documentos": len(resultados) + len(traza.reanudados),
         "ok": ok,
         "errores": len(resultados) - ok,
-        "max_workers_solicitado": args.workers,
-        "max_workers_aplicado": 1,
-        "nota": (
-            "T-601 recorre el lote de forma secuencial. Los workers con su "
-            "convertidor por worker, los checkpoints y la política de enfriamiento "
-            "(ADR-010) son T-602."
-        ),
+        "reanudados": len(traza.reanudados),
+        "max_workers_solicitado": traza.max_workers_solicitado,
+        "max_workers_aplicado": traza.max_workers_aplicado,
+        "enfriamientos": traza.enfriamientos,
+        "segundos_enfriados": traza.segundos_enfriados,
+        "traza_lote": traza.como_dict(),
         "resultados": [_resultado_a_dict(r) for r in resultados],
     }
     _json_salida(resumen, args.output, entorno)
-    entorno.log(f"Lote: {ok}/{len(resultados)} documentos procesados")
-    return 0 if ok == len(resultados) else 1
+    repuestos = f", {len(traza.reanudados)} reanudados" if traza.reanudados else ""
+    entorno.log(
+        f"Lote: {ok}/{len(resultados)} documentos procesados{repuestos} "
+        f"({traza.max_workers_aplicado} worker(s), {traza.enfriamientos} enfriamiento(s))"
+    )
+    return 0 if (ok == len(resultados) and not traza.errores) else 1
+
+
+def _politica_cooling(args: argparse.Namespace, entorno: EntornoCLI) -> Any:
+    """Resuelve la política de enfriamiento de la corrida (ADR-010).
+
+    ``--cooling auto`` respeta la configuración (``CoolingSettings.enabled``);
+    ``on``/``off`` la fuerzan, y ``--work-window``/``--cool-down`` permiten
+    acortar la ventana sin tocar el YAML — que es lo que hace testeable la
+    política y utilizable una máquina más rápida o más lenta que la de referencia.
+    """
+    from ..settings.config import CoolingSettings
+
+    base = entorno.orch().settings_efectivos().cooling
+    enabled = base.enabled
+    if args.cooling == "on":
+        enabled = True
+    elif args.cooling == "off":
+        enabled = False
+    return CoolingSettings(
+        enabled=enabled,
+        work_window_s=args.work_window or base.work_window_s,
+        cool_down_s=args.cool_down if args.cool_down is not None else base.cool_down_s,
+    )
+
+
+class _CheckpointsDesactivados:
+    """Almacén de checkpoints apagado (``--no-checkpoints``).
+
+    Implementa el contrato mínimo que el runner usa (``es_reanudable``/``marcar``)
+    sin tocar el filesystem: nada se reanuda y nada se escribe. Se declara aparte
+    en vez de "limpiar" los checkpoints existentes: apagar el mecanismo no puede
+    destruir el estado del lote.
+    """
+
+    habilitados = False
+
+    def __init__(self) -> None:
+        self.no_escribibles: list[str] = []
+
+    def es_reanudable(self, documento: Any, *, force: bool = False) -> bool:
+        return False
+
+    def marcar(self, resultado: Any) -> None:
+        return None
 
 
 def _cmd_ask(args: argparse.Namespace, entorno: EntornoCLI) -> int:

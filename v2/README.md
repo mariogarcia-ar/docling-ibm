@@ -27,13 +27,16 @@ evidencia congelado), `rules` (motor de reglas), `models` (adaptadores
 > `voucherflow`** (once subcomandos: `process`, `validate`, `classify`, `extract`,
 > `extract-detect`, `run`, `batch`, `ask`, `arca`, `case`, `hitl`), el
 > **orquestador** que encadena processing → validation → extraction → combinación
-> → conclusión → traza y la **fachada** `api.extract`/`api.run`/`api.ask`. El
+> → conclusión → traza y la **fachada** `api.extract`/`api.run`/`api.ask`; y
+> **T-602** el **modo batch**: workers (cada uno con su convertidor de Docling),
+> checkpoints/reanudación por hash del contenido y la política de enfriamiento del
+> ADR-010 —la cuenta arranca cuando el pool está detenido, es decir cuando **todos**
+> los workers pararon—. El
 > paquete tiene implementadas las capacidades de procesamiento (F1), validación
 > (F2), clasificación (F3), la extracción completa (F4) y la conclusión con HITL
-> (F5); de F6 faltan el batch con workers/checkpoints/enfriamiento (T-602), la
-> salida agregada (T-603), la paridad v1→v2 sobre `files/` (T-604), la
-> documentación de usuario (T-605) y la API HTTP (T-606, fase 2). La suite default
-> corre **sin** Ollama ni Docling reales.
+> (F5); de F6 faltan la salida agregada (T-603), la paridad v1→v2 sobre `files/`
+> (T-604), la documentación de usuario (T-605) y la API HTTP (T-606, fase 2). La
+> suite default corre **sin** Ollama, **sin** Docling reales y **sin** red.
 
 ## Instalación
 
