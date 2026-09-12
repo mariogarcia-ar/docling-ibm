@@ -1,0 +1,341 @@
+{
+  "golden_version": "0.1-f6",
+  "descripcion": "Subconjunto de paridad de F6 (T-604). Mide el DoD de la fase ('los comandos de v1 tienen equivalente en v2 con resultados comparables o mejores sobre una muestra acordada de files/') en los dos niveles que SI tienen sustento objetivo: (a) la paridad de la SUPERFICIE de invocacion (cada comando de v1 tiene su equivalente en v2 y sus banderas no se perdieron) y (b) la paridad de los ARTEFACTOS que produce cada corrida (nombres de archivo y forma de los datos). Ver README.md del directorio.",
+  "decision_alcance": "La paridad de F6 NO se puede medir comparando el veredicto de v1 contra el de v2 sobre la misma carpeta y declarandola 'comparable': v1 no separa lectura de decision (ADR-001/ADR-006), asi que la comparacion de salidas mezclaria una mejora de diseno con una regresion. Se mide entonces (a) la superficie y (b) los artefactos, que son verificables SIN modelo; y la corrida real con modelos queda como medicion informativa en el script (fuera de la suite default). Todo lo que NO se compara se declara en 'fuera_de_paridad'.",
+  "muestra": {
+    "carpeta": "v2/tests/fixtures/golden",
+    "motivo": "Muestra estable y versionada dentro del repo. `files/` es temporal e ignorada por git (ver tests/conftest.py), asi que una medicion que dependa de ella no es reproducible entre clones. El subconjunto se acota a lo que el dueño del repo mantiene como referencia."
+  },
+  "comandos": [
+    {
+      "id": "ocr_documents",
+      "v1": "v1/ocr_documents.py",
+      "v2": "process",
+      "que": "procesa una carpeta recursiva a Markdown por posicion",
+      "equivalencia": "equivalente directo: el CLI procesa archivo o carpeta recursiva",
+      "flags_v1": [
+        "--orientation",
+        "-f",
+        "-o",
+        "-w"
+      ],
+      "flags_v1_sin_equivalente": [],
+      "nota": "-f/--force y -w/--workers se conservan como banderas (el efecto de --force en `process` no aplica: cada corrida reprocesa; el checkpoint es de `batch`, T-602)",
+      "mapa_flags_v1_v2": {
+        "-o": "--output",
+        "-f": "--force",
+        "-w": "--workers",
+        "--orientation": "--orientation"
+      }
+    },
+    {
+      "id": "run_raw",
+      "v1": "v1/run_raw.py",
+      "v2": "process --raw",
+      "que": "Markdown CRUDO de Docling, sin reordenar por posicion",
+      "equivalencia": "equivalente directo (bandera dedicada)",
+      "flags_v1": [
+        "--input",
+        "--output"
+      ],
+      "flags_v1_sin_equivalente": [],
+      "nota": "--input es la posicion `origen` en v2; la ruta de salida es -o/--output",
+      "mapa_flags_v1_v2": {
+        "--input": "origen",
+        "--output": "--output"
+      }
+    },
+    {
+      "id": "classification_pipeline",
+      "v1": "v1/classification_pipeline.py",
+      "v2": "classify",
+      "que": "cadena contable 01 -> 02 -> 03",
+      "equivalencia": "equivalente directo",
+      "flags_v1": [
+        "--condicion-impositiva",
+        "-m",
+        "-o"
+      ],
+      "flags_v1_sin_equivalente": [],
+      "nota": "v2 resuelve la descripcion del archivo con F1 si recibe un documento que no es markdown (v1 leia el markdown)",
+      "mapa_flags_v1_v2": {
+        "-m": "--model",
+        "--condicion-impositiva": "--condicion-impositiva",
+        "-o": "--output"
+      }
+    },
+    {
+      "id": "extraction_pipeline",
+      "v1": "v1/extraction_pipeline.py",
+      "v2": "extract",
+      "que": "extraccion key-value (pasos 10 generico / 11 factura)",
+      "equivalencia": "equivalente con cambio de arquitectura",
+      "flags_v1": [
+        "-m",
+        "-o"
+      ],
+      "flags_v1_sin_equivalente": [],
+      "nota": "v1 tenia un paso por modo; v2 tiene UN contrato de extraccion versionado y los dos flujos (VLM+LLM) en paralelo: el modo de v1 se registra con -M/--mode para la trazabilidad, no cambia el prompt",
+      "mapa_flags_v1_v2": {
+        "-m": "--model",
+        "-o": "--output"
+      }
+    },
+    {
+      "id": "document_extraction",
+      "v1": "v1/document_extraction.py",
+      "v2": "extract --mode 11.1 | extract-detect",
+      "que": "deteccion de tipo/letra por VLM/LLM (-M 11.1) y extraccion por modo",
+      "equivalencia": "equivalente repartido en dos comandos",
+      "flags_v1": [
+        "--centro-costo",
+        "--condicion-impositiva",
+        "--macro-categoria",
+        "--modality",
+        "-M",
+        "-m",
+        "-o",
+        "-p"
+      ],
+      "flags_v1_sin_equivalente": [
+        "--centro-costo",
+        "--macro-categoria",
+        "-p",
+        "--modality"
+      ],
+      "nota": "La letra se pide con `extract-detect` (equivale a -M 11.1) y el modo key-value con `extract --mode`. NO tienen equivalente: `--prompt`/-p (elegir el YAML a mano), porque en v2 los prompts son codigo versionado (ADR-006) y no un archivo que el operador pasa; `--centro-costo`/`--macro-categoria`, que son ENTRADAS de la cadena contable (en v2 se resuelven corriendo `classify`, que las produce); y `--modality` (auto/llm/vlm), porque v2 corre SIEMPRE los dos flujos VLM+LLM en paralelo (E-EXT-1) y no hay motor que elegir.",
+      "mapa_flags_v1_v2": {
+        "-M": "--mode",
+        "--condicion-impositiva": "--condicion-impositiva",
+        "-m": "--model",
+        "-o": "--output"
+      }
+    },
+    {
+      "id": "full_pipeline",
+      "v1": "v1/full_pipeline.py",
+      "v2": "run | batch",
+      "que": "pipeline completo (OCR + extraccion + clasificacion) sobre archivo o carpeta",
+      "equivalencia": "equivalente directo, separado por cardinalidad",
+      "flags_v1": [
+        "--condicion-impositiva",
+        "--orientation",
+        "-f",
+        "-m",
+        "-o",
+        "-w"
+      ],
+      "flags_v1_sin_equivalente": [],
+      "nota": "`run` es el archivo suelto y `batch` la carpeta; v1 hacia las dos cosas con el mismo script. --force/--workers tienen efecto real en `batch` (T-602)",
+      "mapa_flags_v1_v2": {
+        "-m": "--model",
+        "--condicion-impositiva": "--condicion-impositiva",
+        "--orientation": "--orientation",
+        "-o": "--output",
+        "-f": "--force",
+        "-w": "--workers"
+      }
+    },
+    {
+      "id": "ask",
+      "v1": "v1/extraction_invoice/ask.py",
+      "v2": "ask",
+      "que": "pregunta libre sobre un documento",
+      "equivalencia": "equivalente directo",
+      "flags_v1": [
+        "-f",
+        "-m",
+        "-o",
+        "-q"
+      ],
+      "flags_v1_sin_equivalente": [
+        "-f",
+        "-o"
+      ],
+      "nota": "-q/--question y -m/--model equivalentes. -f/--fields (extraccion progresiva por lista de preguntas de un YAML) y -o/--output NO tienen equivalente: en v2 la extraccion estructurada es `extract` (contrato de evidencia) y `ask` queda para la consulta puntual; portar -f seria reimplementar la extraccion por otra via",
+      "mapa_flags_v1_v2": {
+        "-m": "--model",
+        "-q": "--question"
+      }
+    },
+    {
+      "id": "consultar_arca",
+      "v1": "v1/wip/consultar_arca.py",
+      "v2": "arca check",
+      "que": "constatacion de un comprobante contra el padron (WSCDC)",
+      "equivalencia": "equivalente con alcance parcial y declarado",
+      "flags_v1": [
+        "--cae",
+        "--cuit-emisor",
+        "--cuit-receptor",
+        "--fecha",
+        "--importe",
+        "--json",
+        "--nro-cbte",
+        "--nro-factura",
+        "--pto-vta",
+        "--tipo-cbte"
+      ],
+      "flags_v1_sin_equivalente": [
+        "--tipo-cbte",
+        "--pto-vta",
+        "--nro-cbte",
+        "--nro-factura",
+        "--cae",
+        "--fecha",
+        "--importe",
+        "--cuit-receptor",
+        "--json"
+      ],
+      "nota": "v1/wip es un prototipo que pide TODOS los datos del comprobante a mano por bandera. v2 toma esos datos del propio documento (los lee con F1+F4) y `arca check` solo necesita --cuit/--url/--token: pedirlos otra vez seria duplicar lo que el pipeline ya sabe. El flujo WSAA (certificados) queda fuera del MVP por ADR-003. --json no existe: la salida ya es JSON",
+      "mapa_flags_v1_v2": {
+        "--cuit-emisor": "--cuit"
+      }
+    }
+  ],
+  "artefactos": [
+    {
+      "id": "markdown_por_posicion",
+      "v1": "v1/ocr_documents.py -o DIR",
+      "v2": "process -o DIR",
+      "que": "un .md junto al documento, o en el directorio de salida",
+      "patron_v1": "<doc>.md",
+      "patron_v2": "<doc>.md",
+      "coincide": true,
+      "nota": "Mismo nombre y misma politica de reordenado por posicion (E-DOC-3)"
+    },
+    {
+      "id": "markdown_crudo",
+      "v1": "v1/run_raw.py --output",
+      "v2": "process --raw",
+      "que": "el crudo de Docling sin reordenar",
+      "patron_v1": "<doc>.raw.md",
+      "patron_v2": "<doc>.raw.md",
+      "coincide": true,
+      "nota": "v1 lo escribe con el sufijo .raw.md; v2 conserva la convencion al exportar el crudo"
+    },
+    {
+      "id": "checkpoint_clasificacion",
+      "v1": "v1/classification_pipeline.py",
+      "v2": "classify",
+      "que": "checkpoint de la cadena contable, por documento",
+      "patron_v1": "<doc>_classification.json",
+      "patron_v2": "<doc>_classification.json",
+      "coincide": true,
+      "nota": "Nombre y shape ({\"archivo\": ..., \"pasos\": {...}}) identicos: v2 conserva el checkpoint de v1 para poder reanudar (F3/T-304)"
+    },
+    {
+      "id": "checkpoint_pipeline",
+      "v1": "v1/full_pipeline.py",
+      "v2": "batch",
+      "que": "estado del lote por documento, para reanudar sin repetir",
+      "patron_v1": "<doc>_pipeline.json",
+      "patron_v2": "<doc>.batch.json",
+      "coincide": false,
+      "nota": "CAMBIA A PROPOSITO. El checkpoint de v2 guarda el HASH del contenido (T-602): reanudar por nombre de archivo saltea un documento que cambio, que es un error silencioso. v1 reanudaba por nombre. La diferencia es de seguridad, no de forma, y se declara aca"
+    },
+    {
+      "id": "salida_json_extraccion",
+      "v1": "v1/extraction_pipeline.py -o",
+      "v2": "extract -o",
+      "que": "el JSON de la corrida",
+      "patron_v1": "json con la salida cruda del modelo",
+      "patron_v2": "json con la evidencia combinada (contrato de F0)",
+      "coincide": false,
+      "nota": "CAMBIA POR DISENO (ADR-001): v1 volcaba lo que devolvia el modelo; v2 emite el contrato de evidencia (valor + fragmento de sustento + resolucion por campo), que es lo que la auditoria necesita"
+    },
+    {
+      "id": "salida_agregada_lote",
+      "v1": "v1/full_pipeline.py (resultados en stdout)",
+      "v2": "batch -o",
+      "que": "el resultado consolidado de la carpeta",
+      "patron_v1": "JSON de la ultima corrida, a stdout",
+      "patron_v2": "agregado del lote: una entrada por documento (veredicto + puntero al sidecar), acumulado entre corridas",
+      "coincide": false,
+      "nota": "v1 imprimia el resultado de la corrida y no lo persistia; v2 escribe un agregado que es el ESTADO de la carpeta y se puede reconstruir del historico (T-603)"
+    },
+    {
+      "id": "sidecar_trazabilidad",
+      "v1": "-",
+      "v2": "run --cases DIR / batch --cases DIR",
+      "que": "el registro auditable por documento (resultado + evidencia + trazabilidad)",
+      "patron_v1": "(no existia)",
+      "patron_v2": "<doc>.case.json + index.jsonl",
+      "coincide": false,
+      "mejor_que_v1": true,
+      "nota": "SIN CONTRAPARTE en v1: v1 no guardaba la trazabilidad de la decision. Es la capacidad que E-CLI-2 pide y la que sostiene la auditoria (F5/T-506): no se compara, se declara como mejora"
+    }
+  ],
+  "equivalencias_de_capacidad": [
+    {
+      "capacidad": "procesamiento (OCR / conversion)",
+      "v1": "docling dentro de cada script",
+      "v2": "processing/ (F1)",
+      "estado": "mejor",
+      "nota": "v2 suma el detector de tipo por pagina (PDF mixto), el gate de procesabilidad y pdftotext --layout para el PDF apto"
+    },
+    {
+      "capacidad": "normalizacion de campos",
+      "v1": "la pedia al modelo DENTRO del prompt",
+      "v2": "key_value.py (F4/T-402), en codigo",
+      "estado": "mejor",
+      "nota": "verificable: un valor no normalizable conserva el crudo con aviso en vez de inventarse (paridad medida en F4/T-405)"
+    },
+    {
+      "capacidad": "decision del tipo/letra",
+      "v1": "el modelo la devolvia (comprobante_valido)",
+      "v2": "motor R1-R7 en codigo (F3/T-301) + reglas cruzadas (F5/T-501)",
+      "estado": "diferente_por_diseno",
+      "nota": "ADR-006: el modelo reporta evidencia y el codigo decide. No es comparable campo a campo; la exactitud de v2 contra v1 sobre el golden se midio en F3/T-305 (letra: v2 5/5 vs v1 2/5)"
+    },
+    {
+      "capacidad": "conclusion y HITL",
+      "v1": "(no existia)",
+      "v2": "conclusion/ (F5) + cola HITL + metricas",
+      "estado": "mejor",
+      "nota": "sin contraparte en v1: v1 no concluia con certeza derivada de la etapa ni encolaba revision"
+    },
+    {
+      "capacidad": "lote largo (temperatura)",
+      "v1": "workers sin politica de enfriamiento",
+      "v2": "batch con checkpoints y enfriamiento ADR-010",
+      "estado": "mejor",
+      "nota": "v1 recorria con workers pero no tenia la pausa por temperatura ni la reanudacion por hash"
+    }
+  ],
+  "fuera_de_paridad": [
+    {
+      "que": "el veredicto final (letra/estado) documento a documento entre v1 y v2",
+      "motivo": "v1 no separa lectura de decision (ADR-001/ADR-006): comparar salidas mezcla una mejora de diseno con una regresion. La exactitud de la LETRA contra v1 ya se midio en F3/T-305 (5/5 vs 2/5) y la paridad de la extraccion en F4/T-405 (reglas 20/20, campos 29/29, sosten 32/32)",
+      "donde_se_mide": "scripts/F3/paridad_11_1.py y scripts/F4/paridad_extraccion.py"
+    },
+    {
+      "que": "los prompts YAML como archivo elegible por el operador (-p/--prompt de document_extraction)",
+      "motivo": "en v2 los prompts son codigo versionado (ADR-006): no hay un YAML que el operador pase por bandera. Es un cambio de contrato deliberado",
+      "donde_se_mide": "no aplica: no es comparable, es reemplazado"
+    },
+    {
+      "que": "el flujo WSAA (certificados y canje de credenciales) de consultar_arca",
+      "motivo": "ADR-003: el hook ARCA es opcional y no bloquea el MVP; v2 define el contrato HTTP del WSCDC, no el flujo de certificados",
+      "donde_se_mide": "no aplica (fuera de alcance declarado)"
+    },
+    {
+      "que": "la corrida real con modelos sobre files/",
+      "motivo": "requiere Ollama con los modelos de cada rol y la carpeta files/ (temporal, ignorada por git): no es reproducible en la suite default",
+      "donde_se_mide": "scripts/F6/paridad_cli.py --real (medicion informativa, fuera de la suite)"
+    }
+  ],
+  "corte_de_v1": {
+    "estado": "declarado",
+    "fecha": "2026-09-12",
+    "decision": "v1 queda CONGELADO como referencia historica: no se le agregan capacidades ni se lo corrige. v2 es la linea de desarrollo. v1 se conserva en el repo para poder correr las mediciones de paridad (F3/T-305, F4/T-405 y este mapa) y para poder auditar como se comportaba el sistema anterior.",
+    "que_implica": [
+      "los scripts de v1 no se migran ni se actualizan: son la referencia",
+      "la carpeta files/ sigue siendo temporal y no versionada: los artefactos de v1 que viven ahi no son un criterio",
+      "un hallazgo de comportamiento en v1 se documenta y se corrige en v2, no en v1",
+      "las mediciones de paridad se pueden BORRAR cuando dejen de aportar (son de la transicion, no permanentes)"
+    ],
+    "evidencia": "La cobertura de v1 en v2 esta medida y declarada: 8/8 comandos con equivalente, banderas mapeadas una por una (o declaradas sin equivalente con motivo) y 7/7 artefactos verificados (3 coincidentes con v1, 4 con diferencia documentada). Lo que no se compara esta en 'fuera_de_paridad' con donde se mide.",
+    "pendiente": "La corrida real con modelos (Ollama + files/) no esta medida: es informativa (ver 'fuera_de_paridad') y no bloquea el corte, porque el veredicto no es comparable entre arquitecturas (ADR-001/ADR-006)."
+  }
+}

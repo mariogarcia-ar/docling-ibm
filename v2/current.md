@@ -10,7 +10,7 @@
 
 | Campo | Valor |
 |---|---|
-| **Fase en curso** | **F6 — Cliente (CLI/batch) e integración final** 🟡 **en implementación** (T-601, T-602 y T-603 hechas; T-604..T-606 pendientes) |
+| **Fase en curso** | **F6 — Cliente (CLI/batch) e integración final** 🟡 **en implementación** (T-601..T-604 hechas; T-605 y T-606 pendientes) |
 | **Estado** | **T-401..T-405 ✅ hechas — F4 cerrada con el DoD verificado**: los flujos VLM y LLM corren **en paralelo** devolviendo `SourceEvidence` con el contrato de F0; prompt de evidencia versionado `extraccion-key-value@1`, intérprete que no inventa, paralelismo medido, **normalización key-value** (CUIT cortado, fecha ISO, montos numéricos, `punto_venta`/`numero_comprobante` derivados) con el crudo preservado, **pasada 1 por fuente** (sostén por forma canónica + coherencia interna), **combinación con resolución por campo** (tabla de precedencia ADR-002: visual/textual/programa, conservando todas las lecturas) y **paridad con v1 medida en tres niveles** (reglas 20/20, campos 29/29, sostén 32/32). |
 | **F0** | ✅ Fundación completada (schemas, esqueleto, golden set, adaptadores) |
 | **F1** | ✅ Implementada (T-101..T-105/ORQ, `api.process()`; paridad de integración en `@pytest.mark.integration`) |
@@ -18,10 +18,10 @@
 | **F3** | ✅ DoD verificado (T-301..T-305; motor de reglas R1-R7, evidencia, reglas raw, cadena contable y paridad con v1) |
 | **F4** | ✅ DoD verificado (T-401..T-405; flujos en paralelo, normalización, pasada 1, combinación por campo y paridad con v1) |
 | **F5** | ✅ **DoD verificado** (T-501..T-507: reglas cruzadas, búsqueda acotada, consolidación, escalado al agente IA, cola HITL con muestreo de auditoría, trazabilidad `CaseRecord` persistida y métricas del lote) |
-| **F6** | 🟡 En implementación (T-601: CLI `voucherflow` + orquestador + fachada; T-602: batch con workers, checkpoints/reanudación y enfriamiento ADR-010; T-603: sidecars + salida agregada; faltan paridad T-604, docs T-605 y API HTTP T-606) |
+| **F6** | 🟡 En implementación (T-601: CLI `voucherflow` + orquestador + fachada; T-602: batch con workers, checkpoints/reanudación y enfriamiento ADR-010; T-603: sidecars + salida agregada; T-604: paridad v1→v2 y corte de v1; faltan docs T-605 y API HTTP T-606) |
 | **Paquete** | `voucherflow` v`0.1.0` (layout `src/`, ADR-007) |
 | **Contrato** | `SCHEMA_VERSION = 1.0.0` (congelado, ver criterio de cambio en `schemas/evidence.py`) |
-| **Suite de tests** | ✅ **1547 tests en verde + 10 skipped** (`python -m pytest --no-header -p no:cacheprovider`) en env `py313_env` |
+| **Suite de tests** | ✅ **1576 tests en verde + 10 skipped** (`python -m pytest --no-header -p no:cacheprovider`) en env `py313_env` |
 
 **Resumen**: F0 dejó la **fundación de la librería**: contratos de evidencia
 congelados, configuración centralizada, adaptadores `OllamaClient`/

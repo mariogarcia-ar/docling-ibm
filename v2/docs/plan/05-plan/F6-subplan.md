@@ -5,7 +5,7 @@
 > ([`F6.md`](F6.md)) y el diseño del módulo
 > ([`../03-arquitectura/ORCH-CLI.md`](../03-arquitectura/ORCH-CLI.md)).
 > **Fecha**: 2026-09-12 · **Rama**: `v2` · **Estado**: 🟡 **En implementación**
-> (T-601, T-602 y T-603 hechas; T-604..T-606 pendientes).
+> (T-601..T-604 hechas; T-605 y T-606 pendientes).
 
 ## 1. Ficha del subplan
 
@@ -383,14 +383,101 @@ varias sesiones o para recuperar el archivo si se perdió.
    archivo que se mira para saber si el lote terminó. Tratarlo como vacío habría
    borrado el lote anterior en silencio.
 
-### 3.4 T-604 · Mapa de paridad v1→v2 sobre carpetas reales de `files/` ⬜ Pendiente
+### 3.4 T-604 · Mapa de paridad v1→v2 sobre carpetas reales de `files/` ✅ Hecha
 
-**Qué hay que hacer**: correr los comandos equivalentes de v1 y v2 sobre una
-**muestra acordada** de `files/` y declarar el corte de v1 (DoD de F6). El mapa de
-T-601 (§3.1) es el punto de partida; la medición sigue la convención de F3/T-305,
-F4/T-405 y F5/T-507: subconjunto del golden en `tests/golden/F6/` + `README.md`,
-scripts `paridad_*.py` con funciones puras y un reporte que **declara todo lo que
-queda fuera** (así "no comparable" no se lee como "no implementado").
+> **Estado 2026-09-12**: **Hecha** por `team implementation`. Suite completa en
+> verde (**1576 passed, 10 skipped**, 29 nuevos); `python scripts/F6/t604.py`
+> reporta el mapa **en verde** (8/8 comandos con banderas completas, 7/7
+> artefactos) — exit 0.
+
+**Qué se hace.** El DoD de la fase ("los comandos de v1 tienen equivalente en v2
+con resultados comparables o mejores sobre una muestra acordada de `files/`") se
+mide en los tres niveles que tienen sustento objetivo, y **declara** lo que queda
+afuera.
+
+**Lo que NO se compara, y por qué.** El veredicto documento a documento entre v1 y
+v2. v1 y v2 tienen arquitecturas **distintas a propósito**:
+
+| | v1 | v2 |
+|---|---|---|
+| Quién lee | el modelo, con un prompt por modo | dos flujos (VLM+LLM) con **un** contrato de evidencia |
+| Quién normaliza | el modelo, dentro del prompt | el programa (`key_value.py`) |
+| Quién decide la letra | el modelo (`comprobante_valido`) | el motor R1-R7 en código |
+
+Comparar las salidas y declararlas "comparables" mezclaría **una mejora de diseño
+con una regresión**. La comparación está excluida y **derivada**: la letra se midió
+en F3/T-305 (v2 5/5 vs. v1 2/5) y la extracción en F4/T-405 (reglas 20/20, campos
+29/29, sostén 32/32).
+
+**Los tres niveles que sí se miden:**
+
+1. **Procedencia** — cada comando del mapa cita el script de v1 que reemplaza, y el
+   script **existe**. Un mapa que cita archivos inexistentes declara procedencias
+   falsas.
+2. **Superficie** — 8/8 comandos con equivalente, y **cada bandera de v1
+   declarada**: o mapeada a su bandera de v2 (verificada contra el **parser real**,
+   no contra una lista escrita a mano) o marcada *sin equivalente* con su motivo.
+   Un test exige que toda bandera esté en una de las dos listas: una olvidada se
+   leería como "no existía".
+3. **Artefactos** — 7 declarados: 3 **coinciden** con v1 (`<doc>.md`,
+   `<doc>.raw.md`, `<doc>_classification.json`) y 4 **cambian con motivo**
+   (checkpoint del lote, salida de extracción, agregado, sidecar). Se distingue
+   "coincide" de "mejor" de "cambia por diseño": confundirlas es el error que el
+   mapa existe para evitar.
+
+El manifiesto declara además las **equivalencias de capacidad** (mejora o
+diferencia por diseño, **nunca** "paridad"), lo que queda **fuera de paridad** con
+el motivo y dónde se mide, y el **corte de v1**.
+
+**La muestra**: `tests/fixtures/golden` (la copia versionada). `files/` es temporal
+e ignorada por git, así que una medición que dependa de ella no sería reproducible
+entre clones. El DoD pide "una muestra acordada" y esa copia **es** el acuerdo.
+
+**Archivos.** `tests/golden/F6/{subconjunto.json,README.md}` (el manifiesto y su
+documentación), `scripts/F6/paridad_cli.py` (funciones puras + el mapa),
+`scripts/F6/t604.py` (el reporte) y `tests/test_paridad_t604.py` (29).
+
+**Cómo se prueba (sin red).**
+
+- **Procedencia**: los scripts de v1 citados existen y el subconjunto declara su
+  decisión de alcance y su muestra.
+- **Superficie**: todas las banderas equivalentes existen en v2, ninguna bandera de
+  v1 quedó sin declarar, y el mapa está en verde. Con **controles negativos**: el
+  chequeo tiene que poder fallar (un comando inexistente y una bandera equivalente
+  ausente se detectan).
+- **Artefactos**: coherencia del mapa (no se puede declarar coincidencia donde no
+  la hay) y **verificación en vivo** de los nombres que se declaran coincidentes
+  (el checkpoint contable, el `.md` por posición, el `.raw.md`).
+- **Fronteras**: lo que queda fuera está declarado con motivo y destino, la
+  comparación del veredicto está excluida y derivada, las capacidades mejoradas se
+  declaran como tales (nunca como paridad) y el **corte de v1** es explícito.
+
+**Fronteras de la tarea (lo que **no** hace).**
+
+- **No** compara el veredicto (excluido y derivado, ver arriba).
+- **No** mide la corrida real con modelos como criterio: `--real` es informativa
+  (requiere Ollama y `files/` no versionada).
+- **No** migra ni actualiza v1: se congela como referencia.
+
+**Hallazgos de la implementación.**
+
+1. **Un riesgo de pérdida de datos, introducido en v2**: `process` acepta
+   documentos de texto plano (`.md`/`.txt`) y para un `.md` **el sufijo de salida
+   coincide con el de la entrada** — la corrida escribía el markdown **encima del
+   documento original**. v1 no corría el riesgo (su lista de extensiones era solo
+   imágenes y PDF). Se aparta el destino a `<doc>.processed.md` cuando colisiona, y
+   se arregla de paso `--raw`, que escribía en `<doc>.md` en vez del `<doc>.raw.md`
+   de v1: el crudo y el ordenado son dos artefactos y no pueden compartir archivo.
+   Ambos casos quedan con test de regresión.
+2. **Un chequeo de superficie solo vale si el mapa declara la correspondencia
+   bandera por bandera**: con la lista de flags de v1 sola, los atajos cortos
+   (`-o`, `-m`) hacían que **todos** los comandos aparecieran como brecha; con el
+   mapeo explícito aparecieron **dos brechas reales** que la lista ocultaba
+   (`classify` no aceptaba `-o`, que v1 sí tenía; y un mapeo de `--modality` que
+   había escrito era inventado y **tapaba** la ausencia de esa capacidad). Las dos
+   se resolvieron: `-o` se implementó y `--modality` se declaró *sin equivalente*
+   con el motivo real (v2 corre **siempre** los dos flujos, así que no hay motor
+   que elegir).
 
 ### 3.5 T-605 · Documentación de usuario + README v2 ⬜ Pendiente
 
@@ -467,17 +554,21 @@ CLI (argparse)                 Orquestador                    Librería
 
 ## 7. Avance
 
-- **Estado (2026-09-12)**: **T-601, T-602 y T-603 hechas**. El cliente existe (once
+- **Estado (2026-09-12)**: **T-601, T-602, T-603 y T-604 hechas**. El cliente existe (once
   subcomandos), el lote corre con workers, checkpoints/reanudación y la política de
   enfriamiento del ADR-010, y la corrida se consolida en un **único JSON agregado**
   (índice + punteros + síntesis + métricas) que se acumula entre corridas y se
-  reconstruye del histórico. Suite completa **1547 passed / 10 skipped** (57 nuevos
-  de T-601 + 46 de T-602 + 41 de T-603); `scripts/F6/t601.py` → **9/9** + **6/6**,
-  `t602.py` → **12/12** + **6/6** y `t603.py` → **8/8** + **9/9** (exit 0).
+  reconstruye del histórico. **T-604** cerró el DoD de la fase: el **mapa de
+  paridad v1→v2** en tres niveles deterministas y el **corte de v1** declarado.
+  Suite completa **1576 passed / 10 skipped** (57 nuevos de T-601 + 46 de T-602 + 41
+  de T-603 + 29 de T-604); `scripts/F6/t601.py` → **9/9** + **6/6**, `t602.py` →
+  **12/12** + **6/6**, `t603.py` → **8/8** + **9/9** y `t604.py` → mapa en verde
+  (exit 0).
 - **Punto de partida real**: F5 dejó el `CaseRecord` persistible (`CaseRecorder`) y
   el `VoucherResult` consolidado; T-601 puso el encadenamiento y la superficie de
   invocación; T-602 el **runner** que hace viable un lote largo; y T-603 la
   **consolidación** que hace que el resultado de un lote se lea en un archivo.
-- **Lo que sigue**: **T-604** (la medición de la paridad v1→v2 sobre `files/`, que
-  cierra el DoD de la fase; el mapa de equivalencias está en §3.1 y los comandos que
-  se comparan ya existen).
+- **Lo que sigue**: **T-605** (la documentación de usuario: instalación, cada
+  subcomando con sus flags y códigos de salida, y qué hacer cuando un caso queda en
+  revisión — `BATCH.md` ya cubre el lote y `--help` es la base factual) y **T-606**
+  (API HTTP, fase 2 / no bloqueante). El **DoD de F6 ya está cumplido** con T-604.

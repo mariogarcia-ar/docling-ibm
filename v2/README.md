@@ -33,11 +33,13 @@ evidencia congelado), `rules` (motor de reglas), `models` (adaptadores
 > ADR-010 —la cuenta arranca cuando el pool está detenido, es decir cuando **todos**
 > los workers pararon—; y **T-603** la **salida agregada**: un único JSON por lote
 > con una entrada por documento (veredicto + puntero al sidecar), la síntesis y las
-> métricas. El
+> métricas; y **T-604** el **mapa de paridad v1→v2** medido en tres niveles
+> deterministas (procedencia, superficie y artefactos) con el **corte de v1**
+> declarado. El
 > paquete tiene implementadas las capacidades de procesamiento (F1), validación
 > (F2), clasificación (F3), la extracción completa (F4) y la conclusión con HITL
-> (F5); de F6 faltan la paridad v1→v2 sobre `files/` (T-604), la documentación de
-> usuario (T-605) y la API HTTP (T-606, fase 2). La
+> (F5); de F6 faltan la documentación de usuario (T-605) y la API HTTP (T-606,
+> fase 2). La
 > suite default corre **sin** Ollama, **sin** Docling reales y **sin** red.
 
 ## Instalación

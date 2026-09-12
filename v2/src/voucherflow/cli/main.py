@@ -183,6 +183,13 @@ def construir_parser() -> argparse.ArgumentParser:
     p.add_argument("origen", help="Archivo markdown/OCR (o cualquier documento: se procesa con F1).")
     p.add_argument("--condicion-impositiva", default=CONDICION_DEFAULT)
     p.add_argument("--model", default=None)
+    p.add_argument(
+        "-o",
+        "--output",
+        default=None,
+        metavar="SALIDA.json",
+        help="Archivo JSON de salida (default: stdout). Equivale a -o de v1/classification_pipeline.py.",
+    )
 
     p = sub.add_parser("extract", help="Extracción VLM+LLM combinada (F4).")
     p.add_argument("origen", help="Archivo o carpeta.")
@@ -337,7 +344,13 @@ def _resumen_legible(resultado: PipelineResult) -> str:
 
 
 def _cmd_process(args: argparse.Namespace, entorno: EntornoCLI) -> int:
-    """``process``: procesa con F1 y escribe el markdown (equivale a v1/ocr_documents)."""
+    """``process``: procesa con F1 y escribe el markdown (equivale a v1/ocr_documents).
+
+    Con ``--raw`` (equivalente a ``v1/run_raw.py``) el markdown es el **crudo** de
+    Docling y va a ``<doc>.raw.md`` — nunca encima del documento de entrada. Es el
+    nombre que usa v1 y evita el peor desenlace posible: pisar el archivo de
+    origen de la corrida (T-604).
+    """
     raiz = entorno.ruta(args.origen)
     documentos = iterar_documentos(raiz, extensiones=_extensiones_de_proceso())
     if not documentos:
@@ -349,7 +362,7 @@ def _cmd_process(args: argparse.Namespace, entorno: EntornoCLI) -> int:
         documento = entorno.orch().procesar(
             ruta, docling_raw=args.raw, orientation=args.orientation
         )[0]
-        destino = _destino_markdown(ruta, args.output, entorno)
+        destino = _destino_markdown(ruta, args.output, entorno, raw=args.raw)
         destino.parent.mkdir(parents=True, exist_ok=True)
         destino.write_text(documento.markdown or "", encoding="utf-8")
         entorno.log(f"OK: {destino} (orientación={documento.orientacion})")
@@ -363,11 +376,37 @@ def _extensiones_de_proceso() -> set[str]:
     return set(EXTENSIONES_SOPORTADAS) | {".txt", ".csv", ".log"}
 
 
-def _destino_markdown(ruta: Path, output: str | None, entorno: EntornoCLI) -> Path:
-    """Resuelve el markdown de salida (junto al archivo o en ``-o DIR``)."""
-    if not output:
-        return ruta.with_suffix(".md")
-    return entorno.ruta(output) / f"{ruta.stem}.md"
+def _destino_markdown(
+    ruta: Path,
+    output: str | None,
+    entorno: EntornoCLI,
+    *,
+    raw: bool = False,
+) -> Path:
+    """Resuelve el markdown de salida (junto al archivo o en ``-o DIR``).
+
+    Con ``raw=True`` el sufijo es ``.raw.md`` (la convención de ``v1/run_raw.py``):
+    el crudo y el markdown ordenado son **dos artefactos distintos** y no pueden
+    compartir archivo — escribirlos en el mismo lugar haría que la segunda corrida
+    pisara a la primera (T-604).
+
+    **Nunca devuelve la ruta de entrada.** ``process`` acepta documentos que ya son
+    texto (``.md``/``.txt``), y para esos el sufijo coincide con el del archivo: sin
+    este chequeo la corrida **sobrescribiría su propia entrada** (v1 no corría el
+    riesgo porque su lista de extensiones no incluía texto plano). Cuando el destino
+    colisiona se usa ``<doc>.processed.md`` / ``<doc>.processed.raw.md`` y se declara
+    en el log: un nombre distinto es infinitamente mejor que perder el original.
+    """
+    sufijo = ".raw.md" if raw else ".md"
+    if output:
+        return entorno.ruta(output) / f"{ruta.stem}{sufijo}"
+
+    destino = ruta.with_suffix(sufijo)
+    if destino == ruta:
+        destino = ruta.with_name(
+            f"{ruta.stem}.processed{sufijo}"
+        )
+    return destino
 
 
 def _cmd_validate(args: argparse.Namespace, entorno: EntornoCLI) -> int:
@@ -416,23 +455,21 @@ def _cmd_classify(args: argparse.Namespace, entorno: EntornoCLI) -> int:
         documento=ruta,
         modelo=args.model,
     )
-    entorno.dato(
-        json.dumps(
-            {
-                "archivo": str(ruta),
-                "tipo_comprobante": tipo.letra,
-                "certeza": tipo.certeza,
-                "origen": tipo.origen,
-                "reglas_aplicadas": list(tipo.reglas_aplicadas),
-                "campos_desconocidos": list(tipo.campos_desconocidos),
-                "clasificacion_contable": (
-                    clasificacion.model_dump(mode="json") if clasificacion else None
-                ),
-                "detalle_contable": detalle_contable,
-            },
-            ensure_ascii=False,
-            indent=2,
-        )
+    _json_salida(
+        {
+            "archivo": str(ruta),
+            "tipo_comprobante": tipo.letra,
+            "certeza": tipo.certeza,
+            "origen": tipo.origen,
+            "reglas_aplicadas": list(tipo.reglas_aplicadas),
+            "campos_desconocidos": list(tipo.campos_desconocidos),
+            "clasificacion_contable": (
+                clasificacion.model_dump(mode="json") if clasificacion else None
+            ),
+            "detalle_contable": detalle_contable,
+        },
+        args.output,
+        entorno,
     )
     return 0 if detalle_contable.get("ok") else 1
 

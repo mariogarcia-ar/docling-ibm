@@ -359,6 +359,17 @@ tests/golden/
   reales y **sin dormir**. `scripts/F6/t602.py` corre **12/12** escenarios + **6/6**
   fronteras, con modo `--manual` que imprime el ciclo paso a paso (ventana,
   instante de "todos detenidos" y segundos enfriados).
+  **T-604 cubierto**: `tests/test_paridad_t604.py` (**29**) mide el **DoD de la fase** en tres
+  niveles deterministas y declara lo que queda afuera con dónde se mide. La comparación del
+  **veredicto** entre v1 y v2 está **excluida a propósito** (ADR-001/ADR-006: v1 no separa lectura de
+  decisión, así que comparar salidas mezclaría una mejora de diseño con una regresión) y derivada a
+  F3/T-305 y F4/T-405, donde ya se midió. Lo que sí se verifica: la **procedencia** (cada comando cita
+  el script de v1 y el script existe), la **superficie** (8/8 comandos con equivalente; cada bandera de
+  v1 mapeada a su bandera de v2 contra el **parser real** —o declarada sin equivalente con motivo—) y
+  los **artefactos** (3 de 7 nombres coinciden con v1; 4 cambian con motivo documentado). Un test exige
+  que toda bandera de v1 esté declarada: una olvidada se leería como «no existía». `scripts/F6/t604.py`
+  imprime el mapa completo (con `--detalle`) y sale ≠ 0 si hay brechas; el **corte de v1** queda
+  declarado en el subconjunto.
   **T-603 cubierto**: `tests/test_agregado_t603.py` (**41**) verifica las **dos
   mitades** del Gherkin de E-CLI-2: el **sidecar** por documento (resultado +
   evidencia + trazabilidad, y su round-trip al contrato) y el **agregado** del
