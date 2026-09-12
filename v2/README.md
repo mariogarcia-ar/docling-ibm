@@ -103,6 +103,11 @@ Cada comando escribe el dato a `stdout` y el progreso a `stderr`; `main()`
 devuelve el **código de salida** (≠ 0 si la corrida falla). Los flags comunes son
 `--force`, `--orientation`, `--condicion-impositiva`, `--model` y `--workers`.
 
+**Lotes largos**: `batch` corre con workers, reanuda desde checkpoints y aplica la
+política de enfriamiento del ADR-010 (`--workers`, `--force`, `--cooling`,
+`--work-window`, `--cool-down`). Guía completa:
+[`../BATCH.md`](../BATCH.md).
+
 ```bash
 # Uso embebido (misma fachada que el CLI)
 python -c "from voucherflow.api import run; print(run('factura.pdf').estado)"
