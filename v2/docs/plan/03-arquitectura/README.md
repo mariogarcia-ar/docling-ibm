@@ -26,7 +26,7 @@ contrato y ADR, y se registra su estado de diseño/implementación.
 | [`CONC.md`](CONC.md) | `voucherflow/conclusion/` | Reglas cruzadas → búsqueda de evidencia adicional → agente IA → HITL → consolidación | ✅ **DoD verificado** (T-501..T-507: reglas cruzadas, búsqueda acotada, consolidación, escalado al agente, cola HITL, trazabilidad persistida y métricas) | F5 (T-501..T-507) |
 | [`MODELS.md`](MODELS.md) | `voucherflow/models/` | Adaptadores de modelo: `OllamaClient`, `DoclingConverter`, `ArcaClient` (opcional) | 🔴 Borrador | F0 (T-005/T-006) |
 | [`TRACE.md`](TRACE.md) | `voucherflow/trace/` | Registro por caso (`CaseRecord`), trazabilidad, persistencia (JSON sidecar + índice), métricas del lote y salida agregada | ✅ T-506/T-507 + T-603 implementados (sidecar atómico + índice + métricas + agregado del lote; checkpoints de F6 en T-602) | F5 (T-506/T-507) + F6 (T-602/T-603) |
-| [`ORCH-CLI.md`](ORCH-CLI.md) | `voucherflow/orchestrator.py` · `api.py` + `cli/` | Orquestador del pipeline, API de alto nivel y cliente CLI (orquestador/consumidor) | 🟡 En implementación (T-601: orquestador + fachada + CLI; T-602 batch; T-603 agregado; T-604 paridad; T-606 pendiente) | F5/F6 (T-601..T-606) |
+| [`ORCH-CLI.md`](ORCH-CLI.md) | `voucherflow/orchestrator.py` · `api.py` + `cli/` + `http/` | Orquestador del pipeline, API de alto nivel y clientes (CLI + API HTTP) | ✅ Implementado (T-601: orquestador + fachada + CLI; T-602 batch; T-603 agregado; T-604 paridad; T-605 guía de operador; T-606 API HTTP básica) | F5/F6 (T-601..T-606) |
 
 > **Nota de estado**: los módulos de fases futuras (VAL, SCHEMAS/MODELS
 > pendientes de confirmar su trazabilidad) siguen en **🔴

@@ -345,7 +345,8 @@ tests/golden/
 ### Fase 6 — Cliente
 - **Unitarias/integración**: subcomandos CLI, checkpoints/reanudación,
   política de enfriamiento simulada, salida agregada, **cobertura de la
-  documentación de usuario** (que la guía no se desincronice del CLI).
+  documentación de usuario** (que la guía no se desincronice del CLI) y **API
+  HTTP** (contrato de rutas, mapeo de errores, transporte real).
 - **Paridad E2E**: correr los comandos equivalentes de v1 y v2 sobre una misma
   carpeta de `files/` y comparar resultados (estructura + campos).
 - **Aceptación** (E-CLI-1/2/3): mapa de paridad documentado y verificado;
@@ -411,6 +412,32 @@ tests/golden/
   capacidad cambia, de modo que obligan a **actualizar la doc a propósito**.
   `scripts/F6/t605.py` corre **27/27** verificaciones (5 archivos, 11/11 comandos,
   47 banderas en su sección, navegación y fronteras) y sale ≠ 0 si algo falta.
+  **T-606 cubierto**: `tests/test_http_t606.py` (**53**) cubre la segunda
+  superficie en cuatro frentes. **El contrato de rutas**: cada `Ruta` de `RUTAS`
+  tiene su rama de despacho (una ruta declarada sin implementación devolvería un
+  500 explícito, no un 200 vacío) y declara su equivalente en el CLI.
+  **La delegación**: cada ruta se ejercita con un `EntornoHTTP` de dobles y se
+  comprueba que las opciones del cuerpo llegan a la fachada con los defaults
+  correctos — más una verificación **de diseño** que exige que el módulo del
+  servidor no importe los módulos de capacidad (si los importara, sería una
+  segunda implementación y violaría E-LIB-1). **El mapeo de errores**:
+  `400`/`404`/`405`/`422`/`503`/`500`, la frontera **400 ≠ 422** (petición mal
+  armada vs. dato que no sirve) y un test que fija el **orden de las ramas** de
+  `_mapear_error`, porque las jerarquías se cruzan (`OllamaError` ⊂ `RuntimeError`
+  pero ∉ `VoucherflowError`; `ErrorPeticion` ⊂ `ValueError`) y una rama genérica
+  antes que una específica se comería el caso. **El transporte**: un servidor
+  **real** en el puerto que el SO elige responde por HTTP (con
+  `Content-Type: application/json`), incluido un test de **concurrencia** que
+  prueba que `/salud` responde **mientras** otra petición está bloqueada — es lo
+  que justifica `ThreadingHTTPServer` y sin un test real quedaría sin verificar.
+  Las **fronteras** cierran el alcance: el default escucha solo en localhost (no
+  hay auth), la falta de autenticación está declarada en el índice, un rechazo se
+  responde `200` con `estado=rechazado` (concluir que no es concluir), el cuerpo
+  tiene tope y el servidor es un **binario aparte** —un test exige que `COMANDOS`
+  siga con once, para que agregar `serve` al CLI obligue a actualizar a propósito
+  la paridad (T-604) y la documentación (T-605)—. `scripts/F6/t606.py` corre
+  **6/6** rutas + **16/16** escenarios + **9/9** fronteras, con modo `--manual`
+  que levanta un servidor real en un puerto efímero y hace pedidos HTTP de verdad.
 
 ---
 

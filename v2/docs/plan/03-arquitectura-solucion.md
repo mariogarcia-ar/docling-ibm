@@ -86,7 +86,7 @@ en el MVP (decisión abierta #3).
 flowchart TB
     subgraph CLIENTE["Cliente (consumidor)"]
         CLI["CLI<br/>subcomandos: process / classify / extract / conclude / batch"]
-        API["API HTTP (fase 2)<br/>FastAPI"]
+        API["API HTTP básica (fase 2)<br/><code>http.server</code> stdlib<br/>(ADR-011)"]
         NOTEBOOK["Uso embebido<br/>(notebook / script)"]
     end
 

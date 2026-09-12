@@ -23,13 +23,15 @@ from voucherflow.cli.main import COMANDOS
 RAIZ_V2 = Path(__file__).resolve().parents[1]
 DOC_USUARIO = RAIZ_V2 / "docs" / "usuario"
 
-#: Los documentos que la guía del operador debe tener (F6/T-605).
+#: Los documentos que la guía del operador debe tener (F6/T-605; T-606 sumó el de
+#: la API HTTP).
 DOCS_REQUERIDOS = (
     "README.md",
     "01-instalacion.md",
     "02-comandos.md",
     "03-revision-humana.md",
     "04-salidas.md",
+    "05-api-http.md",
 )
 
 #: La guía de lotes vive en la raíz del repo (ligada desde `README.md`).
@@ -297,6 +299,38 @@ def test_las_secciones_de_configuracion_usan_claves_reales() -> None:
 # ---------------------------------------------------------------------------
 # README de v2
 # ---------------------------------------------------------------------------
+
+
+def test_la_guia_documenta_la_api_http_con_su_alcance() -> None:
+    """La API HTTP (T-606) está documentada **con sus límites declarados**.
+
+    Un documento que solo muestra cómo levantarla y no dice que no trae
+    autenticación es peor que no documentarla: alguien la publica y queda un
+    endpoint abierto sin saberlo. Se exige que diga las dos cosas: cómo se usa y
+    qué no hace.
+    """
+    from voucherflow.http import RUTAS
+
+    texto = _texto("05-api-http.md")
+    # Las rutas reales del servidor están en la guía.
+    for ruta in RUTAS:
+        assert ruta.camino in texto, (
+            f"05-api-http.md no documenta la ruta {ruta.metodo} {ruta.camino}."
+        )
+    # Y los límites que importan para no exponerla por accidente.
+    for limite in ("autenticaci", "TLS", "127.0.0.1"):
+        assert limite.lower() in texto.lower(), (
+            f"05-api-http.md no declara {limite!r}: el alcance de seguridad de la "
+            "API tiene que estar escrito, no supuesto."
+        )
+    # Los códigos de estado que el operador va a ver.
+    for codigo in ("400", "404", "405", "422", "503", "500"):
+        assert codigo in texto, f"05-api-http.md no documenta el código {codigo}."
+
+
+def test_el_indice_enlaza_la_guia_de_la_api_http() -> None:
+    """El documento nuevo está colgado del índice (no es un archivo huérfano)."""
+    assert "05-api-http.md" in _texto("README.md")
 
 
 def test_el_readme_de_v2_enlaza_la_guia_del_operador() -> None:

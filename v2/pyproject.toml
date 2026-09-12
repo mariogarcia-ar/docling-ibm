@@ -49,6 +49,11 @@ cli = []
 [project.scripts]
 # Entry point del cliente CLI de F6/T-601 (doc 03 §8.1, ADR-007).
 voucherflow = "voucherflow.cli.main:entrypoint"
+# Entry point de la API HTTP de F6/T-606 (fase 2, no bloqueante). Es un binario
+# SEPARADO del CLI a propósito: el diagrama C4 (doc 03 §3) los muestra como dos
+# contenedores del nivel Cliente, y el contrato de once subcomandos de E-CLI-1
+# está verificado por T-604/T-605 (no se reabre por una tarea de fase 2).
+voucherflow-http = "voucherflow.http.__main__:main"
 
 [project.urls]
 Homepage = "https://github.com/example/voucherflow"  # placeholder: lo define el dueño del repo (ADR-007)

@@ -4,8 +4,8 @@
 > `team implementation`. Complementa el seguimiento de la fase
 > ([`F6.md`](F6.md)) y el diseño del módulo
 > ([`../03-arquitectura/ORCH-CLI.md`](../03-arquitectura/ORCH-CLI.md)).
-> **Fecha**: 2026-09-12 · **Rama**: `v2` · **Estado**: 🟡 **En implementación**
-> (T-601..T-605 hechas; T-606 pendiente).
+> **Fecha**: 2026-09-12 · **Rama**: `v2` · **Estado**: ✅ **Completada**
+> (T-601..T-606 hechas).
 
 ## 1. Ficha del subplan
 
@@ -575,11 +575,158 @@ contra la fuente factual, no un texto que se revisa a ojo:
 - **No** documenta la API HTTP (T-606): no existe todavía.
 - **No** duplica el `--help`: lo complementa.
 
-### 3.6 T-606 · API HTTP (fase 2, no bloqueante) ⬜ Pendiente
+### 3.6 T-606 · API HTTP (fase 2, no bloqueante) ✅ Hecha
 
-**Qué hay que hacer**: la API HTTP básica del C4 nivel 2, declarada como fase 2 /
-no bloqueante para el MVP (MoSCoW §4 del doc 05). T-601 deja `api.run`/
-`api.extract` como la superficie que la API HTTP expondría.
+> **Estado 2026-09-12**: **Hecha** por `team implementation`. Suite completa en
+> verde (**1659 passed, 10 skipped**, 53 nuevos); `python scripts/F6/t606.py`
+> reporta **6/6** rutas + **16/16** escenarios + **9/9** fronteras — exit 0.
+
+**Qué hay que hacer (lo que pedía el plan)**: la API HTTP básica del C4 nivel 2,
+declarada como fase 2 / no bloqueante para el MVP (MoSCoW §4 del doc 05). T-601
+deja `api.run`/`api.extract` como la superficie que la API HTTP expondría.
+
+**Qué se hizo.** `http/server.py` (nuevo) expone por red las capacidades de la
+fachada, con el **mismo principio** que el CLI (E-LIB-1 / §2.1 de este subplan):
+**transporta, no reimplementa**. Cada ruta delega en `api.*`; un test exige que
+el módulo del servidor **no** importe los módulos de capacidad, que es la
+verificación de diseño de que no hay una segunda implementación.
+
+| Ruta | Equivalente CLI | Qué hace |
+|---|---|---|
+| `GET /` | — | Índice: las rutas, su descripción y la versión del contrato |
+| `GET /salud` | — | Liveness: responde **sin** tocar modelos ni archivos |
+| `POST /run` | `voucherflow run` | Pipeline completo → veredicto |
+| `POST /extract` | `voucherflow extract` | Extracción VLM+LLM → evidencia combinada |
+| `POST /ask` | `voucherflow ask` | Pregunta puntual (no produce evidencia) |
+| `GET /version` | `voucherflow --version` | Versión del servidor y de extracción |
+
+**La decisión de alcance: `http.server` de la stdlib, no FastAPI.** El diagrama
+C4 (doc 03 §3) etiqueta la caja de la API HTTP como "FastAPI", pero **no había
+ningún ADR que lo respaldara** ni la dependencia estaba declarada en
+`pyproject.toml`, mientras la regla dura del repo (§2.3 y §4 de este subplan) es
+**no agregar dependencias**. Hay un precedente directo: T-601 eligió `argparse`
+de la stdlib sobre `typer` por el mismo motivo. Un servidor de un archivo es
+auditable y no obliga a instalar nada. Si algún día hacen falta OpenAPI,
+streaming o auth, FastAPI entra como **decisión explícita** —reemplazando el
+transporte y conservando las rutas, que es lo que el consumidor conoce—; el
+módulo declara ese punto de revisión.
+
+`ThreadingHTTPServer` y no `HTTPServer`: las rutas llaman a Ollama y **bloquean**,
+así que con un solo hilo el que consulta `/salud` esperaría a que termine una
+extracción.
+
+**La separación que hace todo testeable.** La lógica de ruteo es **pura**:
+
+```python
+manejar(metodo, camino, *, body, query, entorno) -> Respuesta(estado, cuerpo)
+```
+
+No abre sockets ni conoce `http.server`, así que las seis rutas, la validación del
+cuerpo y el mapeo de errores se ejercitan **in-process y sin red**. El
+`BaseHTTPRequestHandler` queda con lo mínimo que la capa pura no puede hacer: leer
+bytes del socket, delegar y escribir la respuesta. Es el mismo corte que hizo
+`EntornoCLI` con el CLI (§2.10).
+
+**Mapeo de errores: el código HTTP dice lo mismo que el error.** Devolver 200 con
+un error adentro obliga al consumidor a leer el cuerpo para saber si falló.
+
+| Código | Cuándo | Qué le dice al consumidor |
+|---|---|---|
+| `400` | Petición mal armada (falta un campo, JSON inválido) | «Corregí el request» |
+| `404` | La ruta no existe | «Equivocaste el camino» |
+| `405` | La ruta existe, no con ese método | «Usá estos verbos» |
+| `422` | El documento se leyó pero no se pudo procesar | «Descartá el archivo» |
+| `503` | Un modelo no responde | «**Reintentá**» (transitorio) |
+| `500` | Inesperado | «Algo se rompió» |
+
+La distinción **422 vs 503** es la que importa y **no se aplana**: aplanarla en un
+500 dejaría al consumidor sin poder elegir entre descartar el archivo y reintentar.
+Un test fija el **orden de las ramas** de `_mapear_error`, porque las jerarquías se
+cruzan (`OllamaError` ⊂ `RuntimeError` pero ∉ `VoucherflowError`; `ErrorPeticion`
+⊂ `ValueError`): una rama genérica antes que una específica se come el caso.
+
+**Un rechazo no es un error HTTP** (§2.6, el mismo criterio que el CLI): se
+responde `200` con `estado=rechazado`. El sistema **sí** concluyó —concluyó que
+no—; un 4xx/5xx haría que el consumidor tratara una conclusión válida como una
+falla de infraestructura.
+
+**Seguridad: el alcance se declara, no se esconde.** Sin autenticación, sin TLS y
+sin CORS. Tres defensas concretas más la declaración: el default ata el servidor a
+`127.0.0.1` (publicarlo es explícito con `--host 0.0.0.0`, que **avisa** por
+stderr); el índice publica la nota de alcance en su respuesta, así que la
+limitación viaja con el dato y no solo con el código; y el cuerpo tiene un tope
+(`MAX_CUERPO`) para no acumular memoria sin control. Está pensado para red local o
+detrás de un proxy que ponga esas capas — que es lo que el C4 sugiere al ubicarlo
+en el borde.
+
+**Superficie de arranque: binario aparte, no un duodécimo subcomando.**
+`voucherflow-http` (y `python -m voucherflow.http`) con `--host`, `--puerto`,
+`--raiz` y `--version`. Tres razones, declaradas en el módulo:
+
+1. El C4 muestra **CLI** y **API HTTP** como dos contenedores del mismo nivel
+   (Cliente), los dos apuntando al orquestador.
+2. El contrato de **once subcomandos** de E-CLI-1 está verificado por T-604
+   (paridad) y T-605 (documentación); no se reabre por una tarea de fase 2.
+3. Un comando que **bloquea** hasta que lo interrumpan no encaja con un CLI donde
+   cada comando hace su trabajo y termina.
+
+Un test fija esa decisión (exige que `COMANDOS` siga teniendo once y que no
+aparezca `serve`/`http`).
+
+**Archivos.** `src/voucherflow/http/{__init__,server,__main__}.py` (nuevo paquete),
+el entry point `voucherflow-http` en `pyproject.toml`, `tests/test_http_t606.py`
+(53) y `scripts/F6/t606.py` (el reporte).
+
+**Cómo se prueba (sin red externa).**
+
+- **Contrato de rutas**: cada `Ruta` de `RUTAS` tiene su rama de despacho —una
+  ruta declarada sin implementación devolvería un 500 explícito, no un 200 vacío—
+  y declara su equivalente en el CLI.
+- **Delegación**: se ejercita cada ruta con un entorno de dobles y se comprueba
+  que las opciones del cuerpo llegan a la fachada con los defaults correctos y que
+  el contrato se publica como la librería lo expone (`model_dump`/`como_dict`).
+- **Mapeo de errores**: los cinco códigos, más la frontera 400 ≠ 422, más el orden
+  de las ramas con las jerarquías cruzadas.
+- **El transporte real**: un servidor en el puerto que el SO elige responde por
+  HTTP (incluido el `Content-Type: application/json`), y uno de los tests prueba
+  que es **threading**: `/salud` responde mientras otra petición está bloqueada.
+  Este último es el que justifica la decisión de `ThreadingHTTPServer`; sin él, la
+  elección quedaría sin verificar.
+- **Fronteras**: el default escucha solo en local, la falta de auth está declarada,
+  un rechazo da 200, el cuerpo tiene tope, el pipeline no se reimplementa y el
+  servidor es un binario aparte.
+
+**Fronteras de la tarea (lo que **no** hace).**
+
+- **No** trae autenticación, TLS ni CORS: es la versión **básica** de la fase 2
+  (MoSCoW Should), no la "completa" (Could). Va detrás de un proxy para exponerse.
+- **No** expone `batch`, `case` ni `hitl`: el lote largo y la revisión humana ya
+  tienen su camino por CLI, y llevarlos a HTTP pediría antes resolver el manejo de
+  trabajos en curso (un lote de horas no encaja en un request/response).
+- **No** reemplaza al CLI: **el CLI sigue siendo la superficie principal**; la API
+  cubre las tres operaciones que un consumidor remoto necesita.
+- **No** agrega dependencias (regla dura): `http.server`, `json`, `urllib` y
+  `argparse` de la stdlib.
+
+**Hallazgos de la implementación.**
+
+1. **Una etiqueta del diagrama no es una decisión de arquitectura.** El C4 decía
+   "FastAPI" en la caja de la API HTTP, pero no había ADR ni dependencia declarada,
+   y la regla dura del repo dice no sumar dependencias. Tratar una etiqueta como
+   una decisión habría metido una dependencia por un nombre. Se resolvió en la
+   línea de T-601 (`argparse` sobre `typer`) y se **declaró el punto de revisión**:
+   el día que haga falta OpenAPI/streaming/auth, FastAPI entra como decisión
+   explícita conservando las rutas.
+2. **El default inseguro es el que se publica sin querer.** Un servidor sin
+   autenticación escuchando en `0.0.0.0` por default es un problema esperando a
+   pasar. Se ata a `127.0.0.1`, exponer requiere `--host` explícito y el arranque
+   avisa si el host no es local. Un límite que el consumidor puede **leer** —en la
+   nota del índice— es un límite que no sorprende.
+3. **Hay que testear el transporte, no solo la lógica.** La capa pura podía estar
+   perfecta con el servidor roto (un `do_POST` que no lee el cuerpo, un
+   `Content-Length` mal puesto). Los tests levantan un servidor **real** y hacen
+   pedidos HTTP de verdad, incluida la prueba de concurrencia: sin ella, la
+   elección de `ThreadingHTTPServer` sería una afirmación sin verificar.
 
 ## 4. Reglas duras (no romper F0–F5)
 
@@ -643,25 +790,27 @@ CLI (argparse)                 Orquestador                    Librería
 
 ## 7. Avance
 
-- **Estado (2026-09-12)**: **T-601, T-602, T-603, T-604 y T-605 hechas**. El
-  cliente existe (once subcomandos), el lote corre con workers,
-  checkpoints/reanudación y la política de enfriamiento del ADR-010, y la corrida
-  se consolida en un **único JSON agregado** (índice + punteros + síntesis +
-  métricas) que se acumula entre corridas y se reconstruye del histórico. **T-604**
-  cerró el DoD de la fase: el **mapa de paridad v1→v2** en tres niveles
-  deterministas y el **corte de v1** declarado. **T-605** cerró el otro extremo
-  del DoD ("documentación lista"): la **guía del operador** (`docs/usuario/`, cinco
-  documentos) y el README de v2, con la **cobertura verificada por tests** contra
-  el contrato del CLI. Suite completa **1606 passed / 10 skipped** (57 nuevos de
-  T-601 + 46 de T-602 + 41 de T-603 + 29 de T-604 + 30 de T-605);
-  `scripts/F6/t601.py` → **9/9** + **6/6**, `t602.py` → **12/12** + **6/6**,
-  `t603.py` → **8/8** + **9/9**, `t604.py` → mapa en verde y `t605.py` → **27/27**
-  (todos exit 0).
+- **Estado (2026-09-12)**: **T-601..T-606 hechas — F6 completa**. El cliente
+  existe (once subcomandos), el lote corre con workers, checkpoints/reanudación y
+  la política de enfriamiento del ADR-010, la corrida se consolida en un **único
+  JSON agregado** (índice + punteros + síntesis + métricas) que se acumula entre
+  corridas y se reconstruye del histórico, y hay una **segunda superficie** (API
+  HTTP) para consumidores remotos. **T-604** cerró un extremo del DoD: el **mapa de
+  paridad v1→v2** en tres niveles deterministas y el **corte de v1** declarado.
+  **T-605** cerró el otro ("documentación lista"): la **guía del operador**
+  (`docs/usuario/`, cinco documentos) y el README de v2, con la **cobertura
+  verificada por tests** contra el contrato del CLI. **T-606** agregó la **API
+  HTTP básica** de la fase 2. Suite completa **1659 passed / 10 skipped** (57
+  nuevos de T-601 + 46 de T-602 + 41 de T-603 + 29 de T-604 + 30 de T-605 + 53 de
+  T-606); `scripts/F6/t601.py` → **9/9** + **6/6**, `t602.py` → **12/12** + **6/6**,
+  `t603.py` → **8/8** + **9/9**, `t604.py` → mapa en verde, `t605.py` → **27/27** y
+  `t606.py` → **6/6** + **16/16** + **9/9** (todos exit 0).
 - **Punto de partida real**: F5 dejó el `CaseRecord` persistible (`CaseRecorder`) y
   el `VoucherResult` consolidado; T-601 puso el encadenamiento y la superficie de
   invocación; T-602 el **runner** que hace viable un lote largo; T-603 la
-  **consolidación** que hace que el resultado de un lote se lea en un archivo; y
-  T-605 la **guía** que hace que todo eso sea usable sin leer el código.
-- **Lo que sigue**: **T-606** (API HTTP, fase 2 / no bloqueante). El **DoD de F6
-  está cumplido**: paridad con el corte de v1 declarado (T-604) y documentación
-  lista (T-605).
+  **consolidación** que hace que el resultado de un lote se lea en un archivo;
+  T-605 la **guía** que hace que todo eso sea usable sin leer el código; y T-606 la
+  **API HTTP** que lo hace usable desde otra máquina.
+- **Lo que sigue**: nada de F6. Quedan fuera de alcance, declarados en cada tarea:
+  autenticación/TLS/OpenAPI y las rutas HTTP de `batch`/`case`/`hitl` (T-606), la
+  carga de correcciones HITL desde el CLI (T-605) y el store SQLite del ADR-009.

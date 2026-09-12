@@ -10,7 +10,7 @@
 
 | Campo | Valor |
 |---|---|
-| **Fase en curso** | **F6 — Cliente (CLI/batch) e integración final** 🟡 **en implementación** (T-601..T-605 hechas; T-606 pendiente) |
+| **Fase en curso** | **F6 — Cliente (CLI/batch) e integración final** ✅ **completada** (T-601..T-606) |
 | **Estado** | **T-401..T-405 ✅ hechas — F4 cerrada con el DoD verificado**: los flujos VLM y LLM corren **en paralelo** devolviendo `SourceEvidence` con el contrato de F0; prompt de evidencia versionado `extraccion-key-value@1`, intérprete que no inventa, paralelismo medido, **normalización key-value** (CUIT cortado, fecha ISO, montos numéricos, `punto_venta`/`numero_comprobante` derivados) con el crudo preservado, **pasada 1 por fuente** (sostén por forma canónica + coherencia interna), **combinación con resolución por campo** (tabla de precedencia ADR-002: visual/textual/programa, conservando todas las lecturas) y **paridad con v1 medida en tres niveles** (reglas 20/20, campos 29/29, sostén 32/32). |
 | **F0** | ✅ Fundación completada (schemas, esqueleto, golden set, adaptadores) |
 | **F1** | ✅ Implementada (T-101..T-105/ORQ, `api.process()`; paridad de integración en `@pytest.mark.integration`) |
@@ -18,10 +18,10 @@
 | **F3** | ✅ DoD verificado (T-301..T-305; motor de reglas R1-R7, evidencia, reglas raw, cadena contable y paridad con v1) |
 | **F4** | ✅ DoD verificado (T-401..T-405; flujos en paralelo, normalización, pasada 1, combinación por campo y paridad con v1) |
 | **F5** | ✅ **DoD verificado** (T-501..T-507: reglas cruzadas, búsqueda acotada, consolidación, escalado al agente IA, cola HITL con muestreo de auditoría, trazabilidad `CaseRecord` persistida y métricas del lote) |
-| **F6** | 🟡 En implementación (T-601: CLI `voucherflow` + orquestador + fachada; T-602: batch con workers, checkpoints/reanudación y enfriamiento ADR-010; T-603: sidecars + salida agregada; T-604: paridad v1→v2 y corte de v1 — **DoD de F6 cumplido**; T-605: guía del operador en `docs/usuario/` + README de v2, con la cobertura verificada por tests; falta la API HTTP T-606) |
+| **F6** | ✅ **Completada** (T-601: CLI `voucherflow` + orquestador + fachada; T-602: batch con workers, checkpoints/reanudación y enfriamiento ADR-010; T-603: sidecars + salida agregada; T-604: paridad v1→v2 y corte de v1 — DoD de F6; T-605: guía del operador en `docs/usuario/` + README de v2, con la cobertura verificada por tests; T-606: API HTTP básica — `http.server` de la stdlib, sin dependencias nuevas) |
 | **Paquete** | `voucherflow` v`0.1.0` (layout `src/`, ADR-007) |
 | **Contrato** | `SCHEMA_VERSION = 1.0.0` (congelado, ver criterio de cambio en `schemas/evidence.py`) |
-| **Suite de tests** | ✅ **1606 tests en verde + 10 skipped** (`python -m pytest --no-header -p no:cacheprovider`) en env `py313_env` |
+| **Suite de tests** | ✅ **1659 tests en verde + 10 skipped** (`python -m pytest --no-header -p no:cacheprovider`) en env `py313_env` |
 
 **Resumen**: F0 dejó la **fundación de la librería**: contratos de evidencia
 congelados, configuración centralizada, adaptadores `OllamaClient`/
@@ -77,6 +77,7 @@ pendientes.
 | Trazabilidad (F5) | `trace/recorder.py` | `CaseRecorder` |
 | Fachada / orquestador | `api.py`, `orchestrator.py` | **Implementados en F6/T-601**: `api.extract`/`api.run`/`api.ask`, `PipelineOrchestrator.ejecutar`/`ejecutar_lote` y `PipelineResult` poblado |
 | Cliente CLI (F6) | `cli/main.py` | **Implementado en F6/T-601**: los once subcomandos, flags comunes y `EntornoCLI` inyectable |
+| Cliente HTTP (F6) | `http/` (`server.py`, `__main__.py`) | **Implementado en F6/T-606**: API HTTP básica (fase 2) con seis rutas sobre `http.server` de la **stdlib**; `EntornoHTTP` inyectable y ruteo puro (`manejar`). Binario aparte: `voucherflow-http` |
 
 ---
 
@@ -327,8 +328,8 @@ reglas.ids_disparados({"monto": 100, "texto": "tiene IVA"})  # ["R1", "R2"]
 - ✅ Clasificar tipo/letra y cadena contable (**F3** completa: T-301..T-305 — motor de reglas R1-R7, prompt de evidencia, reglas raw, cadena contable 01→02→03 y paridad verificada con v1: **8/8** en la cadena y **5/5** de exactitud de letra vs. **2/5** de v1).
 - ✅ **Extracción VLM/LLM completa, con paridad medida (T-401 ✅, T-402 ✅, T-403 ✅, T-404 ✅, T-405 ✅)**: `python scripts/F4/t401.py` corre **11/11** escenarios sin Ollama, `t402.py` **19/19** + **17/17** + **5/5**, `t403.py` **11/11** + **7/7** + **4/4**, `t404.py` **8/8** + **4/4** (con `--manual` para ver la combinación sin GPU) y `t405.py` reporta la paridad (**reglas 20/20**, **campos 29/29**, **sostén 32/32**, **genérico 5/5**); con `--origen` los cinco corren la extracción real (F1 + vista fiel de F2 + Ollama). La paridad **real** contra v1 se corre con `t405.py --subset origen`.
 - ✅ **F5 completa: conclusión + HITL + trazabilidad + métricas (T-501..T-507)** — la pasada 2 decide el caso, busca evidencia **acotada** si faltan datos, **consolida** el `VoucherResult`, escala al **agente IA** (con blindaje post-agente) cuando el código no pudo, **encola a revisión humana** lo que no quedó de certeza alta (prioridad alta) más un **muestreo reproducible** de los que sí (prioridad baja) con las correcciones registradas como **feedback separado por motivo** (R-03/R-09), **persiste la trazabilidad** de cada caso (sidecar con escritura atómica + índice consultable) para que la auditoría se responda leyendo el archivo, y **reporta las métricas** del lote sobre ese histórico (% certeza alta, % agente, % rechazado, acuerdo VLM/LLM, cobertura HITL y alertas R7).
-- ✅ **F6 casi completa — el DoD de la fase está cumplido (T-601 ✅, T-602 ✅, T-603 ✅, T-604 ✅, T-605 ✅)**: el cliente `voucherflow` (once subcomandos), el **modo batch** con workers/checkpoints/enfriamiento (ADR-010), la **salida agregada** del lote (índice + punteros + síntesis + métricas), el **mapa de paridad v1→v2** en tres niveles deterministas con el **corte de v1** declarado (el DoD: *"equivalente con resultados comparables o mejores"*) y la **guía del operador** (`docs/usuario/`, cinco documentos) + README de v2, con la cobertura de la doc **verificada por tests** contra el contrato del CLI (el DoD: *"documentación lista"*). ❌ Lo que falta de F6 es la **API HTTP (T-606)**, declarada fase 2 / no bloqueante para el MVP.
-- ❌ API HTTP (`v2` como servicio; T-606, fase 2). Los scripts sueltos de `v1/` quedan **congelados como referencia** (corte de v1 declarado en T-604), no como línea de desarrollo.
+- ✅ **F6 completa — el DoD de la fase está cumplido (T-601 ✅, T-602 ✅, T-603 ✅, T-604 ✅, T-605 ✅, T-606 ✅)**: el cliente `voucherflow` (once subcomandos), el **modo batch** con workers/checkpoints/enfriamiento (ADR-010), la **salida agregada** del lote (índice + punteros + síntesis + métricas), el **mapa de paridad v1→v2** en tres niveles deterministas con el **corte de v1** declarado (el DoD: *"equivalente con resultados comparables o mejores"*), la **guía del operador** (`docs/usuario/`, cinco documentos) + README de v2, con la cobertura de la doc **verificada por tests** contra el contrato del CLI (el DoD: *"documentación lista"*), y la **API HTTP básica** de la fase 2 (seis rutas sobre `http.server` de la **stdlib**; sin dependencias nuevas).
+- ❌ Fuera de alcance, declarado: la API HTTP "completa" (auth/TLS/OpenAPI y las rutas de `batch`/`case`/`hitl`, MoSCoW Could), la carga de correcciones HITL desde el CLI y el store SQLite del ADR-009. Los scripts sueltos de `v1/` quedan **congelados como referencia** (corte de v1 declarado en T-604), no como línea de desarrollo.
 
 ### 3.7 Comprobación rápida de T-301 (F3)
 

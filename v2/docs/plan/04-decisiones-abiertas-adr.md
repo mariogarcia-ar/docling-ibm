@@ -596,6 +596,50 @@ checkpoints permiten reanudar sin reprocesar.
 
 ---
 
+### ADR-011 · Implementación de la API HTTP: `http.server` (stdlib) vs. FastAPI
+
+- **Estado**: **Cerrado** (2026-09-12, F6/T-606).
+- **Contexto**: el diagrama de contenedores C4 (doc 03 §3) muestra una caja "API
+  HTTP (fase 2) — FastAPI" en el nivel Cliente, al lado del CLI. T-606 la
+  implementa. La etiqueta "FastAPI" **no** estaba respaldada por un ADR ni la
+  dependencia figuraba en `pyproject.toml`, mientras la regla dura del repo dice
+  **no agregar dependencias** (subplan F6 §2.3 y §4). Hay un precedente directo:
+  T-601 eligió `argparse` de la **stdlib** sobre `typer` por el mismo motivo, y
+  dejó el extra `cli` vacío.
+- **Decisión**: la API HTTP se implementa con **`http.server` de la biblioteca
+  estándar** (`ThreadingHTTPServer`), sin dependencias nuevas. El diagrama se
+  actualiza: la caja deja de nombrar un framework.
+- **Por qué**:
+  - **La regla dura es no sumar dependencias**: un servidor de un archivo es
+    auditable y no obliga a instalar nada para usar el sistema.
+  - **El patrón ya estaba tomado** en el cliente (T-601) y conviene que las dos
+    superficies del mismo nivel se resuelvan igual.
+  - **El alcance real es chico**: seis rutas que delegan en la fachada, sin
+    streaming, sin OpenAPI, sin auth. Un framework resuelve problemas que esta
+    fase **no tiene**.
+  - `ThreadingHTTPServer` cubre lo único que hacía falta de un servidor "serio":
+    atender en paralelo, porque las rutas bloquean esperando a Ollama.
+- **Consecuencias**:
+  - Lo que **no** se obtiene: OpenAPI/Swagger automático, validación por
+    *type hints*, inyección de dependencias, async nativo, middleware y
+    documentación interactiva.
+  - **Punto de revisión explícito**: si aparece la necesidad de OpenAPI, streaming
+    de documentos grandes, autenticación integrada o async, **entra FastAPI como
+    decisión explícita** (un ADR nuevo), reemplazando la capa de transporte y
+    **conservando las rutas y los códigos de estado** —que es lo que el consumidor
+    conoce y lo que los tests fijan—. La separación `manejar()` (ruteo puro) /
+    handler (transporte) hace ese reemplazo quirúrgico.
+  - La seguridad se resuelve **fuera** del servidor (proxy con auth/TLS), y eso se
+    declara en el propio servicio: el default escucha en `127.0.0.1` y el índice
+    publica la nota de alcance.
+- **Verificación**: `tests/test_http_t606.py` (53) y `scripts/F6/t606.py` (6/6
+  rutas + 16/16 escenarios + 9/9 fronteras). Un test fija esta decisión de
+  superficie: el servidor es un **binario aparte** (`voucherflow-http`) y `COMANDOS`
+  sigue teniendo once, de modo que agregar un subcomando al CLI obligue a
+  actualizar a propósito la paridad (T-604) y la documentación (T-605).
+
+---
+
 ## 3. Decisiones heredadas que v2 debe *respetar* (no reabrir en el refactor)
 
 | Decisión previa (v1) | Estado en v2 |

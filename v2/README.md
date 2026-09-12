@@ -38,11 +38,13 @@ evidencia congelado), `rules` (motor de reglas), `models` (adaptadores
 > declarado; y **T-605** la **documentación de usuario** —la guía del operador
 > (`docs/usuario/`, cinco documentos: instalación, referencia de los once
 > subcomandos, salidas, revisión humana e índice) y este README— con la cobertura
-> y los enlaces **verificados por tests** contra el contrato del CLI. El
-> paquete tiene implementadas las capacidades de procesamiento (F1), validación
-> (F2), clasificación (F3), la extracción completa (F4) y la conclusión con HITL
-> (F5); de F6 falta la API HTTP (T-606,
-> fase 2). La
+> y los enlaces **verificados por tests** contra el contrato del CLI; y **T-606**
+> la **API HTTP básica** (fase 2, no bloqueante), que expone `run`/`extract`/`ask`
+> por red con `http.server` de la **stdlib** (sin dependencias nuevas) como un
+> binario **aparte** del CLI. Con T-606 la **fase F6 queda completa**: el paquete
+> tiene implementadas las capacidades de procesamiento (F1), validación (F2),
+> clasificación (F3), la extracción completa (F4), la conclusión con HITL (F5) y
+> los clientes CLI/batch/HTTP (F6). La
 > suite default corre **sin** Ollama, **sin** Docling reales y **sin** red.
 
 ## Instalación
@@ -73,6 +75,9 @@ v2/
     orchestrator.py         # PipelineOrchestrator (F6/T-601: ejecutar/ejecutar_lote)
     cli/
       main.py               # CLI `voucherflow` (F6/T-601: 11 subcomandos, argparse)
+    http/
+      server.py             # API HTTP (F6/T-606: 6 rutas, http.server de la stdlib)
+      __main__.py           # arranque: `python -m voucherflow.http` / `voucherflow-http`
     schemas/
       evidence.py           # contrato de evidencia (F0, congelado)
       result.py             # VoucherResult + CaseRecord (F0, congelado)
@@ -134,6 +139,38 @@ El `--help` de cada comando sigue siendo la fuente más actualizada:
 # Uso embebido (misma fachada que el CLI)
 python -c "from voucherflow.api import run; print(run('factura.pdf').estado)"
 ```
+
+## API HTTP (F6/T-606, fase 2)
+
+Segunda superficie del sistema, para consumidores que no pueden importar el
+paquete (otro servicio, un front, un script en otra máquina). Seis rutas:
+
+| Ruta | Equivalente CLI |
+|---|---|
+| `GET /` | (índice de rutas) |
+| `GET /salud` | (liveness) |
+| `POST /run` | `voucherflow run` |
+| `POST /extract` | `voucherflow extract` |
+| `POST /ask` | `voucherflow ask` |
+| `GET /version` | `voucherflow --version` |
+
+```bash
+voucherflow-http --puerto 8000          # o: python -m voucherflow.http
+
+curl -s localhost:8000/salud
+curl -s -X POST localhost:8000/run \
+  -H 'Content-Type: application/json' \
+  -d '{"origen": "factura.pdf"}'
+```
+
+> **Alcance declarado**: es la API **básica** de la fase 2 (MoSCoW *Should*). **No**
+> trae autenticación, TLS ni CORS — va detrás de un proxy para exponerse — y por
+> eso el default escucha en `127.0.0.1` (publicar requiere `--host` explícito y el
+> arranque avisa). Los códigos de estado distinguen `400` (petición mal armada) de
+> `422` (el documento no se pudo procesar) y de `503` (un modelo no responde:
+> reintentar sirve). **Un rechazo no es un error HTTP**: se responde `200` con
+> `estado=rechazado`. Igual que la CLI, **transporta, no reimplementa**: cada ruta
+> delega en `api.*`.
 
 ## Contrato versionado
 
