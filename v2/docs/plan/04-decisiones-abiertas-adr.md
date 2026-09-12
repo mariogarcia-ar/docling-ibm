@@ -370,9 +370,15 @@ ta la evidencia de VLM/LLM). El prompt conserva el **conocimiento de qué buscar
 
 ### ADR-007 · Organización y nombre del paquete de la librería
 
-- **Estado**: ✅ **Aceptado** (F0, 2026-09-06) · **Prioridad**: Baja · **Decisión D-7**
+- **Estado**: ✅ **Aceptado e implementado** (F0, 2026-09-06; cliente en F6/T-601,
+  2026-09-12) · **Prioridad**: Baja · **Decisión D-7**
 - **Implementación**: paquete `voucherflow` con layout `src/` en
-  `v2/src/voucherflow/` + `v2/pyproject.toml` (instalable).
+  `v2/src/voucherflow/` + `v2/pyproject.toml` (instalable) y el cliente como
+  **entry point del mismo paquete**: `[project.scripts] voucherflow =
+  "voucherflow.cli.main:entrypoint"`, con el código en
+  `src/voucherflow/cli/`. El extra `cli` quedó **vacío**: la CLI usa `argparse`
+  de la stdlib (no `typer`), así que no agrega dependencias ni para instalar el
+  cliente.
 
 **Contexto**
 "Necesito tener una librería robusta y luego un cliente para invocar al
@@ -491,6 +497,19 @@ revisión y las correcciones, que alimente el feedback a reglas/prompts.
   en memoria (T-505), y las del histórico las resuelve el índice JSONL — sin infraestructura
   nueva. El SQLite se justifica cuando haga falta consultar por **más dimensiones** o cruzar
   histórico y cola, que es la fase posterior que este ADR ya anticipa.
+
+**Implementación (F6/T-601 — la cola llega al cliente)**
+- El subcomando `voucherflow hitl list --dir DIR` consulta el **histórico
+  persistido** (el índice de T-506) filtrando `hitl_requerido=True`, con
+  `--prioridad` y `--certeza` opcionales, y `voucherflow case show <id> --dir DIR`
+  reconstruye el `CaseRecord` completo desde el sidecar. Es la respuesta a "listame
+  los casos de certeza baja" del ADR, servida ya sobre el material durable.
+- Sin `--dir`, `hitl list` reporta la **cola en memoria** de la corrida si el
+  entorno inyectó una, y **avisa** que el histórico requiere `--dir`: la cola de
+  T-505 vive en memoria, así que el comando no puede inventar lo que se perdió al
+  terminar el proceso.
+- El store SQLite sigue siendo la fase posterior que el ADR anticipa (consultas
+  por **más dimensiones** o cruce histórico-cola); el MVP no lo necesita.
 - Cobertura: `tests/test_trace_recorder_t506.py` (74), `scripts/F5/t506.py` (4/4 + 14/14),
   `tests/test_metricas_t507.py` (47) y `scripts/F5/t507.py` (6/6 + 11/11: las métricas se calculan
   sobre este histórico).
@@ -500,7 +519,9 @@ revisión y las correcciones, que alimente el feedback a reglas/prompts.
 
 ### ADR-010 · Política de enfriamiento por temperatura (config)
 
-- **Estado**: Propuesto (config) · **Prioridad**: Media · **Decisión D-10**
+- **Estado**: 🟡 **Parcialmente preparado** (F6/T-601, 2026-09-12: la configuración
+  y el punto de extensión existen; la política se implementa en **T-602**) ·
+  **Prioridad**: Media · **Decisión D-10**
 
 **Contexto**
 En `my_prompt.md` (operativo) se documenta: tras ~10 min de procesamiento el
@@ -517,6 +538,19 @@ checkpoints permiten reanudar sin reprocesar.
 **Consecuencias**
 - + Evita degradación térmica en lotes largos.
 - + La política es testeable sin hardware real (simulación con ventanas cortas).
+
+**Implementación (F6/T-601 — preparado, no implementado)**
+- `settings/config.py` ya tiene `CoolingSettings` (`enabled=False`,
+  `work_window_s=600`, `cool_down_s=120`) desde F0: la configuración que el ADR
+  pide existe y es cargable por YAML/env.
+- `PipelineOrchestrator.ejecutar_lote(max_workers=...)` es el **punto de
+  extensión**: hoy itera de forma secuencial y determinista, pero registra en la
+  traza de cada corrida `max_workers_solicitado` vs. `max_workers_aplicado=1` y
+  `secuencial=True`. Así el salto a T-602 (pool con el convertidor por worker,
+  checkpoints y la cuenta que arranca con **todos** los workers detenidos) es
+  **verificable en la traza**, no silencioso.
+- El modo batch de T-601 **no** simula la pausa: aceptar `--workers` y no decir
+  qué hizo sería peor que no aceptarlo.
 
 ---
 

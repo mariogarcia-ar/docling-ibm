@@ -26,10 +26,10 @@ contrato y ADR, y se registra su estado de diseño/implementación.
 | [`CONC.md`](CONC.md) | `voucherflow/conclusion/` | Reglas cruzadas → búsqueda de evidencia adicional → agente IA → HITL → consolidación | ✅ **DoD verificado** (T-501..T-507: reglas cruzadas, búsqueda acotada, consolidación, escalado al agente, cola HITL, trazabilidad persistida y métricas) | F5 (T-501..T-507) |
 | [`MODELS.md`](MODELS.md) | `voucherflow/models/` | Adaptadores de modelo: `OllamaClient`, `DoclingConverter`, `ArcaClient` (opcional) | 🔴 Borrador | F0 (T-005/T-006) |
 | [`TRACE.md`](TRACE.md) | `voucherflow/trace/` | Registro por caso (`CaseRecord`), trazabilidad, persistencia (JSON sidecar + índice) y métricas del lote | ✅ T-506/T-507 implementados (sidecar atómico + índice + reporte de métricas; checkpoints de F6 pendientes) | F5 (T-506/T-507) + F6 (T-602/T-603) |
-| [`ORCH-CLI.md`](ORCH-CLI.md) | `voucherflow/orchestrator.py` · `api.py` + `cli/` | Orquestador del pipeline, API de alto nivel y cliente CLI (orquestador/consumidor) | 🔴 Borrador | F5/F6 (T-601..T-606) |
+| [`ORCH-CLI.md`](ORCH-CLI.md) | `voucherflow/orchestrator.py` · `api.py` + `cli/` | Orquestador del pipeline, API de alto nivel y cliente CLI (orquestador/consumidor) | 🟡 En implementación (T-601: orquestador + fachada + CLI; T-602/T-603/T-606 pendientes) | F5/F6 (T-601..T-606) |
 
-> **Nota de estado**: los módulos de fases futuras (VAL, TRACE, ORCH-CLI,
-> y SCHEMAS/MODELS pendientes de confirmar su trazabilidad) siguen en **🔴
+> **Nota de estado**: los módulos de fases futuras (VAL, SCHEMAS/MODELS
+> pendientes de confirmar su trazabilidad) siguen en **🔴
 > Borrador**. **`PROC.md` (processing)** ya pasó a **🟡 En
 > implementación** (F1): T-101..T-104 + enrutado por página hechos; falta la
 > orquestación `procesar_documento()` + `api.process()` y la paridad T-105.
@@ -41,6 +41,10 @@ contrato y ADR, y se registra su estado de diseño/implementación.
 > `CaseRecord` persistida y métricas del lote) y **`RULES.md`** está 🟡 con el motor
 > completo hasta F5/T-502 — solo le
 > faltan las reglas cruzadas de la casuística HITL (post-MVP).
+> **`ORCH-CLI.md` (orquestador/API/CLI, F6)** pasó a **🟡 En implementación**:
+> T-601 dejó el orquestador que encadena F1→F5, la fachada `extract`/`run`/`ask`
+> y el CLI con sus once subcomandos; el batch con workers/enfriamiento (T-602),
+> la salida agregada (T-603) y la API HTTP (T-606, fase 2) siguen pendientes.
 
 ---
 

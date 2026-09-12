@@ -23,12 +23,17 @@ evidencia congelado), `rules` (motor de reglas), `models` (adaptadores
 > `VoucherResult`, escalado al agente IA con blindaje, **cola HITL** con muestreo
 > de auditoría y feedback, **trazabilidad `CaseRecord` persistida** en sidecar con
 > escritura atómica + índice consultable, y **métricas** del lote sobre ese
-> histórico). El
+> histórico). **F6 en implementación**: **T-601** entregó el **cliente
+> `voucherflow`** (once subcomandos: `process`, `validate`, `classify`, `extract`,
+> `extract-detect`, `run`, `batch`, `ask`, `arca`, `case`, `hitl`), el
+> **orquestador** que encadena processing → validation → extraction → combinación
+> → conclusión → traza y la **fachada** `api.extract`/`api.run`/`api.ask`. El
 > paquete tiene implementadas las capacidades de procesamiento (F1), validación
-> (F2), clasificación (F3), la extracción completa —contrato, normalización,
-> validación por fuente, combinación y paridad— (F4) y la conclusión con HITL (F5);
-> lo restante es **F6** (CLI/batch y paridad E2E). La suite default corre **sin**
-> Ollama ni Docling reales.
+> (F2), clasificación (F3), la extracción completa (F4) y la conclusión con HITL
+> (F5); de F6 faltan el batch con workers/checkpoints/enfriamiento (T-602), la
+> salida agregada (T-603), la paridad v1→v2 sobre `files/` (T-604), la
+> documentación de usuario (T-605) y la API HTTP (T-606, fase 2). La suite default
+> corre **sin** Ollama ni Docling reales.
 
 ## Instalación
 
@@ -54,8 +59,10 @@ v2/
   pyproject.toml
   src/voucherflow/
     __init__.py
-    api.py                  # fachada de alto nivel (esqueleto, F5/F6)
-    orchestrator.py         # PipelineOrchestrator (esqueleto, F5/F6)
+    api.py                  # fachada de alto nivel (F6/T-601: extract/run/ask)
+    orchestrator.py         # PipelineOrchestrator (F6/T-601: ejecutar/ejecutar_lote)
+    cli/
+      main.py               # CLI `voucherflow` (F6/T-601: 11 subcomandos, argparse)
     schemas/
       evidence.py           # contrato de evidencia (F0, congelado)
       result.py             # VoucherResult + CaseRecord (F0, congelado)
@@ -70,12 +77,32 @@ v2/
       ollama.py             # OllamaClient (F0, implementado)
       docling.py            # DoclingConverter + ProcessedDocument (F0)
       arca.py               # esqueleto (F5, opcional)
-    trace/…                 # esqueleto (F5)
     settings/
       config.py             # Settings (F0, implementado)
-  tests/                    # suite de F0
+  tests/                    # suite de F0..F6
     golden/                 # golden set inicial (índice CSV, ver README)
     golden/F4/              # F4/T-405: subconjunto de paridad (0.1-f4) + README
+```
+
+## Uso del cliente (F6/T-601)
+
+```bash
+voucherflow run factura.pdf                 # pipeline completo de un documento
+voucherflow batch files/2025-08 -o lote.json # carpeta recursiva (secuencial; workers → T-602)
+voucherflow process img.jpg -o salida/      # markdown de F1
+voucherflow classify factura.md             # tipo/letra + cadena contable (F3)
+voucherflow ask factura.pdf -q "¿Cuál es el total?"
+voucherflow case list --dir salida/cases    # trazabilidad persistida (F5/T-506)
+voucherflow hitl list --dir salida/cases    # cola de revisión (F5/T-505)
+```
+
+Cada comando escribe el dato a `stdout` y el progreso a `stderr`; `main()`
+devuelve el **código de salida** (≠ 0 si la corrida falla). Los flags comunes son
+`--force`, `--orientation`, `--condicion-impositiva`, `--model` y `--workers`.
+
+```bash
+# Uso embebido (misma fachada que el CLI)
+python -c "from voucherflow.api import run; print(run('factura.pdf').estado)"
 ```
 
 ## Contrato versionado

@@ -41,10 +41,14 @@ dev = [
     "typer>=0.12",
     "mypy>=1.10",
 ]
-# Extra para el futuro CLI.
-cli = [
-    "typer>=0.12",
-]
+# Extra histórico del CLI. El cliente de F6/T-601 usa ``argparse`` de la stdlib
+# (regla dura: no se agregan dependencias), así que este extra queda vacío y se
+# conserva solo para no romper instalaciones que lo pedían.
+cli = []
+
+[project.scripts]
+# Entry point del cliente CLI de F6/T-601 (doc 03 §8.1, ADR-007).
+voucherflow = "voucherflow.cli.main:entrypoint"
 
 [project.urls]
 Homepage = "https://github.com/example/voucherflow"  # placeholder: lo define el dueño del repo (ADR-007)

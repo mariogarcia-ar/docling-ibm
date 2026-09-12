@@ -142,7 +142,9 @@ class TestEsqueletoPaquete:
         import voucherflow.validation  # noqa: F401
 
     def test_esqueletos_lanzan_notimplemented(self):
-        # Los esqueletos de fases futuras NO implementan lógica (F0).
+        # Los esqueletos de fases futuras NO implementaban lógica (F0). Cada fase
+        # dio de baja su aserción al implementar su capacidad y la reescribió para
+        # verificar lo que esa frontera quería decir.
         # Decisión del subplan F1 §2.4: ``process`` sale de esta lista porque
         # ``api.process()`` quedó implementado en F1 (T-105/ORQ); su cobertura
         # vive en ``tests/test_processing_orquestacion.py``.
@@ -153,15 +155,37 @@ class TestEsqueletoPaquete:
         # Decisión del subplan F3 §3.4 (T-304): ``classify`` sale de esta lista
         # porque ``api.classify()`` quedó implementado en F3 (motor de tipo/letra
         # + cadena contable 01→02→03); su cobertura vive en
-        # ``tests/test_classification_contable.py``. Los otros 2 esqueletos
-        # (extract F4, run F5) siguen pendientes.
-        import pytest
+        # ``tests/test_classification_contable.py``.
+        # Decisión del subplan F6 §3.1 (T-601): ``extract`` y ``run`` salen de
+        # esta lista porque quedaron implementados en F6 (delegan en el
+        # orquestador y encadenan F1→F5); su cobertura vive en
+        # ``tests/test_cli_t601.py``. Con esto la lista queda **vacía**: ya no hay
+        # esqueletos en la fachada pública, y el test pasa a fijar esa frontera.
+        from voucherflow import api
 
-        from voucherflow.api import extract, run
+        for nombre in ("process", "validate", "classify", "extract", "run", "ask"):
+            assert callable(getattr(api, nombre))
+        # El orquestador tampoco es esqueleto: ``ejecutar`` resuelve el archivo
+        # inexistente con el resultado declarado (``ok=False`` + error), **no**
+        # con ``NotImplementedError``.
+        from voucherflow.orchestrator import PipelineOrchestrator
 
-        for fn in (extract, run):
-            with pytest.raises(NotImplementedError):
-                fn("dummy")
+        resultado = PipelineOrchestrator().ejecutar("dummy")
+        assert resultado.ok is False
+        assert "No se pudo leer" in (resultado.error or "")
+
+    def test_fachada_no_tiene_esqueletos_notimplemented(self):
+        # F6/T-601 cierra la lista de esqueletos de la fachada: ninguna operación
+        # pública de ``api`` debe seguir lanzando ``NotImplementedError``.
+        import inspect
+
+        from voucherflow import api
+
+        for nombre in ("process", "validate", "classify", "extract", "run", "ask"):
+            operacion = getattr(api, nombre)
+            assert "NotImplementedError" not in inspect.getsource(operacion), (
+                f"api.{nombre} sigue siendo un esqueleto (T-601 lo implementa)."
+            )
 
     def test_orquestador_expone_etapas(self):
         from voucherflow.orchestrator import PipelineOrchestrator
@@ -170,6 +194,8 @@ class TestEsqueletoPaquete:
         orch.registrar_etapa("processing")
         orch.registrar_etapa("classification")
         assert orch._etapas == ["processing", "classification"]
+        # T-601 agrega el acceso de solo lectura sin tocar el contrato de F0.
+        assert orch.etapas == ["processing", "classification"]
 
     def test_rules_registry_evalua(self):
         from voucherflow.rules import Registry, Rule

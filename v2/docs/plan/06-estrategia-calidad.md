@@ -349,6 +349,17 @@ tests/golden/
   carpeta de `files/` y comparar resultados (estructura + campos).
 - **Aceptación** (E-CLI-1/2/3): mapa de paridad documentado y verificado;
   interrupción+reanudación no repite pasos completados.
+- **T-601 cubierto**: `tests/test_cli_t601.py` (**57**) ejercita los once
+  subcomandos, la corrida completa del orquestador y las fronteras **con dobles**
+  (sin Ollama, sin Docling, sin red): contrato del CLI (subcomandos y los cinco
+  flags comunes), la secuencia de seis etapas, el **fast-fail del gate** (rechazo
+  con certeza alta y sin extracción), `--orientation` (re-exporta con boxes;
+  declara que no aplica en texto nativo), la clasificación contable opt-in y su
+  fallo contenido, la persistencia del `CaseRecord`, `case show/list` y
+  `arca check` sin configuración (ADR-003). `scripts/F6/t601.py` corre **9/9**
+  escenarios + **6/6** fronteras, con salida ≠ 0 si falla. **Falta para el DoD de
+  la fase**: el pool/checkpoints/enfriamiento (T-602), la salida agregada (T-603)
+  y la **medición** de la paridad v1→v2 sobre `files/` (T-604).
 
 ---
 

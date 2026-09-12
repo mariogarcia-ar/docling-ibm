@@ -1,10 +1,10 @@
-"""API de alto nivel (facade) de ``voucherflow`` — F1.
+"""API de alto nivel (facade) de ``voucherflow`` — F1..F6.
 
-**Fase**: F0 deja el esqueleto de la fachada pública de la librería. La
-implementación de cada operación se completa cuando su módulo de capacidad
-exista (F1–F5): ``process`` (F1, implementado — T-105/ORQ), ``validate`` (F2,
-implementado — T-203), ``classify`` (F3), ``extract`` (F4) y ``run``/``concluir``
-(F5).
+**Fase**: F0 dejó el esqueleto de la fachada pública de la librería y cada fase
+implementó la operación de su capacidad: ``process`` (F1, T-105/ORQ),
+``validate`` (F2, T-203), ``classify`` (F3, T-304), ``extract`` y ``run``
+(**F6/T-601**, sobre las capacidades de F4/F5). ``ask`` es la consulta puntual
+del cliente (equivalente a ``v1/ask.py``).
 
 El objetivo de exponer esta fachada desde F0 es **fijar la API pública** de la
 librería (E-LIB-1: "librería primero, cliente después") para que el cliente
@@ -14,9 +14,17 @@ módulos internos.
 Contratos que expone (doc 03 §9): ``ProcessedDocument`` (processing),
 ``ValidationResult`` (validation), ``VoucherResult`` / ``CombinedEvidence``
 (conclusion), ``EvidenceField`` / ``SourceEvidence`` (extraction/classification).
+
+Sobre las firmas congeladas: ``extract`` y ``run`` conservan su **nombre** y su
+primer parámetro; los keywords de T-601 son **aditivos** (inyección de dobles,
+política de la corrida) y tienen default, así que el contrato de F0 sigue siendo
+llamable tal cual (regla dura del repo: los esqueletos se **llenan**, no se
+rediseñan).
 """
 
 from __future__ import annotations
+
+from typing import Any
 
 from .schemas.result import VoucherResult
 
@@ -232,20 +240,251 @@ def _identificador_de_markdown(markdown: str) -> str:
     return hashlib.sha256(contenido.encode("utf-8")).hexdigest()
 
 
-def extract(origen: str, mode: str = "kvi") -> "CombinedEvidence":
-    """Extrae evidencia VLM+LLM de un documento (F4).
+def extract(
+    origen: str,
+    mode: str = "kvi",
+    *,
+    cliente: "Any" = None,
+    settings: "Any" = None,
+    converter: "Any" = None,
+) -> "CombinedEvidence":
+    """Extrae evidencia VLM+LLM de un documento (F4/T-401 + T-404).
 
-    Esqueleto F0 — se implementa en F4 (módulo ``extraction``).
+    Implementación de T-601 sobre las capacidades de F4: procesa el documento
+    (F1), corre el **gate** de F2 (la extracción consume la vista fiel, E-QWE-2),
+    lanza los dos flujos en paralelo y **combina** por campo (ADR-002). Devuelve
+    la ``CombinedEvidence`` con todas las lecturas conservadas y la resolución
+    por campo — el mismo artefacto que produce el orquestador en el paso 4.
+
+    Sobre ``mode`` (``kvi``/``kvg``/``10``/``11``): son los modos **heredados** de
+    v1 (glosario y doc 03 §8.2). En v2 hay **un** contrato de extracción
+    versionado (``extraccion-key-value@1``) que cubre a todos, así que el modo se
+    registra en la trazabilidad por paridad verificable (T-604) pero **no** cambia
+    el prompt ni el contrato: fingir una diferencia que no existe haría la
+    paridad inauditable.
+
+    Argumentos:
+        origen: ruta del documento (pdf/imagen/office/texto).
+        mode: modo heredado de v1 (default ``kvi``; ver doc 03 §8.2).
+        cliente: lector de modelos inyectable (``OllamaClient`` en producción).
+        settings: ``Settings`` de la corrida.
+        converter: convertidor Docling inyectable (tests).
+
+    Devuelve:
+        ``CombinedEvidence`` de F4/T-404 (con ``decision=None``: concluir es F5).
+
+    Lanza:
+        ``DocumentoNoProcesableError`` si F1 rechaza el formato.
+        ``~voucherflow.validation.VeredictoGate``-negativo **no** es excepción: un
+        documento que no es comprobante devuelve la evidencia del gate combinada
+        (el llamador decide; el pipeline completo lo resuelve como rechazo).
     """
-    raise NotImplementedError("extract(): se implementa en F4 (módulo extraction).")
+    from .orchestrator import PipelineOrchestrator
+    from .schemas.evidence import CombinedEvidence
+
+    orquestador = PipelineOrchestrator(
+        cliente=cliente, settings=settings, converter=converter
+    )
+    documento, _ = orquestador.procesar(origen)
+    gate = orquestador.validar(documento)
+    extraccion = orquestador.extraer(
+        documento,
+        vista=gate.vista_fiel,
+        documento_id=_identificador_de_archivo(origen),
+    )
+    evidencia = orquestador.combinar(
+        _identificador_de_archivo(origen), extraccion.evidencias
+    )
+    trazabilidad = dict(evidencia.trazabilidad)
+    trazabilidad["api_extract"] = {
+        "mode_heredado": mode,
+        "nota": (
+            "`extract` de la fachada (T-601) corre procesamiento + gate + los dos "
+            "flujos + combinación. El modo heredado de v1 se registra por paridad "
+            "(T-604); el contrato de extracción de v2 es uno solo "
+            f"({extraction_version()})."
+        ),
+    }
+    return CombinedEvidence(
+        documento_id=evidencia.documento_id,
+        campos=dict(evidencia.campos),
+        decision=evidencia.decision,
+        trazabilidad=trazabilidad,
+    )
 
 
-def run(origen: str) -> VoucherResult:
-    """Pipeline completo document → VoucherResult (F5).
+def extraction_version() -> str:
+    """Versión del prompt/contrato de extracción vigente (ADR-005)."""
+    from .extraction.prompt_extraccion import VERSION_PROMPT_EXTRACCION
 
-    Esqueleto F0 — se implementa en F5 (módulo ``conclusion`` + orquestador).
+    return VERSION_PROMPT_EXTRACCION
+
+
+def run(
+    origen: str,
+    *,
+    condicion_impositiva: str | None = None,
+    modelo: str | None = None,
+    orientation: str = "auto",
+    docling_raw: bool = False,
+    clasificar_contable: bool = False,
+    agente: "Any" = None,
+    cliente: "Any" = None,
+    settings: "Any" = None,
+    converter: "Any" = None,
+    cola: "Any" = None,
+) -> VoucherResult:
+    """Pipeline completo documento → ``VoucherResult`` (F6/T-601).
+
+    Implementación de T-601: delega en :class:`~voucherflow.orchestrator.PipelineOrchestrator`
+    (processing → validation → extraction → combinación → conclusión → traza) y
+    devuelve el contrato consolidado de F0 (glosario §2.4).
+
+    Es la superficie pública que usa la CLI (``voucherflow run``) y el uso
+    embebido: un punto de entrada, un ``VoucherResult``.
+
+    Argumentos:
+        origen: ruta del documento.
+        condicion_impositiva: condición para la cadena contable (``21`` default).
+        modelo: modelo de las etapas que hablan con el modelo.
+        orientation: ``auto`` | ``horizontal`` | ``vertical``.
+        docling_raw: markdown crudo de Docling (equivalente a ``v1/run.py``).
+        clasificar_contable: si ``True``, corre la cadena 01→02→03.
+        agente: agente IA inyectable (T-504); ``None`` no escala.
+        cliente: lector de modelos inyectable.
+        settings: ``Settings`` de la corrida.
+        converter: convertidor Docling inyectable.
+        cola: ``ColaHitl`` en memoria (T-505).
+
+    Devuelve:
+        El ``VoucherResult`` consolidado del caso (incluido un rechazo firme).
+
+    Lanza:
+        ``VoucherflowError`` si F1 rechaza el archivo (formato no soportado,
+        inexistente). Un gate negativo **no** lanza: se resuelve como rechazado.
     """
-    raise NotImplementedError("run(): se implementa en F5 (módulo conclusion/orquestador).")
+    from .orchestrator import PipelineOrchestrator
+
+    orquestador = PipelineOrchestrator(
+        cliente=cliente,
+        agente=agente,
+        settings=settings,
+        converter=converter,
+        cola=cola,
+    )
+    resultado = orquestador.ejecutar(
+        origen,
+        condicion_impositiva=condicion_impositiva,
+        modelo=modelo,
+        orientation=orientation,
+        docling_raw=docling_raw,
+        clasificar_contable=clasificar_contable,
+    )
+    if not resultado.ok or resultado.resultado is None:
+        raise DocumentoNoProcesableError(
+            resultado.error or f"No se pudo procesar el documento {origen!r}."
+        )
+    return resultado.resultado
+
+
+def ask(
+    origen: str,
+    pregunta: str,
+    *,
+    modelo: str | None = None,
+    cliente: "Any" = None,
+    settings: "Any" = None,
+    converter: "Any" = None,
+    max_chars: int = 20000,
+) -> str:
+    """Pregunta libre sobre un documento (F6/T-601; equivale a ``v1/ask.py``).
+
+    Es la capacidad de consulta puntual del cliente (doc 03 §8.2: ``ask.py`` →
+    ``voucherflow ask``): procesa el documento con F1, arma un prompt de pregunta
+    restringido al **texto del documento** y devuelve la respuesta del modelo.
+
+    Se mantiene deliberadamente **fuera** del pipeline de conclusión: ``ask`` no
+    produce evidencia, no decide ni se audita como un caso (no hay ``Decision`` ni
+    ``CaseRecord``). Mezclarlo con la extracción de evidencia contaminaría el
+    contrato de F0 —una respuesta de texto libre no es un ``EvidenceField``—.
+    Sobre el recorte: el texto se acota a ``max_chars`` para no exceder la ventana
+    del modelo local; el recorte se declara en la respuesta solo si ocurre.
+
+    Argumentos:
+        origen: ruta del documento (o ``.md``/``.txt`` ya procesado).
+        pregunta: la pregunta puntual.
+        modelo: modelo a usar (default: rol ``llm`` o ``vlm`` según la fuente).
+        cliente: lector inyectable (``OllamaClient`` en producción).
+        settings: ``Settings`` de la corrida.
+        converter: convertidor Docling inyectable.
+        max_chars: tope de caracteres del documento que se envía al modelo.
+
+    Devuelve:
+        El texto de la respuesta del modelo.
+
+    Lanza:
+        ``VoucherflowError`` si el documento no se puede procesar.
+    """
+    from .orchestrator import PipelineOrchestrator
+
+    if not (pregunta or "").strip():
+        raise VoucherflowError("ask() necesita una pregunta no vacía.")
+
+    orquestador = PipelineOrchestrator(
+        cliente=cliente, settings=settings, converter=converter
+    )
+    documento, _ = orquestador.procesar(origen)
+    texto = (documento.markdown or "").strip()
+    if not texto:
+        raise VoucherflowError(
+            f"El documento {origen!r} no produjo texto sobre el que responder."
+        )
+
+    recortado = len(texto) > max_chars
+    contexto = texto[:max_chars]
+
+    ajustes = orquestador.settings_efectivos()
+    rol = ajustes.modelo_para(
+        "vlm" if documento.tipo_entrada in {"imagen", "pdf_escaneado"} else "llm"
+    )
+    modelo_usado = modelo or (rol.modelo if rol else None) or ajustes.modelo_vlm
+    if not modelo_usado:
+        raise VoucherflowError(
+            "No hay modelo configurado para responder la pregunta (rol 'llm'/'vlm' "
+            "de Settings, E-LIB-3)."
+        )
+
+    messages = [
+        {
+            "role": "system",
+            "content": (
+                "Sos un asistente que responde preguntas basándose ÚNICAMENTE en el "
+                "contenido del siguiente documento. Si la respuesta no está en el "
+                "documento, decilo claramente.\n\n"
+                f"--- DOCUMENTO ---\n{contexto}\n--- FIN DEL DOCUMENTO ---"
+            ),
+        },
+        {"role": "user", "content": pregunta},
+    ]
+    respuesta = orquestador._cliente().ask(
+        messages,
+        model=modelo_usado,
+        num_ctx=rol.num_ctx if rol else None,
+    )
+    contenido = (getattr(respuesta, "contenido", "") or "").strip()
+    if recortado:
+        contenido += (
+            f"\n\n[Nota: el documento se recortó a {max_chars} caracteres para "
+            "respetar la ventana del modelo; puede haber contexto fuera del recorte.]"
+        )
+    return contenido
+
+
+def _identificador_de_archivo(origen: str) -> str:
+    """``documento_id`` de un archivo (``sha256`` del contenido, glosario §2)."""
+    from .orchestrator import identificador_de_archivo
+
+    return identificador_de_archivo(origen)
 
 
 __all__ = [
@@ -256,5 +495,7 @@ __all__ = [
     "validate",
     "classify",
     "extract",
+    "extraction_version",
     "run",
+    "ask",
 ]

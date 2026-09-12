@@ -10,7 +10,7 @@
 
 | Campo | Valor |
 |---|---|
-| **Fase en curso** | **F5 — Conclusión + HITL** ✅ **cerrada** (T-501..T-507); la próxima es F6 (CLI/batch) |
+| **Fase en curso** | **F6 — Cliente (CLI/batch) e integración final** 🟡 **en implementación** (T-601 hecha; T-602..T-606 pendientes) |
 | **Estado** | **T-401..T-405 ✅ hechas — F4 cerrada con el DoD verificado**: los flujos VLM y LLM corren **en paralelo** devolviendo `SourceEvidence` con el contrato de F0; prompt de evidencia versionado `extraccion-key-value@1`, intérprete que no inventa, paralelismo medido, **normalización key-value** (CUIT cortado, fecha ISO, montos numéricos, `punto_venta`/`numero_comprobante` derivados) con el crudo preservado, **pasada 1 por fuente** (sostén por forma canónica + coherencia interna), **combinación con resolución por campo** (tabla de precedencia ADR-002: visual/textual/programa, conservando todas las lecturas) y **paridad con v1 medida en tres niveles** (reglas 20/20, campos 29/29, sostén 32/32). |
 | **F0** | ✅ Fundación completada (schemas, esqueleto, golden set, adaptadores) |
 | **F1** | ✅ Implementada (T-101..T-105/ORQ, `api.process()`; paridad de integración en `@pytest.mark.integration`) |
@@ -18,10 +18,10 @@
 | **F3** | ✅ DoD verificado (T-301..T-305; motor de reglas R1-R7, evidencia, reglas raw, cadena contable y paridad con v1) |
 | **F4** | ✅ DoD verificado (T-401..T-405; flujos en paralelo, normalización, pasada 1, combinación por campo y paridad con v1) |
 | **F5** | ✅ **DoD verificado** (T-501..T-507: reglas cruzadas, búsqueda acotada, consolidación, escalado al agente IA, cola HITL con muestreo de auditoría, trazabilidad `CaseRecord` persistida y métricas del lote) |
-| **F6** | 🔴 Backlog (CLI/batch y paridad sobre `files/`) |
+| **F6** | 🟡 En implementación (T-601: CLI `voucherflow` + orquestador + fachada; faltan batch T-602, agregado T-603, paridad T-604, docs T-605 y API HTTP T-606) |
 | **Paquete** | `voucherflow` v`0.1.0` (layout `src/`, ADR-007) |
 | **Contrato** | `SCHEMA_VERSION = 1.0.0` (congelado, ver criterio de cambio en `schemas/evidence.py`) |
-| **Suite de tests** | ✅ **1403 tests en verde + 10 skipped** (`python -m pytest --no-header -p no:cacheprovider`) en env `py313_env` |
+| **Suite de tests** | ✅ **1460 tests en verde + 10 skipped** (`python -m pytest --no-header -p no:cacheprovider`) en env `py313_env` |
 
 **Resumen**: F0 dejó la **fundación de la librería**: contratos de evidencia
 congelados, configuración centralizada, adaptadores `OllamaClient`/
@@ -71,11 +71,12 @@ pendientes.
 | Validación (F2) | `validation/qween.py` | `VeredictoGate` (comprobante/no/indeterminado), `ValidationResult` |
 | Clasificación (F3) | `classification/tipo_comprobante.py` | `TipoComprobanteResult`, `ClasificacionContableResult` |
 | Extracción (F4) | `extraction/flows.py` | `flujo_vlm()`, `flujo_llm()`, `extraer()` (**implementados en T-401**); `combinar_evidencia()` (**implementada en T-404**) |
-| Conclusión (F5) | `conclusion/` + `trace/` | `concluir()`/`concluir_caso()` (**T-501**), `concluir_con_busqueda()` (**T-502**), `consolidar_caso()` (**T-503**), `concluir_con_agente()`/`escalar_a_agente()` (**T-504**), `encolar_hitl()` + `ColaHitl` (**T-505**), `construir_case_record()` + `CaseRecorder` (**T-506**) y `metricas_del_recorder()` (**T-507**). F5 completa; quedan esqueletos solo de F6 (`api.run()`, `PipelineOrchestrator.ejecutar()`) |
+| Conclusión (F5) | `conclusion/` + `trace/` | `concluir()`/`concluir_caso()` (**T-501**), `concluir_con_busqueda()` (**T-502**), `consolidar_caso()` (**T-503**), `concluir_con_agente()`/`escalar_a_agente()` (**T-504**), `encolar_hitl()` + `ColaHitl` (**T-505**), `construir_case_record()` + `CaseRecorder` (**T-506**) y `metricas_del_recorder()` (**T-507**). F5 completa. |
 | Conclusión (F5) | `rules/contexto_conclusion.py` + `rules/cruzadas.py` | `ContextoConclusion` + `REGISTRO_CRUZADAS` (**implementados en T-501**) |
 | Conclusión (F5) | `models/arca.py` | `ArcaClient`, `ArcaResultado` (opcional, ADR-003) |
 | Trazabilidad (F5) | `trace/recorder.py` | `CaseRecorder` |
-| Fachada / orquestador | `api.py`, `orchestrator.py` | Esqueleto de la API pública (`VoucherResult`) y `PipelineResult` |
+| Fachada / orquestador | `api.py`, `orchestrator.py` | **Implementados en F6/T-601**: `api.extract`/`api.run`/`api.ask`, `PipelineOrchestrator.ejecutar`/`ejecutar_lote` y `PipelineResult` poblado |
+| Cliente CLI (F6) | `cli/main.py` | **Implementado en F6/T-601**: los once subcomandos, flags comunes y `EntornoCLI` inyectable |
 
 ---
 
