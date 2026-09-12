@@ -699,11 +699,14 @@ class TestComandos:
         (tmp_path / "sub").mkdir()
         (tmp_path / "sub" / "a.md").write_text("texto a", encoding="utf-8")
         (tmp_path / "b.md").write_text("texto b", encoding="utf-8")
-        assert main(["batch", str(tmp_path)], entorno=entorno) == 0
-        datos = json.loads(_salida(entorno))
-        assert datos["documentos"] == 2
-        assert datos["ok"] == 2
-        assert datos["max_workers_aplicado"] == 1
+        agregado = tmp_path / "lote.json"
+        assert main(["batch", str(tmp_path), "-o", str(agregado)], entorno=entorno) == 0
+        # T-603: `-o` es el **agregado** del lote (una entrada por documento).
+        datos = json.loads(agregado.read_text(encoding="utf-8"))
+        assert datos["resumen"]["documentos"] == 2
+        assert datos["resumen"]["ok"] == 2
+        assert len(datos["documentos"]) == 2
+        assert datos["lote"]["max_workers_aplicado"] == 1
 
     def test_batch_carpeta_vacia_sale_con_codigo_1(self, entorno: EntornoCLI, tmp_path: Path):
         vacia = tmp_path / "vacia"
@@ -713,14 +716,19 @@ class TestComandos:
 
     def test_batch_workers_solicitado_queda_registrado(self, entorno: EntornoCLI, tmp_path: Path):
         (tmp_path / "a.md").write_text("texto", encoding="utf-8")
-        assert main(["batch", str(tmp_path), "--workers", "4"], entorno=entorno) == 0
-        datos = json.loads(_salida(entorno))
-        assert datos["max_workers_solicitado"] == 4
+        agregado = tmp_path / "lote.json"
+        assert main(
+            ["batch", str(tmp_path), "--workers", "4", "-o", str(agregado)],
+            entorno=entorno,
+        ) == 0
+        datos = json.loads(agregado.read_text(encoding="utf-8"))
+        lote = datos["lote"]
+        assert lote["max_workers_solicitado"] == 4
         # El efecto real se declara: con un orquestador inyectado (los dobles no
         # cruzan a otro proceso) el lote corre serial y lo dice en la traza, en vez
         # de reportar un paralelismo que no existió. El pool real es T-602.
-        assert datos["max_workers_aplicado"] == 1
-        assert any("serial" in nota for nota in datos["traza_lote"]["notas"])
+        assert lote["max_workers_aplicado"] == 1
+        assert any("serial" in nota for nota in lote["notas"])
 
     def test_ask_responde(self, entorno: EntornoCLI, documento: Path):
         assert main(["ask", str(documento), "-q", "¿Cuál es el total?"], entorno=entorno) == 0

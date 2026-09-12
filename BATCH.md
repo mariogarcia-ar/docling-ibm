@@ -31,7 +31,8 @@ Qué hace, en orden:
 3. **Procesa** los pendientes en el pool de workers (cada uno con su convertidor).
 4. Cada `--work-window` segundos de trabajo continuo: **detiene los workers** y
    **espera `--cool-down`** antes de seguir.
-5. Al terminar deja un **checkpoint** por documento y, si se pidió, el
+5. Al terminar deja un **checkpoint** por documento, el **agregado** del lote en
+   `-o` (un único JSON con una entrada por documento) y, si se pidió, el
    `CaseRecord` de cada caso (sidecar + índice).
 
 ---
@@ -278,61 +279,94 @@ se activa explícitamente.
 
 ## 7. Qué reporta el lote
 
-`-o lote.json` (o `stdout`) devuelve el agregado con la **traza del lote**.
-Ejemplo (ilustrativo, con un lote de 12 documentos de los cuales 3 ya estaban
-hechos):
+`-o lote.json` escribe el **agregado** del lote (o `lote.agregado.json` si no se
+pasa `-o`). Es un **único JSON** que consolida la corrida: una entrada por
+documento, la síntesis y las métricas.
 
 ```json
 {
-  "version": "voucherflow-cli@1",
+  "version": "agregado-lote@1",
   "raiz": "files/2025-08",
-  "documentos": 12,
-  "ok": 9,
-  "errores": 0,
-  "reanudados": 3,
-  "max_workers_solicitado": 4,
-  "max_workers_aplicado": 4,
-  "enfriamientos": 1,
-  "segundos_enfriados": 120.0,
-  "traza_lote": {
-    "version": "lote-batch@1",
-    "ejecutor": "procesos",
-    "secuencial": false,
-    "procesados": 9,
-    "reanudados": ["…/factura-01.jpg", "…"],
-    "errores": [],
-    "cooling": { "enabled": true, "work_window_s": 600, "cool_down_s": 120 },
-    "ciclos": [
-      {
-        "ciclo": 1,
-        "documentos": 8,
-        "inicio_ventana_s": 0.0,
-        "todos_detenidos_s": 601.4,
-        "duracion_ventana_s": 601.4,
-        "enfriado_s": 120.0,
-        "hubo_enfriamiento": true
-      },
-      {
-        "ciclo": 2,
-        "documentos": 1,
-        "inicio_ventana_s": 721.4,
-        "todos_detenidos_s": 751.9,
-        "duracion_ventana_s": 30.5,
-        "enfriado_s": 0.0,
-        "hubo_enfriamiento": false
-      }
-    ],
-    "checkpoints": { "habilitados": true, "escritos": 9, "no_escribibles": [] },
-    "notas": []
+  "resumen": {
+    "documentos": 12,
+    "ok": 9,
+    "errores": 0,
+    "por_estado": { "aprobado": 8, "rechazado": 1 },
+    "requieren_revision": 2,
+    "revision_obligatoria": 1,
+    "con_sidecar": 9
   },
-  "resultados": [ … ]
+  "documentos": [
+    {
+      "documento_id": "sha256:9f2c…",
+      "archivo": "files/2025-08/2D2C9347/factura.jpg",
+      "ok": true,
+      "estado": "aprobado",
+      "tipo_comprobante": "A",
+      "certeza": "alta",
+      "origen": "programa",
+      "hitl_requerido": false,
+      "campos_extraidos": 15,
+      "sidecar": "sha256_9f2c….case.json"
+    }
+  ],
+  "metricas": { "…": "se calculan sobre el histórico persistido (--cases)" },
+  "lote": { "…": "la traza del runner: workers, ciclos, enfriamiento" }
 }
 ```
 
-Los campos que importan para auditar:
+### El agregado es un índice, no una copia
+
+Por cada documento guarda el **veredicto** y un **puntero al sidecar** — no la
+evidencia completa. La evidencia vive en el `CaseRecord` (el sidecar), y se lee
+desde ahí:
+
+```bash
+voucherflow case show sha256:9f2c… --dir salida/cases
+```
+
+La razón es doble, y las dos importan:
+
+- **Tamaño**: cada `CaseRecord` puede pesar cientos de KB (todas las lecturas, por
+  fuente, con su sostén). Un lote de mil documentos daría un agregado de cientos
+  de MB: un archivo que nadie puede abrir.
+- **Una sola verdad**: si el agregado copiara el contenido, tendríamos dos lugares
+  que dicen lo mismo y que pueden **divergir**. Corregir un caso dejaría el
+  agregado viejo mintiendo sin que nadie lo note. Con punteros, el agregado no
+  puede contradecir al sidecar.
+
+Así, cada pregunta vive donde corresponde: *"¿qué pasó en el lote?"* se responde
+con el agregado; *"¿por qué se decidió así?"*, con el sidecar.
+
+### Se acumula entre corridas
+
+El agregado **suma** lo que procesó cada corrida, con **una entrada por
+documento**: reprocesar un documento actualiza su entrada, no agrega otra. Después
+de interrumpir y reanudar un lote, el archivo describe la carpeta completa —no la
+última corrida—, que es lo que hace que sirva como estado.
+
+### Se puede reconstruir del histórico
+
+Si perdiste el agregado (o procesaste la carpeta en varias sesiones), se
+reconstruye leyendo los sidecars, sin volver a correr el pipeline:
+
+```bash
+voucherflow case aggregate --dir salida/cases -o lote.json
+```
+
+### Métricas: se derivan o se declaran
+
+El bloque `metricas` sale del **histórico persistido** (F5/T-507), así que aparece
+cuando el lote corrió con `--cases`. Si no hay histórico del cual derivarlas, el
+agregado las deja en `null` y dice por qué en `metricas_no_disponibles` — no las
+inventa.
+
+### La traza del runner
+
+El bloque `lote` es de T-602 y tiene lo de la corrida:
 
 - **`max_workers_solicitado` vs. `max_workers_aplicado`**: lo que pediste y lo que
-  realmente corrió. Si no coinciden, `traza_lote.notas` dice por qué.
+  realmente corrió. Si no coinciden, `lote.notas` dice por qué.
 - **`reanudados`**: qué documentos se saltearon y por qué no se reprocesaron.
 - **`ciclos[].todos_detenidos_s`**: el instante exacto en que arrancó cada
   enfriamiento. Es la prueba de que la cuenta empezó con el pool detenido y no
@@ -340,24 +374,15 @@ Los campos que importan para auditar:
 - **`checkpoints`**: si se escribieron. Si el directorio no era escribible, el
   motivo aparece en `no_escribibles` en vez de dar el trabajo por perdido.
 
-### Estado de salida y del resumen
+### Estado de salida y contadores
 
-Los contadores del agregado son **de esta corrida**, no del total de la carpeta:
-
-| Campo | Qué cuenta |
-|---|---|
-| `documentos` | Los descubiertos en total: los procesados en esta corrida **más** los reanudados |
-| `ok` | Los que esta corrida **procesó** y salieron bien |
-| `errores` | Los que esta corrida procesó y fallaron |
-| `reanudados` | Los que ya estaban hechos y se saltearon |
-
-Por eso, en una corrida que solo reanuda, `ok` es `0` y `reanudados` no: no es
-que no haya nada hecho, es que **esta corrida no tuvo que hacer nada**. El estado
-de salida sigue el mismo criterio: `0` si esta corrida no dejó errores, `≠ 0` si
-alguno falló.
+Los contadores de `resumen` son **de la carpeta**, no de la corrida: `documentos`
+incluye los reanudados, y `por_estado` acumula lo que se sabe de todos. El estado
+de salida, en cambio, es de la corrida: `0` si no dejó errores, `≠ 0` si alguno
+falló.
 
 Un **rechazo** (el documento no es un comprobante) **no** es un error: es una
-conclusión del sistema, con certeza alta, y se reporta como `rechazado`.
+conclusión del sistema, con certeza alta, y se cuenta en `por_estado.rechazado`.
 
 ---
 
@@ -365,11 +390,13 @@ conclusión del sistema, con certeza alta, y se reporta como `rechazado`.
 
 | Síntoma | Causa | Qué hacer |
 |---|---|---|
-| La corrida termina enseguida y no procesa nada | Los documentos ya tienen checkpoint válido | Es lo esperado: el lote reanudó. Verificá `reanudados` en la traza, o usá `--force` para rehacer |
+| La corrida termina enseguida y no procesa nada | Los documentos ya tienen checkpoint válido | Es lo esperado: el lote reanudó. Verificá `lote.reanudados` en el agregado, o usá `--force` para rehacer |
+| El agregado tiene más documentos de los que procesó esta corrida | Se **acumula** entre corridas | Es lo esperado: el agregado es el estado de la carpeta. Mirá `lote.procesados` para lo de esta corrida. Si querés empezar de cero, borrá el archivo |
 | Un documento sigue apareciendo como pendiente | Su contenido **cambió** (el hash es otro) | Es correcto: se reprocesa solo. Si querés forzarlo, `--force` |
 | El lote no enfría | `enabled` está en `false` (el default) | `--cooling on`, o `enabled: true` en el YAML |
-| El lote tarda más de lo esperado | Está enfriando entre ciclos | Mirá `enfriamientos` y `segundos_enfriados` en la traza |
-| `max_workers_aplicado` es menor al pedido | Había un orquestador inyectado (tests) | Solo pasa en tests; la traza lo explica |
+| El lote tarda más de lo esperado | Está enfriando entre ciclos | Mirá `lote.enfriamientos` y `lote.segundos_enfriados` |
+| `metricas` viene en `null` | El lote no corrió con `--cases`: no hay histórico del cual derivarlas | Agregá `--cases DIR` (y mirá `metricas_no_disponibles`) |
+| `max_workers_aplicado` es menor al pedido | Había un orquestador inyectado (tests) | Solo pasa en tests; `lote.notas` lo explica |
 | Un documento falló y no querés esperar al lote entero | — | Volvé a correr: solo se reprocesa lo que falta (no reutiliza el checkpoint del fallo) |
 | La máquina se apagó a mitad del lote | — | Volvé a correr sobre la misma carpeta: reanuda desde los checkpoints, sin repetir lo completado |
 

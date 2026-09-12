@@ -5,7 +5,7 @@
 > ([`F6.md`](F6.md)) y el diseño del módulo
 > ([`../03-arquitectura/ORCH-CLI.md`](../03-arquitectura/ORCH-CLI.md)).
 > **Fecha**: 2026-09-12 · **Rama**: `v2` · **Estado**: 🟡 **En implementación**
-> (T-601 y T-602 hechas; T-603..T-606 pendientes).
+> (T-601, T-602 y T-603 hechas; T-604..T-606 pendientes).
 
 ## 1. Ficha del subplan
 
@@ -300,13 +300,88 @@ suelto no tiene lote del cual reanudar, y lo declara.
    El `sha256` del contenido hace que el caso correcto sea el que sale gratis y el
    incorrecto el que exige `--force`.
 
-### 3.3 T-603 · Sidecars con trazabilidad y salida agregada ⬜ Pendiente
+### 3.3 T-603 · Sidecars con trazabilidad y salida agregada ✅ Hecha
 
-**Qué hay que hacer**: la política de sidecars por caso (resultado + evidencia +
-trazabilidad) y la salida agregada del lote en un único JSON. T-601 ya expone el
-`CaseRecord` de cada corrida y persiste el de T-506 con `--cases`; lo que falta es
-la **consolidación** (qué campos van al agregado, cómo se resume el lote, dónde
-vive) y su contrato.
+> **Estado 2026-09-12**: **Hecha** por `team implementation`. Suite completa en
+> verde (**1547 passed, 10 skipped**, 41 nuevos); `python scripts/F6/t603.py`
+> reporta **8/8** escenarios + **9/9** fronteras (exit 0).
+
+**Qué se hace.** El Gherkin de E-CLI-2 tiene dos mitades, y llegaron en momentos
+distintos: la del **sidecar** ya estaba hecha en F5/T-506 y expuesta por el CLI en
+T-601, y T-603 la **verifica de punta a punta** sin reimplementarla. Lo nuevo es la
+segunda: el **único JSON agregado** del lote (`trace/agregado.py`).
+
+**El agregado es un índice, no una copia.** Es la decisión central de la tarea:
+
+| Alternativa | Por qué no |
+|---|---|
+| Embeber los `CaseRecord` enteros | Cientos de KB por caso (todas las lecturas por fuente, con su sostén): un lote de mil documentos daría un archivo de cientos de MB que nadie puede abrir, y **duplicaría** el dato |
+| Embeber solo la evidencia | Mismo problema, y crea una **segunda fuente de verdad** que puede divergir: corregir un caso dejaría el agregado mintiendo sin que nadie lo note |
+| **Índice + punteros** | El agregado no puede contradecir al sidecar (solo apunta a él), el archivo queda chico, y cada pregunta vive donde corresponde: *"¿qué pasó en el lote?"* → agregado; *"¿por qué se decidió así?"* → `case show <id>` |
+
+**Lo que hace:**
+
+- **Una entrada por documento** con el veredicto y el **puntero al sidecar**.
+- **Síntesis del lote**: cuántos, cómo salieron (`por_estado`), cuántos requieren
+  revisión y cuántos traen puntero.
+- **Métricas** derivadas del histórico (F5/T-507) o **declaradas ausentes** con su
+  motivo (`metricas_no_disponibles`) — nunca ceros que no se pueden sostener.
+- **Acumulación entre corridas** (`agregar_a_archivo`) con una entrada por
+  documento: reprocesar **actualiza**, no duplica. Es lo que hace que el archivo
+  sea el **estado de la carpeta** y no el reporte de la última corrida.
+- **Escritura atómica** e **inmune a errores de lectura**: un agregado ilegible o
+  un JSON ajeno **no** se sobreescriben (sobreescribirlos borraría el lote
+  anterior), y una entrada que ya venía del sidecar no se degrada a la proyección
+  de la corrida.
+
+**En el CLI**: `batch -o` pasa a escribir el agregado (es el JSON consolidado que
+pide el Gherkin; default `lote.agregado.json`) y se agrega `case aggregate`, que lo
+**reconstruye** leyendo los sidecars — el camino para una carpeta procesada en
+varias sesiones o para recuperar el archivo si se perdió.
+
+**Cómo se prueba (sin red).**
+
+- **La mitad del sidecar**: `run --cases` genera el JSON con resultado + evidencia
+  + trazabilidad, se lee de vuelta al contrato y `case show` lo muestra.
+- **La forma del agregado**: una entrada por documento con su veredicto, punteros
+  a los sidecars, la síntesis por estado, la revisión obligatoria separada, y que
+  los errores **no** se confundan con los rechazos (un rechazo es una conclusión).
+- **Que no duplique**: se verifica sobre el serializado que no haya
+  `evidencia_por_fuente` ni fragmentos de sostén, y que el contrato declare dónde
+  está la evidencia.
+- **Persistencia**: round-trip del agregado, escritura atómica, acumulación, el
+  mismo documento actualizándose, y que un archivo ilegible o ajeno no se pise.
+- **Métricas**: sin histórico salen `null` **con motivo**; con histórico se
+  calculan; y una corrida sin `--cases` no borra un cálculo previo.
+- **Integración**: `batch` escribe y acumula el agregado, incluye métricas con
+  `--cases`, y `case aggregate` reconstruye del histórico (a stdout o a archivo).
+
+**Fronteras de la tarea (lo que **no** hace).**
+
+- **No** reimplementa la persistencia por caso (F5/T-506) ni el runner (T-602).
+- **No** embebe la evidencia (§ arriba): apunta al sidecar.
+- **No** corre el pipeline: es una proyección de lo que las etapas produjeron.
+- **No** inventa el puntero cuando no hay sidecar (la clave se omite), ni el
+  estado cuando la corrida no alcanzó un veredicto (se cuenta `sin_estado`, no
+  `revision`).
+
+**Hallazgos de la implementación.**
+
+1. **El agregado perdía el veredicto**: la primera versión leía el estado **solo**
+   del `VoucherResult` tipado. Un resultado que llegaba sin ese objeto entraba como
+   `sin_estado` — afirmando que el caso no se resolvió cuando sí se había resuelto.
+   Ahora se lee del `VoucherResult` y, si no está, del `resumen` (las dos fuentes
+   llevan el mismo dato que publica el orquestador, así que no se inventa nada). Lo
+   destapó un test que arma el `PipelineResult` a mano.
+2. **Una corrida sin casos borraba las métricas**: recalcular el bloque solo
+   cuando la corrida traía `CaseRecord` hacía que una corrida posterior sin
+   `--cases` perdiera un cálculo previo. Eso no es honestidad, es perder trabajo:
+   la honestidad es **no inventar** métricas cuando nunca hubo datos —y eso lo
+   declara el agregado—, no olvidar las que sí se calcularon.
+3. **La tolerancia a errores de lectura es de seguridad, no de robustez**: que un
+   agregado corrupto **no** se sobreescriba importa porque el agregado es el
+   archivo que se mira para saber si el lote terminó. Tratarlo como vacío habría
+   borrado el lote anterior en silencio.
 
 ### 3.4 T-604 · Mapa de paridad v1→v2 sobre carpetas reales de `files/` ⬜ Pendiente
 
@@ -392,16 +467,17 @@ CLI (argparse)                 Orquestador                    Librería
 
 ## 7. Avance
 
-- **Estado (2026-09-12)**: **T-601 y T-602 hechas**. El cliente existe (once
+- **Estado (2026-09-12)**: **T-601, T-602 y T-603 hechas**. El cliente existe (once
   subcomandos), el lote corre con workers, checkpoints/reanudación y la política de
-  enfriamiento del ADR-010. Suite completa **1506 passed / 10 skipped** (57 nuevos
-  de T-601 + 46 de T-602); `scripts/F6/t601.py` → **9/9** + **6/6** y
-  `scripts/F6/t602.py` → **12/12** + **6/6** (exit 0).
+  enfriamiento del ADR-010, y la corrida se consolida en un **único JSON agregado**
+  (índice + punteros + síntesis + métricas) que se acumula entre corridas y se
+  reconstruye del histórico. Suite completa **1547 passed / 10 skipped** (57 nuevos
+  de T-601 + 46 de T-602 + 41 de T-603); `scripts/F6/t601.py` → **9/9** + **6/6**,
+  `t602.py` → **12/12** + **6/6** y `t603.py` → **8/8** + **9/9** (exit 0).
 - **Punto de partida real**: F5 dejó el `CaseRecord` persistible (`CaseRecorder`) y
   el `VoucherResult` consolidado; T-601 puso el encadenamiento y la superficie de
-  invocación; T-602 puso el **runner** que hace viable un lote largo sobre una
-  máquina que se calienta.
-- **Lo que sigue**: **T-603** (salida agregada del lote: T-602 ya publica los
-  resultados y la traza, falta el formato canónico del agregado) y **T-604** (la
-  medición de la paridad v1→v2 sobre `files/`, que cierra el DoD de la fase; el
-  mapa de equivalencias está en §3.1).
+  invocación; T-602 el **runner** que hace viable un lote largo; y T-603 la
+  **consolidación** que hace que el resultado de un lote se lea en un archivo.
+- **Lo que sigue**: **T-604** (la medición de la paridad v1→v2 sobre `files/`, que
+  cierra el DoD de la fase; el mapa de equivalencias está en §3.1 y los comandos que
+  se comparan ya existen).

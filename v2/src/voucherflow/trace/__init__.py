@@ -14,6 +14,9 @@ responsabilidades distintas:
 - :mod:`~voucherflow.trace.metricas` **agrega** el histórico (T-507 / E-LIB-5):
   % certeza alta, % agente, % rechazado, acuerdo VLM/LLM, cobertura HITL y tasa de
   alertas, calculados sobre los `CaseRecord` persistidos.
+- :mod:`~voucherflow.trace.agregado` **consolida la corrida** en un único JSON
+  (T-603 / E-CLI-2): un índice por documento (veredicto + puntero al sidecar) con
+  la síntesis del lote y las métricas. No copia los `CaseRecord`: apunta a ellos.
 
 Uso típico::
 
@@ -27,6 +30,19 @@ Uso típico::
 
 from __future__ import annotations
 
+from .agregado import (
+    NO_AGREGADOS,
+    VERSION_AGREGADO,
+    Agregado,
+    EntradaDocumento,
+    agregado_del_recorder,
+    agregar_a_archivo,
+    construir_agregado,
+    entrada_de_caso,
+    entrada_de_resultado,
+    escribir_agregado,
+    leer_agregado,
+)
 from .construccion import (
     BLOQUES_CONCLUSION,
     ETAPA_CONCLUSION,
@@ -94,4 +110,16 @@ __all__ = [
     "BLOQUES_CONCLUSION",
     "NOTA_EVIDENCIA_DIRECTA",
     "NOTA_EVIDENCIA_RECONSTRUIDA",
+    # Salida agregada del lote (T-603 / E-CLI-2)
+    "VERSION_AGREGADO",
+    "NO_AGREGADOS",
+    "EntradaDocumento",
+    "Agregado",
+    "entrada_de_resultado",
+    "entrada_de_caso",
+    "construir_agregado",
+    "agregado_del_recorder",
+    "escribir_agregado",
+    "leer_agregado",
+    "agregar_a_archivo",
 ]

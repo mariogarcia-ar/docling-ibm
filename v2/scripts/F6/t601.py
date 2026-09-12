@@ -407,19 +407,25 @@ def _escenarios() -> list[dict[str, Any]]:
         (lote_dir / "otra.case.json").write_text("{}", encoding="utf-8")
         descubiertos = sorted(p.name for p in iterar_documentos(lote_dir))
         entorno = _entorno(lote_dir)
-        codigo_batch = main(["batch", str(lote_dir), "-o", str(lote_dir / "lote.json")], entorno=entorno)
-        lote = json.loads((lote_dir / "lote.json").read_text(encoding="utf-8"))
+        agregado = lote_dir / "lote.json"
+        codigo_batch = main(
+            ["batch", str(lote_dir), "-o", str(agregado)], entorno=entorno
+        )
+        lote = json.loads(agregado.read_text(encoding="utf-8"))
         escenarios.append(
             {
                 "nombre": "comando_batch_recursivo",
                 "que": "batch recorre subcarpetas y excluye los sidecars derivados",
                 "ok": (
                     codigo_batch == 0
-                    and lote["documentos"] == 2
+                    and lote["resumen"]["documentos"] == 2
                     and descubiertos == ["otra.md", "uno.md"]
                 ),
                 "esperado": "2 documentos, sin el sidecar",
-                "obtenido": f"{lote['documentos']} documentos, descubiertos={descubiertos}",
+                "obtenido": (
+                    f"{lote['resumen']['documentos']} documentos, "
+                    f"descubiertos={descubiertos}"
+                ),
             }
         )
 
@@ -455,8 +461,12 @@ def _fronteras() -> list[dict[str, Any]]:
         # (pool de procesos) cuando no hay orquestador inyectado; acá el entorno
         # del script inyecta dobles, así que corre serial y lo declara en la traza.
         entorno = _entorno(tmp_path)
-        main(["batch", str(tmp_path), "--workers", "8"], entorno=entorno)
-        lote = json.loads(entorno.stdout.getvalue())
+        agregado_lote = tmp_path / "lote-workers.json"
+        main(
+            ["batch", str(tmp_path), "--workers", "8", "-o", str(agregado_lote)],
+            entorno=entorno,
+        )
+        lote = json.loads(agregado_lote.read_text(encoding="utf-8"))["lote"]
         fronteras.append(
             {
                 "que": (
@@ -465,7 +475,7 @@ def _fronteras() -> list[dict[str, Any]]:
                 ),
                 "ok": lote["max_workers_solicitado"] == 8
                 and lote["max_workers_aplicado"] == 1
-                and any("serial" in nota for nota in lote["traza_lote"]["notas"]),
+                and any("serial" in nota for nota in lote["notas"]),
                 "detalle": (
                     f"solicitado={lote['max_workers_solicitado']} "
                     f"aplicado={lote['max_workers_aplicado']}"

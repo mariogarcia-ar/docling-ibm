@@ -385,34 +385,44 @@ def _escenarios() -> list[dict[str, Any]]:
             }
         )
 
-        # 7. CLI: la reanudación se ve en la salida agregada.
+        # 7. CLI: la reanudación se ve en el agregado del lote (T-603).
         lote_dir = tmp_path / "cli"
         lote_dir.mkdir()
         _carpeta(lote_dir, 2)
+        agregado_path = lote_dir / "lote.json"
         entorno = _entorno(lote_dir)
-        codigo = main(["batch", str(lote_dir), "-o", str(lote_dir / "lote.json")], entorno=entorno)
-        datos = json.loads((lote_dir / "lote.json").read_text(encoding="utf-8"))
+        codigo = main(["batch", str(lote_dir), "-o", str(agregado_path)], entorno=entorno)
+        datos = json.loads(agregado_path.read_text(encoding="utf-8"))
         escenarios.append(
             {
                 "nombre": "cli_batch_reporta_reanudados",
-                "que": "`batch` publica reanudados y la traza del lote",
-                "ok": codigo == 0 and datos["reanudados"] == 0 and datos["traza_lote"]["version"] == VERSION_LOTE,
-                "esperado": "exit 0 + traza del lote",
-                "obtenido": f"exit {codigo} / traza={datos['traza_lote']['version']}",
+                "que": "`batch` publica el agregado con la traza del lote",
+                "ok": codigo == 0
+                and datos["resumen"]["documentos"] == 2
+                and datos["lote"]["version"] == VERSION_LOTE,
+                "esperado": "exit 0 + 2 documentos + traza del lote",
+                "obtenido": f"exit {codigo} / traza={datos['lote']['version']}",
             }
         )
 
-        # 8. CLI: la segunda corrida reporta los reanudados.
+        # 8. CLI: la segunda corrida no reprocesa y lo reporta.
         entorno2 = _entorno(lote_dir)
-        codigo2 = main(["batch", str(lote_dir), "-o", str(lote_dir / "lote2.json")], entorno=entorno2)
-        datos2 = json.loads((lote_dir / "lote2.json").read_text(encoding="utf-8"))
+        codigo2 = main(
+            ["batch", str(lote_dir), "-o", str(agregado_path)], entorno=entorno2
+        )
+        datos2 = json.loads(agregado_path.read_text(encoding="utf-8"))
         escenarios.append(
             {
                 "nombre": "cli_batch_reanuda",
-                "que": "la 2ª corrida del CLI no reprocesa y lo reporta",
-                "ok": codigo2 == 0 and datos2["reanudados"] == 2 and datos2["ok"] == 0,
-                "esperado": "exit 0 / 2 reanudados",
-                "obtenido": f"exit {codigo2} / reanudados={datos2['reanudados']}",
+                "que": "la 2ª corrida del CLI no reprocesa y lo deja en el agregado",
+                "ok": codigo2 == 0
+                and len(datos2["lote"]["reanudados"]) == 2
+                and datos2["resumen"]["documentos"] == 2,
+                "esperado": "exit 0 / 2 reanudados / 2 documentos en el agregado",
+                "obtenido": (
+                    f"exit {codigo2} / reanudados={len(datos2['lote']['reanudados'])} "
+                    f"/ documentos={datos2['resumen']['documentos']}"
+                ),
             }
         )
 

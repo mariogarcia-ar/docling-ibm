@@ -8,10 +8,13 @@ Subcomandos (doc 03 §8.1 y `ORCH-CLI.md` §3):
 ``extract``        extracción VLM+LLM combinada (F4) sobre archivo o carpeta.
 ``extract-detect`` letra por VLM/LLM (F3) sobre archivo o carpeta.
 ``run``            pipeline completo de un archivo (F6).
-``batch``          pipeline completo de una carpeta recursiva (F6; workers en T-602).
+``batch``          pipeline completo de una carpeta recursiva (F6/T-602): workers,
+                   checkpoints/reanudación y enfriamiento; escribe el **agregado**
+                   del lote (F6/T-603).
 ``ask``            pregunta puntual sobre un documento (equivale a ``v1/ask.py``).
 ``arca``           consulta el padrón ARCA/WSCDC (opcional, ADR-003).
-``case``           ``show``/``list`` la trazabilidad persistida (F5/T-506).
+``case``           ``show``/``list`` la trazabilidad persistida (F5/T-506) y
+                   ``aggregate`` reconstruye el agregado del lote (F6/T-603).
 ``hitl``           ``list`` la cola de revisión humana (F5/T-505).
 
 Argumentos comunes (E-CLI-1): ``--force``, ``--orientation``,
@@ -203,7 +206,17 @@ def construir_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("batch", help="Pipeline completo de una carpeta recursiva (F6/T-602: workers + checkpoints + enfriamiento).")
     p.add_argument("origen", help="Carpeta (o archivo) a procesar.")
-    p.add_argument("-o", "--output", default=None, help="Archivo JSON con la salida agregada.")
+    p.add_argument(
+        "-o",
+        "--output",
+        default=None,
+        metavar="AGREGADO.json",
+        help=(
+            "Archivo del **agregado** del lote (F6/T-603): una entrada por "
+            "documento, la síntesis y las métricas. Se ACUMULA entre corridas "
+            "(default: lote.agregado.json)."
+        ),
+    )
     p.add_argument("--cases", default=None, metavar="DIR", help="Persiste los CaseRecord (sidecar + índice).")
     p.add_argument("--clasificar-contable", action="store_true")
     p.add_argument("--no-gate", action="store_true")
@@ -256,11 +269,22 @@ def construir_parser() -> argparse.ArgumentParser:
     p.add_argument("--condicion-impositiva", default=CONDICION_DEFAULT)
     p.add_argument("--model", default=None)
 
-    p = sub.add_parser("case", help="Consulta la trazabilidad persistida (F5/T-506).")
-    p.add_argument("accion", choices=["show", "list"], help="show <documento_id> | list [--filtro]")
+    p = sub.add_parser("case", help="Consulta la trazabilidad persistida (F5/T-506) y el agregado del lote (T-603).")
+    p.add_argument(
+        "accion",
+        choices=["show", "list", "aggregate"],
+        help="show <documento_id> | list [--filtro] | aggregate (sintetiza el histórico en un JSON)",
+    )
     p.add_argument("documento_id", nargs="?", help="Id del documento (para 'show').")
     p.add_argument("--dir", dest="dir_casos", default=".", help="Directorio de los sidecars (default: '.').")
     p.add_argument("--filtro", action="append", default=[], metavar="CAMPO=VALOR", help="Filtro del índice (repetible).")
+    p.add_argument(
+        "-o",
+        "--output",
+        default=None,
+        metavar="AGREGADO.json",
+        help="Destino del agregado (solo para 'aggregate'; default: stdout).",
+    )
 
     p = sub.add_parser("hitl", help="Consulta la cola de revisión humana (F5/T-505).")
     p.add_argument("accion", choices=["list"], help="Acción a ejecutar.")
@@ -607,26 +631,35 @@ def _cmd_batch(args: argparse.Namespace, entorno: EntornoCLI) -> int:
         raise ErrorCLI(f"No hay documentos procesables en {raiz}.")
 
     ok = sum(1 for r in resultados if r.ok)
-    resumen = {
-        "version": VERSION_CLI,
-        "raiz": str(raiz),
-        "documentos": len(resultados) + len(traza.reanudados),
-        "ok": ok,
-        "errores": len(resultados) - ok,
-        "reanudados": len(traza.reanudados),
-        "max_workers_solicitado": traza.max_workers_solicitado,
-        "max_workers_aplicado": traza.max_workers_aplicado,
-        "enfriamientos": traza.enfriamientos,
-        "segundos_enfriados": traza.segundos_enfriados,
-        "traza_lote": traza.como_dict(),
-        "resultados": [_resultado_a_dict(r) for r in resultados],
-    }
-    _json_salida(resumen, args.output, entorno)
-    repuestos = f", {len(traza.reanudados)} reanudados" if traza.reanudados else ""
-    entorno.log(
-        f"Lote: {ok}/{len(resultados)} documentos procesados{repuestos} "
-        f"({traza.max_workers_aplicado} worker(s), {traza.enfriamientos} enfriamiento(s))"
+
+    # --- Salida agregada del lote (F6/T-603, E-CLI-2) ---------------------
+    # Un único JSON consolidado: una entrada por documento (veredicto + puntero al
+    # sidecar) más la síntesis del lote y las métricas. Se ACUMULA entre corridas,
+    # así que el archivo es el estado de la carpeta y no el reporte de la última
+    # corrida. Si el lote persistió los casos con --cases, las métricas salen del
+    # histórico (F5/T-507); si no, el agregado lo declara.
+    from ..trace.agregado import agregar_a_archivo
+
+    casos = (
+        [r.caso for r in resultados if r.caso is not None] if args.cases else []
     )
+    agregado = agregar_a_archivo(
+        args.output or (entorno.ruta("lote.agregado.json")),
+        resultados=resultados,
+        casos=casos,
+        raiz=raiz,
+        lote=traza.como_dict(),
+    )
+    resumen = agregado.resumen()
+
+    entorno.log(
+        f"Lote: {ok}/{len(resultados)} documentos procesados"
+        + (f", {len(traza.reanudados)} reanudados" if traza.reanudados else "")
+        + f" ({traza.max_workers_aplicado} worker(s), {traza.enfriamientos} enfriamiento(s))"
+        + f" | agregado: {agregado.total} documento(s) en total"
+    )
+    if args.output:
+        entorno.log(f"Agregado: {entorno.ruta(args.output)}")
     return 0 if (ok == len(resultados) and not traza.errores) else 1
 
 
@@ -757,7 +790,14 @@ def _cmd_arca(args: argparse.Namespace, entorno: EntornoCLI) -> int:
 
 
 def _cmd_case(args: argparse.Namespace, entorno: EntornoCLI) -> int:
-    """``case show|list``: consulta la trazabilidad persistida (F5/T-506)."""
+    """``case show|list|aggregate``: trazabilidad persistida y agregado del lote.
+
+    Es la puerta de la **mitad de auditoría** de E-CLI-2: ``show`` devuelve el
+    ``CaseRecord`` completo de un documento (la evidencia y la trazabilidad),
+    ``list`` consulta el índice del histórico y ``aggregate`` **reconstruye** el
+    JSON consolidado de la carpeta a partir de los sidecars (T-603), sin volver a
+    correr el pipeline.
+    """
     from ..trace.recorder import CaseRecorder
 
     recorder = CaseRecorder(entorno.ruta(args.dir_casos))
@@ -766,6 +806,24 @@ def _cmd_case(args: argparse.Namespace, entorno: EntornoCLI) -> int:
         filtros = _filtros(args.filtro)
         filas = recorder.buscar(**filtros) if filtros else recorder.leer_indice()
         entorno.dato(json.dumps(filas, ensure_ascii=False, indent=2))
+        return 0
+
+    if args.accion == "aggregate":
+        # Reconstruye el agregado desde el histórico: es el camino para una
+        # carpeta procesada en varias sesiones (o para recuperar el agregado si
+        # se perdió el archivo).
+        from ..trace.agregado import agregado_del_recorder
+
+        agregado = agregado_del_recorder(recorder)
+        if args.output:
+            _json_salida(agregado.como_dict(), args.output, entorno)
+        else:
+            entorno.dato(json.dumps(agregado.como_dict(), ensure_ascii=False, indent=2))
+        resumen = agregado.resumen()
+        entorno.log(
+            f"Agregado del histórico: {resumen['documentos']} documento(s) "
+            f"({resumen['requieren_revision']} requieren revisión)"
+        )
         return 0
 
     if not args.documento_id:

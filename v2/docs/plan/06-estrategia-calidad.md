@@ -359,6 +359,16 @@ tests/golden/
   reales y **sin dormir**. `scripts/F6/t602.py` corre **12/12** escenarios + **6/6**
   fronteras, con modo `--manual` que imprime el ciclo paso a paso (ventana,
   instante de "todos detenidos" y segundos enfriados).
+  **T-603 cubierto**: `tests/test_agregado_t603.py` (**41**) verifica las **dos
+  mitades** del Gherkin de E-CLI-2: el **sidecar** por documento (resultado +
+  evidencia + trazabilidad, y su round-trip al contrato) y el **agregado** del
+  lote (una entrada por documento con puntero al sidecar, la síntesis, las
+  métricas). Incluye la decisión de diseño que evita problemas: que el agregado
+  **no duplique la evidencia** (es un índice, no una copia de los `CaseRecord`),
+  que **acumule** entre corridas con una entrada por documento, y que las métricas
+  se deriven del histórico o el agregado **lo declare**. `scripts/F6/t603.py` corre
+  **8/8** escenarios + **9/9** fronteras, con modo `--manual` que imprime un lote
+  chico paso a paso.
   **T-601 cubierto**: `tests/test_cli_t601.py` (**57**) ejercita los once
   subcomandos, la corrida completa del orquestador y las fronteras **con dobles**
   (sin Ollama, sin Docling, sin red): contrato del CLI (subcomandos y los cinco

@@ -27,15 +27,17 @@ evidencia congelado), `rules` (motor de reglas), `models` (adaptadores
 > `voucherflow`** (once subcomandos: `process`, `validate`, `classify`, `extract`,
 > `extract-detect`, `run`, `batch`, `ask`, `arca`, `case`, `hitl`), el
 > **orquestador** que encadena processing → validation → extraction → combinación
-> → conclusión → traza y la **fachada** `api.extract`/`api.run`/`api.ask`; y
+> → conclusión → traza y la **fachada** `api.extract`/`api.run`/`api.ask`;
 > **T-602** el **modo batch**: workers (cada uno con su convertidor de Docling),
 > checkpoints/reanudación por hash del contenido y la política de enfriamiento del
 > ADR-010 —la cuenta arranca cuando el pool está detenido, es decir cuando **todos**
-> los workers pararon—. El
+> los workers pararon—; y **T-603** la **salida agregada**: un único JSON por lote
+> con una entrada por documento (veredicto + puntero al sidecar), la síntesis y las
+> métricas. El
 > paquete tiene implementadas las capacidades de procesamiento (F1), validación
 > (F2), clasificación (F3), la extracción completa (F4) y la conclusión con HITL
-> (F5); de F6 faltan la salida agregada (T-603), la paridad v1→v2 sobre `files/`
-> (T-604), la documentación de usuario (T-605) y la API HTTP (T-606, fase 2). La
+> (F5); de F6 faltan la paridad v1→v2 sobre `files/` (T-604), la documentación de
+> usuario (T-605) y la API HTTP (T-606, fase 2). La
 > suite default corre **sin** Ollama, **sin** Docling reales y **sin** red.
 
 ## Instalación
@@ -74,7 +76,7 @@ v2/
     classification/…        # F3 (implementado)
     extraction/…            # F4: T-401 (flujos + evidencia), T-402 (key_value), T-403 (raw por fuente), T-404 (combinación) y T-405 (paridad con v1)
     conclusion/…            # F5: T-501..T-505 (cruzadas, gaps, consolidación, agente, HITL)
-    trace/…                 # F5: T-506/T-507 (CaseRecord: sidecar + índice + métricas)
+    trace/…                 # F5: T-506/T-507 (CaseRecord: sidecar + índice + métricas); F6/T-603: agregado.py (salida agregada)
     rules/…                 # F3 (R1-R7 + raw), F4 (precedencia por campo) y F5 (cruzadas de la pasada 2); gaps en F5
     models/
       ollama.py             # OllamaClient (F0, implementado)
@@ -96,6 +98,7 @@ voucherflow process img.jpg -o salida/      # markdown de F1
 voucherflow classify factura.md             # tipo/letra + cadena contable (F3)
 voucherflow ask factura.pdf -q "¿Cuál es el total?"
 voucherflow case list --dir salida/cases    # trazabilidad persistida (F5/T-506)
+voucherflow case aggregate --dir salida/cases  # agregado del lote (F6/T-603)
 voucherflow hitl list --dir salida/cases    # cola de revisión (F5/T-505)
 ```
 

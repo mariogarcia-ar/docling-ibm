@@ -510,6 +510,25 @@ revisión y las correcciones, que alimente el feedback a reglas/prompts.
   terminar el proceso.
 - El store SQLite sigue siendo la fase posterior que el ADR anticipa (consultas
   por **más dimensiones** o cruce histórico-cola); el MVP no lo necesita.
+
+**Implementación (F6/T-603 — el agregado del lote)**
+- `trace/agregado.py` cierra la segunda mitad del Gherkin de E-CLI-2: un **único
+  JSON** consolidado de la corrida. Es la pieza que faltaba para que el histórico
+  sea consultable *como lote* sin abrir N sidecars.
+- El agregado es un **índice**, no una copia: por documento guarda el veredicto y
+  un **puntero al sidecar**. Embeber los `CaseRecord` habría dado un archivo de
+  cientos de MB en un lote grande y —más grave— una **segunda fuente de verdad**
+  que puede divergir del sidecar (corregir un caso dejaría el agregado mintiendo
+  sin que nadie lo note). Con punteros, el agregado no puede contradecir al
+  registro auditable: solo apunta a él.
+- Se **acumula** entre corridas (`agregar_a_archivo`) con **una entrada por
+  documento**: reprocesar un documento actualiza su entrada, no agrega otra. Es lo
+  que hace que el archivo sea el **estado de la carpeta** y no el reporte de la
+  última corrida — la misma decisión que el índice de T-506.
+- Las **métricas** se derivan del histórico con F5/T-507; sin casos persistidos el
+  agregado lo **declara** (`metricas_no_disponibles`) en vez de mostrar ceros.
+- Cobertura: `tests/test_agregado_t603.py` (41) y `scripts/F6/t603.py`
+  (8/8 + 9/9).
 - Cobertura: `tests/test_trace_recorder_t506.py` (74), `scripts/F5/t506.py` (4/4 + 14/14),
   `tests/test_metricas_t507.py` (47) y `scripts/F5/t507.py` (6/6 + 11/11: las métricas se calculan
   sobre este histórico).
