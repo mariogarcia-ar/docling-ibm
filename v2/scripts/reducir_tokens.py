@@ -67,11 +67,19 @@ Ejemplos:
     # Medir sin escribir nada (siempre conviene empezar acá)
     python scripts/reducir_tokens.py ../files --solo-medir
 
+    # Elegir la carpeta de salida (default: procesadas)
+    # El árbol se espeja desde la raíz de la entrada, sin repetir «files/»:
+    #   ../files/2025-08/2D2C9343/foto.jpg  →  salida/2025-08/2D2C9343/foto.jpg
+    python scripts/reducir_tokens.py ../files -o salida
+    python scripts/reducir_tokens.py ../files --salida /tmp/corpus_reducido
+
     # Probar con 20 imágenes y ver el detalle
     python scripts/reducir_tokens.py ../files --limite 20 --detalle
 
     # Correr el corpus completo, 4 workers, reporte JSON
-    python scripts/reducir_tokens.py ../files --workers 4 --reporte reporte.json
+    # (el reporte es aparte de la salida; -o es solo las imágenes)
+    python scripts/reducir_tokens.py ../files -o salida --workers 4 \
+        --reporte salida/reporte.json
 
     # Backend ffmpeg (reproduce el loop base, ya corregido)
     python scripts/reducir_tokens.py ../files/2025-08 --backend ffmpeg
@@ -806,8 +814,15 @@ def construir_parser() -> argparse.ArgumentParser:
         epilog=(
             "Ejemplos:\n"
             "  python scripts/reducir_tokens.py ../files --solo-medir\n"
+            "  python scripts/reducir_tokens.py ../files -o salida\n"
             "  python scripts/reducir_tokens.py ../files --limite 20 --detalle\n"
-            "  python scripts/reducir_tokens.py ../files --workers 4 --reporte rep.json\n"
+            "  python scripts/reducir_tokens.py ../files -o salida --workers 4 "
+            "--reporte salida/reporte.json\n"
+            "\n"
+            "La salida espeja el árbol desde la raíz de la entrada, sin repetir\n"
+            "el nombre de la carpeta de entrada:\n"
+            "  ../files/2025-08/2D2C9343/foto.jpg  →  "
+            "salida/2025-08/2D2C9343/foto.jpg\n"
         ),
     )
     parser.add_argument(
@@ -819,7 +834,11 @@ def construir_parser() -> argparse.ArgumentParser:
         "-o",
         "--salida",
         default="procesadas",
-        help="Carpeta raíz de salida (default: procesadas).",
+        help=(
+            "Carpeta raíz de salida (default: %(default)s). El árbol se "
+            "espeja desde la raíz de la entrada, sin repetir el nombre de la "
+            "carpeta de entrada."
+        ),
     )
     parser.add_argument(
         "--lado-mayor",

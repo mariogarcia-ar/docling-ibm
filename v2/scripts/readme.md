@@ -56,15 +56,34 @@ alineación local a múltiplos de 28 y lo **declara** en el resumen
 # Siempre conviene empezar midiendo (no escribe nada)
 python scripts/reducir_tokens.py ../files --solo-medir
 
+# Elegir la carpeta de salida (default: procesadas)
+python scripts/reducir_tokens.py ../files -o salida
+
 # Prueba con 20 imágenes, con una línea por archivo
 python scripts/reducir_tokens.py ../files --limite 20 --detalle
 
 # Corpus completo: 4 workers y reporte JSON
-python scripts/reducir_tokens.py ../files --workers 4 --reporte reporte.json
+python scripts/reducir_tokens.py ../files -o salida --workers 4 \
+  --reporte salida/reporte.json
 
 # Otra resolución (p. ej. antes de un OCR clásico)
 python scripts/reducir_tokens.py ../files --lado-mayor 1536 --workers 4
 ```
+
+**Carpeta de salida (`-o` / `--salida`).** El árbol se espeja desde la **raíz de
+la entrada**, sin repetir el nombre de la carpeta de entrada. Con
+`../files/2025-08/2D2C9343/foto.jpg`:
+
+| `-o` | Archivo resultante |
+|---|---|
+| *(omitida)* | `procesadas/2025-08/2D2C9343/foto.jpg` |
+| `salida` | `salida/2025-08/2D2C9343/foto.jpg` |
+| `/tmp/reducido` | `/tmp/reducido/2025-08/2D2C9343/foto.jpg` |
+
+⚠️ `-o` es **solo para las imágenes**; el JSON del reporte va aparte con
+`--reporte`. Y si la salida cae dentro de la entrada (p. ej. `-o .`), el script
+**excluye** del recorrido los archivos que ya están dentro de ella, para no
+reprocesar lo reducido.
 
 Salida (ejemplo real, 200 imágenes de `../files`):
 
@@ -81,7 +100,7 @@ tokens de visión (estim.) : 1,423,303  →  214,020   (-85.0%)
 
 | Bandera | Efecto |
 |---|---|
-| `-o, --salida` | Carpeta raíz de salida (default `procesadas`). |
+| `-o, --salida` | Carpeta raíz de salida (default `procesadas`). El árbol se espeja desde la raíz de la entrada. |
 | `--lado-mayor PX` | Lado mayor objetivo (default 1024). **Nunca agranda.** |
 | `--calidad 1-100` | Calidad de reencode (default 80). |
 | `--piso-lado-menor PX` | Piso del lado menor, para imágenes muy alargadas (default 256). |
