@@ -31,9 +31,9 @@ pendiente (F2 §2.5), así que la medición masiva **no** se reporta como hecha
 reporte no se lea como si midiera el golden completo.
 
 Uso:
-    python scripts/F3/t305.py                        # métricas deterministas
-    python scripts/F3/t305.py --detalle              # + traza por caso
-    python scripts/F3/t305.py --json /tmp/t305.json  # reporte para la bitácora
+    python scripts/verificacion/etapa-clasificacion.py                        # métricas deterministas
+    python scripts/verificacion/etapa-clasificacion.py --detalle              # + traza por caso
+    python scripts/verificacion/etapa-clasificacion.py --json /tmp/t305.json  # reporte para la bitácora
 """
 
 from __future__ import annotations

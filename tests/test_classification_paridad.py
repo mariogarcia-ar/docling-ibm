@@ -81,7 +81,7 @@ def _cargar_json(ruta: Path) -> dict:
 
 
 def _cargar_modulo_script(ruta: Path):
-    """Importa un script de ``scripts/F3/`` sin ejecutar su ``main`` (T-305).
+    """Importa un script de ``scripts/verificacion/`` sin ejecutar su ``main``.
 
     Se usa ``importlib`` con nombre propio para no colisionar con otros módulos
     y para dejar claro que **no** se está ejecutando el script; solo se prueban
@@ -368,18 +368,18 @@ class TestRegresionR5SaltoDeLinea:
 
 
 # ---------------------------------------------------------------------------
-# 5. Reporte de métricas del DoD (``scripts/F3/t305.py``)
+# 5. Reporte de métricas de la etapa (``scripts/verificacion/etapa-clasificacion.py``)
 # ---------------------------------------------------------------------------
 
 #: Script de métricas del DoD de F3.
-T305 = RAIZ_REPO / "scripts" / "F3" / "t305.py"
+T305 = RAIZ_REPO / "scripts" / "verificacion" / "etapa-clasificacion.py"
 
 
 class TestMetricasDelDod:
     """``t305.py`` agrega las métricas del DoD de F3 (T-305, §10 del subplan).
 
-    El plan pide ``python scripts/F3/t305.py`` como verificación final
-    (F3-subplan §10). Acá se prueba su tramo determinista, que es el que puede
+    El reporte agregado de la etapa es su verificación final (F3-subplan §10).
+    Acá se prueba su tramo determinista, que es el que puede
     ejecutarse sin Ollama, sin Docling y sin red.
     """
 

@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 """Validación/extracción de comprobantes con la API de OpenAI (visión).
 
-Implementa el prompt de ``prompt_validacion_comprobantes_mendel.md``: recibe la
+Implementa el prompt de ``prompt-validacion-mendel.md``: recibe la
 **imagen del comprobante** y, opcionalmente, los **datos que el empleado cargó
 en Mendel**, y devuelve un JSON con el resultado por campo. Pensado para correr
-sobre el corpus ya pre-reducido por ``reducir_tokens.py``.
+sobre el corpus ya pre-reducido por ``reducir-tokens.py``.
 
 Modos (``--modo``):
 
@@ -48,28 +48,28 @@ puede tener en un ``.env`` (se carga ``--env`` o ``./.env`` sin pisar lo que ya
 esté en el entorno). La clave **nunca** se imprime ni se guarda en la salida.
 
 Uso:
-    python scripts/validar_comprobantes_openai.py <ruta|carpeta>... [opciones]
-    python scripts/validar_comprobantes_openai.py --reporte-gastos gastos.json
+    python scripts/operacion/validar-openai.py <ruta|carpeta>... [opciones]
+    python scripts/operacion/validar-openai.py --reporte-gastos gastos.json
 
 Ejemplos:
     # Extracción pura sobre 5 imágenes (verificar conexión y formato primero)
-    python scripts/validar_comprobantes_openai.py ../procesados \\
+    python scripts/operacion/validar-openai.py ../procesados \\
         --modo extraer --limite 5 --detalle-log
 
     # Validación contra los datos cargados por el empleado
-    python scripts/validar_comprobantes_openai.py ../procesados \\
+    python scripts/operacion/validar-openai.py ../procesados \\
         --datos datos_mendel.json --workers 4 -o validaciones
 
     # Diff determinístico en Python (sin gastar tokens de comparación)
-    python scripts/validar_comprobantes_openai.py ../procesados \\
+    python scripts/operacion/validar-openai.py ../procesados \\
         --modo diff --datos datos_mendel.json
 
     # Reporte de gastos del histórico (no llama a la API)
-    python scripts/validar_comprobantes_openai.py --reporte-gastos gastos.json \\
+    python scripts/operacion/validar-openai.py --reporte-gastos gastos.json \\
         --csv-gastos gastos.csv --tz -03:00
 
     # Simular el costo de un lote antes de gastar (no llama a la API)
-    python scripts/validar_comprobantes_openai.py ../procesados --modo extraer \\
+    python scripts/operacion/validar-openai.py ../procesados --modo extraer \\
         --dry-run --limite 500 --detalle-log
 
 Códigos de salida: 0 = todo ok (o nada que hacer); 1 = hubo fallos o hay
@@ -1373,7 +1373,7 @@ def procesar(
     if info["bytes"] > 20 * 1024 * 1024:
         registro["error"] = (
             f"la imagen pesa {info['bytes'] / 1e6:.1f} MB y la API acepta hasta "
-            "20 MB por imagen: reducíla con reducir_tokens.py"
+            "20 MB por imagen: reducíla con reducir-tokens.py"
         )
         return registro
 
@@ -2492,15 +2492,15 @@ def construir_parser() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
             "Ejemplos:\n"
-            "  python scripts/validar_comprobantes_openai.py ../procesados \\\n"
+            "  python scripts/operacion/validar-openai.py ../procesados \\\n"
             "      --modo extraer --limite 5 --detalle-log\n"
-            "  python scripts/validar_comprobantes_openai.py ../procesados \\\n"
+            "  python scripts/operacion/validar-openai.py ../procesados \\\n"
             "      --datos datos_mendel.json --workers 4 -o validaciones\n"
-            "  python scripts/validar_comprobantes_openai.py ../procesados \\\n"
+            "  python scripts/operacion/validar-openai.py ../procesados \\\n"
             "      --modo diff --datos datos_mendel.json\n"
-            "  python scripts/validar_comprobantes_openai.py \\\n"
+            "  python scripts/operacion/validar-openai.py \\\n"
             "      --reporte-gastos gastos.json --csv-gastos gastos.csv\n"
-            "  python scripts/validar_comprobantes_openai.py ../procesados \\\n"
+            "  python scripts/operacion/validar-openai.py ../procesados \\\n"
             "      --modo extraer --dry-run --limite 500 --detalle-log\n"
             "\n"
             "`--dry-run` SIMULA: estima el costo y sale sin llamar a la API ni\n"
@@ -2522,7 +2522,7 @@ def construir_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--prompt",
-        default=str(Path(__file__).with_name("prompt_validacion_comprobantes_mendel.md")),
+        default=str(Path(__file__).with_name("prompt-validacion-mendel.md")),
         help="Archivo .md con el prompt (default: el de scripts/, junto a este script).",
     )
     parser.add_argument(

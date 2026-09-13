@@ -21,7 +21,7 @@ Veredicto por PDF (lo que usa la orquestación para elegir ruta):
                       su ruta (texto nativo las aptas, OCR las escaneadas).
 
 Umbrales calibrados (2026-09-06) contra ``tests/fixtures`` (ver el script
-de QA ``scripts/detectar_aptos_pdftotext_layout.py``, del que se portó la
+de QA del prototipo de detección de PDFs aptos, del que se portó la
 lógica). Requiere PyMuPDF (dependencia del paquete desde F1/T-101).
 """
 

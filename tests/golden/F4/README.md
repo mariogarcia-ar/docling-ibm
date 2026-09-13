@@ -99,16 +99,16 @@ todo el contrato sin cubrirlo.
 |---|---|---|
 | Reglas de normalización + integridad del subconjunto | `tests/test_extraction_flujos.py` | nada (suite default) |
 | Proyección de la extracción al shape plano | `tests/test_extraction_flujos.py` | nada |
-| Reporte agregado del DoD | `python scripts/F4/t405.py` | nada (sin Ollama, sin Docling, sin red) |
+| Reporte agregado del DoD | `python scripts/verificacion/etapa-extraccion.py` | nada (sin Ollama, sin Docling, sin red) |
 
 ## Métricas reportadas (DoD de F4)
 
 | Métrica | Fuente | Objetivo |
 |---|---|---|
-| Exactitud de las reglas de normalización | `scripts/F4/t405.py` | 100% (la regla es código: o coincide o es un defecto) |
-| Paridad estructural (proyección de campos) | `scripts/F4/t405.py` | coincidencia campo por campo; diferencias **explicadas** |
-| % de campos con fragmento de sustento | `scripts/F4/t405.py` | 100% (el contrato de F0 exige sostén no vacío) |
-| Cobertura del modo genérico (`kvg`) | `scripts/F4/t405.py` | 100% de las claves obligatorias |
+| Exactitud de las reglas de normalización | `scripts/verificacion/etapa-extraccion.py` | 100% (la regla es código: o coincide o es un defecto) |
+| Paridad estructural (proyección de campos) | `scripts/verificacion/etapa-extraccion.py` | coincidencia campo por campo; diferencias **explicadas** |
+| % de campos con fragmento de sustento | `scripts/verificacion/etapa-extraccion.py` | 100% (el contrato de F0 exige sostén no vacío) |
+| Cobertura del modo genérico (`kvg`) | `scripts/verificacion/etapa-extraccion.py` | 100% de las claves obligatorias |
 
 **Honestidad del alcance** (mismo criterio que T-305): la curación del golden con
 contador sigue pendiente, así que esto **no** es la medición del golden completo.

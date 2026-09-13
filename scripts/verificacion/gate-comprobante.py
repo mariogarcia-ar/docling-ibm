@@ -27,11 +27,11 @@ La lógica de cálculo (:func:`calcular_metricas`) es **pura** y está cubierta 
 tests con datos sintéticos, sin Ollama.
 
 Uso:
-    python scripts/F2/t204.py --help
-    python scripts/F2/t204.py                 # golden etiquetado completo
-    python scripts/F2/t204.py --split eval    # solo el split de evaluación
-    python scripts/F2/t204.py --detalle       # por caso + trazabilidad
-    python scripts/F2/t204.py --json /tmp/t204.json
+    python scripts/verificacion/gate-comprobante.py --help
+    python scripts/verificacion/gate-comprobante.py                 # golden etiquetado completo
+    python scripts/verificacion/gate-comprobante.py --split eval    # solo el split de evaluación
+    python scripts/verificacion/gate-comprobante.py --detalle       # por caso + trazabilidad
+    python scripts/verificacion/gate-comprobante.py --json /tmp/t204.json
 
 Salida (ejemplo):
     EXACTITUD DEL GATE          7/9 = 77.8%   (umbral 90%)
@@ -260,7 +260,7 @@ def resolver_ruta(fila: dict[str, str]) -> Path:
 def _documento_del_caso(ruta: Path):
     """Obtiene el ``ProcessedDocument`` del caso (imagen sin Docling).
 
-    Mismo criterio que ``scripts/F2/t201.py``/``t203.py``: las imágenes se
+    Las imágenes se
     envuelven en un ``ProcessedDocument`` mínimo (la vista se deriva de la
     imagen; no hace falta el OCR de F1) y el resto pasa por
     ``procesar_documento`` (F1, Docling o pdftotext). Import diferido para no

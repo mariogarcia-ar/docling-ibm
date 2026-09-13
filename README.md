@@ -291,11 +291,11 @@ src/voucherflow/
   batch.py                  # ejecución por lotes con workers y enfriamiento
   cli/main.py               # CLI `voucherflow` (11 subcomandos, argparse)
   http/                     # API HTTP (http.server de la stdlib)
-  processing/               # F1: routing, type_detector, ocr, orientación, exportador
-  validation/               # F2: gate qween (doble paso) y vistas
-  classification/           # F3: tipo/letra (reglas R1-R7) + cadena contable
-  extraction/               # F4: flujos VLM/LLM, key_value, evidencia combinada
-  conclusion/               # F5: cruzadas, gaps, consolidación, agente, HITL
+  processing/               # routing, type_detector, ocr, orientación, exportador
+  validation/               # gate qween (doble paso) y vistas
+  classification/           # tipo/letra (reglas R1-R7) + cadena contable
+  extraction/               # flujos VLM/LLM, key_value, evidencia combinada
+  conclusion/               # cruzadas, gaps, consolidación, agente, HITL
   rules/                    # motor de reglas: tipo, raw, cruzadas, gaps, precedencia
   schemas/                  # contrato de evidencia y de resultado (congelados)
   models/                   # OllamaClient, DoclingConverter, ArcaClient
@@ -303,7 +303,7 @@ src/voucherflow/
   settings/                 # configuración centralizada
 tests/                      # suite completa (corre sin Ollama, sin Docling y sin red)
   golden/                   # golden set etiquetado y subconjuntos de verificación
-scripts/                    # herramientas de inspección por fase (tNNN.py)
+scripts/                    # verificación por etapa y utilidades de operación
 docs/
   usuario/                  # guía del operador
   plan/                     # documentación técnica: arquitectura, plan y ADR
@@ -333,14 +333,20 @@ marcados `@pytest.mark.integration` y no corren por defecto:
 python -m pytest -m integration
 ```
 
-Las herramientas de inspección por fase (`scripts/F<n>/tNNN.py`) verifican el
-DoD de cada capacidad y salen con código ≠ 0 si algo no cumple su umbral. Por
-ejemplo, el reporte de clasificación:
+Las herramientas de `scripts/verificacion/` agregan métricas por capacidad y
+salen con código ≠ 0 si algo no cumple su umbral. Corren sin Ollama, sin Docling
+y sin red; sirven de evidencia para revisar una etapa, no reemplazan a la suite:
 
 ```bash
-python scripts/F3/t305.py     # exactitud de letra, alerta R7, cruce negocio/documento
-python scripts/F4/t405.py     # reglas de normalización, paridad estructural, sostén
+python scripts/verificacion/gate-comprobante.py       # "¿es comprobante?"
+python scripts/verificacion/etapa-clasificacion.py    # tipo/letra y reglas
+python scripts/verificacion/etapa-extraccion.py       # normalización y sostén
+python scripts/verificacion/etapa-conclusion.py       # veredictos, certeza y HITL
 ```
+
+Las utilidades de `scripts/operacion/` preparan y diagnostican el corpus
+(reducir tokens de visión, validar con OpenAI/DeepSeek, generar fixtures). El
+detalle está en [`scripts/readme.md`](scripts/readme.md).
 
 ## Documentación
 

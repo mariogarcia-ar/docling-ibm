@@ -18,7 +18,7 @@ Definido en `docs/plan/06-estrategia-calidad.md` §3.
   sobre el split de evaluación). v0.2 amplía ambos splits con los casos del
   subconjunto etiquetado de F2 (sin cruces train/eval).
 - **`tests/fixtures/negativos/`**: negativos sintéticos (sin PII) generados con
-  `scripts/F2/t204_negativos.py` para cubrir los tipos de “no comprobante” del
+  `scripts/operacion/generar-fixtures-negativos.py` para cubrir los tipos de “no comprobante” del
   gate (ver §“Etiquetado del `veredicto` (F2)”).
 
 ## Criterio de esta versión inicial (pragmático, documentado)
@@ -104,7 +104,7 @@ columna `evidencia_veredicto`.
   del gate declara (capturas de apps/billeteras, extractos/resúmenes,
   documentos personales, memos, presupuestos, pantallas de aprobación, fotos
   ajenas al gasto). Se generan de forma reproducible con
-  `python scripts/F2/t204_negativos.py` (Pillow best-effort para imágenes; PDF
+  `python scripts/operacion/generar-fixtures-negativos.py` (Pillow best-effort para imágenes; PDF
   1.4 mínimo escrito con la stdlib). Su etiqueta es inequívoca (texto que
   declara “NO ES COMPROBANTE” y ausencia de datos fiscales del emisor), pero al
   ser sintéticos la validación del contador queda **pendiente**
@@ -133,7 +133,7 @@ train/eval) y declaran `golden_version: 0.2`.
 ## Métrica acordada de F2 (subplan §2.6)
 
 Sobre el subconjunto etiquetado se reporta (herramienta:
-`python scripts/F2/t204.py`, que corre el gate real con Ollama):
+`python scripts/verificacion/gate-comprobante.py`, que corre el gate real con Ollama):
 
 | Métrica | Definición | Objetivo |
 |---------|-----------|----------|

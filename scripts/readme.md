@@ -1,32 +1,49 @@
-# `scripts/` — verificación por tarea y utilidades operativas
+# `scripts/` — verificación por etapa y utilidades operativas
 
-Dos tipos de script conviven acá:
+Acá viven dos tipos de herramienta, y **ninguna** es el producto: el paquete es
+`src/voucherflow/`. Estas son herramientas para verificarlo y para preparar el
+corpus.
 
-1. **Verificación por tarea** (`F<n>/t<n><nn>.py`): cada tarea del plan tiene un
-   script que la ejercita de punta a punta y sale con **código 0**. Son la
-   contraparte ejecutable de los tests de `tests/` (misma convención que
-   `tests/golden/F<n>/` + `scripts/F<n>/paridad_*.py`).
+## 1. `verificacion/` — reportes agregados por etapa
 
-   ⚠️ Los de `F1/*` y `F2/t20*.py` **piden argumentos** (`rutas`): invocados
-   pelados salen con exit 2. No es un fallo.
+Miden el comportamiento de cada capacidad y salen con código ≠ 0 si algo no
+cumple su umbral. Se pueden correr en cualquier entorno: **sin Ollama, sin
+Docling real y sin red**.
 
-   ```bash
-   python scripts/F6/t602.py          # 12 escenarios + 6 fronteras
-   python scripts/F3/t305.py          # exactitud de la letra
-   ```
+| Script | Qué reporta |
+|---|---|
+| `verificacion/gate-comprobante.py` | Exactitud del gate "¿es comprobante?", % de indeterminación y % de no-comprobantes que no llegan a extracción. Tiene un nivel real que sí usa Ollama (`--manual`). |
+| `verificacion/etapa-clasificacion.py` | Exactitud de letra por categoría, alerta R7 y cruce negocio-vs-documento. |
+| `verificacion/etapa-extraccion.py` | Exactitud de las reglas de normalización, paridad estructural de los campos y % de campos con fragmento de sustento. |
+| `verificacion/etapa-conclusion.py` | Composición de los veredictos, certeza, cobertura HITL y desacuerdos VLM/LLM. |
+| `verificacion/documentacion-usuario.py` | Cobertura y navegación de `docs/usuario/`: cada comando documentado, cada bandera en su sección, sin enlaces rotos. |
 
-2. **Utilidades operativas** (raíz de `scripts/`): herramientas para preparar y
-   diagnosticar el corpus **antes** de procesarlo. No pertenecen a una fase.
+```bash
+python scripts/verificacion/etapa-clasificacion.py            # métricas del tramo determinista
+python scripts/verificacion/etapa-clasificacion.py --detalle  # + traza por caso
+python scripts/verificacion/etapa-conclusion.py --historico salida/cases  # sobre un lote real
+```
 
-   | Script | Para qué |
-   |---|---|
-   | `reducir_tokens.py` | Pre-reduce el peso y los tokens de visión de un corpus de imágenes. |
-   | `validar_comprobantes_openai.py` | Valida/extrae campos de comprobantes con la API de OpenAI (visión), según el prompt de Mendel. |
-   | `validar_comprobantes_deepseek.py` | Lo mismo con la API de DeepSeek (visión): gemelo de la anterior, con las diferencias del proveedor. |
+> Estos reportes **no** reemplazan a `tests/`: la suite (`python -m pytest`) es
+> la verificación de referencia y corre en CI. Los de acá existen porque miden
+> cosas que un test unitario no puede — exactitud agregada, tasas y cobertura —
+> y sirven de evidencia para el cierre de una etapa.
+
+## 2. `operacion/` — preparar y diagnosticar el corpus
+
+Herramientas para trabajar con las imágenes y las APIs **antes** de procesarlas.
+
+| Script | Para qué |
+|---|---|
+| `operacion/reducir-tokens.py` | Pre-reduce el peso y los tokens de visión de un corpus de imágenes. |
+| `operacion/validar-openai.py` | Valida/extrae campos de comprobantes con la API de OpenAI (visión), según el prompt de Mendel. |
+| `operacion/validar-deepseek.py` | Lo mismo con la API de DeepSeek (visión): gemelo del anterior, con las diferencias del proveedor. |
+| `operacion/generar-fixtures-negativos.py` | Genera los negativos sintéticos del golden (documentos que **no** son comprobantes), sin PII. |
+| `operacion/prompt-validacion-mendel.md` | El prompt que implementan los dos validadores. |
 
 ---
 
-## `reducir_tokens.py` — bajar tokens del corpus
+## `reducir-tokens.py` — bajar tokens del corpus
 
 Reduce las imágenes a un **lado mayor objetivo** (1024 px por defecto, sin
 agrandar nunca), las reencoda con calidad moderada y espeja el árbol de carpetas
@@ -56,20 +73,20 @@ alineación local a múltiplos de 28 y lo **declara** en el resumen
 
 ```bash
 # Siempre conviene empezar midiendo (no escribe nada)
-python scripts/reducir_tokens.py ../files --solo-medir
+python scripts/operacion/reducir-tokens.py ../files --solo-medir
 
 # Elegir la carpeta de salida (default: procesadas)
-python scripts/reducir_tokens.py ../files -o salida
+python scripts/operacion/reducir-tokens.py ../files -o salida
 
 # Prueba con 20 imágenes, con una línea por archivo
-python scripts/reducir_tokens.py ../files --limite 20 --detalle
+python scripts/operacion/reducir-tokens.py ../files --limite 20 --detalle
 
 # Corpus completo: 4 workers y reporte JSON
-python scripts/reducir_tokens.py ../files -o salida --workers 4 \
+python scripts/operacion/reducir-tokens.py ../files -o salida --workers 4 \
   --reporte salida/reporte.json
 
 # Otra resolución (p. ej. antes de un OCR clásico)
-python scripts/reducir_tokens.py ../files --lado-mayor 1536 --workers 4
+python scripts/operacion/reducir-tokens.py ../files --lado-mayor 1536 --workers 4
 ```
 
 **Carpeta de salida (`-o` / `--salida`).** El árbol se espeja desde `--raiz` (o
@@ -153,12 +170,12 @@ o backend no disponible · `130` interrumpido.
 
 ---
 
-## `validar_comprobantes_openai.py` — validación/extracción con OpenAI
+## `validar-openai.py` — validación/extracción con OpenAI
 
-Implementa `prompt_validacion_comprobantes_mendel.md`: manda la **imagen del
+Implementa `prompt-validacion-mendel.md`: manda la **imagen del
 comprobante** (y, opcionalmente, los **datos cargados en Mendel**) a la API de
 OpenAI y devuelve el JSON del prompt, un archivo por documento. Pensado para
-correr sobre lo que dejó `reducir_tokens.py`.
+correr sobre lo que dejó `reducir-tokens.py`.
 
 ```bash
 # 1) La clave va en el entorno o en un .env (el .gitignore ya lo excluye).
@@ -168,13 +185,13 @@ export OPENAI_API_KEY=sk-...
 #      cp ../.env.example .env  &&  set -a && source .env && set +a
 
 # 2) Verificar el flujo sin gastar tokens
-python scripts/validar_comprobantes_openai.py ../procesados --modo extraer \
+python scripts/operacion/validar-openai.py ../procesados --modo extraer \
   --limite 3 --dry-run --detalle-log
 
 # 3) Los 3 modos
-python scripts/validar_comprobantes_openai.py ../procesados --modo extraer --limite 5
-python scripts/validar_comprobantes_openai.py ../procesados --datos datos.json -o validaciones
-python scripts/validar_comprobantes_openai.py ../procesados --modo diff --datos datos.json
+python scripts/operacion/validar-openai.py ../procesados --modo extraer --limite 5
+python scripts/operacion/validar-openai.py ../procesados --datos datos.json -o validaciones
+python scripts/operacion/validar-openai.py ../procesados --modo diff --datos datos.json
 ```
 
 ### Los 3 modos
@@ -228,15 +245,15 @@ escribir archivos. Siempre conviene empezar por acá:
 
 ```bash
 # ¿Cuánto cuesta procesar el corpus completo?
-python scripts/validar_comprobantes_openai.py ../procesados --modo extraer \
+python scripts/operacion/validar-openai.py ../procesados --modo extraer \
   --dry-run -o mendel
 
 # Con el detalle por comprobante
-python scripts/validar_comprobantes_openai.py ../procesados --modo extraer \
+python scripts/operacion/validar-openai.py ../procesados --modo extraer \
   --dry-run --limite 500 --detalle-log
 
 # Guardar la estimación en JSON
-python scripts/validar_comprobantes_openai.py ../procesados --modo extraer \
+python scripts/operacion/validar-openai.py ../procesados --modo extraer \
   --dry-run --reporte-gastos estimacion.json
 ```
 
@@ -281,14 +298,14 @@ sólo de la última corrida) y **no llama a la API**:
 
 ```bash
 # En stdout: total, por día, por modelo y por modo
-python scripts/validar_comprobantes_openai.py --salida validaciones
+python scripts/operacion/validar-openai.py --salida validaciones
 
 # Además, a archivo: JSON para procesar y CSV para Excel/Sheets
-python scripts/validar_comprobantes_openai.py --salida validaciones \
+python scripts/operacion/validar-openai.py --salida validaciones \
   --reporte-gastos gastos.json --csv-gastos gastos.csv
 
 # Excel es-AR (separador «;» y decimal «,») y zona horaria explícita
-python scripts/validar_comprobantes_openai.py --salida validaciones \
+python scripts/operacion/validar-openai.py --salida validaciones \
   --csv-gastos gastos.csv --csv-delim ';' --csv-decimal , --tz -03:00
 ```
 
@@ -331,11 +348,11 @@ se puede pisar por CLI:
 
 ```bash
 # Sólo para esta corrida
-python scripts/validar_comprobantes_openai.py ../procesados \
+python scripts/operacion/validar-openai.py ../procesados \
   --precios "gpt-4o=2.5/10,gpt-4o-mini=0.15/0.6,*=1/3"
 
 # Precios puntuales del modelo de la corrida
-python scripts/validar_comprobantes_openai.py ../procesados \
+python scripts/operacion/validar-openai.py ../procesados \
   --precio-entrada 2.5 --precio-salida 10
 ```
 
@@ -400,7 +417,7 @@ interrumpido.
   arreglar la causa (clave, red, imagen) y volver a correr alcance (misma lección
   que los checkpoints de `batch` en T-603).
 - ⚠️ **La ruta de salida no depende de cómo se invoca.** Igual que en
-  `reducir_tokens.py`, la raíz de espejado **sube** hasta el nivel que no sea un
+  `reducir-tokens.py`, la raíz de espejado **sube** hasta el nivel que no sea un
   mes (`2025-08`) ni un hash de lote (`2D2C9343`): procesar `procesados`,
   `procesados/2025-08` o `procesados/2025-08/<hash>` escribe **el mismo** archivo.
   Antes no era así: cambiar la ruta de entrada movía las salidas, la reanudación
@@ -423,7 +440,7 @@ interrumpido.
 
 ---
 
-## `validar_comprobantes_deepseek.py` — lo mismo, con la API de DeepSeek
+## `validar-deepseek.py` — lo mismo, con la API de DeepSeek
 
 Es el **gemelo** del anterior: mismo prompt, mismos 3 modos, mismo formato de
 salida, misma reanudación y mismo reporte de gastos. Solo cambia el proveedor, y
@@ -439,16 +456,16 @@ export DEEPSEEK_API_KEY=sk-...
 #      cp ../.env.example .env  &&  set -a && source .env && set +a
 
 # 1) Simular (no gasta) y después extraer 5
-python scripts/validar_comprobantes_deepseek.py ../procesados \
+python scripts/operacion/validar-deepseek.py ../procesados \
   --modo extraer --limite 5 --dry-run --detalle-log
-python scripts/validar_comprobantes_deepseek.py ../procesados --modo extraer --limite 5
+python scripts/operacion/validar-deepseek.py ../procesados --modo extraer --limite 5
 
 # 2) Validar contra los datos cargados, y el diff local (no llama a la API)
-python scripts/validar_comprobantes_deepseek.py ../procesados --datos datos.json -o validaciones-deepseek
-python scripts/validar_comprobantes_deepseek.py ../procesados --modo diff --datos datos.json
+python scripts/operacion/validar-deepseek.py ../procesados --datos datos.json -o validaciones-deepseek
+python scripts/operacion/validar-deepseek.py ../procesados --modo diff --datos datos.json
 
 # 3) Reporte de gastos del histórico
-python scripts/validar_comprobantes_deepseek.py --salida validaciones-deepseek
+python scripts/operacion/validar-deepseek.py --salida validaciones-deepseek
 ```
 
 ⚠️ **Poné las dos claves en el mismo `.env` si vas a comparar los modelos.** Los

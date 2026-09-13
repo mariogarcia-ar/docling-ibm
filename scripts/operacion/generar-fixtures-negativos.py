@@ -27,8 +27,8 @@ Sin dependencias nuevas declaradas:
     nativo con Helvetica, apto para ``pdftotext`` y para el detector de F1).
 
 Uso:
-    python scripts/F2/t204_negativos.py           # regenera todo
-    python scripts/F2/t204_negativos.py --listar  # solo lista
+    python scripts/operacion/generar-fixtures-negativos.py           # regenera todo
+    python scripts/operacion/generar-fixtures-negativos.py --listar  # solo lista
 
 Los contenidos son **genéricos y sin PII** (no hay CUIT, nombres ni montos
 reales): son plantillas sintéticas para el gate, según la regla del golden de
@@ -42,7 +42,7 @@ import sys
 from pathlib import Path
 
 # Raíz de fixtures de F2 (mismo destino que referencia tests/golden/casos.csv).
-_DESTINO = Path(__file__).resolve().parents[2] / "tests" / "fixtures" / "negativos"
+_DESTINO = Path(__file__).resolve().parents[3] / "tests" / "fixtures" / "negativos"
 
 #: Contenido de cada fixture: ``nombre`` → líneas de texto. La primera línea es
 #: el "título" (se dibuja más grande/negrita en imágenes y centrado en PDF).
@@ -239,7 +239,7 @@ def main() -> None:
         raise SystemExit(2)
 
     for ruta in generados:
-        print(f"✓ {ruta.relative_to(ruta.parents[3])} ({ruta.stat().st_size} bytes)")
+        print(f"✓ {ruta.relative_to(ruta.parents[4])} ({ruta.stat().st_size} bytes)")
 
 
 if __name__ == "__main__":

@@ -82,13 +82,13 @@ def _error_no_procesable(mensaje: str) -> "Exception":
 
 
 # ---------------------------------------------------------------------------
-# Helper de render de PDF a imagen (portado de scripts/implementar_t104.py)
+# Helper de render de PDF a imagen (portado del prototipo de la tarea T-104)
 # ---------------------------------------------------------------------------
 
 def render_pdf_a_jpg(pdf: str | Path, pagina: int = 0, dpi: int = 300) -> Path:
     """Renderiza una página de un PDF a un archivo JPG temporal (RGB sin alfa).
 
-    Porta ``_render_pdf_a_jpg`` de ``scripts/implementar_t104.py`` (validado en
+    Porta ``_render_pdf_a_jpg`` del prototipo de la tarea T-104 (validado en
     PROC.md §5): si la página tiene imagen(es), renderiza el **área de la
     imagen más grande** (clip) con zoom — evita el caso de un ticket/recibo
     chico centrado en una hoja A4 escaneada, que a página completa queda

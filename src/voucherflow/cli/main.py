@@ -541,7 +541,7 @@ def _extraer_archivo(
 
 
 def _cmd_extract_detect(args: argparse.Namespace, entorno: EntornoCLI) -> int:
-    """``extract-detect``: letra por VLM/LLM (equivale a ``document_extraction.py -M 11.1``)."""
+    """``extract-detect``: letra por VLM/LLM (equivale al modo histórico ``-M 11.1``)."""
     raiz = entorno.ruta(args.origen)
     documentos = iterar_documentos(raiz)
     if not documentos:

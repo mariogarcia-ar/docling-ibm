@@ -26,9 +26,9 @@ Qué muestra
    real en `batch`, y que un rechazo firme es certeza alta, no un error.
 
 Uso:
-    python scripts/F6/t605.py                    # cobertura + navegación + fronteras
-    python scripts/F6/t605.py --detalle          # + una línea por archivo/bandera
-    python scripts/F6/t605.py --json /tmp/t605.json
+    python scripts/verificacion/documentacion-usuario.py                    # cobertura + navegación + fronteras
+    python scripts/verificacion/documentacion-usuario.py --detalle          # + una línea por archivo/bandera
+    python scripts/verificacion/documentacion-usuario.py --json /tmp/t605.json
 
 La suite default cubre lo mismo en ``tests/test_docs_usuario_t605.py``.
 """

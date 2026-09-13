@@ -4,7 +4,7 @@
 **Fase**: F4 (extracción) · **Tarea**: T-405 · **Épica**: E-EXT.
 
 Es el **reporte de cierre** de la fase (F4-subplan §10, mismo patrón que
-``scripts/F3/t305.py``): agrega en un solo lugar las métricas del DoD de F4 sobre
+``scripts/verificacion/etapa-clasificacion.py``): agrega en un solo lugar las métricas del DoD de F4 sobre
 el tramo **determinista** (sin Ollama, sin Docling y sin red).
 
 Métricas que reporta
@@ -25,9 +25,9 @@ reporta como medida la exactitud del golden completo (F4-subplan §3.5). El scri
 lo declara explícitamente en su salida.
 
 Uso:
-    python scripts/F4/t405.py                        # métricas deterministas
-    python scripts/F4/t405.py --detalle              # + traza por caso
-    python scripts/F4/t405.py --json /tmp/t405.json  # reporte para la bitácora
+    python scripts/verificacion/etapa-extraccion.py                        # métricas deterministas
+    python scripts/verificacion/etapa-extraccion.py --detalle              # + traza por caso
+    python scripts/verificacion/etapa-extraccion.py --json /tmp/t405.json  # reporte para la bitácora
 """
 
 from __future__ import annotations

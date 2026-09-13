@@ -61,31 +61,31 @@ script sirve para **pre-reducir el corpus en disco** (almacenamiento, OCR más
 rápido, o alimentar otra herramienta).
 
 Uso:
-    python scripts/reducir_tokens.py <ruta|carpeta>... [opciones]
+    python scripts/operacion/reducir-tokens.py <ruta|carpeta>... [opciones]
 
 Ejemplos:
     # Medir sin escribir nada (siempre conviene empezar acá)
-    python scripts/reducir_tokens.py ../files --solo-medir
+    python scripts/operacion/reducir-tokens.py ../files --solo-medir
 
     # Elegir la carpeta de salida (default: procesadas)
     # El árbol se espeja desde la raíz de la entrada, sin repetir «files/»:
     #   ../files/2025-08/2D2C9343/foto.jpg  →  salida/2025-08/2D2C9343/foto.jpg
-    python scripts/reducir_tokens.py ../files -o salida
-    python scripts/reducir_tokens.py ../files --salida /tmp/corpus_reducido
+    python scripts/operacion/reducir-tokens.py ../files -o salida
+    python scripts/operacion/reducir-tokens.py ../files --salida /tmp/corpus_reducido
 
     # Probar con 20 imágenes y ver el detalle
-    python scripts/reducir_tokens.py ../files --limite 20 --detalle
+    python scripts/operacion/reducir-tokens.py ../files --limite 20 --detalle
 
     # Correr el corpus completo, 4 workers, reporte JSON
     # (el reporte es aparte de la salida; -o es solo las imágenes)
-    python scripts/reducir_tokens.py ../files -o salida --workers 4 \
+    python scripts/operacion/reducir-tokens.py ../files -o salida --workers 4 \
         --reporte salida/reporte.json
 
     # Backend ffmpeg (reproduce el loop base, ya corregido)
-    python scripts/reducir_tokens.py ../files/2025-08 --backend ffmpeg
+    python scripts/operacion/reducir-tokens.py ../files/2025-08 --backend ffmpeg
 
     # Correr de nuevo para reanudar (saltea destinos ya escritos)
-    python scripts/reducir_tokens.py ../files --workers 4
+    python scripts/operacion/reducir-tokens.py ../files --workers 4
 
 Códigos de salida: 0 = todo ok (o nada que hacer); 1 = hubo fallos;
 2 = error de uso; 130 = interrumpido (Ctrl-C).
@@ -108,7 +108,7 @@ from typing import Sequence
 
 # El paquete usa layout src/; si se corre sin instalar, se agrega src/ al path
 # (misma convención que el resto de scripts/).
-_SRC = Path(__file__).resolve().parents[1] / "src"
+_SRC = Path(__file__).resolve().parents[2] / "src"
 if str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
 
@@ -859,10 +859,10 @@ def construir_parser() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
             "Ejemplos:\n"
-            "  python scripts/reducir_tokens.py ../files --solo-medir\n"
-            "  python scripts/reducir_tokens.py ../files -o salida\n"
-            "  python scripts/reducir_tokens.py ../files --limite 20 --detalle\n"
-            "  python scripts/reducir_tokens.py ../files -o salida --workers 4 "
+            "  python scripts/operacion/reducir-tokens.py ../files --solo-medir\n"
+            "  python scripts/operacion/reducir-tokens.py ../files -o salida\n"
+            "  python scripts/operacion/reducir-tokens.py ../files --limite 20 --detalle\n"
+            "  python scripts/operacion/reducir-tokens.py ../files -o salida --workers 4 "
             "--reporte salida/reporte.json\n"
             "\n"
             "La salida espeja el árbol desde la raíz de la entrada, sin repetir\n"

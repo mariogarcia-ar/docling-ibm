@@ -4,7 +4,7 @@
 normalizados sobre el golden set" (mitiga R-02/R-08). Este módulo cubre el tramo
 **determinista** (sin Ollama, sin Docling y sin red), que es el que puede correr
 en la suite default; la corrida real sobre documentos la hace
-``scripts/F4/t405.py``.
+``scripts/verificacion/etapa-extraccion.py``.
 
 Qué se verifica:
 
@@ -69,7 +69,7 @@ SUBCONJUNTO = F4_DIR / "subconjunto.json"
 PROMPTS_RAIZ = RAIZ_REPO / "prompts"
 
 #: Script de métricas del DoD (su lógica pura se prueba acá, sin ejecutar `main`).
-T405 = RAIZ_REPO / "scripts" / "F4" / "t405.py"
+T405 = RAIZ_REPO / "scripts" / "verificacion" / "etapa-extraccion.py"
 
 
 def _cargar_json(ruta: Path) -> dict:
@@ -99,7 +99,7 @@ def _evidencia_combinada(lectura: dict[str, Any], fuente: str):
 
 
 def _proyectar(combinada: Any, campos: list[str]) -> dict[str, Any]:
-    """Proyecta la evidencia combinada al shape plano (ver ``scripts/F4/t405.py``)."""
+    """Proyecta la evidencia combinada al shape plano (ver el reporte de la etapa)."""
     valores: dict[str, Any] = {}
     for campo in campos:
         evidencia = combinada.campos.get(campo)
@@ -380,12 +380,12 @@ class TestParidadExtraccion:
 
 
 # ---------------------------------------------------------------------------
-# 6. Lógica de comparación de las métricas (``scripts/F4/t405.py``)
+# 6. Lógica de comparación de las métricas (reporte de la etapa)
 # ---------------------------------------------------------------------------
 
 
 def _cargar_t405():
-    """Importa ``scripts/F4/t405.py`` sin ejecutar su ``main``."""
+    """Importa el reporte de la etapa sin ejecutar su ``main``."""
     import importlib.util
     import sys
 

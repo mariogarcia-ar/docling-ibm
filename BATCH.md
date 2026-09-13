@@ -1,6 +1,6 @@
 # Lotes largos: workers, checkpoints y enfriamiento
 
-> **Fase**: F6 (cliente) · **Tareas**: T-601 / T-602 · **Épica**: E-CLI-1/E-CLI-3
+> **Guía del operador** para lotes largos
 > **Decisión**: [ADR-010](docs/plan/04-decisiones-abiertas-adr.md) · **Código**: [`src/voucherflow/batch.py`](src/voucherflow/batch.py)
 > **Última actualización**: 2026-09-12
 
@@ -10,7 +10,7 @@ cómo reanudar un lote interrumpido y qué significan exactamente `--workers`,
 
 Está escrita para el **operador que va a correr el lote**, y para quien tenga que
 auditar después qué pasó. La verificación ejecutable de todo esto es
-`python scripts/F6/t602.py` (12 escenarios + 6 fronteras) y la suite
+las pruebas de `tests/test_batch_t602.py` (12 escenarios + 6 fronteras) y la suite
 `tests/test_batch_t602.py`.
 
 ---
@@ -207,7 +207,7 @@ olas, así que nunca se interrumpe un documento a la mitad para pausar.
 ### Ver el ciclo sin esperar
 
 ```bash
-python scripts/F6/t602.py --manual
+python -m pytest tests/test_batch_t602.py -m manual
 ```
 
 ```
@@ -356,14 +356,14 @@ voucherflow case aggregate --dir salida/cases -o lote.json
 
 ### Métricas: se derivan o se declaran
 
-El bloque `metricas` sale del **histórico persistido** (F5/T-507), así que aparece
+El bloque `metricas` sale del **histórico persistido** (el mismo que reporta `case aggregate`), así que aparece
 cuando el lote corrió con `--cases`. Si no hay histórico del cual derivarlas, el
 agregado las deja en `null` y dice por qué en `metricas_no_disponibles` — no las
 inventa.
 
 ### La traza del runner
 
-El bloque `lote` es de T-602 y tiene lo de la corrida:
+El bloque `lote` describe la corrida:
 
 - **`max_workers_solicitado` vs. `max_workers_aplicado`**: lo que pediste y lo que
   realmente corrió. Si no coinciden, `lote.notas` dice por qué.
@@ -410,7 +410,7 @@ conclusión del sistema, con certeza alta, y se cuenta en `por_estado.rechazado`
 - **Orquestador**: `PipelineOrchestrator.ejecutar_lote` (delega en el runner y
   conserva el contrato de retorno: la lista de `PipelineResult`).
 - **Configuración**: `src/voucherflow/settings/config.py::CoolingSettings`.
-- **Pruebas**: `tests/test_batch_t602.py` (46) y `scripts/F6/t602.py` (12 + 6).
+- **Pruebas**: `tests/test_batch_t602.py` — cubre los escenarios del lote y sus fronteras.
 
 Tres piezas se **inyectan** (`ejecutor`, `reloj`, `checkpoints`): es lo que permite
 verificar el enfriamiento **sin dormir** y el lote **sin procesos reales**. Si
@@ -428,5 +428,5 @@ el contrato del lote.
 
 - Arquitectura del módulo: [`docs/plan/03-arquitectura/ORCH-CLI.md`](docs/plan/03-arquitectura/ORCH-CLI.md)
 - Decisión de enfriamiento: [`ADR-010`](docs/plan/04-decisiones-abiertas-adr.md)
-- Plan de la fase: [`docs/plan/05-plan/F6.md`](docs/plan/05-plan/F6.md) y [`F6-subplan.md`](docs/plan/05-plan/F6-subplan.md) §3.2
+- Documentación técnica: [`docs/plan/`](docs/plan/)
 - Cliente CLI (subcomandos y códigos de salida): [`README.md`](README.md)

@@ -16,7 +16,8 @@ etiquetado** del golden set (decisión §2.5):
    se usa correctamente (la 2ª pasada decide sobre la vista de revisión y la
    vista fiel no reutiliza la rápida).
 4. **Métrica acordada (§2.6)**: ``calcular_metricas`` (función pura del script
-   ``scripts/F2/t204.py``) reporta exactitud del gate, % de indeterminación y
+   ``scripts/verificacion/gate-comprobante.py``) reporta exactitud del gate, %
+de indeterminación y
    % de no-comprobantes que NO llegan a extracción (objetivo 100%).
 
 **Regla dura (F2-subplan §4)**: la suite default corre **sin Ollama real** y
@@ -50,7 +51,8 @@ from voucherflow.validation import (
 )
 
 # ---------------------------------------------------------------------------
-# Carga del script de reporte (scripts/F2/t204.py) — su lógica de métricas es
+# Carga del script de reporte (scripts/verificacion/gate-comprobante.py) — su
+# lógica de métricas es
 # pura y se testea aquí sin Ollama (la CLI sí requiere Ollama y es manual).
 # ---------------------------------------------------------------------------
 
@@ -58,7 +60,7 @@ _RAIZ = Path(__file__).resolve().parents[1]
 
 
 def _cargar_modulo_t204():
-    """Importa ``scripts/F2/t204.py`` por ruta (no es un paquete instalable).
+    """Importa el reporte del gate por ruta (no es un paquete instalable).
 
     Se registra el módulo en ``sys.modules`` antes de ejecutarlo: ``@dataclass``
     (usado por el script) resuelve tipos con ``sys.modules[cls.__module__]`` y
@@ -66,7 +68,7 @@ def _cargar_modulo_t204():
     """
     import sys
 
-    ruta = _RAIZ / "scripts" / "F2" / "t204.py"
+    ruta = _RAIZ / "scripts" / "verificacion" / "gate-comprobante.py"
     spec = importlib.util.spec_from_file_location("voucherflow_t204", ruta)
     assert spec and spec.loader, f"No se pudo cargar el script T-204: {ruta}"
     modulo = importlib.util.module_from_spec(spec)
@@ -544,7 +546,7 @@ class TestIntegracionGateGolden:
     """Gate real (Ollama) sobre el golden etiquetado + métrica acordada.
 
     Solo corre con ``-m integration``. Reutiliza la lógica del reporte
-    ``scripts/F2/t204.py`` (``evaluar_caso``/``calcular_metricas``) para no
+    ``scripts/verificacion/gate-comprobante.py`` (``evaluar_caso``/``calcular_metricas``) para no
     duplicar el cálculo; el umbral es el acordado (≥ 90%).
     """
 

@@ -4,7 +4,7 @@
 **Fase**: F5 (conclusión) · **Tarea**: T-507 · **Épica**: E-LIB-5.
 
 Es el **reporte de cierre** de la fase (`06-estrategia-calidad.md` §5, mismo
-patrón que `scripts/F3/t305.py` y `scripts/F4/t405.py`): agrega en un solo lugar
+patrón que `scripts/verificacion/etapa-clasificacion.py` y `scripts/verificacion/etapa-extraccion.py`): agrega en un solo lugar
 las métricas del DoD de F5, calculadas sobre el **`CaseRecord` persistido** de
 T-506.
 
@@ -47,10 +47,10 @@ el reporte dice **por qué** en vez de mostrar un 0% que miente, y avisa si el l
 es chico (una tendencia no se lee sobre dos casos).
 
 Uso:
-    python scripts/F5/t507.py                          # lote sintético (default)
-    python scripts/F5/t507.py --detalle                # + composición y desacuerdos
-    python scripts/F5/t507.py --historico salida/cases # métricas de un lote real
-    python scripts/F5/t507.py --json /tmp/t507.json    # reporte para la bitácora
+    python scripts/verificacion/etapa-conclusion.py                          # lote sintético (default)
+    python scripts/verificacion/etapa-conclusion.py --detalle                # + composición y desacuerdos
+    python scripts/verificacion/etapa-conclusion.py --historico salida/cases # métricas de un lote real
+    python scripts/verificacion/etapa-conclusion.py --json /tmp/t507.json    # reporte para la bitácora
 
 Nota: el modo ``sintetico`` corre en cualquier entorno (sin Ollama, sin Docling y
 sin red). El **diagnóstico del cliente de modelos** ante latencia o status

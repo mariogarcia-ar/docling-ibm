@@ -463,7 +463,7 @@ class PipelineOrchestrator:
 
         Devuelve ``(clasificacion, detalle)``. Un fallo de la cadena **no**
         propaga la excepción: se registra en el detalle y la clasificación vuelve
-        ``None``. La justificación es la del sistema anterior (``full_pipeline`` anotaba los
+        ``None``. La justificación es la histórica (se anotaban los
         errores por paso y seguía) y la de F5/T-503 ("un caso sin clasificar no es
         un caso mal clasificado"): tumbar el caso entero porque el paso contable
         falló sería perder el veredicto que ya se tiene.

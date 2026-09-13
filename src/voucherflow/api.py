@@ -399,7 +399,7 @@ def ask(
 ) -> str:
     """Pregunta libre sobre un documento (F6/T-601; equivale a el cliente de preguntas original).
 
-    Es la capacidad de consulta puntual del cliente (doc 03 §8.2: ``ask.py`` →
+    Es la capacidad de consulta puntual del cliente (doc 03 §8.2: ``el cliente de preguntas`` →
     ``voucherflow ask``): procesa el documento con F1, arma un prompt de pregunta
     restringido al **texto del documento** y devuelve la respuesta del modelo.
 

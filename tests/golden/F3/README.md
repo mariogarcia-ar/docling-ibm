@@ -56,7 +56,7 @@ disparar la regla esperadas (R1/R2A/R2B/R3 y la cascada R4→R5 con la alerta R7
 Es exactamente el tramo que ADR-006 sacó del prompt, así que se exige exactitud,
 no acuerdo.
 
-### (c) Reporte agregado del DoD → `python scripts/F3/t305.py`
+### (c) Reporte agregado del DoD → `python scripts/verificacion/etapa-clasificacion.py`
 
 Es el **reporte de cierre** de la fase (subplan §10). Agrupa las métricas del
 tramo determinista —**sin Ollama, sin Docling y sin red**— y sale con código ≠ 0
@@ -76,10 +76,10 @@ determinista debe ser 100% porque la letra la decide el motor, no el modelo.
 
 | Métrica | Fuente | Objetivo |
 |---|---|---|
-| Exactitud de letra (regla + letra) | `scripts/F3/t305.py` | 100% sobre los casos sintéticos |
-| Default `CC0006` (Gherkin de E-CLAS-2) | `scripts/F3/t305.py` | 100% (sin señal específica → CC0006, confianza baja, `senal_usada=ninguna`) |
-| % de alerta R7 correctamente disparada | `scripts/F3/t305.py` | 100% sobre los casos de discrepancia |
-| % de acuerdo negocio-vs-documento | `scripts/F3/t305.py` | 100% (coincide cuando debe / discrepa cuando debe) |
+| Exactitud de letra (regla + letra) | `scripts/verificacion/etapa-clasificacion.py` | 100% sobre los casos sintéticos |
+| Default `CC0006` (Gherkin de E-CLAS-2) | `scripts/verificacion/etapa-clasificacion.py` | 100% (sin señal específica → CC0006, confianza baja, `senal_usada=ninguna`) |
+| % de alerta R7 correctamente disparada | `scripts/verificacion/etapa-clasificacion.py` | 100% sobre los casos de discrepancia |
+| % de acuerdo negocio-vs-documento | `scripts/verificacion/etapa-clasificacion.py` | 100% (coincide cuando debe / discrepa cuando debe) |
 | Fidelidad de los prompts contables | `test_classification_paridad.py` | idénticos a los YAML de referencia |
 | Integridad del etiquetado | `test_classification_paridad.py` | la letra derivada está sustentada por la evidencia del golden |
 

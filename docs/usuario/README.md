@@ -1,6 +1,6 @@
 # Guía del operador — `voucherflow`
 
-> **Fase**: F6 · **Última actualización**: 2026-09-13
+> **Última actualización**: 2026-09-13
 
 Guía para quien **usa** el sistema para procesar comprobantes: cómo instalarlo,
 cómo correrlo sobre un archivo o una carpeta, dónde quedan los resultados y qué
