@@ -21,6 +21,7 @@ Dos tipos de script conviven acá:
    | Script | Para qué |
    |---|---|
    | `reducir_tokens.py` | Pre-reduce el peso y los tokens de visión de un corpus de imágenes. |
+   | `validar_comprobantes_openai.py` | Valida/extrae campos de comprobantes con la API de OpenAI (visión), según el prompt de Mendel. |
 
 ---
 
@@ -139,3 +140,116 @@ o backend no disponible · `130` interrumpido.
   y, si el binario no arranca (típico en macOS con dependencias de Homebrew
   rotas), falla **una vez** con un mensaje claro en vez de repetir el error de
   dyld por archivo.
+
+---
+
+## `validar_comprobantes_openai.py` — validación/extracción con OpenAI
+
+Implementa `prompt_validacion_comprobantes_mendel.md`: manda la **imagen del
+comprobante** (y, opcionalmente, los **datos cargados en Mendel**) a la API de
+OpenAI y devuelve el JSON del prompt, un archivo por documento. Pensado para
+correr sobre lo que dejó `reducir_tokens.py`.
+
+```bash
+# 1) La clave va en el entorno o en un .env (el .gitignore ya lo excluye).
+export OPENAI_API_KEY=sk-...
+#    o:  echo 'OPENAI_API_KEY=sk-...' > .env
+
+# 2) Verificar el flujo sin gastar tokens
+python scripts/validar_comprobantes_openai.py ../procesados --modo extraer \
+  --limite 3 --dry-run --detalle-log
+
+# 3) Los 3 modos
+python scripts/validar_comprobantes_openai.py ../procesados --modo extraer --limite 5
+python scripts/validar_comprobantes_openai.py ../procesados --datos datos.json -o validaciones
+python scripts/validar_comprobantes_openai.py ../procesados --modo diff --datos datos.json
+```
+
+### Los 3 modos
+
+| Modo | Llama a la API | Para qué |
+|---|---|---|
+| `validar` (default) | sí | Imagen + datos → comparación campo a campo (`estado_global`, `coincide`, `discrepancias_criticas`). Requiere `--datos`. |
+| `extraer` | sí | **Solo lectura** de la imagen (sin comparar). Es la "primera pasada barata" del prompt. No requiere datos. |
+| `diff` | **no** | Corre el diff de campos **en Python**: determinístico y auditable. Reutiliza las extracciones ya guardadas por `extraer`; si no hay, avisa. |
+
+El modo `diff` implementa las reglas de negocio en Python en vez de pedirle al
+LLM que compare números — que es lo que el propio prompt recomienda en sus notas
+de implementación ("es más barato y más auditable"). Están implementadas las 15:
+tipos `090`/`099` indistintos, tolerancia de formato en la razón social
+(`S.A.` vs `SA`, tildes, mayúsculas), CUIT dígito a dígito, fechas por fecha (no
+por texto), número de factura sin separadores, subtotal = NETO cuando se
+discrimina IVA, impuestos por categoría, y la diferencia del total explicada por
+`monto_no_gravado`.
+
+### Salida estructurada, no "JSON deseado"
+
+No se le pide al modelo que devuelva JSON y se espera que salga bien: se usa
+`response_format` con `json_schema` y `strict: true`, así **el formato lo impone
+el servidor**. Los dos esquemas están escritos cumpliendo las reglas del modo
+estricto (todas las propiedades en `required`, `additionalProperties: false`,
+uniones con `anyOf`, sin `const` ni restricciones numéricas).
+
+### Ahorro de tokens
+
+El template del `.md` incluye el bloque con el **JSON de ejemplo de salida**
+(~700 palabras). Con el esquema estricto ese bloque es redundante — el servidor
+ya obliga a esa forma — así que **se omite por defecto** (77,9% menos texto de
+`user` en una prueba real). `--prompt-fiel` lo incluye para comparar.
+
+El reporte informa siempre los **tokens reales** que devuelve la API (`usage`) y
+una **estimación de tokens de imagen** (fórmula de OpenAI según `--detalle`). El
+costo en USD se calcula **solo** si pasás `--precio-entrada` y `--precio-salida`:
+el script no inventa precios.
+
+### Datos cargados (`--datos`)
+
+Acepta un JSON con **un** documento, un JSON **mapa** `clave → documento`, una
+**lista**, o una **carpeta** con un `.json` por documento. La clave se aparea con
+cada imagen por nombre de archivo, nombre de la carpeta contenedora (el hash del
+lote) o ruta relativa. Si no encuentra datos para una imagen, lo **reporta como
+error** en vez de inventar una comparación.
+
+### Banderas
+
+| Bandera | Efecto |
+|---|---|
+| `--prompt` | `.md` con el prompt (default: el de `scripts/`). |
+| `--modo validar\|extraer\|diff` | Qué hacer (default `validar`). |
+| `--datos JSON\|DIR` | Datos cargados en Mendel (modos `validar`/`diff`). |
+| `-o, --salida` | Carpeta de salida, un JSON por documento (default `validaciones`). |
+| `--modelo` | Modelo (default `gpt-4o`). |
+| `--detalle low\|high\|auto` | Resolución con que la API mira la imagen (default `high`). |
+| `--temperatura` | Default `0.2`, como recomienda el prompt; `none` para omitirla. |
+| `--max-tokens` / `--esfuerzo` | Tope de salida / `reasoning_effort` (modelos de razonamiento). |
+| `--prompt-fiel` | Incluye el JSON de ejemplo de salida del template. |
+| `--api-key` / `--env` | Clave explícita / archivo `.env` (default `./.env`). |
+| `--forzar` | Reprocesa aunque exista la salida; sin esto **reanuda**. |
+| `--workers` / `--limite` | Concurrencia (default 4) / procesar solo las primeras N. |
+| `--dry-run` | No llama a la API **ni escribe** archivos: informa qué se enviaría. |
+| `--detalle-log` / `--reporte` | Una línea por archivo / reporte agregado en JSON. |
+| `--precio-entrada` / `--precio-salida` | USD por 1M tokens, para estimar el costo. |
+
+Códigos de salida: `0` ok (o nada que hacer) · `1` hubo fallos · `2` error de uso
+o de configuración · `130` interrumpido.
+
+### Cosas que conviene saber
+
+- **Reanudable.** Si el JSON de salida ya existe, se saltea; `--forzar` lo rehace.
+  Un archivo de salida por documento, así un lote cortado se retoma sin repagar.
+  `--dry-run` no escribe nada, justamente para que no envenene esa reanudación.
+  ⚠️ Un registro **con error no cuenta como hecho**: se reintenta, para que
+  arreglar la causa (clave, red, imagen) y volver a correr alcance (misma lección
+  que los checkpoints de `batch` en T-603).
+- **Los fallos también se guardan** (con su registro y procedencia), para poder
+  auditarlos; el resumen los lista y el exit code pasa a 1.
+- **Sin fuga de credenciales.** La clave se lee del entorno o del `.env` y nunca
+  se imprime ni se escribe en las salidas; los errores se clasifican en mensajes
+  cortos (auth, rate limit, conexión) sin volcar trazas.
+- **Trazabilidad por registro**: cada salida guarda modelo, `version_prompt`,
+  `prompt_hash` (del prompt efectivamente enviado), fecha UTC, bytes y
+  dimensiones de la imagen y los tokens de la llamada.
+- **`temperature`**: si el modelo la rechaza (los de razonamiento no la aceptan),
+  el script reintenta **una vez** sin ese parámetro y lo deja anotado.
+- **Imágenes grandes**: la API acepta hasta 20 MB por imagen; si una los supera,
+  el script lo informa en vez de mandar una petición condenada a fallar.
