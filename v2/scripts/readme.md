@@ -198,9 +198,8 @@ ya obliga a esa forma — así que **se omite por defecto** (77,9% menos texto d
 `user` en una prueba real). `--prompt-fiel` lo incluye para comparar.
 
 El reporte informa siempre los **tokens reales** que devuelve la API (`usage`) y
-una **estimación de tokens de imagen** (fórmula de OpenAI según `--detalle`). El
-costo en USD se calcula **solo** si pasás `--precio-entrada` y `--precio-salida`:
-el script no inventa precios.
+una **estimación de tokens de imagen** (fórmula de OpenAI según `--detalle`), y
+persiste el **costo en USD** de cada llamada (ver *Reporte de gastos* más abajo).
 
 ### Datos cargados (`--datos`)
 
@@ -210,6 +209,82 @@ cada imagen por nombre de archivo, nombre de la carpeta contenedora (el hash del
 lote) o ruta relativa. Si no encuentra datos para una imagen, lo **reporta como
 error** en vez de inventar una comparación.
 
+### Reporte de gastos (cuánto costó cada extracción)
+
+Cada salida guarda, por documento, la **fecha y hora**, los **tokens reales** del
+`usage`, los **precios aplicados** y el **costo en USD** de esa llamada. El
+reporte de gastos se arma de todo el **histórico** de la carpeta de salida (no
+sólo de la última corrida) y **no llama a la API**:
+
+```bash
+# En stdout: total, por día, por modelo y por modo
+python scripts/validar_comprobantes_openai.py --salida validaciones
+
+# Además, a archivo: JSON para procesar y CSV para Excel/Sheets
+python scripts/validar_comprobantes_openai.py --salida validaciones \
+  --reporte-gastos gastos.json --csv-gastos gastos.csv
+
+# Excel es-AR (separador «;» y decimal «,») y zona horaria explícita
+python scripts/validar_comprobantes_openai.py --salida validaciones \
+  --csv-gastos gastos.csv --csv-delim ';' --csv-decimal , --tz -03:00
+```
+
+Salida típica:
+
+```text
+=== Reporte de gastos (API) ===
+período           : 2026-09-10 → 2026-09-11 (UTC-03:00)
+extracciones      : 4
+tokens            : prompt 6,020 | completion 1,140
+costo total       : US$ 0.020810
+
+-- por día --
+  2026-09-10     3 ext.      5,250 tokens  US$ 0.013710
+  2026-09-11     1 ext.      1,910 tokens  US$ 0.007100
+
+-- por modelo --
+  gpt-4o                3 ext.  US$ 0.020450
+  gpt-4o-mini           1 ext.  US$ 0.000360
+
+-- por modo --
+  extraer       4 ext.  US$ 0.020810
+```
+
+**El CSV tiene una fila por extracción**, con lo necesario para armar la
+rendición: `fecha`, `hora`, `documento`, `modelo`, `modo`, `tokens_prompt`,
+`tokens_completion`, `tokens_total`, `costo_usd`, `precio_entrada_usd_1m`,
+`precio_salida_usd_1m`, `version_prompt` y `prompt_hash` (para poder auditar con
+qué prompt se generó cada gasto). Se escribe con BOM (`utf-8-sig`) para que Excel
+respete los acentos.
+
+**Qué cuenta como gasto y qué no.** No se cuentan los `--dry-run`, los fallos
+(un error no gastó lo que no completó) ni el modo `diff` (no llama a la API). Si
+el proveedor no devolvió `usage`, el registro tampoco se cuenta: no se afirma un
+gasto que no se puede respaldar.
+
+**Precios: tabla de referencia, editable.** Los precios cambian y dependen del
+modelo y de la cuenta, así que hay una tabla interna (`PRECIOS_REFERENCIA`) que
+se puede pisar por CLI:
+
+```bash
+# Sólo para esta corrida
+python scripts/validar_comprobantes_openai.py ../procesados \
+  --precios "gpt-4o=2.5/10,gpt-4o-mini=0.15/0.6,*=1/3"
+
+# Precios puntuales del modelo de la corrida
+python scripts/validar_comprobantes_openai.py ../procesados \
+  --precio-entrada 2.5 --precio-salida 10
+```
+
+⚠️ **Si un modelo no tiene precio, el costo queda `null`** y el reporte lo
+declara (`⚠ SIN PRECIO … el costo real es MAYOR`) en vez de sumar un cero que
+parecería exacto; el exit code pasa a `1`. Un precio a medias (sólo entrada o
+sólo salida) se marca como `⚠ PARCIAL`: el total es un piso, no el total.
+
+⚠️ Los precios se persisten **con cada extracción** (los de la corrida que la
+hizo). Los registros escritos por versiones anteriores, o sin precio, se
+recalculan con la tabla vigente y el apunte lo declara en `fuente_costo`.
+
 ### Banderas
 
 | Bandera | Efecto |
@@ -217,7 +292,7 @@ error** en vez de inventar una comparación.
 | `--prompt` | `.md` con el prompt (default: el de `scripts/`). |
 | `--modo validar\|extraer\|diff` | Qué hacer (default `validar`). |
 | `--datos JSON\|DIR` | Datos cargados en Mendel (modos `validar`/`diff`). |
-| `-o, --salida` | Carpeta de salida, un JSON por documento (default `validaciones`). |
+| `-o, --salida` | Carpeta de salida, un JSON por documento (default `validaciones`). Sin rutas, es la carpeta de la que se lee el reporte de gastos. |
 | `--modelo` | Modelo (default `gpt-4o`). |
 | `--detalle low\|high\|auto` | Resolución con que la API mira la imagen (default `high`). |
 | `--temperatura` | Default `0.2`, como recomienda el prompt; `none` para omitirla. |
@@ -227,11 +302,14 @@ error** en vez de inventar una comparación.
 | `--forzar` | Reprocesa aunque exista la salida; sin esto **reanuda**. |
 | `--workers` / `--limite` | Concurrencia (default 4) / procesar solo las primeras N. |
 | `--dry-run` | No llama a la API **ni escribe** archivos: informa qué se enviaría. |
-| `--detalle-log` / `--reporte` | Una línea por archivo / reporte agregado en JSON. |
-| `--precio-entrada` / `--precio-salida` | USD por 1M tokens, para estimar el costo. |
+| `--detalle-log` / `--reporte` | Una línea por archivo / reporte de la corrida en JSON. |
+| `--reporte-gastos` / `--csv-gastos` | Reporte de gastos acumulado (JSON) / gasto por extracción (CSV). |
+| `--precios` / `--precio-entrada` / `--precio-salida` | Precios USD por 1M de tokens (pisan la tabla de referencia). |
+| `--tz` / `--csv-delim` / `--csv-decimal` | Zona horaria del período / separadores del CSV. |
 
-Códigos de salida: `0` ok (o nada que hacer) · `1` hubo fallos · `2` error de uso
-o de configuración · `130` interrumpido.
+Códigos de salida: `0` ok (o nada que hacer) · `1` hubo fallos **o hay
+extracciones sin precio** · `2` error de uso o de configuración · `130`
+interrumpido.
 
 ### Cosas que conviene saber
 

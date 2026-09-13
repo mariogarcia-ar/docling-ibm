@@ -30,10 +30,16 @@ ese bloque es redundante: el servidor ya obliga a esa forma. Por defecto se
 completo se manda una sola vez como ``system`` y las reglas de negocio quedan
 cacheables del lado del servidor.
 
-**Costo.** El reporte siempre informa los **tokens reales** que devuelve la API
-(``usage``) y una **estimación de tokens de imagen** (fórmula de OpenAI por
-``detail``). El costo en USD solo se calcula si pasás ``--precio-entrada`` y
-``--precio-salida``: el script **no inventa precios**.
+**Costo y reporte de gastos.** Cada salida guarda los **tokens reales** que
+devuelve la API (``usage``), los precios aplicados y el **costo en USD** de esa
+llamada, además de la fecha/hora. Con eso, el reporte de gastos
+(``--reporte-gastos`` / ``--csv-gastos``) se arma del **histórico** de la carpeta
+de salida: totales por día, por modelo y por modo, y una fila por extracción en
+CSV. Los precios salen de una tabla de referencia editable (``PRECIOS_REFERENCIA``)
+que se puede pisar con ``--precios`` o ``--precio-entrada``/``--precio-salida``;
+si un modelo no tiene precio, el costo queda ``null`` y el reporte lo **declara**
+en vez de sumar un cero que parece exacto. El período se agrupa con ``--tz``
+(``local`` por defecto, o un offset como ``-03:00``).
 
 Credenciales: la clave se lee de ``OPENAI_API_KEY`` (o ``--api-key``), y se
 puede tener en un ``.env`` (se carga ``--env`` o ``./.env`` sin pisar lo que ya
@@ -41,11 +47,12 @@ esté en el entorno). La clave **nunca** se imprime ni se guarda en la salida.
 
 Uso:
     python scripts/validar_comprobantes_openai.py <ruta|carpeta>... [opciones]
+    python scripts/validar_comprobantes_openai.py --reporte-gastos gastos.json
 
 Ejemplos:
     # Extracción pura sobre 5 imágenes (verificar conexión y formato primero)
     python scripts/validar_comprobantes_openai.py ../procesados \\
-        --modo extraer --limite 5 --detalle
+        --modo extraer --limite 5 --detalle-log
 
     # Validación contra los datos cargados por el empleado
     python scripts/validar_comprobantes_openai.py ../procesados \\
@@ -55,17 +62,23 @@ Ejemplos:
     python scripts/validar_comprobantes_openai.py ../procesados \\
         --modo diff --datos datos_mendel.json
 
+    # Reporte de gastos del histórico (no llama a la API)
+    python scripts/validar_comprobantes_openai.py --reporte-gastos gastos.json \\
+        --csv-gastos gastos.csv --tz -03:00
+
     # Ver qué se enviaría, sin llamar a la API
     python scripts/validar_comprobantes_openai.py ../procesados --dry-run --limite 3
 
-Códigos de salida: 0 = todo ok (o nada que hacer); 1 = hubo fallos;
-2 = error de uso o de configuración; 130 = interrumpido (Ctrl-C).
+Códigos de salida: 0 = todo ok (o nada que hacer); 1 = hubo fallos o hay
+extracciones sin precio; 2 = error de uso o de configuración;
+130 = interrumpido (Ctrl-C).
 """
 
 from __future__ import annotations
 
 import argparse
 import base64
+import csv
 import hashlib
 import json
 import math
@@ -75,7 +88,7 @@ import sys
 import unicodedata
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Sequence
 
@@ -1197,8 +1210,16 @@ class Opciones:
     workers: int
     dry_run: bool
     incluir_ejemplo: bool
-    precio_entrada: float | None
-    precio_salida: float | None
+    precio_entrada: float | None = None
+    precio_salida: float | None = None
+    #: Precios por modelo (``{"gpt-4o": (entrada, salida), "*": (…)}``).
+    precios: dict[str, tuple[float | None, float | None]] = field(default_factory=dict)
+    #: Zona horaria para agrupar el gasto por día (``None`` = local).
+    tz: timezone | None = None
+    tz_etiqueta: str = "local"
+    #: Delimitador y separador decimal del CSV de gastos (Excel es-AR usa «;» y «,»).
+    csv_delim: str = ","
+    csv_decimal: str = "."
 
 
 def procesar(
@@ -1309,6 +1330,21 @@ def procesar(
         registro["error"] = respuesta.error
         return registro
 
+    # Costo con los precios de ESTA corrida, persistido junto al uso: así el
+    # reporte de gastos no tiene que adivinar precios históricos después.
+    p_entrada, p_salida = precio_de(opciones.modelo, opciones.precios)
+    registro["precios_usd_1m"] = {
+        "entrada": p_entrada,
+        "salida": p_salida,
+        "origen": "cli" if opciones.precios or opciones.precio_entrada else "referencia",
+    }
+    registro["costo_usd"] = costo_de_tokens(
+        respuesta.uso.get("prompt_tokens") or 0,
+        respuesta.uso.get("completion_tokens") or 0,
+        p_entrada,
+        p_salida,
+    )
+
     registro["resultado"] = respuesta.datos
     if opciones.modo == "extraer":
         registro["extraccion"] = respuesta.datos
@@ -1389,7 +1425,11 @@ def leer_extracciones_previas(salida: Path) -> dict[str, dict]:
 
 
 def resumen(registros: Sequence[dict], opciones: Opciones) -> dict[str, Any]:
-    """Resumen agregado: estados, errores, tokens reales y costo (si se informó)."""
+    """Resumen agregado de **una corrida**: estados, errores, tokens y costo.
+
+    Es el reporte de la corrida (qué se procesó ahora). Para el reporte de
+    **gastos** acumulado y con fechas, ver :func:`ledger_de_registros`.
+    """
     estados: dict[str, int] = {}
     errores: list[dict[str, str]] = []
     prompt_tokens = completion_tokens = 0
@@ -1407,13 +1447,8 @@ def resumen(registros: Sequence[dict], opciones: Opciones) -> dict[str, Any]:
         completion_tokens += uso.get("completion_tokens") or 0
         tokens_imagen_estimados += (r.get("imagen") or {}).get("tokens_estimados") or 0
 
-    costo = None
-    if opciones.precio_entrada is not None or opciones.precio_salida is not None:
-        costo = round(
-            prompt_tokens * (opciones.precio_entrada or 0) / 1e6
-            + completion_tokens * (opciones.precio_salida or 0) / 1e6,
-            4,
-        )
+    entrada, salida = precio_de(opciones.modelo, opciones.precios)
+    costo = costo_de_tokens(prompt_tokens, completion_tokens, entrada, salida)
 
     return {
         "archivos": len(registros),
@@ -1464,6 +1499,420 @@ def _imprimir_resumen(rep: dict) -> None:
 
 
 # --------------------------------------------------------------------------- #
+# Precios de referencia (editables / override por CLI)
+# --------------------------------------------------------------------------- #
+#
+# ⚠️ Los precios CAMBIAN y dependen del modelo y de la cuenta. Estos valores son
+# una **referencia** editable (USD por 1M de tokens, entrada/salida); el número
+# que manda es el del proveedor. Cualquier precio pasado por CLI
+# (``--precio-entrada`` / ``--precio-salida``) pisa esta tabla, y ``--precios``
+# permite precios por modelo. Si no hay precio para un modelo, el costo queda
+# en ``null`` en vez de inventarse (y el reporte lo declara).
+
+#: Precios de referencia: ``modelo -> (USD/1M entrada, USD/1M salida)``.
+PRECIOS_REFERENCIA: dict[str, tuple[float, float]] = {
+    "gpt-4o": (2.50, 10.00),
+    "gpt-4o-mini": (0.15, 0.60),
+    "gpt-4.1": (2.00, 8.00),
+    "gpt-4.1-mini": (0.40, 1.60),
+    "gpt-4.1-nano": (0.10, 0.40),
+}
+
+
+def _clave_modelo(modelo: str, tabla: dict[str, Any]) -> str | None:
+    """Busca el modelo en la tabla, tolerando el sufijo de fecha.
+
+    ``gpt-4o-2026-08`` matchea la entrada ``gpt-4o``; el match exacto gana.
+    """
+    if modelo in tabla:
+        return modelo
+    for clave in sorted(tabla, key=len, reverse=True):
+        if clave != "*" and modelo.startswith(clave):
+            return clave
+    return "*" if "*" in tabla else None
+
+
+def parsear_precios(texto: str) -> dict[str, tuple[float | None, float | None]]:
+    """Parsea ``--precios``: ``modelo=entrada/salida`` separados por coma.
+
+    Ejemplo: ``"gpt-4o=2.5/10, gpt-4o-mini=0.15/0.6, *=1/3"``.
+    ``*`` es el comodín para los modelos no listados. Cada precio puede ser
+    ``-`` para dejarlo sin definir (el costo de esa parte queda en ``null``).
+    """
+    tabla: dict[str, tuple[float | None, float | None]] = {}
+    for trozo in texto.split(","):
+        trozo = trozo.strip()
+        if not trozo:
+            continue
+        if "=" not in trozo or "/" not in trozo:
+            raise ValueError(
+                f"--precios: se esperaba «modelo=entrada/salida», llegó {trozo!r}"
+            )
+        modelo, _, valores = trozo.partition("=")
+        entrada_txt, _, salida_txt = valores.partition("/")
+
+        def _num(valor: str) -> float | None:
+            valor = valor.strip()
+            if valor in {"-", "", "none", "null"}:
+                return None
+            numero = float(valor)
+            if numero < 0:
+                raise ValueError(f"--precios: precio negativo en {trozo!r}")
+            return numero
+
+        tabla[modelo.strip()] = (_num(entrada_txt), _num(salida_txt))
+    if not tabla:
+        raise ValueError("--precios quedó vacío")
+    return tabla
+
+
+def precio_de(
+    modelo: str,
+    precios: dict[str, tuple[float | None, float | None]],
+    *,
+    por_defecto: bool = True,
+) -> tuple[float | None, float | None]:
+    """Precios (entrada, salida) del modelo, o ``(None, None)`` si no se sabe."""
+    clave = _clave_modelo(modelo, precios)
+    if clave is not None:
+        return precios[clave]
+    if por_defecto:
+        clave = _clave_modelo(modelo, PRECIOS_REFERENCIA)
+        if clave is not None:
+            return PRECIOS_REFERENCIA[clave]
+    return None, None
+
+
+def costo_de_tokens(
+    entrada_tokens: int,
+    salida_tokens: int,
+    precio_entrada: float | None,
+    precio_salida: float | None,
+) -> float | None:
+    """Costo en USD, o ``None`` si no hay ningún precio con el que calcularlo.
+
+    Si sólo se conoce uno de los dos precios, se cobra el que se sabe y se
+    **declara** que el otro no (el número es un piso, no el total).
+    """
+    if precio_entrada is None and precio_salida is None:
+        return None
+    total = entrada_tokens * (precio_entrada or 0) + salida_tokens * (precio_salida or 0)
+    return round(total / 1e6, 6)
+
+
+# --------------------------------------------------------------------------- #
+# Reporte de gastos (registro contable acumulado)
+# --------------------------------------------------------------------------- #
+
+
+def _tz_desde(texto: str) -> tuple[timezone | None, str]:
+    """Interpreta ``--tz``: ``local`` (default), ``UTC`` o un offset como ``-03:00``."""
+    valor = (texto or "local").strip()
+    if valor.lower() in {"local", ""}:
+        return None, "local"
+    if valor.upper() == "UTC":
+        return timezone.utc, "UTC"
+    m = re.fullmatch(r"([+-])(\d{1,2}):?(\d{2})?", valor)
+    if not m:
+        raise ValueError(
+            f"--tz inválida: {texto!r}. Usá «local», «UTC» o un offset como «-03:00»."
+        )
+    signo = -1 if m.group(1) == "-" else 1
+    horas, minutos = int(m.group(2)), int(m.group(3) or 0)
+    if horas > 23 or minutos > 59:
+        raise ValueError(f"--tz inválida: {texto!r}")
+    delta = signo * timedelta(hours=horas, minutes=minutos)
+    return timezone(delta), f"UTC{m.group(1)}{horas:02d}:{minutos:02d}"
+
+
+def _a_zona(momento: datetime, tz: timezone | None) -> datetime:
+    """Convierte a la zona pedida (o a la local si ``tz`` es ``None``)."""
+    return momento.astimezone(tz) if tz is not None else momento.astimezone()
+
+
+def _parsear_momento(texto: str | None) -> datetime | None:
+    """Parsea el ``procesado_utc`` de un registro (tolerante a formatos viejos)."""
+    if not texto:
+        return None
+    limpio = str(texto).strip().replace("Z", "+00:00")
+    try:
+        momento = datetime.fromisoformat(limpio)
+    except ValueError:
+        return None
+    return momento if momento.tzinfo else momento.replace(tzinfo=timezone.utc)
+
+
+def _es_gasto(registro: dict) -> bool:
+    """True si el registro representa **una llamada paga** a la API.
+
+    Quedan afuera: los ``--dry-run``, los fallos y el modo ``diff`` (no llama a
+    la API). Para que el total no mienta, un registro sin ``usage`` tampoco
+    cuenta: no se puede afirmar que gastó si el proveedor no lo reportó.
+    """
+    if registro.get("dry_run") or registro.get("fuente") == "diff_local":
+        return False
+    if registro.get("error"):
+        return False
+    uso = registro.get("uso") or {}
+    return (uso.get("prompt_tokens") or uso.get("completion_tokens")) is not None
+
+
+def apunte_de_registro(
+    registro: dict,
+    opciones: Opciones,
+    *,
+    ahora: datetime | None = None,
+) -> dict[str, Any] | None:
+    """Convierte un registro de salida en un **apunte de gasto**, o ``None``.
+
+    Los registros escritos por versiones anteriores no traen el costo ni la
+    ``fuente``, así que se **recalcula** acá desde ``uso`` + la tabla de precios
+    vigente (y se declara que el precio es el actual, no el histórico).
+    """
+    if not _es_gasto(registro):
+        return None
+    uso = registro.get("uso") or {}
+    entrada = uso.get("prompt_tokens") or 0
+    salida = uso.get("completion_tokens") or 0
+    modelo = registro.get("modelo") or "desconocido"
+    p_entrada, p_salida = precio_de(modelo, opciones.precios)
+    # Si el registro ya trae el costo (y no hay precios nuevos), se respeta.
+    costo = registro.get("costo_usd")
+    if costo is None:
+        costo = costo_de_tokens(entrada, salida, p_entrada, p_salida)
+
+    momento = _parsear_momento(registro.get("procesado_utc")) or ahora or datetime.now(
+        timezone.utc
+    )
+    local = _a_zona(momento, opciones.tz)
+    return {
+        "fecha_hora": local.isoformat(timespec="seconds"),
+        "fecha": local.date().isoformat(),
+        "hora": local.strftime("%H:%M:%S"),
+        "documento": registro.get("archivo_relativo") or registro.get("origen"),
+        "origen": registro.get("origen"),
+        "modo": registro.get("modo"),
+        "modelo": modelo,
+        "detalle_imagen": (registro.get("imagen") or {}).get("detalle"),
+        "tokens_prompt": entrada,
+        "tokens_completion": salida,
+        "tokens_total": (entrada + salida),
+        "tokens_imagen_estimados": (registro.get("imagen") or {}).get(
+            "tokens_estimados"
+        ),
+        "precio_entrada_usd_1m": p_entrada,
+        "precio_salida_usd_1m": p_salida,
+        "costo_usd": costo,
+        "costo_confiable": p_entrada is not None or p_salida is not None,
+        "fuente_costo": (
+            "registro" if registro.get("costo_usd") is not None else "recalculado"
+        ),
+        "version_prompt": registro.get("version_prompt"),
+        "prompt_hash": registro.get("prompt_hash"),
+    }
+
+
+def _clave_apunte(apunte: dict) -> tuple:
+    """Clave de deduplicación: un documento+modo+modelo, en una fecha/hora."""
+    return (
+        apunte.get("documento"),
+        apunte.get("modo"),
+        apunte.get("modelo"),
+        apunte.get("fecha_hora"),
+    )
+
+
+def leer_apuntes(salida: Path, opciones: Opciones) -> tuple[list[dict], int]:
+    """Lee **todas** las salidas de una carpeta y las convierte en apuntes.
+
+    Recorre ``*.json`` (los tres sufijos: validación, extracción y diff) porque
+    el gasto es del **histórico** de la carpeta, no de la última corrida.
+    Devuelve ``(apuntes, descartados)``; los descartados son registros que no
+    representan una llamada paga (dry-run, fallos, diff) o no se pudieron leer.
+    """
+    apuntes: dict[tuple, dict] = {}
+    descartados = 0
+    if not salida.is_dir():
+        return [], 0
+    for archivo in sorted(salida.rglob("*.json")):
+        # Los reportes que el propio script escribe no son registros de gasto.
+        if archivo.name in {"reporte.json", "gastos.json"}:
+            continue
+        try:
+            registro = json.loads(archivo.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            descartados += 1
+            continue
+        if not isinstance(registro, dict):
+            descartados += 1
+            continue
+        apunte = apunte_de_registro(registro, opciones)
+        if apunte is None:
+            descartados += 1
+            continue
+        apuntes.setdefault(_clave_apunte(apunte), apunte)
+    return sorted(apuntes.values(), key=lambda a: a["fecha_hora"]), descartados
+
+
+def totalizar(apuntes: Sequence[dict]) -> dict[str, Any]:
+    """Suma el gasto: total y por día, modelo y modo.
+
+    Separa los totales **confiables** (con al menos un precio conocido) de los
+    que no lo son, en vez de mezclarlos en un número que parecería exacto.
+    """
+    # Total, y agrupaciones por día, modelo y modo. Se distingue «sin precio»
+    # (no hay ninguno para el modelo) de «precio incompleto» (sólo se conoce el
+    # de entrada o el de salida): son cosas distintas y el aviso debe decir cuál.
+    por_dia: dict[str, dict[str, Any]] = {}
+    por_modelo: dict[str, dict[str, Any]] = {}
+    por_modo: dict[str, dict[str, Any]] = {}
+    total = {"apuntes": 0, "tokens_prompt": 0, "tokens_completion": 0, "costo_usd": 0.0}
+    sin_precio = 0
+    precio_incompleto = 0
+
+    def _acumular(destino: dict[str, dict[str, Any]], clave: str) -> dict[str, Any]:
+        return destino.setdefault(
+            clave,
+            {"apuntes": 0, "tokens_total": 0, "costo_usd": 0.0, "costo_confiable": True},
+        )
+
+    for a in apuntes:
+        total["apuntes"] += 1
+        total["tokens_prompt"] += a["tokens_prompt"]
+        total["tokens_completion"] += a["tokens_completion"]
+        if a["costo_usd"] is None:
+            sin_precio += 1
+        else:
+            total["costo_usd"] += a["costo_usd"]
+            if not a["costo_confiable"]:
+                precio_incompleto += 1
+
+        for destino, clave in (
+            (por_dia, a["fecha"]),
+            (por_modelo, a["modelo"]),
+            (por_modo, a["modo"] or "desconocido"),
+        ):
+            fila = _acumular(destino, clave)
+            fila["apuntes"] += 1
+            fila["tokens_total"] += a["tokens_total"]
+            if a["costo_usd"] is not None:
+                fila["costo_usd"] = round(fila["costo_usd"] + a["costo_usd"], 6)
+            if not a["costo_confiable"]:
+                fila["costo_confiable"] = False
+
+    total["costo_usd"] = round(total["costo_usd"], 6)
+    return {
+        "total": total,
+        "por_dia": {k: por_dia[k] for k in sorted(por_dia)},
+        "por_modelo": {k: por_modelo[k] for k in sorted(por_modelo)},
+        "por_modo": {k: por_modo[k] for k in sorted(por_modo)},
+        "sin_precio": sin_precio,
+        "precio_incompleto": precio_incompleto,
+        "costo_parcial": (sin_precio + precio_incompleto) > 0,
+    }
+
+
+def _formato_coste(valor: float | None, *, decimal: str = ".") -> str:
+    """US$ con 6 decimales (una extracción suele costar centavos)."""
+    if valor is None:
+        return "—"
+    texto = f"{valor:.6f}"
+    return texto.replace(".", decimal) if decimal != "." else texto
+
+
+def imprimir_reporte_gastos(rep: dict[str, Any], apuntes: Sequence[dict]) -> None:
+    """Reporte de gastos en stdout: totales, por día, por modelo y por modo."""
+    print("\n=== Reporte de gastos (API) ===")
+    if not apuntes:
+        print("Sin extracciones facturables registradas en la carpeta.")
+        return
+    t = rep["total"]
+    desde = apuntes[0]["fecha"]
+    hasta = apuntes[-1]["fecha"]
+    print(f"período           : {desde} → {hasta} ({rep['opciones']['tz']})")
+    print(f"extracciones      : {t['apuntes']}")
+    print(f"tokens            : prompt {t['tokens_prompt']:,} | completion {t['tokens_completion']:,}")
+    print(f"costo total       : US$ {_formato_coste(t['costo_usd'])}")
+    if rep["sin_precio"]:
+        print(
+            f"  ⚠ SIN PRECIO    : {rep['sin_precio']} extracción(es) no tienen precio "
+            f"para su modelo y suman US$ 0. El costo real es MAYOR. Pasá --precios "
+            "o --precio-entrada/--precio-salida.",
+            file=sys.stderr,
+        )
+    if rep["precio_incompleto"]:
+        print(
+            f"  ⚠ PARCIAL       : {rep['precio_incompleto']} extracción(es) sólo "
+            "tienen precio de entrada o de salida; el total es un piso.",
+            file=sys.stderr,
+        )
+
+    print("\n-- por día --")
+    for dia, fila in rep["por_dia"].items():
+        marca = "" if fila["costo_confiable"] else "  (precio parcial)"
+        print(
+            f"  {dia}  {fila['apuntes']:>4} ext.  "
+            f"{fila['tokens_total']:>9,} tokens  "
+            f"US$ {_formato_coste(fila['costo_usd'])}{marca}"
+        )
+
+    print("\n-- por modelo --")
+    for modelo, fila in rep["por_modelo"].items():
+        marca = "" if fila["costo_confiable"] else "  (precio parcial)"
+        print(
+            f"  {modelo:<18} {fila['apuntes']:>4} ext.  "
+            f"US$ {_formato_coste(fila['costo_usd'])}{marca}"
+        )
+
+    print("\n-- por modo --")
+    for modo, fila in rep["por_modo"].items():
+        print(f"  {modo:<10} {fila['apuntes']:>4} ext.  US$ {_formato_coste(fila['costo_usd'])}")
+
+
+def escribir_csv_gastos(
+    ruta: Path, apuntes: Sequence[dict], *, delim: str = ",", decimal: str = "."
+) -> None:
+    """CSV del gasto **por extracción**, listo para abrir en Excel/Sheets.
+
+    Se usa ``utf-8-sig`` (BOM) para que Excel respete los acentos, y se permite
+    delimitador/decimal configurables porque Excel en es-AR espera ``;`` y ``,``.
+    """
+    campos = [
+        "fecha",
+        "hora",
+        "fecha_hora",
+        "documento",
+        "modo",
+        "modelo",
+        "detalle_imagen",
+        "tokens_prompt",
+        "tokens_completion",
+        "tokens_total",
+        "precio_entrada_usd_1m",
+        "precio_salida_usd_1m",
+        "costo_usd",
+        "costo_confiable",
+        "version_prompt",
+        "prompt_hash",
+        "origen",
+    ]
+    ruta.parent.mkdir(parents=True, exist_ok=True)
+    with ruta.open("w", encoding="utf-8-sig", newline="") as fh:
+        escritor = csv.DictWriter(fh, fieldnames=campos, delimiter=delim, extrasaction="ignore")
+        escritor.writeheader()
+        for a in apuntes:
+            fila = dict(a)
+            if decimal != ".":
+                for clave in ("costo_usd",):
+                    if fila.get(clave) is not None:
+                        fila[clave] = f"{fila[clave]:.6f}".replace(".", decimal)
+                for clave in ("precio_entrada_usd_1m", "precio_salida_usd_1m"):
+                    if fila.get(clave) is not None:
+                        fila[clave] = f"{fila[clave]:.4f}".replace(".", decimal)
+            escritor.writerow(fila)
+
+
+# --------------------------------------------------------------------------- #
 # CLI
 # --------------------------------------------------------------------------- #
 
@@ -1480,17 +1929,28 @@ def construir_parser() -> argparse.ArgumentParser:
         epilog=(
             "Ejemplos:\n"
             "  python scripts/validar_comprobantes_openai.py ../procesados \\\n"
-            "      --modo extraer --limite 5 --detalle\n"
+            "      --modo extraer --limite 5 --detalle-log\n"
             "  python scripts/validar_comprobantes_openai.py ../procesados \\\n"
             "      --datos datos_mendel.json --workers 4 -o validaciones\n"
             "  python scripts/validar_comprobantes_openai.py ../procesados \\\n"
             "      --modo diff --datos datos_mendel.json\n"
+            "  python scripts/validar_comprobantes_openai.py \\\n"
+            "      --reporte-gastos gastos.json --csv-gastos gastos.csv\n"
             "  python scripts/validar_comprobantes_openai.py ../procesados \\\n"
             "      --dry-run --limite 3\n"
+            "\n"
+            "El reporte de gastos se arma del histórico de la carpeta de salida\n"
+            "(--salida), no sólo de la última corrida: totales por día, modelo y\n"
+            "modo, más una fila por extracción en el CSV.\n"
         ),
     )
     parser.add_argument(
-        "rutas", nargs="+", help="Imágenes y/o carpetas (se recorren recursivo)."
+        "rutas",
+        nargs="*",
+        help=(
+            "Imágenes y/o carpetas (se recorren recursivo). Se pueden omitir si "
+            "sólo se quiere emitir el reporte de gastos de la carpeta de salida."
+        ),
     )
     parser.add_argument(
         "--prompt",
@@ -1590,15 +2050,89 @@ def construir_parser() -> argparse.ArgumentParser:
         "--precio-entrada",
         type=float,
         metavar="USD_POR_1M",
-        help="Precio por 1M de tokens de entrada, para estimar el costo (opcional).",
+        help=(
+            "Precio por 1M de tokens de entrada (opcional; pisa la tabla de "
+            "referencia). Si no se pasa ningún precio se usa la tabla interna."
+        ),
     )
     parser.add_argument(
         "--precio-salida",
         type=float,
         metavar="USD_POR_1M",
-        help="Precio por 1M de tokens de salida, para estimar el costo (opcional).",
+        help="Precio por 1M de tokens de salida (opcional).",
+    )
+    parser.add_argument(
+        "--precios",
+        metavar="M=E/S[,M=E/S]",
+        help=(
+            "Precios por modelo, p. ej. «gpt-4o=2.5/10,*=1/3». «-» deja un "
+            "precio sin definir. Pisa la tabla de referencia."
+        ),
+    )
+    parser.add_argument(
+        "--reporte-gastos",
+        metavar="ARCHIVO.json",
+        help=(
+            "Escribe el REPORTE DE GASTOS acumulado de la carpeta de salida: "
+            "totales por día, modelo y modo. Es independiente de --reporte."
+        ),
+    )
+    parser.add_argument(
+        "--csv-gastos",
+        metavar="ARCHIVO.csv",
+        help="Escribe el gasto por extracción en CSV (para Excel/Sheets).",
+    )
+    parser.add_argument(
+        "--tz",
+        default="local",
+        help=(
+            "Zona horaria para agrupar el gasto por día: «local» (default), "
+            "«UTC» o un offset como «-03:00» (usá --tz=-03:00 o --tz -03:00)."
+        ),
+    )
+    parser.add_argument(
+        "--csv-delim",
+        default=",",
+        metavar="CARACTER",
+        help="Delimitador del CSV (default «,»; Excel es-AR suele querer «;»).",
+    )
+    parser.add_argument(
+        "--csv-decimal",
+        default=".",
+        choices=(",", "."),
+        metavar="SEP",
+        help=(
+            "Separador decimal del CSV: «.» (default) o «,» (Excel es-AR). "
+            "Se pasa así: --csv-decimal=,"
+        ),
     )
     return parser
+
+
+def _normalizar_argv(argv: Sequence[str]) -> list[str]:
+    """Une las banderas que llevan un valor que empieza con ``-``.
+
+    ``argparse`` lee ``--tz -03:00`` como si ``-03:00`` fuera otra bandera y falla
+    con «expected one argument». Escribir ``--tz=-03:00`` funciona, pero es una
+    trampa fácil de pisar, así que acá se une el par antes de parsear.
+    """
+    salida: list[str] = []
+    i = 0
+    while i < len(argv):
+        actual = argv[i]
+        siguiente = argv[i + 1] if i + 1 < len(argv) else None
+        if (
+            actual in {"--tz", "--reporte", "--csv-gastos", "--reporte-gastos"}
+            and siguiente is not None
+            and siguiente.startswith("-")
+            and not siguiente.startswith("--")
+        ):
+            salida.append(f"{actual}={siguiente}")
+            i += 2
+            continue
+        salida.append(actual)
+        i += 1
+    return salida
 
 
 def _parsear_temperatura(valor: str) -> float | None:
@@ -1616,7 +2150,9 @@ def _parsear_temperatura(valor: str) -> float | None:
 
 def main(argv: Sequence[str] | None = None) -> int:
     """Punto de entrada. Devuelve el código de salida (no llama a ``sys.exit``)."""
-    args = construir_parser().parse_args(argv)
+    if argv is None:
+        argv = sys.argv[1:]
+    args = construir_parser().parse_args(_normalizar_argv(list(argv)))
 
     try:
         temperatura = _parsear_temperatura(args.temperatura)
@@ -1626,12 +2162,60 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.workers < 1:
         print("error: --workers debe ser >= 1", file=sys.stderr)
         return 2
-    if args.modo in {"validar", "diff"} and not args.datos:
+    if args.modo in {"validar", "diff"} and not args.datos and args.rutas:
         print(
             f"error: --modo {args.modo} necesita --datos (los datos cargados en Mendel)",
             file=sys.stderr,
         )
         return 2
+
+    # Precios y zona horaria del reporte de gastos.
+    try:
+        precios = parsear_precios(args.precios) if args.precios else {}
+        tz, tz_etiqueta = _tz_desde(args.tz)
+    except ValueError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+
+    salida = Path(args.salida)
+    # Precios: los de CLI pisan la tabla de referencia para esta corrida.
+    precios_efectivos = dict(precios)
+    if args.precio_entrada is not None or args.precio_salida is not None:
+        p_e, p_s = precio_de(args.modelo, precios)
+        precios_efectivos[args.modelo] = (
+            args.precio_entrada if args.precio_entrada is not None else p_e,
+            args.precio_salida if args.precio_salida is not None else p_s,
+        )
+
+    def _opciones(**extra: Any) -> Opciones:
+        """Arma las opciones con los valores comunes ya resueltos."""
+        base: dict[str, Any] = dict(
+            modo=args.modo,
+            modelo=args.modelo,
+            detalle=args.detalle,
+            temperatura=None,
+            max_tokens=args.max_tokens,
+            esfuerzo=args.esfuerzo,
+            salida=salida,
+            forzar=args.forzar,
+            workers=args.workers,
+            dry_run=args.dry_run,
+            incluir_ejemplo=args.incluir_ejemplo,
+            precios=precios_efectivos,
+            tz=tz,
+            tz_etiqueta=tz_etiqueta,
+            csv_delim=args.csv_delim,
+            csv_decimal=args.csv_decimal,
+            precio_entrada=args.precio_entrada,
+            precio_salida=args.precio_salida,
+        )
+        base.update(extra)
+        return Opciones(**base)
+
+    # Sin rutas: sólo se emite el reporte de gastos de la carpeta de salida
+    # (a stdout, y además a archivo si se pidió).
+    if not args.rutas:
+        return _emitir_reporte_gastos(_opciones(), args)
 
     cargar_env(args.env)
     api_key = resolver_api_key(args.api_key)
@@ -1675,21 +2259,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(f"error: --datos {args.datos} no contiene documentos", file=sys.stderr)
             return 2
 
-    opciones = Opciones(
-        modo=args.modo,
-        modelo=args.modelo,
-        detalle=args.detalle,
-        temperatura=temperatura,
-        max_tokens=args.max_tokens,
-        esfuerzo=args.esfuerzo,
-        salida=Path(args.salida),
-        forzar=args.forzar,
-        workers=args.workers,
-        dry_run=args.dry_run,
-        incluir_ejemplo=args.incluir_ejemplo,
-        precio_entrada=args.precio_entrada,
-        precio_salida=args.precio_salida,
-    )
+    opciones = _opciones(temperatura=temperatura)
 
     rutas = [Path(r) for r in args.rutas]
     raiz = _raiz_comun(rutas)
@@ -1778,6 +2348,27 @@ def main(argv: Sequence[str] | None = None) -> int:
     rep = resumen(registros, opciones)
     _imprimir_resumen(rep)
 
+    # Gasto de lo recién procesado (sólo las llamadas pagas).
+    apuntes_nuevos = [
+        apunte
+        for registro in registros
+        if (apunte := apunte_de_registro(registro, opciones)) is not None
+    ]
+    if apuntes_nuevos:
+        nuevo = totalizar(apuntes_nuevos)
+        print(
+            f"\n--- Gasto de esta corrida ---\n"
+            f"extracciones : {nuevo['total']['apuntes']}\n"
+            f"costo        : US$ {_formato_coste(nuevo['total']['costo_usd'])}"
+            + ("  (precio parcial)" if nuevo["costo_parcial"] else "")
+        )
+        if nuevo["sin_precio"]:
+            print(
+                f"  ⚠ {nuevo['sin_precio']} sin precio para su modelo; el costo real "
+                "es mayor. Pasá --precios o --precio-entrada/--precio-salida.",
+                file=sys.stderr,
+            )
+
     if args.reporte:
         destino_reporte = Path(args.reporte)
         destino_reporte.parent.mkdir(parents=True, exist_ok=True)
@@ -1786,7 +2377,58 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
         print(f"\nreporte escrito: {destino_reporte}")
 
+    if args.reporte_gastos or args.csv_gastos:
+        repo = _emitir_reporte_gastos(opciones, args)
+        return 1 if (rep["errores"] or repo) else 0
+
     return 1 if rep["errores"] else 0
+
+
+def _emitir_reporte_gastos(opciones: Opciones, args: argparse.Namespace) -> int:
+    """Emite el reporte de gastos de la carpeta de salida (no procesa nada).
+
+    Lee **todo** lo que hay en ``--salida`` (no sólo la última corrida), así el
+    reporte es del histórico. Devuelve 1 si hay extracciones sin precio (el total
+    quedaría menor al real) o 0 si no.
+    """
+    apuntes, descartados = leer_apuntes(opciones.salida, opciones)
+    if not apuntes:
+        print(
+            f"No hay extracciones facturables en {opciones.salida}."
+            + (f" ({descartados} archivo(s) sin gasto)" if descartados else ""),
+            file=sys.stderr,
+        )
+        return 0
+
+    rep = {
+        **totalizar(apuntes),
+        "opciones": {
+            "salida": str(opciones.salida),
+            "tz": opciones.tz_etiqueta,
+            "precios": {k: list(v) for k, v in opciones.precios.items()},
+            "precios_referencia_usados": not opciones.precios,
+        },
+        "registros_sin_gasto": descartados,
+    }
+    imprimir_reporte_gastos(rep, apuntes)
+
+    if args.reporte_gastos:
+        ruta = Path(args.reporte_gastos)
+        ruta.parent.mkdir(parents=True, exist_ok=True)
+        ruta.write_text(
+            json.dumps({**rep, "apuntes": apuntes}, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+        print(f"\nreporte de gastos escrito: {ruta}")
+
+    if args.csv_gastos:
+        ruta = Path(args.csv_gastos)
+        escribir_csv_gastos(
+            ruta, apuntes, delim=opciones.csv_delim, decimal=opciones.csv_decimal
+        )
+        print(f"CSV de gastos escrito: {ruta}")
+
+    return 1 if rep["sin_precio"] else 0
 
 
 def _guardar(destino: Path, registro: dict, *, escribir: bool = True) -> None:
