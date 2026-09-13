@@ -220,6 +220,57 @@ cada imagen por nombre de archivo, nombre de la carpeta contenedora (el hash del
 lote) o ruta relativa. Si no encuentra datos para una imagen, lo **reporta como
 error** en vez de inventar una comparación.
 
+### Simular el costo antes de gastar (`--dry-run`)
+
+`--dry-run` estima **cuánto costaría** la corrida y sale sin llamar a la API ni
+escribir archivos. Siempre conviene empezar por acá:
+
+```bash
+# ¿Cuánto cuesta procesar el corpus completo?
+python scripts/validar_comprobantes_openai.py ../procesados --modo extraer \
+  --dry-run -o mendel
+
+# Con el detalle por comprobante
+python scripts/validar_comprobantes_openai.py ../procesados --modo extraer \
+  --dry-run --limite 500 --detalle-log
+
+# Guardar la estimación en JSON
+python scripts/validar_comprobantes_openai.py ../procesados --modo extraer \
+  --dry-run --reporte-gastos estimacion.json
+```
+
+```text
+=== Estimación de costo (simulación: no se llamó a la API) ===
+archivos          : 3570
+tokens por archivo: entrada ≈ 2,785 (texto+esquema) + los píxeles de cada imagen | salida ≈ 240
+tokens totales    : entrada 12,629,810 | salida 856,800
+COSTO ESTIMADO    : US$ 40.1425   (≈ US$ 0.0112 por comprobante)
+precios usados    : US$ 2.5/1M entrada, US$ 10.0/1M salida (gpt-4o)
+confianza         : fórmula (3.92 car/token; medido contra la API)
+```
+
+**De dónde sale el número.** Se construye el prompt **de verdad** (system + user +
+esquema) y se convierte con **3,92 caracteres/token**, medido contra el `usage`
+real de la API. Los tokens de imagen se calculan con la fórmula de OpenAI según
+`--detalle` y el tamaño real de cada archivo. Si la carpeta de salida ya tiene
+extracciones del **mismo modelo y modo**, se **calibra con ese histórico** (que es
+más fiel) y el reporte lo declara: `confianza: calibrada con N extracción(es)`. El
+número nunca se presenta como una factura, sino con su fuente.
+
+Ojo con dos cosas:
+
+- **`--dry-run` no escribe nada.** Para estimar, corre con `--forzar` (o hacia una
+  carpeta vacía), porque si no estimaría solo lo pendiente y no lo ya procesado.
+- **Los precios son la tabla de referencia** (o los de `--precios`). Si tu tarifa
+  real difiere, pasala explícita o la estimación no va a coincidir con la factura.
+
+Comparar escenarios de `--detalle` es la forma rápida de ver el ahorro:
+
+| Escenario (3.570 comprobantes) | Costo estimado |
+|---|---|
+| `--detalle high` (default) | US$ 40.14 |
+| `--detalle low` (85 tokens fijos por imagen) | US$ 34.18 |
+
 ### Reporte de gastos (cuánto costó cada extracción)
 
 Cada salida guarda, por documento, la **fecha y hora**, los **tokens reales** del
@@ -313,9 +364,9 @@ recalculan con la tabla vigente y el apunte lo declara en `fuente_costo`.
 | `--api-key` / `--env` | Clave explícita / archivo `.env` (default `./.env`). |
 | `--forzar` | Reprocesa aunque exista la salida; sin esto **reanuda**. |
 | `--workers` / `--limite` | Concurrencia (default 4) / procesar solo las primeras N. |
-| `--dry-run` | No llama a la API **ni escribe** archivos: informa qué se enviaría. |
+| `--dry-run` | **Simula el costo** y sale: no llama a la API **ni escribe**. Con `--detalle-log`, detalle por comprobante. |
 | `--detalle-log` / `--reporte` | Una línea por archivo / reporte de la corrida en JSON. |
-| `--reporte-gastos` / `--csv-gastos` | Reporte de gastos acumulado (JSON) / gasto por extracción (CSV). |
+| `--reporte-gastos` / `--csv-gastos` | Reporte de gastos acumulado (JSON) / gasto por extracción (CSV). Con `--dry-run`, el JSON recibe la **estimación**. |
 | `--precios` / `--precio-entrada` / `--precio-salida` | Precios USD por 1M de tokens (pisan la tabla de referencia). |
 | `--tz` / `--csv-delim` / `--csv-decimal` | Zona horaria del período / separadores del CSV. |
 
@@ -342,7 +393,8 @@ interrumpido.
   nunca que lo deje afuera sin avisar.
 - **Reanudable.** Si el JSON de salida ya existe, se saltea; `--forzar` lo rehace.
   Un archivo de salida por documento, así un lote cortado se retoma sin repagar.
-  `--dry-run` no escribe nada, justamente para que no envenene esa reanudación.
+  `--dry-run` no escribe nada, justamente para que no envenene esa reanudación
+  (y de paso estima el costo de lo pendiente).
   ⚠️ Un registro **con error no cuenta como hecho**: se reintenta, para que
   arreglar la causa (clave, red, imagen) y volver a correr alcance (misma lección
   que los checkpoints de `batch` en T-603).

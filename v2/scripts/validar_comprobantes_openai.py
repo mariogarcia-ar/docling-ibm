@@ -31,8 +31,10 @@ completo se manda una sola vez como ``system`` y las reglas de negocio quedan
 cacheables del lado del servidor.
 
 **Costo y reporte de gastos.** Cada salida guarda los **tokens reales** que
-devuelve la API (``usage``), los precios aplicados y el **costo en USD** de esa
-llamada, además de la fecha/hora. Con eso, el reporte de gastos
+devuelve la API (``usage``), los precios aplicados y el **costo en USD** de cada
+llamada, además de la fecha/hora. Antes de gastar, ``--dry-run`` **estima** el
+costo de la corrida sin llamar a la API (prompt real + fórmula de imagen,
+calibrada con el histórico si lo hay). Después, el reporte de gastos
 (``--reporte-gastos`` / ``--csv-gastos``) se arma del **histórico** de la carpeta
 de salida: totales por día, por modelo y por modo, y una fila por extracción en
 CSV. Los precios salen de una tabla de referencia editable (``PRECIOS_REFERENCIA``)
@@ -66,8 +68,9 @@ Ejemplos:
     python scripts/validar_comprobantes_openai.py --reporte-gastos gastos.json \\
         --csv-gastos gastos.csv --tz -03:00
 
-    # Ver qué se enviaría, sin llamar a la API
-    python scripts/validar_comprobantes_openai.py ../procesados --dry-run --limite 3
+    # Simular el costo de un lote antes de gastar (no llama a la API)
+    python scripts/validar_comprobantes_openai.py ../procesados --modo extraer \\
+        --dry-run --limite 500 --detalle-log
 
 Códigos de salida: 0 = todo ok (o nada que hacer); 1 = hubo fallos o hay
 extracciones sin precio; 2 = error de uso o de configuración;
@@ -2498,11 +2501,11 @@ def construir_parser() -> argparse.ArgumentParser:
             "  python scripts/validar_comprobantes_openai.py \\\n"
             "      --reporte-gastos gastos.json --csv-gastos gastos.csv\n"
             "  python scripts/validar_comprobantes_openai.py ../procesados \\\n"
-            "      --dry-run --limite 3\n"
+            "      --modo extraer --dry-run --limite 500 --detalle-log\n"
             "\n"
-            "El reporte de gastos se arma del histórico de la carpeta de salida\n"
-            "(--salida), no sólo de la última corrida: totales por día, modelo y\n"
-            "modo, más una fila por extracción en el CSV.\n"
+            "`--dry-run` SIMULA: estima el costo y sale sin llamar a la API ni\n"
+            "escribir archivos. El reporte de gastos se arma del histórico de la\n"
+            "carpeta de salida (--salida), no sólo de la última corrida.\n"
             "\n"
             "La salida espeja el árbol desde `--raiz` (o desde el nivel que no\n"
             "sea un mes, p. ej. `2025-08`): la MISMA imagen escribe siempre el\n"
