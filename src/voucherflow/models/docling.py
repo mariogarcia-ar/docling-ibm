@@ -1,7 +1,7 @@
 """Adaptador Docling encapsulado (F0, T-006) — conversión multi-formato.
 
-Encapsula la inicialización y conversión con Docling tal como se hace en v1
-(``v1/lib/converter.py`` y ``v1/run.py``: ``DocumentConverter``,
+Encapsula la inicialización y conversión con Docling tal como se hace en el sistema anterior
+(el convertidor original y el procesador original: ``DocumentConverter``,
 ``ImageFormatOption``, ``PdfPipelineOptions`` con OCR de página completa) y
 expone un **contrato de salida estructurado** :class:`ProcessedDocument`
 (markdown + boxes + metadatos), que es lo que consume F1 (módulo
@@ -54,7 +54,7 @@ class Box:
     Campos de tabla (F1/T-104, E-DOC-3): cuando el ítem Docling original es una
     tabla detectada, ``es_tabla=True`` y ``markdown_tabla`` guarda su Markdown
     exportado; el exportador por posición lo trata como ítem único con
-    orientación forzada horizontal (paridad con ``v1/lib/orientation.py``).
+    orientación forzada horizontal (paridad con el módulo de orientación original).
     """
 
     texto: str
@@ -104,8 +104,8 @@ class DoclingConverter:
 
     Construcción:
         force_full_page_ocr: aplica OCR de página completa (default True, igual
-            que v1) sobre imágenes/PDFs escaneados.
-        do_table_structure: detecta estructura de tablas (default True, v1).
+            que el sistema anterior) sobre imágenes/PDFs escaneados.
+        do_table_structure: detecta estructura de tablas (default True).
         formato_documento: formato de exportación (default "markdown").
         converter: instancia Docling ``DocumentConverter`` inyectable (tests).
 
@@ -192,7 +192,7 @@ class DoclingConverter:
             texto = getattr(item, "text", None)
             prov = getattr(item, "prov", None)
 
-            # Detectar tabla (paridad con v1/lib/orientation.py: label=='table').
+            # Detectar tabla (paridad con el módulo de orientación original: label=='table').
             label = getattr(item, "label", None)
             label_value = getattr(label, "value", label)
             es_tabla = label_value == "table"
@@ -237,7 +237,7 @@ class DoclingConverter:
 
     # ------------------------------------------------------------------
     def exportar_markdown(self, origen: str | Path) -> str:
-        """Atajo: devuelve solo el markdown (equivalente a v1)."""
+        """Atajo: devuelve solo el markdown."""
         return self.convert(origen).markdown
 
 

@@ -62,12 +62,12 @@ Gradación: ``valida`` / ``dudosa`` / ``invalida``
   utilizable (violación de contrato — el valor ni siquiera está en el
   vocabulario del campo).
 
-Hallazgo documentado (v1 / prompt WIP)
+Hallazgo documentado (prompt original)
 --------------------------------------
-El `11.1` de v1 usaba una regex **estricta** ``FACTURA\\s+([A-CME])`` para leer
+El `11.1` del sistema anterior usaba una regex **estricta** ``FACTURA\\s+([A-CME])`` para leer
 la letra del texto, de modo que un texto que dijera ``FACTURA X`` no producía
 coincidencia y la letra quedaba sin detectar (el caso caía a inferencia o a "sin
-letra"). La fuente `grep` de ``v1/document_extraction.py`` documenta ese
+letra"). La fuente `grep` de el extractor original documenta ese
 comportamiento. Con las reglas raw, en cambio, el hecho de que el texto cite una
 letra **distinta** de la declarada ya no se pierde: se registra como
 **contradicción** (``RAW_CONTRADICION``) y la letra contradictoria pasa a
@@ -523,7 +523,7 @@ def condicion_raw_sustento(campo: CampoDeclarado) -> bool:
 def condicion_raw_contradiccion(campo: CampoDeclarado) -> bool:
     """RAW_CONTRADICCION — el fragmento sostiene **otro** valor del vocabulario.
 
-    Es la señal que la regex estricta de v1 perdía: el texto cita una letra
+    Es la señal que la regex estricta del sistema anterior perdía: el texto cita una letra
     distinta de la declarada. No cambia el valor declarado (la lectura sigue
     siendo el indicio), pero registra la contradicción y alimenta los candidatos
     descartados.

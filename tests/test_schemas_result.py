@@ -99,7 +99,7 @@ class TestCaseRecord:
         # evidencia por fuente, reglas y quién decidió.
         caso = CaseRecord(
             documento_id="sha256:abc",
-            archivo="v2/tests/fixtures/golden/ejemplo.jpg",
+            archivo="tests/fixtures/golden/ejemplo.jpg",
             version_prompt={"11.1": "11.1@sha:abc123"},
             modelo_por_etapa={"vlm": "qwen2.5vl:3b", "llm": "qwen2.5:7b"},
             evidencia_por_fuente={

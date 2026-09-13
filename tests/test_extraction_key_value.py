@@ -188,7 +188,7 @@ def _settings_dobles() -> Any:
 
 
 # ---------------------------------------------------------------------------
-# 1. CUIT (regla 2b de v1: corte ante caracteres extraños)
+# 1. CUIT (regla 2b del prompt de referencia: corte ante caracteres extraños)
 # ---------------------------------------------------------------------------
 
 
@@ -199,9 +199,9 @@ class TestNormalizarCuit:
         assert normalizar_cuit("20-12345678-9") == "20-12345678-9"
         assert cuit_completo("20-12345678-9") is True
 
-    def test_el_caso_de_v1_corta_ante_caracteres_extranos(self):
+    def test_el_caso_de_referencia_corta_ante_caracteres_extranos(self):
         # Regla 2b textual: "C.U.I.T. Nro.: 20-1 Ing, Brutas: 201641" -> "20-1".
-        # Es el caso que en v1 el modelo arrastraba completo.
+        # Es el caso que el modelo arrastraba completo.
         assert normalizar_cuit("20-1 Ing, Brutas: 201641") == "20-1"
         assert normalizar_cuit("C.U.I.T. Nro.: 20-1") == "20-1"
         assert cuit_completo("20-1") is False
@@ -408,7 +408,7 @@ class TestSepararComprobante:
         assert separar_comprobante(None) == (None, None)
 
     def test_el_numero_impreso_se_conserva_tal_cual(self):
-        # Regla 3 de v1: "tal como figura impreso, incluyendo el guión".
+        # Regla 3: "tal como figura impreso, incluyendo el guión".
         resultado = normalizar_campo("nro_comprobante", "00005-00007344")
         assert resultado.valor == "00005-00007344"
         assert resultado.derivados == {"punto_venta": "00005", "numero_comprobante": "00007344"}
@@ -452,7 +452,7 @@ class TestNormalizarVocabularioYTexto:
         assert normalizar_moneda(crudo) == esperado
 
     def test_la_moneda_no_tiene_default(self):
-        # Diferencia deliberada con v1 ("sin indicio explícito, usá ARS"):
+        # Diferencia deliberada ("sin indicio explícito, usá ARS"):
         # asumir ARS sería inventar una moneda que el documento no declaró.
         assert normalizar_moneda("EUR") is None
         assert normalizar_moneda("") is None
@@ -469,7 +469,7 @@ class TestNormalizarVocabularioYTexto:
         assert normalizar_texto("  ACME   S.A.  ") == "ACME S.A."
 
     def test_la_descripcion_queda_en_minusculas(self):
-        # Regla 8 de v1: "una frase breve... en minúsculas".
+        # Regla 8: "una frase breve... en minúsculas".
         assert normalizar_descripcion("  Café  CON Leche ") == "café con leche"
         assert normalizar_campo("descripcion", "COMPRA DE INSUMOS").valor == "compra de insumos"
 
@@ -807,7 +807,7 @@ class TestIntegracionConElFlujo:
 
 
 class TestAlcance:
-    """Fronteras de T-402: no combina, no reemplaza la pasada raw, no mide v1."""
+    """Fronteras de T-402: no combina, no reemplaza la pasada raw, no mide paridad."""
 
     def test_la_pasada_raw_sigue_viendo_el_valor_crudo(self):
         # Es lo que le permite a T-303 reportar *qué se leyó* cuando el valor no

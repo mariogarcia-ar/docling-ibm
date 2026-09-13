@@ -2,11 +2,11 @@
 
 **Fase**: F4 (extracción) · **Tarea**: T-401 · **Épica**: E-EXT-1.
 
-Qué cambia respecto de los prompts de v1
+Qué cambia respecto de los prompts históricos
 ---------------------------------------
-Los prompts de extracción de v1 (`10-extraction_key_value_generic_prompt.yaml`,
+Los prompts de extracción del sistema anterior (`10-extraction_key_value_generic_prompt.yaml`,
 `11-extraction_key_value_invoice_prompt.yaml`, modos ``kvg``/``kvi`` de
-``v1/document_extraction.py``) pedían un **JSON plano normalizado y decidido**:
+el extractor original) pedían un **JSON plano normalizado y decidido**:
 el modelo devolvía ``cuit_emisor`` ya "cortado" en el CUIT, ``fecha_emision`` ya
 en ``YYYY-MM-DD``, ``comprobante_valido`` ya evaluado y ``categoria_gasto`` ya
 inferida. Eso es exactamente lo que **ADR-001** prohíbe: el contrato de
@@ -20,10 +20,10 @@ desdoblamiento que F2/T-202 (``validation/prompt_qween.py``) y F3/T-302
 (``classification/prompt_tipo_comprobante.py``): el *qué se le pide* queda
 separado del *cómo se interpreta la respuesta* (``evidencia.py``).
 
-Diferencias concretas con v1 (todas deliberadas):
+Diferencias concretas con el sistema anterior (todas deliberadas):
 
 ============================================  ==================================
-v1 (kvi/kvg)                                   v2 (``extraccion-key-value@1``)
+histórico (kvi/kvg)                                   (``extraccion-key-value@1``)
 ============================================  ==================================
 pide ``cuit_emisor`` ya normalizado            pide ``valor_crudo`` del CUIT tal como
                                                se lee (T-402 normaliza)
@@ -75,12 +75,12 @@ from typing import Any
 #
 # Historial de versiones:
 #   - ``extraccion-key-value@1``: primer prompt de **evidencia** de extracción
-#     (T-401). Porta de v1 (``10``/``11``) la **lista de campos**, las
+#     (T-401). Porta del sistema anterior (``10``/``11``) la **lista de campos**, las
 #     correcciones de OCR (O/0 dentro de palabras de texto libre) y la
 #     instrucción de no inventar, pero **quita toda decisión y normalización**
 #     (el valor se reporta tal como se lee, con su fragmento de sustento) y
 #     agrega el contrato de evidencia por campo (ADR-001). Los campos derivados
-#     de v1 (``comprobante_valido``, ``motivo_rechazo``, ``categoria_gasto``,
+#     del sistema anterior (``comprobante_valido``, ``motivo_rechazo``, ``categoria_gasto``,
 #     ``centro_de_costo``, ``alicuotas_detectadas``, ``monto_no_gravado``) quedan
 #     **fuera** del contrato: los calcula el programa o los resuelve el negocio.
 VERSION_PROMPT_EXTRACCION = "extraccion-key-value@1"
@@ -94,7 +94,7 @@ VERSION_PROMPT_EXTRACCION = "extraccion-key-value@1"
 #: es **compartido por las dos fuentes** (VLM y LLM): la evidencia de ambas debe
 #: ser comparable campo a campo (ADR-002, T-404).
 #:
-#: Los nombres siguen el vocabulario de v1 (``11-extraction_key_value_invoice``)
+#: Los nombres siguen el vocabulario del sistema anterior (``11-extraction_key_value_invoice``)
 #: para que la paridad de T-405 sea verificable campo a campo.
 CAMPOS_EXTRACCION: tuple[str, ...] = (
     "tipo_comprobante",
@@ -115,7 +115,7 @@ CAMPOS_EXTRACCION: tuple[str, ...] = (
     "descripcion",
 )
 
-#: Campos que el modelo **no** debe devolver y que los prompts de v1 sí pedían.
+#: Campos que el modelo **no** debe devolver y que los prompts del sistema anterior sí pedían.
 #: Se listan para dejarlo explícito en el prompt y en los tests (ADR-001/ADR-006):
 #:
 #:  * ``comprobante_valido`` / ``motivo_rechazo``: los resuelve el programa
@@ -197,7 +197,7 @@ def _lista_campos() -> str:
 # ---------------------------------------------------------------------------
 
 #: Base común del system prompt (tarea = evidencia, no decisión). Porta de los
-#: prompts 10/11 de v1 lo que **no** es una decisión: la corrección de O/0 en
+#: prompts 10/11 del sistema anterior lo que **no** es una decisión: la corrección de O/0 en
 #: palabras de texto libre y la prohibición de inventar datos.
 SYSTEM_PROMPT_EXTRACCION = (
     "Sos un extractor de datos de comprobantes argentinos (AFIP/ARCA).\n"

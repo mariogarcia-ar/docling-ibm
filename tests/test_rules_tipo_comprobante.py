@@ -8,7 +8,7 @@ combinaciones y la trazabilidad del orquestador.
 Las reglas se portan **literalmente** de
 ``prompts/wip/deteccion_tipo_factura.yaml`` (§``reglas`` + §``orden_de_evaluacion``);
 los criterios de aceptación son el Gherkin de E-CLAS-1
-(``v2/docs/plan/02-epicas/E-CLAS.md``).
+(``docs/plan/02-epicas/E-CLAS.md``).
 
 La suite es **pura** (sin Ollama, sin Docling): el motor de reglas es
 determinístico y se evalúa sobre el contexto tipado

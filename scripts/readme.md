@@ -12,7 +12,7 @@ Dos tipos de script conviven acá:
 
    ```bash
    python scripts/F6/t602.py          # 12 escenarios + 6 fronteras
-   python scripts/F3/t305.py          # paridad de la letra (5/5 vs 2/5)
+   python scripts/F3/t305.py          # exactitud de la letra
    ```
 
 2. **Utilidades operativas** (raíz de `scripts/`): herramientas para preparar y
@@ -47,7 +47,7 @@ Porta el loop de shell con `ffmpeg` y le corrige cuatro defectos:
 
 **Dimensiones alineadas al VLM.** Las dimensiones destino se calculan con
 `voucherflow.validation.prompt_qween.dimensiones_objetivo_vlm` — el **mismo**
-`smart_resize` de Qwen2.5-VL que usa el pipeline v2 — así el servidor no
+`smart_resize` de Qwen2.5-VL que usa el pipeline — así el servidor no
 re-escalea y el conteo de tokens es predecible. Los defaults (1024 px / calidad
 80 / piso de lado menor 256) salen de la librería: una sola fuente de verdad con
 la vista de revisión (E-QWE-2). Si la librería no se puede importar, cae a una
@@ -143,7 +143,7 @@ o backend no disponible · `130` interrumpido.
   gridding de Qwen2.5-VL). Sirve para comparar antes/después; no es lo que
   reporta el servidor.
 - ⚠️ **Cuidado con el OCR clásico.** Reducir *antes* de un OCR por píxeles
-  (RapidOCR/EasyOCR vía Docling, `v1/ocr_documents.py`) puede degradar la letra
+  (RapidOCR/EasyOCR vía Docling) puede degradar la letra
   chica. Usá `--solo-medir`, subí `--lado-mayor` o no reduzcas. Para el camino
   **VLM** (la imagen viaja al modelo) reducir es lo correcto.
 - **`--backend ffmpeg`** requiere un ffmpeg sano. El script hace un *preflight*

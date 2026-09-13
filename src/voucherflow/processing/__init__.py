@@ -2,7 +2,7 @@
 
 **Fase**: F1 (refactor docling). En F0 solo se deja el **esqueleto** con la
 firma pública de los submódulos y sus contratos de entrada/salida, sin lógica
-de negocio ni acoplamiento a scripts de ``v1/``.
+de negocio ni acoplamiento a scripts de el sistema anterior.
 
 Responsabilidades (doc 03 §4.1): decidir tipo de entrada, elegir ruta,
 normalizar y, en imágenes, aplicar gate de procesabilidad → clase de imagen →

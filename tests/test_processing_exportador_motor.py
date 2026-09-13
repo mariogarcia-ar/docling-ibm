@@ -3,7 +3,7 @@
 Validan:
   - ``markdown_exporter.exportar_por_posicion``: orden por posición visual
     (center_y horizontal / center_x vertical), tablas como ítem único
-    (E-DOC-3) — portado byte-compatible de ``v1/lib/orientation.py``.
+    (E-DOC-3) — portado byte-compatible del exportador de orientación.
   - ``ocr.elegir_motor``: selección ``ocr``/``vlm``/``auto`` (E-DOC-2) y hook
     ``transcribir_vlm`` (F1: no llama a Ollama, subplan §2.2).
 
@@ -59,7 +59,7 @@ def _clasif(clase: ClaseImagen, motor_sugerido: str = "ocr") -> ClasificacionIma
 class TestExportadorHorizontal:
     def test_agrupa_por_center_y_y_ordena_reverse(self):
         # 3 líneas (y=900, 500, 100). En horizontal las líneas salen de mayor a
-        # menor center_y (reverse=True, como v1: de abajo hacia arriba).
+        # menor center_y (reverse=True: de abajo hacia arriba).
         boxes = [
             _box("SUPERIOR", 20, 90, 180, 110),      # y=100
             _box("MEDIA", 20, 490, 180, 510),        # y=500

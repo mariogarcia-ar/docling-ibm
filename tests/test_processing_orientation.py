@@ -71,7 +71,7 @@ class TestOrientacionPorBox:
         assert orientacion_por_box(Box(texto="sin bbox")) is None
 
     def test_box_cuadrado_es_horizontal(self):
-        # ancho == alto -> horizontal (igual que v1: width >= height).
+        # ancho == alto -> horizontal (width >= height).
         b = _box("A", 0.1, 0.1, 0.3, 0.3)
         assert orientacion_por_box(b) == ORIENTACION_HORIZONTAL
 
@@ -90,7 +90,7 @@ class TestDetectarOrientacion:
         assert detectar_orientacion(boxes) == ORIENTACION_VERTICAL
 
     def test_sin_boxes_devuelve_horizontal(self):
-        # default horizontal (v1: si no hay orientaciones -> horizontal).
+        # default horizontal (si no hay orientaciones -> horizontal).
         assert detectar_orientacion([]) == ORIENTACION_HORIZONTAL
 
     def test_solo_boxes_sin_posicion_devuelve_horizontal(self):
@@ -98,7 +98,7 @@ class TestDetectarOrientacion:
         assert detectar_orientacion(boxes) == ORIENTACION_HORIZONTAL
 
     def test_empate_devuelve_horizontal(self):
-        # 1 vertical + 1 horizontal -> horizontal (v1: >=).
+        # 1 vertical + 1 horizontal -> horizontal (>=).
         boxes = [_box_vertical("v"), _box_horizontal("h")]
         assert detectar_orientacion(boxes) == ORIENTACION_HORIZONTAL
 

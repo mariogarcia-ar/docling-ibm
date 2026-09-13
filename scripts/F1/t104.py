@@ -19,7 +19,7 @@ cadena completa de F1 hasta T-104 y muestra el **motor efectivo** y el
        - Office/texto → Docling directo (texto nativo).
   5. T-104 ``exportar_documento()`` → Markdown final (política combinada:
      conserva tablas del crudo + ordena texto por posición), o el crudo de
-     Docling con ``--raw`` (equiv. ``v1/run_raw.py``).
+     Docling con ``--raw`` (el modo crudo).
 
 Uso:
     python scripts/F1/t104.py <archivo|carpeta>... [--motor MODO] [--raw]
@@ -164,7 +164,7 @@ def _procesar_archivo(
     fila["orient"] = detectar_orientacion(doc.boxes)
     fila["markdown"] = (
         doc.markdown if docling_raw else exportar_documento(doc)
-    )  # raw = crudo de Docling (equiv. v1/run_raw.py)
+    )  # raw = crudo de Docling (el modo crudo)
     fila["chars"] = len(fila["markdown"])
     return fila
 

@@ -259,7 +259,7 @@ def _parsear_json(contenido: str) -> Any:
     """Extrae el objeto JSON de la respuesta del modelo (T-302).
 
     Tolerante con las formas reales que devuelven los modelos locales (mismo
-    problema que resolvía ``extract_json`` de v1): JSON puro, JSON dentro de un
+    problema que resolvía ``extract_json`` del sistema anterior): JSON puro, JSON dentro de un
     bloque markdown ```` ```json ````, o JSON con prosa alrededor. Se intenta,
     en orden: ``json.loads`` directo → sin cercas de código → primer objeto JSON
     completo con ``raw_decode``.

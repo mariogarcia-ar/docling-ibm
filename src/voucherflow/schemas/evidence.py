@@ -1,8 +1,8 @@
-"""Contrato de evidencia del sistema documental (v2) — congelado en F0 (T-001).
+"""Contrato de evidencia del sistema documental  — congelado en F0 (T-001).
 
 Este módulo es la **base del contrato central** definido en
-``v2/docs/plan/00-glosario.md`` §2 y fijado como borrador pydantic en
-``v2/docs/plan/03-arquitectura-solucion.md`` §6 (decisión **ADR-001**: schema
+``docs/plan/00-glosario.md`` §2 y fijado como borrador pydantic en
+``docs/plan/03-arquitectura-solucion.md`` §6 (decisión **ADR-001**: schema
 estricto pydantic por campo). Es el esquema que **todos** los flujos
 (VLM / LLM / reglas de programa / ARCA / HITL) deben producir y consumir para
 poder comparar evidencia programáticamente.

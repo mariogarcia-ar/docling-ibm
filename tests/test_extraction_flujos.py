@@ -13,7 +13,7 @@ Qué se verifica, en el orden del entregable:
    ``categoria_gasto``, ``centro_de_costo``…: ADR-001/ADR-006). Los ``messages``
    se construyen por fuente (imagen en base64 / markdown en ``content``).
 2. **El intérprete** (``parsear_evidencia_extraccion``): no normaliza los valores
-   (T-402), no inventa campos ausentes, tolera el JSON plano de v1 (``kvi``/
+   (T-402), no inventa campos ausentes, tolera el JSON plano histórico (``kvi``/
    ``kvg``), registra el campo sin sustento como debilidad y conserva el valor
    fuera del vocabulario **crudo** para auditoría.
 3. **El contrato de F0** (``construir_source_evidence``): un ``EvidenceField``
@@ -313,8 +313,8 @@ class TestPromptExtraccion:
             assert "Si devolvés esos campos, se ignoran" in prompt
             assert "No inventes datos" in prompt
 
-    def test_conserva_las_correcciones_de_ocr_de_v1(self):
-        # Lo único que v1 corregía y se conserva: O/0 dentro de palabras libres.
+    def test_conserva_las_correcciones_de_ocr(self):
+        # La corrección de OCR que se conserva: O/0 dentro de palabras libres.
         assert "ROSARI0" in SYSTEM_PROMPT_EXTRACCION
         assert "No toques números" in SYSTEM_PROMPT_EXTRACCION
 
@@ -505,8 +505,8 @@ class TestParsearEvidencia:
         assert ev.campos["moneda"].valor == "ars"
         assert not any("vocabulario" in p for p in ev.problemas)
 
-    def test_tolera_el_shape_plano_de_v1(self):
-        # Compatibilidad con los modos kvi/kvg de v1: JSON plano sin envoltorio.
+    def test_tolera_el_shape_plano_historico(self):
+        # Compatibilidad con los modos kvi/kvg históricos: JSON plano sin envoltorio.
         crudo = json.dumps(
             {
                 "tipo_comprobante": "A",
@@ -517,7 +517,7 @@ class TestParsearEvidencia:
         ev = parsear_evidencia_extraccion(crudo, fuente="llm")
         assert ev.campos["tipo_comprobante"].valor == "A"
         assert ev.campos["cuit_emisor"].valor == "20-12345678-9"
-        # Sin sostento en el shape plano: v1 no lo pedía → todos débiles.
+        # Sin sostén en el shape plano: no se pedía → todos débiles.
         assert all(not c.con_sustento for c in ev.campos.values())
         assert ev.valida is False
 
@@ -577,7 +577,7 @@ class TestParsearEvidencia:
         assert ev.campos["tipo_comprobante"].valor == "A"
 
     def test_respuesta_malformada_conserva_el_crudo_para_diagnostico(self):
-        # Nota de honestidad portada de v1: el token aislado que algunos modelos
+        # Nota de honestidad: el token aislado que algunos modelos
         # emiten antes de la última llave no tiene una reparación fiable (se
         # comprobó al reproducirlo), así que se reporta el error y la respuesta
         # cruda queda disponible para el diagnóstico.
@@ -1122,10 +1122,10 @@ class TestFlujosPublicos:
 
 
 class TestVocabularios:
-    """El vocabulario cerrado de T-401 es explícito y está alineado con v1."""
+    """El vocabulario cerrado de T-401 es explícito y está documentado."""
 
     def test_tipo_comprobante_incluye_los_tiques(self):
-        # El prompt de v1 (regla 4) admite "090"/"099" para boletos: acá se
+        # El prompt de referencia (regla 4) admite "090"/"099" para boletos: acá se
         # evalúa qué se leyó, no qué letra decide el negocio (D-13 es de F3).
         assert set(VOCABULARIO_TIPO_COMPROBANTE) == {"A", "B", "C", "M", "E", "090", "099"}
 

@@ -4,28 +4,13 @@
 **Fase**: F3 (clasificación) · **Tarea**: T-305 · **Épica**: E-CLAS.
 
 Es el **reporte de cierre** de la fase (F3-subplan §10): agrega en un solo lugar
-las métricas del DoD de F3 y, cuando se pide, corre también la **paridad real**
-con v1 reutilizando las herramientas de T-305 (no las reimplementa).
-
-Dos niveles de ejecución (``--subset``)
----------------------------------------
-================================  ===============================================
-Nivel                             Qué corre
-================================  ===============================================
-``sinteticos`` (**default**)      Solo el tramo **determinista** del motor de
-                                  reglas: sin Ollama, sin Docling y sin v1. Es
-                                  la verificación reproducible del DoD en
-                                  cualquier máquina.
-``golden``                        Además corre la **paridad real** con v1:
-                                  ``paridad_contable.py`` (cadena 01→02→03) y
-                                  ``paridad_11_1.py`` (letra vs. `-M 11.1`) +
-                                  los negativos del golden.
-``todos``                         Sinónimo de ``golden`` (nivel máximo).
-================================  ===============================================
+las métricas del DoD de F3 sobre el tramo **determinista** del motor de reglas
+(sin Ollama, sin Docling y sin red), que es la verificación reproducible del DoD
+en cualquier máquina.
 
 Métricas que reporta
 --------------------
-Del **tramo determinista** (siempre, sobre `tests/golden/F3/subconjunto.json`):
+Sobre `tests/golden/F3/subconjunto.json`:
 
 1. **Exactitud de letra por categoría** (A/B/C/M/E) — la letra del subconjunto
    debe salir del motor de reglas R1-R7, no del prompt (ADR-006).
@@ -35,11 +20,6 @@ Del **tramo determinista** (siempre, sobre `tests/golden/F3/subconjunto.json`):
    evidencias existen.
 4. **Default CC0006** (criterio Gherkin de E-CLAS-2) — el valor por defecto del
    paso 01 cuando no hay señal específica.
-
-De la **corrida real** (con ``--subset golden``):
-
-5. **Paridad de la cadena contable** con v1 (coincidencia por campo).
-6. **Exactitud de letra vs. `-M 11.1`** (v2 y v1 sobre los mismos casos).
 
 Decisión de alcance
 -------------------
@@ -53,11 +33,7 @@ reporte no se lea como si midiera el golden completo.
 Uso:
     python scripts/F3/t305.py                        # métricas deterministas
     python scripts/F3/t305.py --detalle              # + traza por caso
-    python scripts/F3/t305.py --subset golden        # + paridad real con v1
     python scripts/F3/t305.py --json /tmp/t305.json  # reporte para la bitácora
-
-Nota: `--subset sinteticos` es el que corre en cualquier entorno (sin Ollama ni
-Docling). `golden` requiere Ollama local y `v1/` en el repo.
 """
 
 from __future__ import annotations
@@ -78,23 +54,21 @@ from voucherflow.classification import (  # noqa: E402
 )
 from voucherflow.rules.contexto import ContextoTipoComprobante  # noqa: E402
 
-#: Raíz del paquete v2 y del repo.
-RAIZ_V2 = Path(__file__).resolve().parents[2]
-RAIZ_REPO = RAIZ_V2.parent
+#: Raíz del repo.
+RAIZ_REPO = Path(__file__).resolve().parents[2]
 
-#: Raíz y manifiesto del subconjunto de paridad de F3.
-F3_DIR = RAIZ_V2 / "tests" / "golden" / "F3"
+#: Raíz y manifiesto del subconjunto de F3.
+F3_DIR = RAIZ_REPO / "tests" / "golden" / "F3"
 SUBCONJUNTO = F3_DIR / "subconjunto.json"
 
 #: Umbrales del DoD (F3-subplan §3.5 y `tests/golden/F3/README.md`). El tramo
 #: determinista debe ser exacto: la letra la decide el motor de reglas, no el
 #: modelo, así que un fallo es un defecto del motor, no ruido.
 UMBRAL_DETERMINISTA = 1.0
-UMBRAL_ACUERDO_V1 = 0.5
 
 
 def _cargar_subconjunto() -> dict:
-    """Lee el manifiesto del subconjunto de paridad de F3."""
+    """Lee el manifiesto del subconjunto de F3."""
     return json.loads(SUBCONJUNTO.read_text(encoding="utf-8"))
 
 
@@ -120,8 +94,6 @@ def _contexto_de(caso: dict) -> ContextoTipoComprobante:
 # ---------------------------------------------------------------------------
 # Métricas deterministas
 # ---------------------------------------------------------------------------
-
-
 def medir_letra(subconjunto: dict) -> dict[str, Any]:
     """Mide exactitud de letra (y por categoría) sobre los casos sintéticos (T-305).
 
@@ -316,83 +288,6 @@ def medir_default_cc0006() -> dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
-# Métricas de paridad real (delegan en las herramientas de T-305)
-# ---------------------------------------------------------------------------
-
-
-def correr_paridad_contable(modelo: str | None) -> dict[str, Any]:
-    """Corre `paridad_contable.py` y devuelve sus totales (T-305).
-
-    Se invoca como **subproceso** (no se importa) para no acoplar este reporte a
-    la estructura interna del script de paridad: lo que se consume es su salida
-    JSON, que es el contrato estable entre herramientas.
-    """
-    import subprocess
-    import tempfile
-
-    script = RAIZ_V2 / "scripts" / "F3" / "paridad_contable.py"
-    with tempfile.TemporaryDirectory(prefix="t305_contable_") as tmp:
-        salida = Path(tmp) / "paridad.json"
-        comando = [sys.executable, str(script), "--json", str(salida), "--detectar-modelo"]
-        if modelo:
-            comando.extend(["--modelo", modelo])
-        proceso = subprocess.run(
-            comando, cwd=RAIZ_V2, capture_output=True, text=True, timeout=3600
-        )
-        if not salida.exists():
-            return {
-                "error": "no se pudo correr la paridad contable",
-                "salida": (proceso.stdout or "")[-800:] + (proceso.stderr or "")[-800:],
-            }
-        datos = json.loads(salida.read_text(encoding="utf-8"))
-    return {
-        "totales": datos.get("totales", {}),
-        "casos": [
-            {"id": caso["id"], "veredicto": caso["veredicto"]}
-            for caso in datos.get("casos", [])
-        ],
-        "modelo": datos.get("modelo"),
-    }
-
-
-def correr_paridad_11_1(modelo: str | None) -> dict[str, Any]:
-    """Corre `paridad_11_1.py` y devuelve sus métricas (T-305)."""
-    import subprocess
-    import tempfile
-
-    script = RAIZ_V2 / "scripts" / "F3" / "paridad_11_1.py"
-    with tempfile.TemporaryDirectory(prefix="t305_letra_") as tmp:
-        salida = Path(tmp) / "paridad.json"
-        comando = [sys.executable, str(script), "--json", str(salida), "--detectar-modelo"]
-        if modelo:
-            comando.extend(["--modelo", modelo])
-        proceso = subprocess.run(
-            comando, cwd=RAIZ_V2, capture_output=True, text=True, timeout=3600
-        )
-        if not salida.exists():
-            return {
-                "error": "no se pudo correr la paridad de letra",
-                "salida": (proceso.stdout or "")[-800:] + (proceso.stderr or "")[-800:],
-            }
-        datos = json.loads(salida.read_text(encoding="utf-8"))
-    return {
-        "metricas": datos.get("metricas", {}),
-        "casos": [
-            {
-                "id": caso["id"],
-                "grupo": caso["grupo"],
-                "letra_v1": caso["letra_v1"],
-                "letra_v2": caso["letra_v2"],
-                "estado": caso["estado"],
-                "letra_esperada": caso.get("letra_esperada"),
-            }
-            for caso in datos.get("casos", [])
-        ],
-        "modelo": datos.get("modelo"),
-    }
-
-
-# ---------------------------------------------------------------------------
 # Impresión
 # ---------------------------------------------------------------------------
 
@@ -420,7 +315,6 @@ def imprimir_reporte(reporte: dict[str, Any], *, detalle: bool) -> int:
     print("Métricas del DoD de F3 — clasificación (T-305)")
     print("=" * 78)
     print(f"Subconjunto : {SUBCONJUNTO.relative_to(RAIZ_REPO)}")
-    print(f"Nivel       : {reporte['subset']}")
     print()
 
     print("--- Tipo/letra: tramo determinista (motor de reglas, sin Ollama) ---")
@@ -508,71 +402,13 @@ def imprimir_reporte(reporte: dict[str, Any], *, detalle: bool) -> int:
                 f"documento={caso['tipo_detectado_por_documento']} ({rol} esperada)"
             )
 
-    real = reporte.get("paridad_real")
-    if real:
-        print()
-        print("--- Paridad real con v1 (Ollama + v1) ---")
-        contable = real.get("contable", {})
-        if "error" in contable:
-            print(_linea("⚠", "Paridad cadena contable", contable["error"]))
-        else:
-            totales = contable.get("totales", {})
-            coinciden = totales.get("coincide", 0)
-            difieren = totales.get("difiere", 0)
-            no_comp = totales.get("no_comparable", 0)
-            emoji = "✅" if not difieren and coinciden else "➖"
-            print(
-                _linea(
-                    emoji,
-                    "Paridad cadena contable (campos)",
-                    f"coinciden {coinciden} · difieren {difieren} · no comparables {no_comp}",
-                )
-            )
-            print(f"      · modelo: {contable.get('modelo')}")
-            for caso in contable.get("casos", []):
-                print(f"      · {caso['id']}: {caso['veredicto']}")
-        letra_real = real.get("letra_11_1", {})
-        if "error" in letra_real:
-            print(_linea("⚠", "Paridad de letra (-M 11.1)", letra_real["error"]))
-        else:
-            metricas = letra_real.get("metricas", {})
-            print(
-                _linea(
-                    "➖",
-                    "Exactitud de letra — v2",
-                    f"{metricas.get('exactos_v2')}/{metricas.get('etiquetados')}",
-                )
-            )
-            print(
-                _linea(
-                    "➖",
-                    "Exactitud de letra — v1",
-                    f"{metricas.get('exactos_v1')}/{metricas.get('etiquetados')}",
-                )
-            )
-            print(
-                _linea(
-                    "➖",
-                    "Acuerdo con v1 (casos comparables)",
-                    f"{metricas.get('acuerdos')}/{metricas.get('comparables')}",
-                )
-            )
-            print(
-                "      · criterio: paridad **o mejora** documentada (F3-subplan §3.5); "
-                "v1 no concluyó la letra en "
-                f"{metricas.get('sin_letra_v1', 0)} caso(s)"
-            )
-
-    print()
     print("--- Alcance de estas métricas (honestidad del reporte) ---")
     print(
         "  · El subconjunto NO es el golden completo: la curación de letra y condición\n"
         "    fiscal con contador sigue pendiente (F2 §2.5). Por eso la medición masiva\n"
         "    no se reporta como hecha (F3-subplan §2.9).\n"
         "  · Los casos sintéticos cubren el tramo DETERMINISTA del motor (el que\n"
-        "    ADR-006 sacó del prompt); su exactitud debe ser 100% y bloquea la salida.\n"
-        "  · La paridad real con v1 se informa como \"paridad o mejora\", con las dos\n"
-        "    exactitudes a la vista para que un desacuerdo se lea con evidencia."
+        "    ADR-006 sacó del prompt); su exactitud debe ser 100% y bloquea la salida."
     )
     print()
     if fallos:
@@ -586,20 +422,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description=(
             "Reporte de métricas del DoD de F3 (T-305): exactitud de letra, alerta "
-            "R7, acuerdo negocio-vs-documento, default CC0006 y (opcional) la "
-            "paridad real con v1."
+            "R7, acuerdo negocio-vs-documento y default CC0006."
         )
     )
-    parser.add_argument(
-        "--subset",
-        choices=("sinteticos", "golden", "todos"),
-        default="sinteticos",
-        help=(
-            "sinteticos (default): solo el tramo determinista, sin Ollama ni v1. "
-            "golden/todos: además corre la paridad real con v1."
-        ),
-    )
-    parser.add_argument("--modelo", help="Modelo para la paridad real (default: detecta el instalado).")
     parser.add_argument("--detalle", action="store_true", help="Muestra la traza por caso.")
     parser.add_argument("--json", type=Path, help="Escribe el reporte completo en JSON.")
     args = parser.parse_args()
@@ -608,19 +433,12 @@ def main() -> None:
     reporte: dict[str, Any] = {
         "tarea": "T-305",
         "fase": "F3",
-        "subset": args.subset,
         "golden_version": subconjunto.get("golden_version"),
         "letra": medir_letra(subconjunto),
         "r7": medir_r7(subconjunto),
         "acuerdo_negocio_documento": medir_acuerdo_negocio_documento(subconjunto),
         "default_cc0006": medir_default_cc0006(),
     }
-
-    if args.subset in ("golden", "todos"):
-        reporte["paridad_real"] = {
-            "contable": correr_paridad_contable(args.modelo),
-            "letra_11_1": correr_paridad_11_1(args.modelo),
-        }
 
     codigo = imprimir_reporte(reporte, detalle=args.detalle)
 

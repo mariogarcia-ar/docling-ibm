@@ -1,34 +1,35 @@
 name: CI
 
-# CI básico de F0 (T-002): instala el paquete `voucherflow` (v2) y corre la
-# suite de tests. Los tests que requieren servicios reales (Docling/Ollama)
-# están marcados @pytest.mark.integration y no corren en CI por defecto.
+# CI básico (T-002): instala el paquete `voucherflow` y corre la suite de tests.
+# Los tests que requieren servicios reales (Docling/Ollama) están marcados
+# @pytest.mark.integration y no corren en CI por defecto.
 
 on:
   push:
     branches:
       - integracion
     paths:
-      - "v2/**"
+      - "src/**"
+      - "tests/**"
+      - "pyproject.toml"
       - ".github/workflows/ci.yml"
   pull_request:
     branches:
       - integracion
     paths:
-      - "v2/**"
+      - "src/**"
+      - "tests/**"
+      - "pyproject.toml"
       - ".github/workflows/ci.yml"
 
 jobs:
   test:
-    name: Tests voucherflow (v2)
+    name: Tests voucherflow
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         python-version: ["3.11", "3.12", "3.13"]
-    defaults:
-      run:
-        working-directory: v2
     steps:
       - uses: actions/checkout@v4
 

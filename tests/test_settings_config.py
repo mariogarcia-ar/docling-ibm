@@ -30,7 +30,7 @@ class TestDefaults:
         s = cargar_desde_dict({})
         vlm = s.modelo_para("vlm")
         assert vlm is not None
-        assert vlm.modelo == "qwen2.5vl:3b"  # heredado de v1
+        assert vlm.modelo == "qwen2.5vl:3b"  # modelo heredado por defecto
         assert s.modelo_vlm == "qwen2.5vl:3b"
         assert s.modelo_llm is not None
         assert s.modelo_agente is not None

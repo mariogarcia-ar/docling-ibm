@@ -22,7 +22,7 @@ Formato de la imagen en ``messages`` (T-202):
     ``qwen2.5vl:3b`` de este entorno: **validado empíricamente** — enviar la
     ruta (absoluta o relativa) en ``images`` devuelve HTTP 400 ``illegal
     base64 data`` porque Ollama interpreta cada ítem de ``images`` como base64.
-    Precedente del repo: ``v1/document_extraction.py`` (modalidad VLM) usa el
+    Precedente del repo: el extractor original (modalidad VLM) usa el
     mismo patrón (``base64.b64encode(ruta.read_bytes()).decode("ascii")``).
     **Antes de codificar se REDUCE la imagen** al lado mayor objetivo de la
     vista (:data:`LADO_MAYOR_OBJETIVO_POR_VISTA`: rápida 512 px / revisión
@@ -71,7 +71,7 @@ VERSION_PROMPT_QWEEN = "qween-gate@2"
 
 #: System prompt del gate "¿es comprobante?" (E-QWE-1). Portado de la idea
 #: fuente ``docs/ideas/qween.md`` §1, con definición de qué ES / qué NO ES un
-#: comprobante (v2, fix de falsos positivos — caso ``2926bed9``). Pide una
+#: comprobante (, fix de falsos positivos — caso ``2926bed9``). Pide una
 #: sola etiqueta de tres opciones (``comprobante | no_comprobante |
 #: indeterminado``), sin explicación.
 SYSTEM_PROMPT_QWEEN = (

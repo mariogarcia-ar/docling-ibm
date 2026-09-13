@@ -20,7 +20,7 @@ Veredicto por PDF (lo que usa la orquestación para elegir ruta):
   - ``parcial``       → mezcla: la orquestación puede procesar cada página con
                       su ruta (texto nativo las aptas, OCR las escaneadas).
 
-Umbrales calibrados (2026-09-06) contra ``v2/tests/fixtures`` (ver el script
+Umbrales calibrados (2026-09-06) contra ``tests/fixtures`` (ver el script
 de QA ``scripts/detectar_aptos_pdftotext_layout.py``, del que se portó la
 lógica). Requiere PyMuPDF (dependencia del paquete desde F1/T-101).
 """

@@ -1,4 +1,4 @@
-"""Resultados consolidados y trazabilidad (v2) — congelado en F0 (T-001).
+"""Resultados consolidados y trazabilidad  — congelado en F0 (T-001).
 
 Define el resultado final que devuelve la librería (``VoucherResult``, glosario
 §2.4) y el registro de trazabilidad completa por caso (``CaseRecord``, requisito

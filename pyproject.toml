@@ -5,11 +5,11 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "voucherflow"
 version = "0.1.0"
-description = "Librería robusta de procesamiento documental (clasificación, extracción y conclusión de comprobantes) — v2 del sistema documental."
+description = "Librería robusta de procesamiento documental (clasificación, extracción y conclusión de comprobantes)."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "Proprietary" }
-authors = [{ name = "Equipo v2 — ibm-docling" }]
+authors = [{ name = "Equipo voucherflow — ibm-docling" }]
 keywords = ["documentos", "comprobantes", "docling", "ollama", "pipeline"]
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -62,8 +62,8 @@ Homepage = "https://github.com/example/voucherflow"  # placeholder: lo define el
 where = ["src"]
 
 [tool.pytest.ini_options]
-# La raíz de tests vive en v2/tests. F0 usa unittest.mock para HTTP; respx/httpx
-# quedan como extras opcionales (no requeridos para la suite de F0).
+# La raíz de tests vive en tests/. Los tests de HTTP usan unittest.mock;
+# respx/httpx quedan como extras opcionales (no requeridos para la suite).
 testpaths = ["tests"]
 # Layout src/: permite importar ``voucherflow`` sin instalación previa.
 pythonpath = ["src"]

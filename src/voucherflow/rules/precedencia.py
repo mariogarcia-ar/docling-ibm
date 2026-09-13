@@ -227,7 +227,7 @@ def _orden_computado(campo: str, motivo: str) -> PrecedenciaCampo:
 #: Criterio de cada entrada (ver `EXT.md` §3 y ADR-002):
 #:
 #: * ``tipo_comprobante`` — **visual**: la letra del recuadro del encabezado es lo
-#:   que el VLM ve; es la fuente que v1 (`11.1`) declaraba prioritaria y la que
+#:   que el VLM ve; es la fuente que el sistema anterior (`11.1`) declaraba prioritaria y la que
 #:   ADR-002 cita como ejemplo ("visual gana en la letra del encabezado si el
 #:   recuadro se detectó con claridad").
 #: * ``nro_comprobante`` — **visual**: el número impreso está en el encabezado,
@@ -257,7 +257,7 @@ TABLA_PRECEDENCIA: dict[str, PrecedenciaCampo] = {
         _orden_visual(
             "nro_comprobante",
             "el número impreso está en el encabezado, junto al recuadro; el OCR "
-            "suele pegarlo al campo siguiente (regla 2b de v1).",
+            "suele pegarlo al campo siguiente (regla 2b del sistema anterior).",
         ),
         _orden_visual(
             "razon_social_emisor",

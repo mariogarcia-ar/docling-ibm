@@ -2,9 +2,9 @@
 
 **Fase**: F3 (clasificación) · **Tarea**: T-304 · **Épica**: E-CLAS-2.
 
-Refactoriza ``v1/classification_pipeline.py`` a la librería conservando su
+Refactoriza la cadena contable original a la librería conservando su
 **semántica** (paso 01 → paso 02 → paso 03, cada uno alimentado por el **primer**
-resultado del anterior) pero con lo que v1 no tenía: **contratos tipados entre
+resultado del anterior) pero con lo que el sistema anterior no tenía: **contratos tipados entre
 pasos**, checkpoints explícitos y una variante **pura** (sin red) testeable.
 
 Las dos capas (decisión de alcance F3-subplan §2.7)
@@ -25,13 +25,13 @@ Cada paso es una dataclass inmutable (:class:`OpcionCentroCosto`,
 :class:`OpcionMacroCategoria`, :class:`PasoConceptoCodigo`) y la cadena
 **nunca inventa** la entrada del paso siguiente: si un paso no devuelve
 opciones, se lanza :class:`ErrorCadenaContable` con los **resultados parciales**
-(``pasos``) preservados, igual que ``ClassificationError`` de v1. La cadena
+(``pasos``) preservados, igual que ``ClassificationError`` del sistema anterior. La cadena
 corta es un resultado legítimo (no un ``None`` silencioso) porque el paso 02
 necesita el centro de costo del 01 y el 03 necesita la macro del 02.
 
-Checkpoints (paridad con v1)
+Checkpoints (paridad con el sistema anterior)
 ----------------------------
-v1 guardaba ``<doc>_classification.json`` **después de cada paso**, con la clave
+se guarda ``<doc>_classification.json`` **después de cada paso**, con la clave
 ``pasos``, para poder reanudar sin volver a llamar al modelo. Se conserva el
 nombre y el shape (``{"archivo": ..., "pasos": {...}}``): T-305 compara contra
 esos sidecar y la paridad de nombres es parte del contrato.
@@ -42,7 +42,7 @@ Valores base (provisional documentado)
 todavía no extrae los campos (F3-subplan §2.7). Cuando F4 los entregue, la
 cadena los consume por ``base_values`` **sin cambiar su contrato**. ``descripcion``
 es el markdown ya procesado de F1 (portado literal del ``classify_document()`` de
-v1, que volcaba ``load_document_text()``).
+el sistema anterior, que volcaba ``load_document_text()``).
 """
 
 from __future__ import annotations
@@ -71,7 +71,7 @@ from .prompts_contable import (
 class ErrorCadenaContable(RuntimeError):
     """Un paso de la cadena contable falló (T-304).
 
-    Portado de ``ClassificationError`` de v1 (``v1/classification_pipeline.py``):
+    Portado de ``ClassificationError`` del sistema anterior (la cadena contable original):
     lleva los **resultados parciales** en :attr:`pasos` para poder evaluar hasta
     dónde llegó la cadena sin perder el trabajo ya hecho (y sin tener que volver
     a llamar al modelo de los pasos resueltos: el checkpoint los conserva).
@@ -149,14 +149,14 @@ class PasoConceptoCodigo:
 
 
 # ---------------------------------------------------------------------------
-# Accesores "primary_*" (portados de v1)
+# Accesores "primary_*" (portados del sistema anterior)
 # ---------------------------------------------------------------------------
 
 
 def primary_centro_costo(paso_01: Mapping[str, Any] | list[Any]) -> str:
-    """Código del **primer** centro de costo del paso 01 (portado de v1).
+    """Código del **primer** centro de costo del paso 01 (portado).
 
-    v1: ``options[0]["codigo_centro_costo"]``. Se conserva la semántica ("el
+    ``options[0]["codigo_centro_costo"]``. Se conserva la semántica ("el
     primero es el principal") y se agrega el mensaje explícito cuando la lista
     viene vacía o el primer ítem no trae el código.
 
@@ -180,7 +180,7 @@ def primary_centro_costo(paso_01: Mapping[str, Any] | list[Any]) -> str:
 
 
 def primary_macro_categoria(paso_02: Mapping[str, Any] | list[Any]) -> str:
-    """Macro categoría **principal** (la primera) del paso 02 (portado de v1).
+    """Macro categoría **principal** (la primera) del paso 02 (portado).
 
     Lanza:
         :class:`RespuestaContableInvalida` si no hay opciones o falta la macro.
@@ -307,7 +307,7 @@ class ResultadoCadenaContable:
             (``CC-01``/``CC-02``/``CC-03``) — no son reglas de decisión: el
             paso lo decide el modelo, esto solo registra qué etapas corrieron
             (E-CONC-5).
-        pasos: los JSON crudos de los tres pasos (paridad con el sidecar de v1).
+        pasos: los JSON crudos de los tres pasos (paridad con el sidecar de referencia).
         detalle: traza legible (criterio + versiones de prompt).
         requiere_revision_humana: ``True`` si el paso 03 lo pidió (celda "—" o
             código con alternativas).
@@ -396,7 +396,7 @@ def clasificar_pasos_contables(
         detalle={
             "criterio": (
                 "Cadena contable 01→02→03: el paso siguiente consume el primer "
-                "resultado del anterior (v1/classification_pipeline.py)."
+                "resultado del anterior (la cadena contable original)."
             ),
             "versiones_prompt": {
                 paso: definicion["version"] for paso, definicion in PASOS_CONTABLES.items()
@@ -413,14 +413,14 @@ def clasificar_pasos_contables(
 
 
 # ---------------------------------------------------------------------------
-# Checkpoints (paridad con v1)
+# Checkpoints (paridad con el sistema anterior)
 # ---------------------------------------------------------------------------
 
 
 def ruta_checkpoint(documento: str | Path) -> Path:
-    """Ruta del sidecar de checkpoints de un documento (paridad con v1).
+    """Ruta del sidecar de checkpoints de un documento (paridad con el sistema anterior).
 
-    v1: ``document_path.with_name(f"{document_path.stem}_classification.json")``.
+    ``document_path.with_name(f"{document_path.stem}_classification.json")``.
     Se conserva el nombre exacto porque T-305 compara contra esos sidecar.
     """
     ruta = Path(documento)
@@ -430,8 +430,8 @@ def ruta_checkpoint(documento: str | Path) -> Path:
 def escribir_checkpoint(ruta: str | Path, pasos: Mapping[str, Any], archivo: str = "") -> Path:
     """Escribe el checkpoint de la cadena de forma **atómica** (T-304).
 
-    Shape portado de v1 (``write_checkpoint``): ``{"archivo": ..., "pasos": {...}}``.
-    La escritura es atómica (tmp + ``replace``) porque v1 escribía **después de
+    Shape portado (``write_checkpoint``): ``{"archivo": ..., "pasos": {...}}``.
+    La escritura es atómica (tmp + ``replace``) porque el sistema anterior escribía **después de
     cada paso** y una interrupción a mitad de escritura dejaría un sidecar
     ilegible que rompería la reanudación.
 
@@ -455,7 +455,7 @@ def leer_checkpoint(ruta: str | Path) -> dict[str, Any]:
 
     Devuelve el dict ``pasos`` (vacío si el archivo no existe o está corrupto:
     un checkpoint ilegible debe **degradar a re-ejecutar**, nunca romper la
-    corrida). Portado del patrón de reanudación de v1.
+    corrida). Portado del patrón de reanudación del sistema anterior.
     """
     import json
 
@@ -498,7 +498,7 @@ def _parsear_json(contenido: str, paso: str) -> Mapping[str, Any]:
 
     Tolerante con las formas reales de los modelos locales (JSON puro, JSON
     dentro de cercas markdown, JSON con prosa alrededor), igual que
-    ``extract_json`` de v1 y que ``_parsear_json`` de T-302. A diferencia de
+    ``extract_json`` del sistema anterior y que ``_parsear_json`` de T-302. A diferencia de
     T-302, acá una respuesta inválida es un **error de la cadena** (no una
     lectura débil): sin JSON no hay opciones y el paso siguiente no tiene
     entrada.
@@ -660,7 +660,7 @@ def _adjuntar_parciales(error: ErrorCadenaContable, pasos: Mapping[str, Any]) ->
     puede querer distinguir "la respuesta del modelo no era JSON" de "el paso no
     trajo opciones". Por eso no se degrada a la clase base: se reconstruye con
     ``type(error)`` y se le adjuntan los ``pasos`` resueltos hasta el momento
-    (paridad con ``ClassificationError.steps`` de v1).
+    (paridad con ``ClassificationError.steps`` del sistema anterior).
     """
     nuevo = type(error)(str(error))
     nuevo.pasos = dict(pasos)
@@ -681,7 +681,7 @@ def ejecutar_cadena(
 ) -> ResultadoCadenaContable:
     """Corre la cadena completa 01→02→03 con checkpoints (T-304).
 
-    Portado del ``classify_document()`` de v1: **después de cada paso** escribe el
+    Portado del ``classify_document()`` del sistema anterior: **después de cada paso** escribe el
     checkpoint (``<doc>_classification.json``) y, si el checkpoint ya tenía un
     paso resuelto, **no** vuelve a llamar al modelo para ese paso (reanudación).
     El paso siguiente consume el **primer** resultado del anterior
@@ -689,7 +689,7 @@ def ejecutar_cadena(
 
     Argumentos:
         cliente: ``OllamaClient`` (en la suite default un doble).
-        descripcion: el markdown procesado de F1 (v1 volcaba el texto completo).
+        descripcion: el markdown procesado de F1 (el sistema anterior volcaba el texto completo).
         condicion_impositiva: ``21`` (default) | ``10_5`` | ``27`` | ``2_5`` |
             ``exento_no_gravado``.
         proveedor / monto: campos que F4 todavía no extrae; ``None`` los manda
@@ -709,7 +709,7 @@ def ejecutar_cadena(
         :class:`ErrorCadenaContable` (o su subclase
         :class:`RespuestaContableInvalida`) con ``error.pasos`` = los pasos ya
         resueltos, para poder evaluar resultados parciales (paridad con
-        ``ClassificationError`` de v1).
+        ``ClassificationError`` del sistema anterior).
     """
     destino_checkpoint: Path | None = None
     if checkpoint is not None:
@@ -805,9 +805,9 @@ def ejecutar_cadena(
 def base_values(
     descripcion: str, *, proveedor: str | None = None, monto: str | None = None
 ) -> dict[str, str]:
-    """Arma el ``base_values`` de la cadena (paridad con v1, T-304).
+    """Arma el ``base_values`` de la cadena (paridad con el sistema anterior, T-304).
 
-    Portado literal de ``classify_document()`` de v1: ``proveedor`` y ``monto``
+    Portado literal de ``classify_document()`` del sistema anterior: ``proveedor`` y ``monto``
     son ``"no informado"`` hasta que F4 entregue los campos extraídos, y
     ``descripcion`` es el markdown procesado. Se expone para que F4 reemplace el
     provisional pasando los valores reales **sin cambiar el contrato**.

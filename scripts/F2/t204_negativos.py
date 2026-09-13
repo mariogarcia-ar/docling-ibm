@@ -11,7 +11,7 @@ prompt del gate declara (`prompt_qween.SYSTEM_PROMPT_QWEEN`): capturas de
 sistemas/billeteras, extractos/resúmenes, documentos personales, memos,
 presupuestos y fotos ajenas al gasto.
 
-Los archivos se escriben en ``v2/tests/fixtures/negativos/`` (carpeta
+Los archivos se escriben en ``tests/fixtures/negativos/`` (carpeta
 versionada) y quedan **commiteados**: los tests de la suite default no
 regeneran nada (solo leen las rutas del ``casos.csv``). Este script existe para
 *documentar y reproducir* su origen (trazabilidad del golden), no para correr
@@ -27,8 +27,8 @@ Sin dependencias nuevas declaradas:
     nativo con Helvetica, apto para ``pdftotext`` y para el detector de F1).
 
 Uso:
-    cd v2 && python scripts/F2/t204_negativos.py           # regenera todo
-    cd v2 && python scripts/F2/t204_negativos.py --listar  # solo lista
+    python scripts/F2/t204_negativos.py           # regenera todo
+    python scripts/F2/t204_negativos.py --listar  # solo lista
 
 Los contenidos son **genéricos y sin PII** (no hay CUIT, nombres ni montos
 reales): son plantillas sintéticas para el gate, según la regla del golden de

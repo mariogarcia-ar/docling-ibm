@@ -20,8 +20,8 @@ import pytest
 
 from voucherflow.cli.main import COMANDOS
 
-RAIZ_V2 = Path(__file__).resolve().parents[1]
-DOC_USUARIO = RAIZ_V2 / "docs" / "usuario"
+RAIZ = Path(__file__).resolve().parents[1]
+DOC_USUARIO = RAIZ / "docs" / "usuario"
 
 #: Los documentos que la guía del operador debe tener (F6/T-605; T-606 sumó el de
 #: la API HTTP).
@@ -35,7 +35,7 @@ DOCS_REQUERIDOS = (
 )
 
 #: La guía de lotes vive en la raíz del repo (ligada desde `README.md`).
-BATCH_MD = RAIZ_V2.parent / "BATCH.md"
+BATCH_MD = RAIZ / "BATCH.md"
 
 
 def _texto(nombre: str) -> str:
@@ -297,7 +297,7 @@ def test_las_secciones_de_configuracion_usan_claves_reales() -> None:
 
 
 # ---------------------------------------------------------------------------
-# README de v2
+# README del proyecto
 # ---------------------------------------------------------------------------
 
 
@@ -333,17 +333,17 @@ def test_el_indice_enlaza_la_guia_de_la_api_http() -> None:
     assert "05-api-http.md" in _texto("README.md")
 
 
-def test_el_readme_de_v2_enlaza_la_guia_del_operador() -> None:
-    """`v2/README.md` apunta a `docs/usuario/` y el enlace resuelve."""
-    texto = (RAIZ_V2 / "README.md").read_text(encoding="utf-8")
+def test_el_readme_enlaza_la_guia_del_operador() -> None:
+    """`README.md` apunta a `docs/usuario/` y el enlace resuelve."""
+    texto = (RAIZ / "README.md").read_text(encoding="utf-8")
     assert "docs/usuario/" in texto, (
-        "v2/README.md no enlaza la guía del operador: quien llega al paquete no "
+        "README.md no enlaza la guía del operador: quien llega al paquete no "
         "encuentra cómo usarlo (F6/T-605)."
     )
     for destino in _enlaces_markdown(texto):
         if "://" in destino or destino.startswith("#"):
             continue
         if "docs/usuario" in destino:
-            assert (RAIZ_V2 / destino).resolve().exists(), (
-                f"v2/README.md enlaza {destino}, que no existe."
+            assert (RAIZ / destino).resolve().exists(), (
+                f"README.md enlaza {destino}, que no existe."
             )

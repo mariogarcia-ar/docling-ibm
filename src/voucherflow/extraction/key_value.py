@@ -8,7 +8,7 @@ T-401 dejó a propósito los valores **crudos**: el flujo reporta *qué se leyó
 (``CampoLectura.valor``) y *con qué sostén* (``fragmento_sustento``), y el
 programa —no el prompt— es el que decide la representación canónica (ADR-001).
 Este módulo es ese paso: convierte la lectura cruda en la **representación
-normalizada** de E-EXT-3, reutilizando las reglas de normalización que en v1
+normalizada** de E-EXT-3, reutilizando las reglas de normalización que en el sistema anterior
 vivían **dentro** de los prompts ``10``/``11`` (``kvi``/``kvg``) y que ahora se
 pueden testear de forma determinística:
 
@@ -20,7 +20,7 @@ pueden testear de forma determinística:
 "ars"                       --NORM_MONEDA------>  "ARS"
 ```
 
-Reglas portadas de v1 (``11-extraction_key_value_invoice`` /
+Reglas portadas del sistema anterior (``11-extraction_key_value_invoice`` /
 ``10-extraction_key_value_generic``) — ninguna inventa datos:
 
 * **CUIT** (regla 2b de ``11``): solo dígitos y los guiones propios del número
@@ -42,7 +42,7 @@ Reglas portadas de v1 (``11-extraction_key_value_invoice`` /
   ``" | "``): se estructuran sin inventar: lo que no se reconoce queda como
   descripción del ítem.
 * **Moneda** (regla 14 de ``11``): ``USD``/``U$S`` → ``USD``; ``$``/``ARS`` →
-  ``ARS``. **No** se aplica el default ``ARS`` de v1: eso sería inventar una
+  ``ARS``. **No** se aplica el default ``ARS`` del sistema anterior: eso sería inventar una
   moneda que el documento no declaró (el campo ausente lo reporta T-401).
 * **Texto** (reglas 1/8 de ``11``): espacios colapsados; ``descripcion`` en
   minúsculas (la regla 8 la pide así). La corrección O/0 dentro de palabras
@@ -92,7 +92,7 @@ Qué **no** hace T-402
   módulo **normaliza**; la pasada raw sigue viendo el **crudo** (T-401), que es
   lo que le permite reportar *qué se leyó* cuando el valor no sirve.
 * No combina las evidencias de las dos fuentes: T-404.
-* No mide paridad con v1: T-405.
+* No mide paridad con el sistema anterior: T-405.
 """
 
 from __future__ import annotations
@@ -256,12 +256,12 @@ _RE_ITEM_CANTIDAD = re.compile(r"^(?P<desc>.*?)\s*[xX]\s*(?P<cantidad>[\d.,]+)\s
 #: Motivos (mensajes legibles, en español, con la regla que los produce).
 MOTIVO_SIN_DIGITOS = (
     "no contiene un número reconocible; se conserva el valor tal como se leyó y "
-    "no se inventa uno normalizado (T-402, regla de {etiqueta} de v1)"
+    "no se inventa uno normalizado (T-402, regla de {etiqueta} del sistema anterior)"
 )
 MOTIVO_CUIT_INCOMPLETO = (
     "quedó {digitos} dígitos, no los 11 del CUIT completo ({forma}); el OCR "
     "pudo truncar o pegar el campo siguiente — se corta como pide la regla 2b de "
-    "v1 y se conserva lo leído (T-402)"
+    "el crudo y se conserva lo leído (T-402)"
 )
 MOTIVO_FECHA_NO_RECONOCIDA = (
     "no se reconoció una fecha completa (día, mes y año); se conserva el valor "
@@ -277,7 +277,7 @@ MOTIVO_FECHA_INEXISTENTE = (
 )
 MOTIVO_MONTO_NO_RECONOCIDO = (
     "no se reconoció un importe numérico; se conserva el valor tal como se leyó "
-    "y no se inventa (T-402, regla de montos de v1)"
+    "y no se inventa (T-402, regla de montos del sistema anterior)"
 )
 MOTIVO_MONTO_AMBIGUO = (
     "el separador {sep!r} con 3 dígitos detrás es ambiguo (miles o decimales); "
@@ -329,7 +329,7 @@ class AvisoNormalizacion:
     Campos:
         campo: campo al que se refiere el aviso.
         regla: id de la regla que lo produce (:data:`NORM_*`).
-        motivo: explicación legible (en español, con la regla de v1 citada).
+        motivo: explicación legible (en español, con la regla del sistema anterior citada).
         debilidad: si ``True``, el llamador lo agrega a ``problemas`` de la
             lectura (y de ahí a ``debilidades`` del ``SourceEvidence``).
         valor: valor **publicado** (el crudo conservado, o el normalizado con
@@ -469,7 +469,7 @@ class NormalizacionEvidencia:
 
 
 def normalizar_texto(valor: Any) -> Any:
-    """Colapsa los espacios de un texto (reglas 1/8 de v1; T-402).
+    """Colapsa los espacios de un texto (reglas 1/8 del prompt de referencia; T-402).
 
     Quita espacios al principio/fin y colapsa los internos (el OCR pega columnas
     con espacios múltiples). **No** cambia mayúsculas ni corrige O/0: la
@@ -484,7 +484,7 @@ def normalizar_texto(valor: Any) -> Any:
 def normalizar_descripcion(valor: Any) -> Any:
     """Normaliza la ``descripcion``: minúsculas + espacios colapsados (T-402).
 
-    v1 (regla 8 de ``11``) pide la descripción "en minúsculas, basada en los
+    la regla 8 del prompt de referencia pide la descripción "en minúsculas, basada en los
     ítems o el concepto impreso"; ese formato se aplica acá en código en vez de
     pedírselo al modelo (ADR-001: el prompt no normaliza).
     """
@@ -506,9 +506,9 @@ def normalizar_vocabulario(valor: Any) -> Any:
 
 
 def normalizar_cuit(valor: Any) -> str | None:
-    """Normaliza un CUIT/CUIL: dígitos y guiones propios (regla 2b de v1, T-402).
+    """Normaliza un CUIT/CUIL: dígitos y guiones propios (regla 2b del sistema anterior, T-402).
 
-    Política (literal de la regla de v1): se toma el número desde el **primer
+    Política (literal de la regla del sistema anterior): se toma el número desde el **primer
     dígito** (tolera que la lectura haya incluido la etiqueta) y se avanza
     aceptando dígitos y guiones **del propio número** (un guión solo vale si está
     entre dígitos); cualquier otro carácter corta la lectura, aunque el resultado
@@ -761,10 +761,10 @@ def normalizar_monto(valor: Any) -> int | float | None:
 
 
 def normalizar_moneda(valor: Any) -> str | None:
-    """Normaliza la moneda a ``ARS``/``USD`` (regla 14 de v1, T-402).
+    """Normaliza la moneda a ``ARS``/``USD`` (regla 14 del sistema anterior, T-402).
 
-    v1 aceptaba ``USD`` y ``U$S`` como dólar, y el ``$`` como peso en un
-    comprobante argentino. La **diferencia** con v1 es que acá **no** se aplica su
+    el prompt de referencia aceptaba ``USD`` y ``U$S`` como dólar, y el ``$`` como peso en un
+    comprobante argentino. La **diferencia** con el sistema anterior es que acá **no** se aplica su
     default ("sin indicio explícito usá ARS"): eso sería inventar una moneda que
     el documento no declaró — si el modelo no leyó la moneda, el campo queda
     ausente (T-401) y el negocio lo resuelve en la conclusión.
@@ -1400,7 +1400,7 @@ def valores_normalizados(evidencia: EvidenciaExtraccion) -> dict[str, Any]:
     """Mapa ``campo -> valor normalizado`` de una lectura (atajo para T-404/T-405).
 
     Normaliza sobre la marcha (no exige haber pasado antes por
-    :func:`normalizar_evidencia`) para que la paridad con v1 de T-405 pueda
+    :func:`normalizar_evidencia`) para que la paridad con el sistema anterior de T-405 pueda
     comparar campos sin armar la evidencia completa.
     """
     salida: dict[str, Any] = {}

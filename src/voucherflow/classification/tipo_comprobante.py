@@ -75,7 +75,7 @@ class TipoComprobanteResult:
 class ClasificacionContableResult:
     """Salida de la cadena contable 01 → 02 → 03 (E-CLAS-2).
 
-    Los cuatro campos de v1 (``centro_costo``/``macro_categoria``/``concepto``/
+    Los cuatro campos del sistema anterior (``centro_costo``/``macro_categoria``/``concepto``/
     ``codigo``) y ``reglas_aplicadas`` son el contrato congelado de F0. **T-304**
     agrega —aditivo, con default, como permite la regla dura del subplan §4— los
     que la cadena real ya produce y que sin lugar propio se perderían:
@@ -145,7 +145,7 @@ def clasificar_tipo_comprobante(
             (recomendado) o un ``dict``/mapping con el shape plano o anidado del
             WIP (se construye el contexto con ``desde_dict``).
         preferencia_letra: ``"documento"`` (default, la decisión de ``11.1`` de
-            v1: si la letra detectada contradice la esperada, manda la
+            Si la letra detectada contradice la esperada, manda la
             detectada) o ``"negocio"`` (el WIP ``deteccion_tipo_factura.yaml``:
             "la ley manda sobre el papel"). Ver F3-subplan §2.4.
         candidatos_raw: candidatos curados por la pasada raw (T-303) — un
@@ -538,7 +538,7 @@ def clasificar_contable(
 
     Dos formas de entrada (ambas sin red):
 
-    1. ``pasos`` — el checkpoint de v1 (``{"01_centro_costo": ..., ...}``) o
+    1. ``pasos`` — el checkpoint del sistema anterior (``{"01_centro_costo": ..., ...}``) o
        cualquier mapping con esas claves. Es la vía natural para reusar un
        sidecar ya calculado.
     2. ``centro_costo`` + ``macro_categoria`` + ``paso_03`` — los tres pasos
@@ -607,7 +607,7 @@ def _pasos_contables_de(
 ) -> tuple[Any, Any, Mapping[str, Any]]:
     """Normaliza las dos formas de entrada de ``clasificar_contable`` (T-304).
 
-    Acepta el mapping de pasos (con las claves largas del checkpoint de v1:
+    Acepta el mapping de pasos (con las claves largas del checkpoint del sistema anterior:
     ``01_centro_costo``/``02_macro_categoria``/``03_concepto_codigo_final``, o
     las cortas ``01``/``02``/``03``) o los tres pasos sueltos. En la forma suelta,
     el centro y la macro se envuelven en el shape del prompt

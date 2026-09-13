@@ -87,7 +87,7 @@ módulo devuelve las dos `SourceEvidence` **sin colapsarlas** (ADR-001/ADR-002).
 Qué **no** hace T-401 (para no adelantar tareas)
 -----------------------------------------------
 * No combina ni resuelve desacuerdos entre fuentes: **T-404**.
-* No mide paridad con v1 ni arma el `CombinedEvidence` final: **T-405/T-404**.
+* No mide paridad con el sistema anterior ni arma el `CombinedEvidence` final: **T-405/T-404**.
 
 La **normalización** de los valores NO vive acá: la aporta
 :mod:`voucherflow.extraction.key_value` (**T-402**, E-EXT-3), y
@@ -203,7 +203,7 @@ _FUENTE_SCHEMA: dict[str, Fuente] = {"vlm": Fuente.vlm, "llm": Fuente.llm}
 #: aplica la regla de vocabulario del registro raw (son texto libre o números).
 #:
 #: ``tipo_comprobante`` incluye los códigos de tique ``090``/``099`` porque el
-#: prompt los admite explícitamente para boletos de colectivo (v1, prompt 11,
+#: prompt los admite explícitamente para boletos de colectivo (prompt 11,
 #: regla 4) a diferencia del vocabulario del motor R1-R7 de F3 —que los deja
 #: fuera por la decisión abierta **D-13**—: acá se evalúa **qué se leyó**, no qué
 #: letra decide el negocio.
@@ -260,7 +260,7 @@ CAMPOS_SOSTEN_ESTRUCTURADO: frozenset[str] = frozenset(
 #: ``prompts/facturacion/11.1-deteccion_tipo_factura.yaml`` lista los conflictos
 #: de la letra con los datos tributarios ("A es débil si faltan dos CUIT o IVA
 #: discriminado", "B es incompatible con IVA discriminado", "C es incompatible
-#: con emisor Responsable Inscripto"); la regla 5 del prompt `11` de v1
+#: con emisor Responsable Inscripto"); la regla 5 del prompt `11` de referencia
 #: (``kvi``) define cómo se desglosan los importes según la letra (A discrimina;
 #: B/C/090/099 no).
 #:
@@ -272,8 +272,8 @@ CAMPOS_SOSTEN_ESTRUCTURADO: frozenset[str] = frozenset(
 #: * ``iva`` se declara con los valores que el prompt de extracción admite para
 #:   el impuesto **no discriminado** (el numérico ``0``/``0.0`` y sus formas
 #:   textuales ``"0"``/``"0,00"``/``"0.00"``): el desglose de importes es la señal
-#:   de "A discrimina / B no discrimina" que el prompt de v1 define.
-#: * El ``monto_no_gravado`` **no** se usa como requisito: el prompt de v1 (regla
+#:   de "A discrimina / B no discrimina" que el prompt del sistema anterior define.
+#: * El ``monto_no_gravado`` **no** se usa como requisito: el prompt del sistema anterior (regla
 #:   6 de ``11``) lo declara un campo de ajuste manual del contador que no se
 #:   debe calcular ni inventar, así que su ausencia nunca es una incoherencia.
 #: * La **condición fiscal del emisor** (que permitiría "C no admite emisor
@@ -286,7 +286,7 @@ COHERENCIA_POR_CAMPO: dict[str, tuple[ImplicacionCoherencia, ...]] = {
             disparador="A",
             motivo=(
                 "una Factura A discrimina IVA y exige el CUIT del emisor y del "
-                "receptor (regla 5 del prompt 11 de v1)."
+                "receptor (regla 5 del prompt 11 del sistema anterior)."
             ),
             requeridos=("cuit_emisor", "cuit_receptor"),
         ),
@@ -294,7 +294,7 @@ COHERENCIA_POR_CAMPO: dict[str, tuple[ImplicacionCoherencia, ...]] = {
             disparador="B",
             motivo=(
                 "una Factura B no discrimina IVA: su importe es único y el IVA "
-                "debe ser cero (regla 5 del prompt 11 de v1)."
+                "debe ser cero (regla 5 del prompt 11 del sistema anterior)."
             ),
             incompatibles={"iva": (0, 0.0, "0", "0,00", "0.00")},
         ),
@@ -539,15 +539,15 @@ def _parsear_json(contenido: str) -> Any:
     """Extrae el objeto JSON de la respuesta del modelo (T-401).
 
     Tolerante con las formas reales de los modelos locales (mismo problema que
-    resolvía ``extract_json`` de v1 y ``_parsear_json`` de F3/T-302): JSON puro,
+    resolvía ``extract_json`` del sistema anterior y ``_parsear_json`` de F3/T-302): JSON puro,
     JSON dentro de un bloque markdown ```` ```json ````, o JSON con prosa
     alrededor. Se intenta, en orden: ``json.loads`` directo → sin cercas de
     código → primer objeto JSON completo con ``raw_decode``.
 
-    Nota de honestidad: la reparación del token aislado que hacía v1 no se
-    porta. Al reproducir el incidente de v1 se comprobó que sustituciones
+    Nota de honestidad: la reparación del token aislado que hacía el sistema anterior no se
+    porta. Al reproducir el incidente del sistema anterior se comprobó que sustituciones
     razonables de ese patrón (``"v"`` → ``"``, borrado del token) **no**
-    convierten esas respuestas en JSON válido: el texto de v1 solo dejaba
+    convierten esas respuestas en JSON válido: el texto del sistema anterior solo dejaba
     constancia de la observación. Portar una reparación que no repara sería
     ruido; ``ErrorEvidencia`` conserva la respuesta cruda (``evidencia.crudo``)
     para poder diagnosticar el caso real si vuelve a aparecer.
@@ -836,7 +836,7 @@ def parsear_evidencia_extraccion(contenido: str, *, fuente: str) -> EvidenciaExt
     Normalizaciones aplicadas (todas documentadas, ninguna inventa datos):
 
     1. Se leen los campos de ``campos`` (objeto ``nombre -> {valor,
-       fragmento_sustento}``). Si el modelo devuelve el shape **plano** de v1
+       fragmento_sustento}``). Si el modelo devuelve el shape **plano** histórico
        (``{"cuit_emisor": "20-1", ...}``) también se acepta —ver
        :func:`_campos_del_payload`—: es el modo ``kvi``/``kvg`` y no debe perder
        la lectura por una diferencia de envoltorio.
@@ -962,7 +962,7 @@ def _campos_del_payload(datos: Mapping[str, Any]) -> dict[str, Any]:
         {"fuente_lectura": "llm",
          "campos": {"cuit_emisor": {"valor": "20-1", "fragmento_sustento": "…"}}}
 
-    Compatibilidad con v1 (modos ``kvi``/``kvg``): el JSON **plano** donde cada
+    Compatibilidad con el sistema anterior (modos ``kvi``/``kvg``): el JSON **plano** donde cada
     clave del documento es un campo::
 
         {"cuit_emisor": "20-1", "importe_total_facturado": 12345.67}
@@ -990,10 +990,10 @@ def _partir_campo(bruto: Any) -> tuple[Any, Any, list[str]]:
     * ``{"valor": …, "fragmento_sustento": …}`` (contrato del prompt) → se toman
       esas dos claves (:data:`CLAVES_POR_CAMPO`) y las demás se **ignoran**,
       devolviéndolas aparte para poder reportar la deriva del contrato.
-    * un escalar/lista (shape plano de v1) → el valor es tal cual y el sostén
+    * un escalar/lista (shape plano del sistema anterior) → el valor es tal cual y el sostén
       queda vacío. Es una lectura **sin sustento** (se registra en
-      ``problemas``): v1 no pedía sostén, así que un modelo que responde al
-      estilo v1 no puede aportarlo.
+      ``problemas``): el sistema anterior no pedía sostén, así que un modelo que responde al
+      estilo el sistema anterior no puede aportarlo.
     """
     if isinstance(bruto, Mapping) and (
         "valor" in bruto or "fragmento_sustento" in bruto
@@ -1420,7 +1420,7 @@ def ejecutar_flujo(
     # Normalización (T-402): la pasada raw de T-303 se corre sobre la evidencia
     # **cruda** (es la que puede reportar qué se leyó cuando el valor no sirve) y
     # el ``SourceEvidence`` publica el valor **normalizado** — la representación
-    # canónica de E-EXT-3 que consumen la conclusión y la paridad con v1.
+    # canónica de E-EXT-3 que consumen la conclusión y la paridad con el sistema anterior.
     informe = None
     if normalizar:
         evidencia, informe = _normalizar(evidencia)

@@ -35,7 +35,7 @@ Contrato público (congelado para F2/F3/F4):
 Opción A (decisión de alcance, subplan F1 §2.5): el keyword ``docling_raw``
 expone en ``ProcessedDocument.markdown`` el **raw de Docling** (el markdown
 crudo de ``export_to_markdown()`` del adaptador, sin el reordenado por
-posición del exportador E-DOC-3); equivale a ``v1/run_raw.py``. Aplica al
+posición del exportador E-DOC-3); equivale a el modo crudo. Aplica al
 documento completo (imagen/PDF apto/office/texto y PDF escaneado vía imagen
 renderizada); en PDF mixto/parcial el crudo pleno no existe (las páginas aptas
 usan PyMuPDF, no Docling por página) y se anota ``parcial_no_aplica`` en
@@ -167,7 +167,7 @@ def _procesar_texto_nativo(
         tablas del crudo y ordena el texto por posición cuando no las hay) o,
         si ``docling_raw=True`` (Opción A, subplan F1 §2.5), el **crudo de
         Docling** tal cual lo devolvió ``conv.convert`` (sin reordenar por
-        posición; equivale a ``v1/run_raw.py``).
+        posición; equivale a el modo crudo).
       - ``calidad``: texto nativo no pasa por el gate de imagen (T-102); se
         deja ``None`` salvo que el llamador provea una nota (p. ej. un PDF con
         ruteo parcial, donde conviene registrar la estrategia aplicada). Con
@@ -255,7 +255,7 @@ def _procesar_pdf_apto(
         ``_procesar_texto_nativo`` (Docling directo; comportamiento previo A1).
       - ``docling_raw=True`` (Opción A, subplan F1 §2.5) → se mantiene Docling
         directo siempre (el crudo pleno de Docling es la semántica de ``raw``,
-        equiv. ``v1/run_raw.py``; pdftotext no produce el crudo de Docling).
+        equiv. el modo crudo; pdftotext no produce el crudo de Docling).
     """
     from .pdftotext import extraer_con_pdftotext_layout
 
@@ -331,7 +331,7 @@ def procesar_imagen(
     crudo y ordena el texto por posición). Con ``docling_raw=True`` (decisión
     de alcance subplan F1 §2.5) el ``markdown`` es el **crudo de Docling** tal
     cual lo devolvió ``conv.convert`` (sin reordenar por posición; equivale a
-    ``v1/run_raw.py``); se anota en ``calidad`` ``docling_raw: True`` y
+    el modo crudo); se anota en ``calidad`` ``docling_raw: True`` y
     ``salida: "markdown_crudo_docling"``. Con el default se anota (solo
     informativo, no rompe tests) ``salida: "politica_combinada"`` (o
     ``"exportado_por_posicion"`` cuando no aplica tabla). Los ``boxes`` se
@@ -690,7 +690,7 @@ def procesar_documento(
         ``pdf_texto`` apto / ``office`` / ``texto`` → se expone el **crudo de
         Docling** (``conv.convert`` ya lo dejó en ``markdown``; se captura
         antes de pisarlo) sin el reordenado por posición del exportador
-        (equivalente a ``v1/run_raw.py``). Marca en ``calidad``
+        (equivalente a el modo crudo). Marca en ``calidad``
         ``docling_raw: True``.
       - ``parcial`` (PDF mixto) → el crudo pleno no existe (las páginas aptas
         usan PyMuPDF); se mantiene la concatenación actual y se anota

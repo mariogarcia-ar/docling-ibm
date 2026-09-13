@@ -173,7 +173,7 @@ _DEFAULTS: dict[str, Any] = {
         "muestreo_activo": True,
         "revision_obligatoria_certeza_baja": True,
     },
-    # Modelos por rol (heredados de v1: VLM por defecto qwen2.5vl:3b).
+    # Modelos por rol (heredados: VLM por defecto qwen2.5vl:3b).
     "modelos": {
         "ocr": {"rol": "ocr", "modelo": "docling"},
         "vlm": {"rol": "vlm", "modelo": "qwen2.5vl:3b", "num_ctx": 4096},

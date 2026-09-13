@@ -1,6 +1,6 @@
 """Cliente Ollama robusto (F0, T-005) — chat VLM/LLM con retry y diagnóstico.
 
-Encapsula la lógica de ``ask_ollama`` de v1 (``v1/extraction_invoice/ask.py``:
+Encapsula la lógica de ``ask_ollama`` del sistema anterior (el cliente LLM original:
 URL, ``json_format``, ``num_ctx``, manejo de 429/backoff, mensajes claros) en
 una clase reutilizable y testeable (E-LIB-3 / ADR-007).
 
@@ -9,7 +9,7 @@ Responsabilidades:
 * Reintentar con **backoff exponencial** ante 429 (Request Rate Too Large) y
   errores transitorios de conexión.
 * Timeout de conexión/lectura configurable.
-* Mensajes de error **claros en español** (mismo espíritu que v1).
+* Mensajes de error **claros en español** (mismo espíritu que el sistema anterior).
 * Log de diagnóstico (latencia, status, reintentos) aprovechable luego por el
   patrón de observabilidad (E-LIB-5): ante latencia > umbral o status
   inesperado se registra el detalle.
@@ -138,7 +138,7 @@ class OllamaClient:
     ) -> RespuestaOllama:
         """Envía un chat a Ollama y devuelve la respuesta normalizada.
 
-        Compatible en parámetros con ``ask_ollama`` de v1: ``messages``,
+        Compatible en parámetros con ``ask_ollama`` del sistema anterior: ``messages``,
         ``model``, ``json_format``, ``options``. Agrega ``num_ctx`` explícito
         (se inyecta en ``options``) y devuelve un objeto tipado en lugar de un
         ``str`` (el contenido queda en ``respuesta.contenido``).

@@ -13,7 +13,7 @@ Muestra, **sin Ollama ni Docling** (los lectores se inyectan como dobles):
      que cubren los casos que el DoD de T-401 exige: las dos fuentes
      coincidiendo, la discrepancia entre fuentes (que T-401 **no** resuelve:
      conserva ambas), el campo sin sustento, el valor fuera del vocabulario, el
-     CUIT que el fragmento no sostiene, el shape plano de v1 (``kvi``/``kvg``),
+     CUIT que el fragmento no sostiene, el shape plano histórico (``kvi``/``kvg``),
      la ausencia de una fuente (sin vista) y el JSON inválido.
   3. El **paralelismo real**: corre el escenario con una demora artificial por
      fuente y muestra que el total ≈ el **máximo** de las dos llamadas y no la
@@ -272,8 +272,8 @@ ESCENARIOS: list[dict[str, Any]] = [
         },
     },
     {
-        "nombre": "shape_plano_de_v1",
-        "que": "el JSON plano de v1 (kvi/kvg) se acepta pero sin sostén (v1 no lo pedía)",
+        "nombre": "shape_plano_historico",
+        "que": "el JSON plano histórico (kvi/kvg) se acepta pero sin sostén (no lo pedía)",
         "por_fuente": {
             "vlm": _respuesta_base("vlm"),
             "llm": json.dumps(

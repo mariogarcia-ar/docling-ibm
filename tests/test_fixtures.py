@@ -1,7 +1,7 @@
-"""Tests de los fixtures de datos reales (v2/tests/fixtures).
+"""Tests de los fixtures de datos reales (tests/fixtures).
 
 `files/` es una carpeta temporal e ignorada por git (`.gitignore`), por lo que
-los tests usan copias versionadas en `v2/tests/fixtures/`. Este módulo valida
+los tests usan copias versionadas en `tests/fixtures/`. Este módulo valida
 que el set de fixtures esté completo y sea consistente con su `manifest.json`
 (10 grandes + 10 chicos + 20 otros + 5 pdf_escaneados + 5 pdf_aptos_layout).
 
@@ -92,5 +92,5 @@ class TestGoldenReferencia:
         with (golden_dir / "casos.csv").open(encoding="utf-8") as fh:
             for fila in csv.DictReader(fh):
                 ruta = fila["ruta"]
-                assert "v2/tests/fixtures/" in ruta, f"Ruta no apunta a fixtures: {ruta}"
+                assert "tests/fixtures/" in ruta, f"Ruta no apunta a fixtures: {ruta}"
                 assert not ruta.startswith("files/"), f"Ruta a files/ no permitida: {ruta}"

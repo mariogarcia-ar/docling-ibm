@@ -2,7 +2,7 @@
 
 **DoD de T-304** (F3-subplan §3.4): "La cadena contable 01 (centro de costo) →
 02 (macro categoría) → 03 (concepto/código) queda refactorizada con contratos
-tipados entre pasos y reproduce v1", incluido el **default CC0006** del Gherkin
+tipados entre pasos", incluido el **default CC0006** del Gherkin
 de E-CLAS-2.
 
 Qué se verifica:
@@ -16,13 +16,13 @@ Qué se verifica:
    del paso anterior (contrato entre pasos).
 3. **Default CC0006** / ``senal_usada=none`` (criterio Gherkin de E-CLAS-2), en
    la variante pura.
-4. **Checkpoint** (paridad con v1): reejecutar con
+4. **Checkpoint**: reejecutar con
    ``<doc>_classification.json`` **no** vuelve a llamar al modelo para los pasos
    ya resueltos.
 5. **Error a mitad de cadena** → ``ErrorCadenaContable`` con los resultados
    parciales preservados en ``error.pasos``.
 6. **Variante pura** ``clasificar_contable()``: no toca la red; acepta el
-   checkpoint de v1 o los tres pasos sueltos; y **coincide** con el pipeline real
+   checkpoint o los tres pasos sueltos; y **coincide** con el pipeline real
    (mismo centro/macro/concepto/código) — que es la garantía de que ambos caminos
    no divergen.
 7. **Prompts versionados**: las versiones están congeladas (ADR-005) y los
@@ -77,7 +77,7 @@ from voucherflow.classification.contable import ejecutar_paso
 from voucherflow.models.ollama import RespuestaOllama
 
 # ---------------------------------------------------------------------------
-# Respuestas sintéticas de los tres pasos (shape del prompt de v1)
+# Respuestas sintéticas de los tres pasos (shape del prompt de referencia)
 # ---------------------------------------------------------------------------
 
 PASO_01 = {
@@ -243,7 +243,7 @@ class TestContratosPorPaso:
             opcion.codigo = "CC0001"  # type: ignore[misc]
 
     def test_primary_toma_el_primero_y_no_inventa(self):
-        # v1: ``options[0]["codigo_centro_costo"]``. Acá se agrega el error claro.
+        # ``options[0]["codigo_centro_costo"]``. Acá se agrega el error claro.
         assert primary_centro_costo(PASO_01) == "CC0004"
         assert primary_macro_categoria(PASO_02) == "MC07"
         with pytest.raises(RespuestaContableInvalida, match="no devolvió centros_costos"):
@@ -328,7 +328,7 @@ class TestPromptsContables:
         assert [m["role"] for m in messages] == ["system", "user"]
         assert messages[0]["content"] == PASOS_CONTABLES["01"]["system"]
 
-    def test_base_values_porta_el_provisional_de_v1(self):
+    def test_base_values_porta_el_provisional(self):
         valores = base_values("texto del documento")
         assert valores["proveedor"] == VALOR_NO_INFORMADO
         assert valores["monto"] == VALOR_NO_INFORMADO
@@ -434,14 +434,14 @@ class TestEjecutarCadena:
 
 
 # ---------------------------------------------------------------------------
-# 4. Checkpoints (paridad con v1)
+# 4. Checkpoints
 # ---------------------------------------------------------------------------
 
 
 class TestCheckpoints:
-    """El checkpoint evita volver a llamar al modelo (patrón de v1)."""
+    """El checkpoint evita volver a llamar al modelo."""
 
-    def test_escribe_el_sidecar_con_el_shape_de_v1(self, tmp_path: Path):
+    def test_escribe_el_sidecar_con_el_shape_esperado(self, tmp_path: Path):
         documento = tmp_path / "doc.md"
         ruta = escribir_checkpoint(
             ruta_checkpoint(documento), {"01_centro_costo": PASO_01}, str(documento)
@@ -450,8 +450,8 @@ class TestCheckpoints:
         assert datos["archivo"] == str(documento)
         assert "01_centro_costo" in datos["pasos"]
 
-    def test_ruta_checkpoint_es_la_de_v1(self):
-        # v1: ``<doc>_classification.json`` junto al markdown.
+    def test_ruta_checkpoint_es_la_esperada(self):
+        # ``<doc>_classification.json`` junto al markdown.
         assert ruta_checkpoint("/tmp/carpeta/doc.md") == Path(
             "/tmp/carpeta/doc_classification.json"
         )
@@ -470,7 +470,7 @@ class TestCheckpoints:
         assert resultado.macro_categoria == "MC07"
 
     def test_reanuda_solo_los_pasos_faltantes(self, tmp_path: Path):
-        # Checkpoint parcial (v1 escribía después de cada paso): solo se
+        # Checkpoint parcial (se escribe después de cada paso): solo se
         # re-ejecutan los que faltan.
         documento = tmp_path / "doc.md"
         escribir_checkpoint(
@@ -515,7 +515,7 @@ class TestCheckpoints:
 
 
 class TestErroresParciales:
-    """Un error a mitad de cadena preserva los resultados parciales (v1)."""
+    """Un error a mitad de cadena preserva los resultados parciales."""
 
     def test_paso_01_sin_opciones_corta_la_cadena(self):
         cliente = FakeOllamaClient({"01": {"centros_costos": []}})
@@ -523,13 +523,13 @@ class TestErroresParciales:
             ejecutar_cadena(cliente, descripcion="x")
         # No se llegó a llamar al paso 02 (no se inventa su entrada).
         assert [llamada["paso"] for llamada in cliente.llamadas] == ["01"]
-        # El paso 01 queda en los parciales: v1 lo guardaba en el checkpoint
+        # El paso 01 queda en los parciales: se guarda en el checkpoint
         # antes de leerle las opciones (y acá además se envuelve el error, que
-        # en v1 se escapaba como ValueError pelado).
+        # antes se escapaba como ValueError pelado).
         assert "01_centro_costo" in exc.value.pasos
 
     def test_el_paso_sin_opciones_se_guarda_igual_en_el_checkpoint(self, tmp_path: Path):
-        # Paridad con v1: el checkpoint se escribe **después de cada paso**, así
+        # El checkpoint se escribe **después de cada paso**, así
         # que un paso que devolvió opciones vacías igual queda registrado (y la
         # reanudación no lo vuelve a pedir).
         documento = tmp_path / "doc.md"
@@ -598,7 +598,7 @@ class TestVariantePura:
         assert resultado.codigo == "48"
         assert resultado.reglas_aplicadas == list(REGLAS_CADENA_CONTABLE)
 
-    def test_acepta_el_checkpoint_de_v1(self):
+    def test_acepta_el_checkpoint_previo(self):
         pasos = {
             "01_centro_costo": PASO_01,
             "02_macro_categoria": PASO_02,

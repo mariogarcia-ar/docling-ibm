@@ -1,46 +1,39 @@
-"""Tests de **paridad** del subconjunto F4 (T-405, épica E-EXT).
+"""Subconjunto de extracción F4 (T-405, épica E-EXT).
 
-**DoD de F4** (``05-plan-ejecucion.md``): "paridad de extracción con v1 en campos
+**DoD de F4** (``05-plan-ejecucion.md``): "paridad de extracción en campos
 normalizados sobre el golden set" (mitiga R-02/R-08). Este módulo cubre el tramo
-**determinista** (sin Ollama, sin Docling y sin v1), que es el que puede correr en
-la suite default; la corrida real la hacen
-``scripts/F4/paridad_extraccion.py`` y ``scripts/F4/t405.py --origen``.
+**determinista** (sin Ollama, sin Docling y sin red), que es el que puede correr
+en la suite default; la corrida real sobre documentos la hace
+``scripts/F4/t405.py``.
 
 Qué se verifica:
 
 1. **Procedencia de las reglas de normalización** — cada regla del subconjunto
-   cita de qué regla de v1 viene (``regla_v1`` + ``prompt_v1`` + el ``texto_v1``
-   **literal**) y ese texto debe seguir existiendo en el YAML de v1. Es lo que
-   hace verificable "se reutilizan las reglas de los prompts 10/11/kvi/kvg": si
-   alguien cambia el YAML, la regla v2 quedaría citando una procedencia falsa y el
-   test falla.
-2. **Paridad de cada regla de normalización** sobre los casos
-   ``(crudo → esperado)`` derivados del texto de v1: coincidencia exacta.
-3. **La regla dura compartida ("no inventar")**: un valor no normalizable conserva
-   el crudo en los dos lados (es la regla que v1 pedía en el prompt y que v2
-   garantiza en código).
-4. **Integridad del subconjunto**: rutas reales existentes, campos de paridad
-   dentro del contrato, campos fuera de paridad declarados con su motivo (ADR-001),
-   ids únicos.
+   cita de dónde viene (``regla_referencia`` + ``prompt_referencia`` + el
+   ``texto_referencia`` **literal**) y ese texto debe seguir existiendo en el
+   YAML de referencia. Es lo que hace verificable "se reutilizan las reglas de
+   los prompts 10/11/kvi/kvg": si alguien cambia el YAML, la regla quedaría
+   citando una procedencia falsa y el test falla.
+2. **Exactitud de cada regla de normalización** sobre los casos
+   ``(crudo → esperado)`` derivados del texto de referencia: coincidencia exacta.
+3. **La regla dura compartida ("no inventar")**: un valor no normalizable
+   conserva el crudo **y lo declara** (un valor conservado sin aviso sería un
+   silencio).
+4. **Integridad del subconjunto**: rutas reales existentes, campos de medición
+   dentro del contrato, campos fuera de alcance declarados con su motivo
+   (ADR-001) e ids únicos.
 5. **Paridad estructural de la extracción**: para cada caso del subconjunto se
-   corre el **pipeline completo de v2** sobre la lectura declarada
-   (interpretar → normalizar → pasada 1 → combinar), se **proyecta** la evidencia
-   combinada al shape plano de v1 y se compara contra el ``v1_esperado``. Se exige
-   coincidencia en los campos normalizados de lectura.
-6. **La lógica de comparación del script** (``campos_desde_v2`` /
-   ``notas_de_proyeccion`` / ``comparar`` / ``_equivalentes``): los estados
-   ``coincide``/``difiere``/``no_comparable``, la tolerancia número↔texto, el
-   plegado de mayúsculas de la letra y las **notas de diferencias esperadas** por
-   diseño (no se reportan como regresión).
+   corre el **pipeline completo** sobre la lectura declarada (interpretar →
+   normalizar → pasada 1 → combinar), se **proyecta** la evidencia combinada al
+   shape plano y se compara contra el ``esperado_plano``. Se exige coincidencia
+   en los campos normalizados.
 
 Reglas duras (F4-subplan §4): la suite default **no** corre Ollama ni Docling ni
-v1; este módulo tampoco **importa** v1 ni ejecuta el ``main`` de ``scripts/`` (la
-lógica pura del script se carga con ``importlib`` acotado, como en T-305).
+red; este módulo no ejecuta el ``main`` de ``scripts/``.
 """
 
 from __future__ import annotations
 
-import importlib.util
 import json
 from pathlib import Path
 from typing import Any
@@ -57,67 +50,43 @@ from voucherflow.extraction import (
     parsear_evidencia_extraccion,
     veredicto_raw_de_evidencia,
 )
-from voucherflow.extraction.key_value import normalizar_evidencia
-from voucherflow.schemas.evidence import Fuente, SourceEvidence
+from voucherflow.extraction.key_value import REGLA_POR_CAMPO, normalizar_evidencia
 
 # ---------------------------------------------------------------------------
 # Rutas y utilidades
 # ---------------------------------------------------------------------------
 
-#: Raíz de v2 (``v2/tests/test_extraction_paridad.py`` → ``parents[1]``).
-RAIZ_V2 = Path(__file__).resolve().parents[1]
+#: Raíz del repo (``tests/test_extraction_paridad.py`` → ``parents[1]``).
+RAIZ_REPO = Path(__file__).resolve().parents[1]
 
-#: Raíz del repo (contiene ``v1/`` y ``prompts/``).
-RAIZ_REPO = RAIZ_V2.parent
-
-#: Subconjunto de paridad de F4.
-F4_DIR = RAIZ_V2 / "tests" / "golden" / "F4"
+#: Subconjunto de extracción de F4.
+F4_DIR = RAIZ_REPO / "tests" / "golden" / "F4"
 
 #: Manifiesto del subconjunto.
 SUBCONJUNTO = F4_DIR / "subconjunto.json"
 
-#: Prompts YAML de la raíz del repo (los que usaba v1).
+#: Prompts YAML de referencia (raíz del repo).
 PROMPTS_RAIZ = RAIZ_REPO / "prompts"
 
-#: Script de paridad real (su lógica pura se prueba acá, sin ejecutar `main`).
-PARIDAD_EXTRAECCION = RAIZ_V2 / "scripts" / "F4" / "paridad_extraccion.py"
+#: Script de métricas del DoD (su lógica pura se prueba acá, sin ejecutar `main`).
+T405 = RAIZ_REPO / "scripts" / "F4" / "t405.py"
 
 
 def _cargar_json(ruta: Path) -> dict:
     return json.loads(ruta.read_text(encoding="utf-8"))
 
 
-def _cargar_modulo_script(ruta: Path):
-    """Importa un script de ``scripts/F4/`` sin ejecutar su ``main`` (patrón T-305).
-
-    Se usa ``importlib`` con nombre propio para no colisionar con otros módulos y
-    para dejar claro que **no** se ejecuta el script (que requeriría Ollama); solo
-    se prueban sus funciones puras.
-    """
-    especificacion = importlib.util.spec_from_file_location(f"_{ruta.stem}_test", ruta)
-    modulo = importlib.util.module_from_spec(especificacion)
-    assert especificacion.loader is not None
-    especificacion.loader.exec_module(modulo)
-    return modulo
-
-
 @pytest.fixture(scope="module")
 def subconjunto() -> dict:
-    """Manifiesto del subconjunto de paridad de F4."""
+    """Manifiesto del subconjunto de extracción de F4."""
     return _cargar_json(SUBCONJUNTO)
 
 
-@pytest.fixture(scope="module")
-def script():
-    """El script de paridad real, cargado sin ejecutar ``main``."""
-    return _cargar_modulo_script(PARIDAD_EXTRAECCION)
+def _evidencia_combinada(lectura: dict[str, Any], fuente: str):
+    """Corre el pipeline determinista sobre una lectura y devuelve la evidencia.
 
-
-def _evidencia_combinada(lectura: dict[str, Any], fuente: str) -> SourceEvidence:
-    """Corre el pipeline de v2 sobre una lectura y devuelve la evidencia combinada.
-
-    Es el tramo determinista completo de F4: interpretar la respuesta (T-401),
-    normalizar (T-402), calificar la fuente (T-403) y combinar (T-404).
+    Es el tramo completo: interpretar la respuesta (T-401), normalizar (T-402),
+    calificar la fuente (T-403) y combinar (T-404).
     """
     crudo = json.dumps(
         {CAMPO_FUENTE_LECTURA: fuente, CLAVE_CAMPOS: lectura}, ensure_ascii=False
@@ -126,8 +95,18 @@ def _evidencia_combinada(lectura: dict[str, Any], fuente: str) -> SourceEvidence
     normalizada = normalizar_evidencia(interpretada).evidencia
     veredicto = veredicto_raw_de_evidencia(normalizada)
     source = construir_source_evidence(normalizada, veredicto=veredicto)
-    combinada = combinar_evidencia("paridad", [source])
-    return combinada
+    return combinar_evidencia("subconjunto", [source]), source
+
+
+def _proyectar(combinada: Any, campos: list[str]) -> dict[str, Any]:
+    """Proyecta la evidencia combinada al shape plano (ver ``scripts/F4/t405.py``)."""
+    valores: dict[str, Any] = {}
+    for campo in campos:
+        evidencia = combinada.campos.get(campo)
+        if evidencia is None or evidencia.fuente is None:
+            continue
+        valores[campo] = evidencia.valor
+    return valores
 
 
 # ---------------------------------------------------------------------------
@@ -136,61 +115,50 @@ def _evidencia_combinada(lectura: dict[str, Any], fuente: str) -> SourceEvidence
 
 
 class TestProcedenciaDeLasReglas:
-    """Cada regla de v2 cita su regla de v1 y el texto sigue en el prompt."""
+    """Cada regla cita su origen y el texto sigue en el prompt de referencia."""
 
-    def test_toda_regla_cita_origen(self, subconjunto):
+    def test_toda_regla_cita_origen(self, subconjunto: dict):
         for regla in subconjunto["normalizacion"]:
-            assert regla["regla_v1"], regla["id"]
-            assert regla["prompt_v1"], regla["id"]
-            assert regla["texto_v1"], regla["id"]
-            assert regla["regla_v2"].startswith("NORM_"), regla["id"]
+            assert regla["regla_referencia"], regla["id"]
+            assert regla["prompt_referencia"], regla["id"]
+            assert regla["texto_referencia"], regla["id"]
+            assert regla["regla_normalizacion"].startswith("NORM_"), regla["id"]
 
-    def test_el_texto_citado_existe_en_el_prompt_de_v1(self, subconjunto):
-        # Es la verificación central: la regla de v2 dice "esto viene de acá" y
-        # acá tiene que estar. Si el YAML cambia, el test avisa.
+    def test_el_texto_citado_existe_en_el_prompt_de_referencia(self, subconjunto: dict):
+        # Es la verificación central: la regla dice "esto viene de acá" y acá
+        # tiene que estar. Si el YAML cambia, el test avisa.
         for regla in subconjunto["normalizacion"]:
-            prompt = PROMPTS_RAIZ / Path(regla["prompt_v1"]).relative_to("prompts")
-            assert prompt.exists(), f"no existe el prompt {regla['prompt_v1']}"
+            prompt = PROMPTS_RAIZ / Path(regla["prompt_referencia"]).relative_to("prompts")
+            assert prompt.exists(), f"no existe el prompt {regla['prompt_referencia']}"
             contenido = prompt.read_text(encoding="utf-8")
-            assert regla["texto_v1"] in contenido, (
-                f"la regla {regla['id']} cita {regla['texto_v1']!r} de "
-                f"{regla['prompt_v1']} y ese texto ya no está"
+            assert regla["texto_referencia"] in contenido, (
+                f"la regla {regla['id']} cita {regla['texto_referencia']!r} de "
+                f"{regla['prompt_referencia']} y ese texto ya no está"
             )
 
-    def test_las_reglas_de_v2_cubren_todos_los_campos_del_contrato(self, subconjunto):
-        # No se exige que cada campo tenga una regla propia (los montos comparten
-        # NORM_MONTO), pero sí que las reglas declaradas sean reglas reales.
-        from voucherflow.extraction.key_value import REGLA_POR_CAMPO
-
-        declaradas = {regla["regla_v2"] for regla in subconjunto["normalizacion"]}
+    def test_las_reglas_declaradas_son_reglas_reales(self, subconjunto: dict):
+        declaradas = {regla["regla_normalizacion"] for regla in subconjunto["normalizacion"]}
         assert declaradas <= set(REGLA_POR_CAMPO.values())
 
-    def test_los_prompts_de_v1_son_los_de_la_extraccion(self, subconjunto):
-        # El subconjunto no puede citar un prompt que no sea de extracción: la
-        # paridad es de F4, no de clasificación.
+    def test_los_prompts_citados_son_de_extraccion(self, subconjunto: dict):
+        # El subconjunto no puede citar un prompt que no sea de extracción.
         for regla in subconjunto["normalizacion"]:
-            assert "extraction_key_value" in regla["prompt_v1"], regla["id"]
+            assert "extraction_key_value" in regla["prompt_referencia"], regla["id"]
 
 
 # ---------------------------------------------------------------------------
-# 2. Paridad de cada regla de normalización
+# 2. Exactitud de cada regla de normalización
 # ---------------------------------------------------------------------------
 
 
-class TestParidadNormalizacion:
-    """Los casos derivados del texto de v1 dan el valor canónico exacto."""
+class TestExactitudNormalizacion:
+    """Los casos derivados del texto de referencia dan el valor canónico exacto."""
 
     @pytest.mark.parametrize(
         "regla_id",
-        [
-            regla["id"]
-            for regla in json.loads(
-                (Path(__file__).resolve().parents[1] / "tests" / "golden" / "F4"
-                 / "subconjunto.json").read_text(encoding="utf-8")
-            )["normalizacion"]
-        ],
+        [regla["id"] for regla in json.loads(SUBCONJUNTO.read_text(encoding="utf-8"))["normalizacion"]],
     )
-    def test_casos_de_la_regla(self, subconjunto, regla_id):
+    def test_casos_de_la_regla(self, subconjunto: dict, regla_id: str):
         regla = next(r for r in subconjunto["normalizacion"] if r["id"] == regla_id)
         for caso in regla["casos"]:
             resultado = normalizar_campo(caso["campo"], caso["crudo"])
@@ -204,20 +172,14 @@ class TestParidadNormalizacion:
                 f"{resultado.valor!r} (esperado {caso['esperado']!r})"
             )
 
-    def test_los_derivados_del_comprobante_se_generan(self, subconjunto):
-        regla = next(
-            r for r in subconjunto["normalizacion"] if r["id"] == "comprobante_ppppp"
-        )
-        resultado = normalizar_campo(
-            regla["casos"][0]["campo"], regla["casos"][0]["crudo"]
-        )
+    def test_los_derivados_del_comprobante_se_generan(self, subconjunto: dict):
+        regla = next(r for r in subconjunto["normalizacion"] if r["id"] == "comprobante_ppppp")
+        resultado = normalizar_campo(regla["casos"][0]["campo"], regla["casos"][0]["crudo"])
         assert resultado.derivados == regla["derivados_esperados"]
 
-    def test_los_items_estructurados_coinciden(self, subconjunto):
+    def test_los_items_estructurados_coinciden(self, subconjunto: dict):
         regla = next(r for r in subconjunto["normalizacion"] if r["id"] == "productos")
-        resultado = normalizar_campo(
-            regla["casos"][0]["campo"], regla["casos"][0]["crudo"]
-        )
+        resultado = normalizar_campo(regla["casos"][0]["campo"], regla["casos"][0]["crudo"])
         assert [item.descripcion for item in resultado.items] == ["café", "pan"]
         assert resultado.items[1].cantidad is None
         assert resultado.items[1].precio_unitario == 250
@@ -229,36 +191,34 @@ class TestParidadNormalizacion:
 
 
 class TestNoInventar:
-    """Los dos lados conservan el crudo cuando no se puede normalizar."""
+    """Un valor no normalizable conserva el crudo, y lo declara."""
 
-    def test_el_subconjunto_declara_la_regla_y_sus_casos(self, subconjunto):
+    def test_el_subconjunto_declara_la_regla_y_sus_casos(self, subconjunto: dict):
         bloque = subconjunto["no_inventar"]
-        # La regla y sus dos lados (v1 en el prompt, v2 en codigo) se declaran
-        # explicitamente; el texto de v1 se verifica contra el YAML mas abajo.
-        assert bloque["regla_v1"].strip()
-        assert bloque["regla_v2"].strip()
+        # La regla y sus dos lados (el prompt de referencia y el código) se
+        # declaran explícitamente; el texto se verifica contra el YAML abajo.
+        assert bloque["regla_referencia"].strip()
+        assert bloque["regla_normalizacion"].strip()
         assert bloque["casos"], "la regla compartida necesita casos"
 
-    def test_un_valor_no_normalizable_conserva_el_crudo(self, subconjunto):
+    def test_un_valor_no_normalizable_conserva_el_crudo(self, subconjunto: dict):
         for caso in subconjunto["no_inventar"]["casos"]:
             resultado = normalizar_campo(caso["campo"], caso["crudo"])
             assert resultado.valor == caso["esperado"], caso
             # Y lo declara: un valor conservado sin aviso sería un silencio.
             assert resultado.avisos, caso
 
-    def test_la_regla_esta_en_los_prompts_de_v1(self, subconjunto):
-        # El texto que la regla compartida cita debe estar en el YAML de v1:
-        # es la misma verificacion de procedencia que las reglas de normalizacion.
+    def test_la_regla_esta_en_los_prompts_de_referencia(self, subconjunto: dict):
         bloque = subconjunto["no_inventar"]
         contenido = (PROMPTS_RAIZ / "11-extraction_key_value_invoice_prompt.yaml").read_text(
             encoding="utf-8"
         )
-        assert bloque["texto_v1"] in contenido
+        assert bloque["texto_referencia"] in contenido
 
     def test_el_modo_generico_tambien_declara_no_inventar(self):
-        contenido = (
-            PROMPTS_RAIZ / "10-extraction_key_value_generic_prompt.yaml"
-        ).read_text(encoding="utf-8")
+        contenido = (PROMPTS_RAIZ / "10-extraction_key_value_generic_prompt.yaml").read_text(
+            encoding="utf-8"
+        )
         assert "Omití" in contenido or "No lo inventes" in contenido
 
 
@@ -270,66 +230,68 @@ class TestNoInventar:
 class TestIntegridadSubconjunto:
     """El subconjunto es honesto: rutas reales, campos válidos y alcance explícito."""
 
-    def test_los_documentos_reales_existen(self, subconjunto):
+    def test_los_documentos_reales_existen(self, subconjunto: dict):
         for caso in subconjunto["real"]:
             assert (RAIZ_REPO / caso["ruta"]).exists(), caso["id"]
 
-    def test_los_campos_de_paridad_son_del_contrato(self, subconjunto):
+    def test_los_campos_medidos_son_del_contrato(self, subconjunto: dict):
         for campo in subconjunto["campos_paridad"]:
             assert campo in CAMPOS_EXTRACCION, campo
 
-    def test_los_campos_del_modo_generico_estan_fuera_del_contrato(self, subconjunto):
+    def test_los_campos_del_modo_generico_estan_fuera_del_contrato(self, subconjunto: dict):
         # El modo genérico (`kvg`) agrega claves del documento que el contrato
-        # fiscal no pide: se declaran aparte para que la paridad los cubra sin
-        # fingir que son del contrato.
+        # fiscal no pide: se declaran aparte para cubrirlas sin fingir que son
+        # del contrato.
         genericos = subconjunto["campos_paridad_generico"]
         assert genericos
         assert any(c not in CAMPOS_EXTRACCION for c in genericos)
 
-    def test_los_campos_fuera_de_paridad_estan_justificados(self, subconjunto):
-        # ADR-001: los campos de decisión no se leen en v2. Declararlos con su
-        # motivo es lo que hace que su ausencia no se lea como un faltante.
-        fuera = subconjunto["campos_fuera_de_paridad"]
+    def test_los_campos_fuera_de_alcance_estan_justificados(self, subconjunto: dict):
+        # ADR-001: los campos de decisión no se leen en la extracción.
+        # Declararlos con su motivo es lo que hace que su ausencia no se lea
+        # como un faltante.
+        fuera = subconjunto["campos_fuera_de_alcance"]
         assert fuera
         for entrada in fuera:
             assert entrada["campo"], entrada
             assert entrada["por_que"].strip(), entrada
             assert entrada["campo"] not in subconjunto["campos_paridad"]
 
-    def test_todo_campo_del_contrato_esta_declarado(self, subconjunto):
-        # Un campo del contrato no puede simplemente desaparecer de la paridad:
-        # o se compara, o se declara por qué no. Sin esto, `razon_social_receptor`
-        # (que v1 nunca pidió) quedaba en tierra de nadie y la paridad parecía
-        # cubrir los 16 campos cuando cubría 15.
+    def test_todo_campo_del_contrato_esta_declarado(self, subconjunto: dict):
+        # Un campo del contrato no puede simplemente desaparecer de la medición:
+        # o se compara, o se declara por qué no. Sin esto, un campo que el
+        # prompt de referencia nunca pidió quedaba en tierra de nadie y el
+        # conteo parecía cubrir todo el contrato sin cubrirlo.
         declarados = (
             set(subconjunto["campos_paridad"])
-            | {e["campo"] for e in subconjunto["campos_fuera_de_paridad"]}
-            | {e["campo"] for e in subconjunto["campos_sin_contraparte_v1"]}
+            | {e["campo"] for e in subconjunto["campos_fuera_de_alcance"]}
+            | {e["campo"] for e in subconjunto["campos_sin_contraparte"]}
         )
         sin_declarar = set(CAMPOS_EXTRACCION) - declarados
         assert not sin_declarar, f"campos del contrato sin declarar: {sorted(sin_declarar)}"
 
-    def test_los_campos_sin_contraparte_v1_estan_fundados(self, subconjunto):
-        # Son campos que v2 lee pero v1 no: no hay nada contra lo que comparar.
-        # Declararlos evita confundir "no comparable" con "no implementado".
-        sin_contraparte = subconjunto["campos_sin_contraparte_v1"]
+    def test_los_campos_sin_contraparte_estan_fundados(self, subconjunto: dict):
+        # Son campos que el extractor lee pero el prompt de referencia no pedía:
+        # no hay nada contra lo que comparar. Declararlos evita confundir
+        # "no comparable" con "no implementado".
+        sin_contraparte = subconjunto["campos_sin_contraparte"]
         assert sin_contraparte
         for entrada in sin_contraparte:
             assert entrada["campo"] in CAMPOS_EXTRACCION, entrada
             assert entrada["por_que"].strip(), entrada
-            assert entrada["v1_lo_pide"] is False, entrada
-            assert entrada["v2_lo_lee"] is True, entrada
+            assert entrada["pedido_por_prompt_referencia"] is False, entrada
+            assert entrada["leido_por_el_extractor"] is True, entrada
             assert entrada["campo"] not in subconjunto["campos_paridad"]
 
-    def test_los_ids_son_unicos(self, subconjunto):
+    def test_los_ids_son_unicos(self, subconjunto: dict):
         ids = [r["id"] for r in subconjunto["normalizacion"]]
         ids += [c["id"] for c in subconjunto["extraccion"]]
         ids += [c["id"] for c in subconjunto["real"]]
         assert len(ids) == len(set(ids))
 
-    def test_las_lecturas_de_los_casos_son_campos_conocidos(self, subconjunto):
+    def test_las_lecturas_de_los_casos_son_campos_conocidos(self, subconjunto: dict):
         # Un caso puede declarar campos del contrato **o** del modo genérico
-        # (``kvg``); lo que no puede es inventar un campo nuevo sin declararlo.
+        # (`kvg`); lo que no puede es inventar un campo nuevo sin declararlo.
         permitidos = set(CAMPOS_EXTRACCION) | set(subconjunto["campos_paridad_generico"])
         for caso in subconjunto["extraccion"]:
             for campo in caso["lectura"]:
@@ -337,137 +299,146 @@ class TestIntegridadSubconjunto:
             for campo in caso.get("campos", []):
                 assert campo in permitidos, (caso["id"], campo)
 
-    def test_el_manifiesto_declara_su_decision_de_alcance(self, subconjunto):
+    def test_el_manifiesto_declara_su_decision_de_alcance(self, subconjunto: dict):
         assert subconjunto["golden_version"].startswith("0.1-f4")
         assert "ADR-001" in subconjunto["decision_alcance"]
 
 
 # ---------------------------------------------------------------------------
-# 5. Paridad estructural de la extracción (proyección sobre el JSON plano)
+# 5. Paridad estructural de la extracción (proyección al shape plano)
 # ---------------------------------------------------------------------------
 
 
 class TestParidadExtraccion:
-    """La evidencia de v2 proyectada al shape de v1 coincide campo a campo."""
+    """La evidencia proyectada al shape plano coincide campo a campo."""
 
-    def test_los_casos_declarados_corren_y_coinciden(self, subconjunto, script):
+    def test_los_casos_declarados_corren_y_coinciden(self, subconjunto: dict):
         for caso in subconjunto["extraccion"]:
-            combinada = _evidencia_combinada(caso["lectura"], caso["fuente"])
+            combinada, _ = _evidencia_combinada(caso["lectura"], caso["fuente"])
             campos = caso.get("campos") or subconjunto["campos_paridad"]
-            v2 = script.campos_desde_v2(combinada, campos=campos)
-            esperados = caso.get("v1_esperado") or caso.get("v1_esperado_generico") or {}
-            comparacion = script.comparar(esperados, v2)
+            obtenidos = _proyectar(combinada, campos)
+            esperados = (
+                caso.get("esperado_plano")
+                or caso.get("esperado_plano_generico")
+                or {}
+            )
             for campo, esperado in esperados.items():
-                info = comparacion[campo]
-                assert info["estado"] == "coincide", (
-                    f"{caso['id']}: {campo} → {info['v2']!r} "
-                    f"(v1 esperaba {esperado!r})"
+                obtenido = obtenidos.get(campo)
+                assert esperado == obtenido or str(esperado) == str(obtenido), (
+                    f"{caso['id']}: {campo} → {obtenido!r} "
+                    f"(se esperaba {esperado!r})"
                 )
 
-    def test_el_caso_generico_estructura_los_items(self, subconjunto, script):
+    def test_el_caso_generico_estructura_los_items(self, subconjunto: dict):
         caso = next(c for c in subconjunto["extraccion"] if c["id"] == "modo_generico_kvg")
-        combinada = _evidencia_combinada(caso["lectura"], caso["fuente"])
-        v2 = script.campos_desde_v2(combinada, campos=["productos"])
-        # El JSON canónico de ítems debe contener los ítems declarados.
-        items = json.loads(v2["productos"])
-        assert [i["descripcion"] for i in items] == [
-            i["descripcion"] for i in caso["v1_esperado_items"]
-        ]
-        assert [i["cantidad"] for i in items] == [
-            i["cantidad"] for i in caso["v1_esperado_items"]
-        ]
-        assert [i["precio_unitario"] for i in items] == [
-            i["precio_unitario"] for i in caso["v1_esperado_items"]
-        ]
+        combinada, _ = _evidencia_combinada(caso["lectura"], caso["fuente"])
+        obtenidos = _proyectar(combinada, ["productos"])
+        items = json.loads(obtenidos["productos"])
+        esperados = caso["esperado_plano_items"]
+        assert [i["descripcion"] for i in items] == [i["descripcion"] for i in esperados]
+        assert [i["cantidad"] for i in items] == [i["cantidad"] for i in esperados]
+        assert [i["precio_unitario"] for i in items] == [i["precio_unitario"] for i in esperados]
 
-    def test_los_valores_no_normalizables_sobreviven_al_pipeline(self, subconjunto, script):
+    def test_los_valores_no_normalizables_sobreviven_al_pipeline(self, subconjunto: dict):
         caso = next(
             c for c in subconjunto["extraccion"] if c["id"] == "valores_no_normalizables"
         )
-        combinada = _evidencia_combinada(caso["lectura"], caso["fuente"])
-        v2 = script.campos_desde_v2(combinada)
-        for campo, esperado in caso["v1_esperado"].items():
-            assert v2[campo] == esperado, campo
+        combinada, _ = _evidencia_combinada(caso["lectura"], caso["fuente"])
+        obtenidos = _proyectar(combinada, list(caso["esperado_plano"]))
+        for campo, esperado in caso["esperado_plano"].items():
+            assert obtenidos[campo] == esperado, campo
 
-    def test_la_proyeccion_no_inventa_campos_ausentes(self, subconjunto, script):
+    def test_la_proyeccion_no_inventa_campos_ausentes(self, subconjunto: dict):
         # Un campo que ninguna fuente declaró NO entra en la proyección: la
         # ausencia es información, no un None que después se confunda con
         # "no comparable".
-        caso = next(c for c in subconjunto["extraccion"] if c["id"] == "cuit_truncado_por_ocr")
-        combinada = _evidencia_combinada(caso["lectura"], caso["fuente"])
-        v2 = script.campos_desde_v2(combinada)
-        assert "fecha_emision" not in v2
-        assert "importe_total_facturado" not in v2
+        caso = next(
+            c for c in subconjunto["extraccion"] if c["id"] == "cuit_truncado_por_ocr"
+        )
+        combinada, _ = _evidencia_combinada(caso["lectura"], caso["fuente"])
+        obtenidos = _proyectar(combinada, list(CAMPOS_EXTRACCION))
+        assert "fecha_emision" not in obtenidos
+        assert "importe_total_facturado" not in obtenidos
 
-    def test_la_evidencia_completa_sigue_disponible(self, subconjunto, script):
+    def test_la_evidencia_completa_sigue_disponible(self, subconjunto: dict):
         # La proyección es una vista: la evidencia por fuente con su resolución
         # sigue entera para la auditoría (combinar no descarta).
         caso = subconjunto["extraccion"][0]
-        combinada = _evidencia_combinada(caso["lectura"], caso["fuente"])
+        combinada, _ = _evidencia_combinada(caso["lectura"], caso["fuente"])
         campo = combinada.campos["cuit_emisor"]
         assert campo.fuente is not None
         assert campo.resolucion is not None
         assert campo.llm is not None or campo.vlm is not None
 
-    def test_la_letra_se_compara_plegando_mayusculas(self, subconjunto, script):
-        # v2 publica el vocabulario en mayúsculas (T-402); v1 también, pero la
-        # comparación no debe depender de eso.
-        comparacion = script.comparar({"tipo_comprobante": "A"}, {"tipo_comprobante": "a"})
-        assert comparacion["tipo_comprobante"]["estado"] == "coincide"
+    def test_el_sosten_de_los_campos_no_es_vacio(self, subconjunto: dict):
+        # El contrato de F0 exige un fragmento de sostén no vacío: sin él, el
+        # campo no es auditable.
+        for caso in subconjunto["extraccion"]:
+            _, source = _evidencia_combinada(caso["lectura"], caso["fuente"])
+            for campo, evidencia in source.campos.items():
+                assert evidencia.fragmento_sustento.strip(), (caso["id"], campo)
 
 
 # ---------------------------------------------------------------------------
-# 6. La lógica de comparación del script
+# 6. Lógica de comparación de las métricas (``scripts/F4/t405.py``)
 # ---------------------------------------------------------------------------
 
 
-class TestLogicaDeComparacion:
-    """Los estados, la tolerancia numérica y las notas de diferencias esperadas."""
+def _cargar_t405():
+    """Importa ``scripts/F4/t405.py`` sin ejecutar su ``main``."""
+    import importlib.util
+    import sys
 
-    def test_coincide_difiere_y_no_comparable(self, script):
-        comparacion = script.comparar(
-            {"a": "1", "b": "2", "c": "3"},
-            {"a": "1", "b": "9"},
-        )
-        assert comparacion["a"]["estado"] == "coincide"
-        assert comparacion["b"]["estado"] == "difiere"
-        assert comparacion["c"]["estado"] == "no_comparable"
+    especificacion = importlib.util.spec_from_file_location("_t405_test", T405)
+    assert especificacion is not None and especificacion.loader is not None
+    modulo = importlib.util.module_from_spec(especificacion)
+    sys.modules[especificacion.name] = modulo
+    especificacion.loader.exec_module(modulo)
+    return modulo
 
-    def test_la_nota_de_una_diferencia_esperada_no_habla_de_regresion(self, script):
-        comparacion = script.comparar({"moneda": "ARS"}, {"moneda": None})
-        assert comparacion["moneda"]["estado"] == "no_comparable"
-        assert "default" in comparacion["moneda"]["nota"]
 
-    def test_una_diferencia_sin_causa_declarada_pide_revision(self, script):
-        comparacion = script.comparar({"cuit_emisor": "30-1"}, {"cuit_emisor": "30-2"})
-        assert comparacion["cuit_emisor"]["estado"] == "difiere"
-        assert "paridad **o mejora**" in comparacion["cuit_emisor"]["nota"]
+class TestMetricasDelDod:
+    """``t405.py`` agrega las métricas del DoD de F4 (subplan §10)."""
 
-    def test_numero_contra_texto_es_el_mismo_dato(self, script):
-        comparacion = script.comparar(
-            {"importe_total_facturado": "12345.67"},
-            {"importe_total_facturado": 12345.67},
-        )
-        assert comparacion["importe_total_facturado"]["estado"] == "coincide"
+    @pytest.fixture(scope="class")
+    def modulo(self):
+        return _cargar_t405()
 
-    def test_no_se_interpreta_el_texto_como_numero(self, script):
-        # "12.345,67" NO equivale a 12.345: interpretarlo sería re-hacer la
-        # normalización de T-402 (que tiene sus propios tests).
-        comparacion = script.comparar(
-            {"importe_total_facturado": "12.345,67"},
-            {"importe_total_facturado": 12.345},
-        )
-        assert comparacion["importe_total_facturado"]["estado"] == "difiere"
+    def test_las_reglas_de_normalizacion_son_exactas(self, modulo, subconjunto):
+        medicion = modulo.metrica_reglas(subconjunto)
+        assert medicion["casos"] > 0
+        assert medicion["exactitud"] == 100.0
+        assert medicion["procedencia_verificada"] is True
 
-    def test_las_notas_de_proyeccion_marcan_los_campos_estructurados(self, script, subconjunto):
-        caso = subconjunto["extraccion"][0]
-        combinada = _evidencia_combinada(caso["lectura"], caso["fuente"])
-        notas = script.notas_de_proyeccion(combinada)
-        assert notas["fecha_emision"] == "formato_volatil"
-        assert notas["importe_total_facturado"] == "formato_volatil"
-        assert "cuit_emisor" not in notas
+    def test_la_paridad_estructural_es_exacta(self, modulo, subconjunto):
+        medicion = modulo.metrica_extraccion(subconjunto)
+        assert medicion["campos_comparados"] > 0
+        assert medicion["exactitud"] == 100.0, [
+            c for c in medicion["detalle"] if c["coinciden"] != c["campos"]
+        ]
 
-    def test_el_script_no_importa_v1_al_cargarse(self, script):
-        # La suite default no puede depender de v1 ni de Ollama: el script se
-        # carga (importlib) y su lógica pura corre sin tocar la red.
-        assert not hasattr(script, "OllamaClient")
+    def test_el_sosten_de_los_campos_es_total(self, modulo, subconjunto):
+        medicion = modulo.metrica_extraccion(subconjunto)
+        assert medicion["campos_totales"] > 0
+        assert medicion["sustento"] == 100.0
+
+    def test_el_modo_generico_cubre_sus_claves(self, modulo, subconjunto):
+        medicion = modulo.metrica_generico(subconjunto)
+        assert medicion["campos"]
+        assert medicion["cobertura"] == 100.0
+
+    def test_el_contrato_no_tiene_campos_sin_regla(self, modulo):
+        assert modulo.metrica_norm_vs_contrato()["sin_regla"] == []
+
+    def test_el_reporte_sale_con_codigo_cero(self, tmp_path, monkeypatch):
+        # El script sale con 0 cuando el tramo determinista está en el umbral
+        # (y con ≠ 0 si no), que es lo que lo hace usable en CI.
+        modulo = _cargar_t405()
+        salida = tmp_path / "t405.json"
+        monkeypatch.setattr("sys.argv", ["t405.py", "--json", str(salida)])
+        with pytest.raises(SystemExit) as salida_sistema:
+            modulo.main()
+        assert salida_sistema.value.code == 0
+        datos = _cargar_json(salida)
+        assert datos["fallos"] == 0
+        assert datos["reglas_normalizacion"]["exactitud"] == 100.0

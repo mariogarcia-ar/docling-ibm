@@ -1,6 +1,6 @@
 # Guía del operador — `voucherflow`
 
-> **Versión**: v2 · **Fase**: F6 · **Última actualización**: 2026-09-12
+> **Fase**: F6 · **Última actualización**: 2026-09-13
 
 Guía para quien **usa** el sistema para procesar comprobantes: cómo instalarlo,
 cómo correrlo sobre un archivo o una carpeta, dónde quedan los resultados y qué
@@ -18,7 +18,7 @@ La documentación técnica (arquitectura, decisiones, plan) vive en
 | **[Instalación y requisitos](01-instalacion.md)** | Dejar el sistema funcionando: dependencias, modelos, configuración |
 | **[Referencia de comandos](02-comandos.md)** | Los once subcomandos, con sus banderas, salidas y códigos de salida |
 | **[Qué archivos genera](04-salidas.md)** | Markdown, checkpoints, agregado del lote y sidecar de trazabilidad |
-| **[Trabajo con lotes largos](../../../BATCH.md)** | Workers, checkpoints y enfriamiento (guía dedicada) |
+| **[Trabajo con lotes largos](../../BATCH.md)** | Workers, checkpoints y enfriamiento (guía dedicada) |
 | **[Flujo de revisión humana](03-revision-humana.md)** | Qué hacer con los casos que el sistema manda a revisar |
 | **[API HTTP](05-api-http.md)** | Usar el sistema desde otro programa (fase 2, opcional) |
 

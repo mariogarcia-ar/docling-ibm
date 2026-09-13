@@ -23,7 +23,7 @@ El servicio de constatación de comprobantes de AFIP/ARCA se consulta con un
 token de autorización (WSAA) y devuelve, entre otras cosas, si el comprobante
 existe y si los datos declarados coinciden. El WSAA (firma de un TRA y canje de
 credenciales) es un flujo aparte, con certificados propios, y su implementación
-completa queda para la integración real (ver el prototipo `v1/wip/consultar_arca.py`,
+completa queda para la integración real (ver el prototipo de consulta a ARCA,
 que usa la librería ``afip``). Acá se define el **contrato del cliente HTTP**
 —endpoint, payload, timeout, reintentos y traducción de la respuesta— que es lo
 que el pipeline necesita, y se deja ``token`` inyectable para no acoplar el
@@ -71,7 +71,7 @@ class ArcaResultado:
 def parse_pto_vta_nro(nro_factura: str) -> tuple[int, int]:
     """Separa ``"00001-00000031"`` en ``(1, 31)`` (punto de venta, número).
 
-    Portado de `v1/wip/consultar_arca.py`: el WSCDC pide ambos como enteros.
+    El WSCDC pide ambos como enteros:
     Lanza ``ValueError`` con el valor ofensivo cuando el formato no se reconoce
     (no se adivina un número de comprobante).
     """

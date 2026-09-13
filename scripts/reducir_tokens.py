@@ -39,7 +39,7 @@ visión, las dimensiones no dan igual: el preprocesador de Qwen2.5-VL
 ``merge_size=2``) y **re-escalea** si no coincide, con lo que el conteo de
 tokens deja de ser predecible. Este script calcula las dimensiones con
 ``voucherflow.validation.prompt_qween.dimensiones_objetivo_vlm`` — el **mismo**
-``smart_resize`` que usa el pipeline v2 (F2/T-202/T-203) — para que el servidor
+``smart_resize`` que usa el pipeline (F2/T-202/T-203) — para que el servidor
 no re-escale. Si la librería no se puede importar, cae a una alineación local
 equivalente (múltiplos de 28). Los defaults (1024 px / calidad 80 / piso de lado
 menor 256) también se toman de la librería si está disponible: **una sola fuente
@@ -52,10 +52,10 @@ texto del prompt no se cuenta), útil para comparar antes/después, no una
 medición del servidor.
 
 ⚠️ **Ojo con el OCR.** Reducir *antes* de un OCR clásico (RapidOCR/EasyOCR vía
-Docling, ``v1/ocr_documents.py``) puede degradar la letra chica: el OCR lee
+Docling) puede degradar la letra chica: el OCR lee
 píxeles. Bajá la reducción (``--lado-mayor 1536`` o ``2048``) o usá
 ``--solo-medir`` para decidir antes de tocar el corpus. Para el camino **VLM**
-(la imagen viaja al modelo) reducir es lo correcto: v2 ya lo hace al enviar
+(la imagen viaja al modelo) reducir es lo correcto: el pipeline ya lo hace al enviar
 (``_bytes_imagen_para_envio``, vista rápida 512 / revisión 1024), así que este
 script sirve para **pre-reducir el corpus en disco** (almacenamiento, OCR más
 rápido, o alimentar otra herramienta).
@@ -115,7 +115,7 @@ if str(_SRC) not in sys.path:
 #: Extensiones de imagen por defecto (las mismas del loop base).
 EXTENSIONES_POR_DEFECTO = frozenset({".jpg", ".jpeg", ".png"})
 
-# --- Defaults (una sola fuente de verdad: la librería v2 si se puede importar) --
+# --- Defaults (una sola fuente de verdad: la librería si se puede importar) --
 
 #: Piso del lado menor: evita perder detalle en imágenes muy alargadas.
 LADO_MENOR_MINIMO_PX = 256
@@ -126,7 +126,7 @@ FACTOR_PATCH_QWEN2VL = 28
 LADO_MAYOR_PX = 1024
 #: Calidad de reencode por defecto.
 CALIDAD = 80
-_ORIGEN_DEFAULTS = "valores locales del script (librería v2 no importable)"
+_ORIGEN_DEFAULTS = "valores locales del script (librería no importable)"
 
 #: ``dimensiones_objetivo_vlm`` de la librería, si está disponible (reutiliza el
 #: ``smart_resize`` de Qwen2.5-VL que Docling aplica en su pipeline VLM).
@@ -146,7 +146,7 @@ try:  # pragma: no cover - depende del entorno de importación
     LADO_MAYOR_PX = RESOLUCION_VISTA_REVISION_PX
     CALIDAD = CALIDAD_JPEG_ENVIO
     _dimensiones_libreria = dimensiones_objetivo_vlm
-    _ORIGEN_DEFAULTS = "librería v2 (voucherflow.validation.prompt_qween)"
+    _ORIGEN_DEFAULTS = "librería (voucherflow.validation.prompt_qween)"
 except Exception:  # noqa: BLE001 - script operativo: no debe romper al importar
     pass
 

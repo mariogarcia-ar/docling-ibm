@@ -52,10 +52,8 @@ dmypy.json
 dmypy.json
 pyre-check/
 *.log
-v2/tests/fixtures/**/*.md
-v2/procesadas/
+tests/fixtures/**/*.md
 /procesadas/
 /procesados/
-v2/validaciones/
 /validaciones/
 .DS_Store

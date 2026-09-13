@@ -50,14 +50,13 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
 # El paquete usa layout src/; si se corre sin instalar, se agrega src/ al path.
-_V2 = Path(__file__).resolve().parents[2]
-_SRC = _V2 / "src"
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+_SRC = _REPO_ROOT / "src"
 if str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
 
-#: Raíz del repo (``v2/`` es el workspace del proyecto): las rutas del
-#: ``casos.csv`` son relativas a la raíz del repo (p. ej. ``v2/tests/fixtures/…``).
-_REPO_ROOT = _V2.parent
+#: Raíz del repo: las rutas del ``casos.csv`` son relativas a ella
+#: (p. ej. ``tests/fixtures/…``).
 
 #: Veredictos válidos de la columna ``veredicto`` del golden etiquetado (F2 §2.5).
 VEREDICTOS_VALIDOS = ("comprobante", "no_comprobante", "indeterminado")
@@ -352,7 +351,7 @@ def main() -> None:
     parser.add_argument(
         "--csv",
         type=Path,
-        default=_V2 / "tests" / "golden" / "casos.csv",
+        default=_REPO_ROOT / "tests" / "golden" / "casos.csv",
         help="Ruta del casos.csv del golden (default: tests/golden/casos.csv).",
     )
     parser.add_argument(

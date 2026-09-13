@@ -162,13 +162,13 @@ voucherflow extract files/2025-08 -o extract.json
 | Bandera | Qué hace |
 |---|---|
 | `origen` | Archivo o carpeta |
-| `-M, --mode` | Modo heredado de v1 (`kvi`/`kvg`/`10`/`11`; default `kvi`) — se **registra** para trazabilidad |
+| `-M, --mode` | Modo heredado (`kvi`/`kvg`/`10`/`11`; default `kvi`) — se **registra** para trazabilidad |
 | `-o, --output` | Archivo JSON (default: stdout) |
 | *(comunes)* | `--force`, `--orientation`, `--condicion-impositiva`, `--model`, `--workers` |
 
-> **Sobre `-M/--mode`**: v2 tiene **un** contrato de extracción, así que el modo
+> **Sobre `-M/--mode`**: el extractor tiene **un** contrato único, así que el modo
 > no cambia lo que se lee. Se registra para poder comparar con las corridas
-> históricas de v1.
+> históricas.
 
 **Qué imprime**: un JSON con la evidencia por campo: el **valor** y el
 **fragmento del documento** que lo sostiene.
@@ -180,8 +180,8 @@ falló (los errores van en la salida, por documento).
 
 ## `extract-detect` — detectar la letra
 
-Detecta el tipo de comprobante leyendo la **imagen y el texto** (equivale a
-`document_extraction.py -M 11.1` de v1), sin correr la cadena contable.
+Detecta el tipo de comprobante leyendo la **imagen y el texto** (equivale al
+modo histórico `-M 11.1`), sin correr la cadena contable.
 
 ```bash
 voucherflow extract-detect factura.pdf
@@ -273,7 +273,7 @@ el nombre).
 **Código de salida**: `0` si ningún documento falló; `1` si alguno falló o no
 había nada que procesar.
 
-> **Tiene su propia guía**: [trabajo con lotes largos](../../../BATCH.md), con el
+> **Tiene su propia guía**: [trabajo con lotes largos](../../BATCH.md), con el
 > detalle de workers, checkpoints y enfriamiento.
 
 ---

@@ -11,7 +11,7 @@ Subcomandos (doc 03 §8.1 y `ORCH-CLI.md` §3):
 ``batch``          pipeline completo de una carpeta recursiva (F6/T-602): workers,
                    checkpoints/reanudación y enfriamiento; escribe el **agregado**
                    del lote (F6/T-603).
-``ask``            pregunta puntual sobre un documento (equivale a ``v1/ask.py``).
+``ask``            pregunta puntual sobre un documento (equivale a el cliente de preguntas original).
 ``arca``           consulta el padrón ARCA/WSCDC (opcional, ADR-003).
 ``case``           ``show``/``list`` la trazabilidad persistida (F5/T-506) y
                    ``aggregate`` reconstruye el agregado del lote (F6/T-603).
@@ -171,7 +171,7 @@ def construir_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("process", help="Procesa un archivo o carpeta a Markdown (F1).")
     p.add_argument("origen", help="Archivo o carpeta a procesar.")
     p.add_argument("-o", "--output", default=None, help="Directorio de salida (default: junto al archivo).")
-    p.add_argument("--raw", action="store_true", help="Markdown crudo de Docling (equivale a v1/run_raw.py).")
+    p.add_argument("--raw", action="store_true", help="Markdown crudo de Docling (equivale a el modo crudo).")
     _agregar_comunes(p)
 
     p = sub.add_parser("validate", help="Gate '¿es comprobante?' doble paso (F2).")
@@ -188,16 +188,16 @@ def construir_parser() -> argparse.ArgumentParser:
         "--output",
         default=None,
         metavar="SALIDA.json",
-        help="Archivo JSON de salida (default: stdout). Equivale a -o de v1/classification_pipeline.py.",
+        help="Archivo JSON de salida (default: stdout). Equivale a -o de la cadena contable original.",
     )
 
     p = sub.add_parser("extract", help="Extracción VLM+LLM combinada (F4).")
     p.add_argument("origen", help="Archivo o carpeta.")
-    p.add_argument("-M", "--mode", default="kvi", help="Modo heredado de v1 (kvi/kvg/10/11).")
+    p.add_argument("-M", "--mode", default="kvi", help="Modo heredado (kvi/kvg/10/11).")
     p.add_argument("-o", "--output", default=None, help="Archivo JSON de salida (default: stdout).")
     _agregar_comunes(p)
 
-    p = sub.add_parser("extract-detect", help="Detecta la letra por VLM/LLM (equivale a -M 11.1 de v1).")
+    p = sub.add_parser("extract-detect", help="Detecta la letra por VLM/LLM (equivale a -M 11.1 del sistema anterior).")
     p.add_argument("origen", help="Archivo o carpeta.")
     p.add_argument("-o", "--output", default=None, help="Archivo JSON de salida (default: stdout).")
     _agregar_comunes(p)
@@ -261,7 +261,7 @@ def construir_parser() -> argparse.ArgumentParser:
     )
     _agregar_comunes(p)
 
-    p = sub.add_parser("ask", help="Pregunta puntual sobre un documento (equivale a v1/ask.py).")
+    p = sub.add_parser("ask", help="Pregunta puntual sobre un documento (equivale a el cliente de preguntas original).")
     p.add_argument("origen")
     p.add_argument("-q", "--question", required=True, help="Pregunta a responder.")
     p.add_argument("--model", default=None)
@@ -344,11 +344,11 @@ def _resumen_legible(resultado: PipelineResult) -> str:
 
 
 def _cmd_process(args: argparse.Namespace, entorno: EntornoCLI) -> int:
-    """``process``: procesa con F1 y escribe el markdown (equivale a v1/ocr_documents).
+    """``process``: procesa con F1 y escribe el markdown.
 
-    Con ``--raw`` (equivalente a ``v1/run_raw.py``) el markdown es el **crudo** de
+    Con ``--raw`` (equivalente a el modo crudo) el markdown es el **crudo** de
     Docling y va a ``<doc>.raw.md`` — nunca encima del documento de entrada. Es el
-    nombre que usa v1 y evita el peor desenlace posible: pisar el archivo de
+    nombre heredado y evita el peor desenlace posible: pisar el archivo de
     origen de la corrida (T-604).
     """
     raiz = entorno.ruta(args.origen)
@@ -385,14 +385,14 @@ def _destino_markdown(
 ) -> Path:
     """Resuelve el markdown de salida (junto al archivo o en ``-o DIR``).
 
-    Con ``raw=True`` el sufijo es ``.raw.md`` (la convención de ``v1/run_raw.py``):
+    Con ``raw=True`` el sufijo es ``.raw.md`` (la convención de el modo crudo):
     el crudo y el markdown ordenado son **dos artefactos distintos** y no pueden
     compartir archivo — escribirlos en el mismo lugar haría que la segunda corrida
     pisara a la primera (T-604).
 
     **Nunca devuelve la ruta de entrada.** ``process`` acepta documentos que ya son
     texto (``.md``/``.txt``), y para esos el sufijo coincide con el del archivo: sin
-    este chequeo la corrida **sobrescribiría su propia entrada** (v1 no corría el
+    este chequeo la corrida **sobrescribiría su propia entrada** (el sistema anterior no corría el
     riesgo porque su lista de extensiones no incluía texto plano). Cuando el destino
     colisiona se usa ``<doc>.processed.md`` / ``<doc>.processed.raw.md`` y se declara
     en el log: un nombre distinto es infinitamente mejor que perder el original.
@@ -526,8 +526,8 @@ def _extraer_archivo(
         "mode_heredado": mode,
         "version_cli": VERSION_CLI,
         "nota": (
-            "El modo heredado de v1 (kvi/kvg/10/11) se registra para la paridad de "
-            "T-604; el contrato de extracción de v2 es uno solo."
+            "El modo heredado (kvi/kvg/10/11) se registra para la paridad de "
+            "T-604; el contrato de extracción del paquete es uno solo."
         ),
     }
     from ..schemas.evidence import CombinedEvidence
@@ -631,7 +631,7 @@ def _cmd_batch(args: argparse.Namespace, entorno: EntornoCLI) -> int:
     Corre el lote con workers, checkpoints y enfriamiento (ADR-010):
 
     - **workers**: ``--workers N`` → pool de procesos con **un convertidor de
-      Docling por worker** (patrón ``init_worker`` de v1). Con 1 worker el lote
+      Docling por worker** (patrón ``init_worker`` del sistema anterior). Con 1 worker el lote
       corre en el proceso actual (determinista).
     - **checkpoints/reanudación**: cada documento completado deja
       ``<doc>.batch.json`` (con el hash de su contenido) y la corrida siguiente
@@ -745,7 +745,7 @@ class _CheckpointsDesactivados:
 
 
 def _cmd_ask(args: argparse.Namespace, entorno: EntornoCLI) -> int:
-    """``ask``: pregunta puntual (equivalente a ``v1/ask.py``)."""
+    """``ask``: pregunta puntual (equivalente a el cliente de preguntas original)."""
     from ..api import ask as api_ask
 
     respuesta = api_ask(

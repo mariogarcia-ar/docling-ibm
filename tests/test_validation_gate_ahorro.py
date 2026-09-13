@@ -54,7 +54,7 @@ from voucherflow.validation import (
 # pura y se testea aquí sin Ollama (la CLI sí requiere Ollama y es manual).
 # ---------------------------------------------------------------------------
 
-_SRC_V2 = Path(__file__).resolve().parents[1]
+_RAIZ = Path(__file__).resolve().parents[1]
 
 
 def _cargar_modulo_t204():
@@ -66,7 +66,7 @@ def _cargar_modulo_t204():
     """
     import sys
 
-    ruta = _SRC_V2 / "scripts" / "F2" / "t204.py"
+    ruta = _RAIZ / "scripts" / "F2" / "t204.py"
     spec = importlib.util.spec_from_file_location("voucherflow_t204", ruta)
     assert spec and spec.loader, f"No se pudo cargar el script T-204: {ruta}"
     modulo = importlib.util.module_from_spec(spec)
@@ -139,7 +139,7 @@ class _ClienteSecuencia:
 
 def _leer_filas_etiquetadas() -> list[dict[str, str]]:
     """Filas del ``casos.csv`` con ``veredicto`` distinto de ``pendiente``."""
-    ruta = _SRC_V2 / "tests" / "golden" / "casos.csv"
+    ruta = _RAIZ / "tests" / "golden" / "casos.csv"
     with ruta.open(encoding="utf-8") as fh:
         return [
             f for f in csv.DictReader(fh) if f["veredicto"] in t204.VEREDICTOS_VALIDOS
@@ -155,7 +155,7 @@ def _documento_minimo(fila: dict[str, str]) -> ProcessedDocument:
     para el resto se usa ``pdf_texto`` (vista textual sobre el markdown, que
     aquí es sintético: solo importa que exista representación).
     """
-    ruta = (_SRC_V2.parent / fila["ruta"]).resolve()
+    ruta = (_RAIZ / fila["ruta"]).resolve()
     assert ruta.exists(), f"El fixture del caso {fila['id']} no existe: {ruta}"
     if fila["tipo_entrada"] == "imagen":
         return ProcessedDocument("imagen", str(ruta), "")
@@ -221,7 +221,7 @@ class TestEtiquetadoDelGolden:
     def test_los_splits_cubren_todos_los_casos_etiquetados_y_no_se_cruzan(self):
         # Los splits (train/eval) deben particionar el subconjunto etiquetado
         # sin cruces: la exactitud se mide sobre eval (plan 06 §3.4).
-        golden = _SRC_V2 / "tests" / "golden"
+        golden = _RAIZ / "tests" / "golden"
         with (golden / "splits" / "reglas_train.json").open(encoding="utf-8") as fh:
             train = set(json.load(fh)["casos"])
         with (golden / "splits" / "evaluacion.json").open(encoding="utf-8") as fh:
@@ -491,7 +491,7 @@ class TestMetricaAcordada:
         # ``leer_golden_etiquetado`` es la puerta de entrada del reporte: debe
         # devolver exactamente el subconjunto con veredicto (no las "pendiente")
         # y respetar el filtro por split.
-        csv_golden = _SRC_V2 / "tests" / "golden" / "casos.csv"
+        csv_golden = _RAIZ / "tests" / "golden" / "casos.csv"
         etiquetados = t204.leer_golden_etiquetado(csv_golden)
         assert len(etiquetados) >= 9
         assert all(f["veredicto"] in t204.VEREDICTOS_VALIDOS for f in etiquetados)
@@ -558,7 +558,7 @@ class TestIntegracionGateGolden:
         assert modelo, "No hay modelo VLM configurado en Settings (T-204)."
 
         cliente = OllamaClient(url=settings.url_ollama, timeout_s=180.0)
-        filas = t204.leer_golden_etiquetado(_SRC_V2 / "tests" / "golden" / "casos.csv")
+        filas = t204.leer_golden_etiquetado(_RAIZ / "tests" / "golden" / "casos.csv")
         casos = [
             t204.evaluar_caso(fila, cliente, modelo=modelo, settings=settings)
             for fila in filas

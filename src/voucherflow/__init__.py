@@ -1,13 +1,13 @@
-"""voucherflow — librería robusta de procesamiento documental (v2).
+"""voucherflow — librería robusta de procesamiento documental .
 
-Paquete principal del refactor v2 (decisión ADR-007: nombre ``voucherflow`` y
+Paquete principal del refactor (decisión ADR-007: nombre ``voucherflow`` y
 layout ``src/``). Esta es la **Fase F0 (Fundación)**: contiene los contratos de
 evidencia congelados (``schemas/``), el esqueleto de los módulos de capacidad
 que se implementan en F1–F5, los adaptadores de modelo ``OllamaClient`` y
 ``DoclingConverter``, y la configuración centralizada ``settings/``.
 
 El paquete es un *consumidor-neutral*: no depende de la estructura de carpetas
-del repositorio (ni de los scripts de ``v1/``), de modo que puede instalarse y
+del repositorio (ni de los scripts de el sistema anterior), de modo que puede instalarse y
 usarse desde cualquier proyecto (criterio E-LIB-1: "sin acoplamiento a
 scripts").
 """

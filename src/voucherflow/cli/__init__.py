@@ -8,23 +8,23 @@ fachada pública (:mod:`voucherflow.api`) o en el orquestador
 (:class:`~voucherflow.orchestrator.PipelineOrchestrator`), que encadenan los
 módulos de capacidad de F1–F5.
 
-Equivalencias con v1 (mapa de paridad de T-604; doc 03 §8.2)
------------------------------------------------------------
+Mapa de subcomandos (doc 03 §8.2)
+----------------------------------
 
-======================  ==================================  ==========================
-v1                      v2 (CLI)                            Módulo
-======================  ==================================  ==========================
-``ocr_documents.py``    ``voucherflow process``             processing (F1)
-``run_raw.py``          ``voucherflow process --raw``       processing (F1)
-``classification_pipeline.py``  ``voucherflow classify``    classification (F3)
-``extraction_pipeline.py``      ``voucherflow extract``     extraction (F4)
-``document_extraction.py -M 11.1``  ``voucherflow extract-detect``  classification + extracción
-``full_pipeline.py``    ``voucherflow run`` / ``batch``     orchestrator (F6)
-``ask.py``              ``voucherflow ask``                 models/OllamaClient
-``wip/consultar_arca.py``  ``voucherflow arca check``       models/ArcaClient (ADR-003)
-—                       ``voucherflow case show/list``      trace (F5/T-506)
-—                       ``voucherflow hitl list``           trace + conclusion/hitl
-======================  ==================================  ==========================
+===================================  ==================================
+Subcomando                           Módulo
+===================================  ==================================
+``voucherflow process``              processing (F1)
+``voucherflow process --raw``        processing (F1)
+``voucherflow classify``             classification (F3)
+``voucherflow extract``              extraction (F4)
+``voucherflow extract-detect``       classification + extracción
+``voucherflow run`` / ``batch``      orchestrator (F6)
+``voucherflow ask``                  models/OllamaClient
+``voucherflow arca check``           models/ArcaClient (ADR-003)
+``voucherflow case show/list``       trace (F5/T-506)
+``voucherflow hitl list``            trace + conclusion/hitl
+===================================  ==================================
 
 Decisiones de diseño (T-601)
 ----------------------------

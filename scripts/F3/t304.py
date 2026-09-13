@@ -17,7 +17,7 @@ Muestra, **sin Ollama ni Docling** (el cliente se inyecta como doble):
 
 Con `--origen <markdown>` corre la cadena **real** contra Ollama (los tres pasos
 con el modelo de texto de `Settings`, rol `llm`). Es la corrida que T-305
-comparará contra `v1/classification_pipeline.py`.
+comparará contra el pipeline contable de referencia.
 
 Uso:
     python scripts/F3/t304.py                          # escenarios sintéticos
@@ -98,7 +98,7 @@ class LectorDoble:
 
 
 # ---------------------------------------------------------------------------
-# Respuestas sintéticas (shape del prompt de v1)
+# Respuestas sintéticas (shape del prompt de referencia)
 # ---------------------------------------------------------------------------
 
 PASO_01 = {
@@ -214,7 +214,8 @@ ESCENARIOS: list[dict[str, Any]] = [
         "nombre": "paso_01_sin_opciones",
         "respuestas": {"01": {"centros_costos": []}},
         # El paso 01 se registra en el checkpoint antes de leerle las opciones
-        # (igual que v1), así que aparece en los parciales. v1 dejaba escapar un
+        # (igual que el sistema anterior), así que aparece en los parciales. El
+        # sistema anterior dejaba escapar un
         # ``ValueError`` pelado acá; T-304 lo envuelve y preserva lo resuelto.
         "expectativa": {"error": ErrorCadenaContable, "parciales_esperados": ["01_centro_costo"]},
     },

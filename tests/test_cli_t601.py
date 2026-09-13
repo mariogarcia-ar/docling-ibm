@@ -508,7 +508,7 @@ class TestOrquestador:
         assert resultado.resultado.clasificacion_contable is None
         detalle = resultado.detalle["clasificacion_contable"]
         assert detalle["ok"] is False
-        # Los parciales de la cadena viajan en el error (paridad con v1): el
+        # Los parciales de la cadena viajan en el error: el
         # paso 01 corrido no se pierde aunque la cadena no cierre.
         assert "01_centro_costo" in detalle["pasos"]
 
@@ -623,7 +623,7 @@ class TestComandos:
 
     def test_iterar_documentos_excluye_markdown_de_corrida(self, tmp_path: Path):
         # ``.md`` es un formato de entrada VÁLIDO, pero el ``.raw.md`` que escribe
-        # v1 es una salida derivada: descubrirlo reprocesaría la propia corrida.
+        # Es una salida derivada: descubrirla reprocesaría la propia corrida.
         (tmp_path / "entrada.md").write_text("texto", encoding="utf-8")
         (tmp_path / "entrada.raw.md").write_text("crudo", encoding="utf-8")
         assert [p.name for p in iterar_documentos(tmp_path)] == ["entrada.md"]

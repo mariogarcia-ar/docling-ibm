@@ -22,10 +22,7 @@ lo deja anotado: **no falla**, pero el layout puede quedar peor.
 
 ```bash
 # Desde la raíz del repo
-python -m pip install -e v2/
-
-# O desde v2/
-cd v2 && python -m pip install -e .
+python -m pip install -e .
 ```
 
 Esto deja el comando **`voucherflow`** disponible en la terminal. Para verificar:
@@ -153,7 +150,7 @@ Si los tres pasos funcionan, el sistema está listo.
 
 | Síntoma | Causa probable | Qué hacer |
 |---|---|---|
-| `command not found: voucherflow` | El paquete no está instalado en el entorno activo | `python -m pip install -e v2/` con el entorno activado |
+| `command not found: voucherflow` | El paquete no está instalado en el entorno activo | `python -m pip install -e .` con el entorno activado |
 | Error de conexión con Ollama | El servicio no está corriendo | `ollama serve` |
 | Un modelo no está instalado | Falta el `ollama pull` | `ollama pull qwen2.5vl:3b` |
 | Los PDFs salen mal maquetados | No hay poppler | `brew install poppler` |

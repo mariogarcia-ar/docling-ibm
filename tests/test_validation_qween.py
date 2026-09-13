@@ -200,18 +200,18 @@ def _vista_texto(
 class TestPromptQween:
     def test_version_prompt_congelada(self):
         # ADR-005: versión del prompt corto para trazabilidad de la evidencia.
-        # v2: fix de falsos positivos (caso 2926bed9) — define qué es/no es
+        # Fix de falsos positivos (caso 2926bed9) — define qué es/no es
         # comprobante.
         assert VERSION_PROMPT_QWEEN == "qween-gate@2"
 
     def test_system_prompt_pide_las_tres_salidas_y_define_limites(self):
-        # qween.md §1 + v2: prompt corto, decisión orientada, tres salidas.
-        # v2 agrega la definición de qué ES / qué NO ES comprobante (fix de
+        # qween.md §1: prompt corto, decisión orientada, tres salidas.
+        # El prompt agrega la definición de qué ES / qué NO ES comprobante (fix de
         # falsos positivos: capturas de sistema mostrando movimientos).
         assert "comprobante" in SYSTEM_PROMPT_QWEEN
         assert "no_comprobante" in SYSTEM_PROMPT_QWEEN
         assert "indeterminado" in SYSTEM_PROMPT_QWEEN
-        # v2: define los límites — capturas de apps/sistemas que muestran un
+        # Define los límites — capturas de apps/sistemas que muestran un
         # movimiento NO son comprobante (caso 2926bed9).
         assert "Capturas de pantalla" in SYSTEM_PROMPT_QWEEN
         assert "movimiento" in SYSTEM_PROMPT_QWEEN.lower()
@@ -220,7 +220,7 @@ class TestPromptQween:
     def test_mensajes_con_imagen_incluyen_la_imagen(self):
         # Vista con imagen: el mensaje user agrega ``images`` con la imagen en
         # base64 (formato que exige Ollama /api/chat para qwen2.5vl:3b,
-        # validado empíricamente — T-202; mismo patrón que v1).
+        # validado empíricamente — T-202).
         import base64
 
         vista = _vista_imagen()

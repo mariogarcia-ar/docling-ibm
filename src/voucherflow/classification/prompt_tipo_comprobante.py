@@ -1,6 +1,6 @@
 """Prompt de **evidencia** de tipo/letra, versionado (F3 / T-302, E-CLAS-1).
 
-**Qué cambia respecto de `11.1` de v1**: el prompt **deja de decidir**. Antes
+**Qué cambia respecto de el prompt `11.1` original**: el prompt **deja de decidir**. Antes
 pedía ``tipo_comprobante``, ``confianza``, ``tipo_esperado_por_negocio``,
 ``reglas_aplicadas``, ``alerta`` y ``coincide_negocio_vs_documento`` — es decir,
 le pedía al modelo el resultado de aplicar las reglas R1-R7. Eso es exactamente

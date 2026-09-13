@@ -38,7 +38,7 @@ Ejemplos:
     python scripts/F3/t301.py --contexto ../files/2025-08/2D2C9343/contexto.json --detalle
 
 Nota: no requiere Ollama ni Docling (motor de reglas en código, ADR-006). Para
-la paridad real con v1 (`-M 11.1`) ver T-305 (`scripts/F3/paridad_11_1.py`).
+la verificación determinista de la letra ver T-305 (`scripts/F3/t305.py`).
 """
 
 from __future__ import annotations
@@ -141,7 +141,7 @@ ESCENARIOS: list[tuple[str, ContextoTipoComprobante, dict[str, Any]]] = [
         {
             "esperado": "A",
             "detectado": "B",
-            "letra": "B",  # preferencia_letra="documento" (default de 11.1 de v1)
+            "letra": "B",  # preferencia_letra="documento" (default histórico)
             "certeza": "baja",
             "reglas": ["R2A", "R4", "R7"],
             "alertas": ["R7"],

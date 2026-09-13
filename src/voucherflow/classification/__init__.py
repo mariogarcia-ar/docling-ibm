@@ -8,7 +8,7 @@
 devolver evidencia trazable que alimenta ese motor; **T-303** la **pasada 1 de
 reglas raw** por fuente (``rules/raw.py``); **T-304** la **cadena contable
 01→02→03** (``prompts_contable.py`` + ``contable.py``), que reemplaza a
-``v1/classification_pipeline.py`` con contratos tipados entre pasos y checkpoints.
+la cadena contable original con contratos tipados entre pasos y checkpoints.
 
 Los flujos VLM/LLM reales de lectura son de F4/T-401: T-302 usa un **lector
 inyectable** (``evidencia.Lector``) y en la suite default se le pasa un doble

@@ -465,7 +465,7 @@ class TestProcesarImagen:
 
 class TestDoclingRaw:
     """``docling_raw=True`` expone el crudo de Docling (sin reordenar por
-    posición; equivale a ``v1/run_raw.py``). Decisión de alcance subplan F1
+    posición; equivale al modo crudo histórico). Decisión de alcance subplan F1
     §2.5. El crudo se captura de ``conv.convert`` ANTES de pisarlo (no se
     vuelve a correr Docling); default ``False`` preserva la política combinada
     (E-DOC-3, contrato F2/F3/F4).

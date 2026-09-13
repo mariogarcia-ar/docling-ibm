@@ -7,7 +7,7 @@ decisión se basa en esa evidencia."
 Qué se verifica, en el orden del subplan:
 
 1. **El prompt no decide** y su contrato de evidencia es el que se documenta
-   (``CAMPOS_EVIDENCIA``); los campos de decisión del `11.1` de v1 quedan
+   (``CAMPOS_EVIDENCIA``); los campos de decisión del prompt `11.1` quedan
    explícitamente **fuera** del contrato (``CAMPOS_FUERA_DEL_CONTRATO``, ADR-006)
    y la versión del prompt está congelada (``tipo-comprobante@1``, ADR-005).
 2. **Los ``messages``** se construyen por fuente: la de imagen agrega ``images``
@@ -215,7 +215,7 @@ class TestPromptEvidencia:
         )
 
     def test_la_decision_queda_fuera_del_contrato(self):
-        # ADR-006: los campos que el `11.1` de v1 pedía al modelo (letra final,
+        # ADR-006: los campos que el prompt `11.1` pedía al modelo (letra final,
         # confianza, reglas, alerta, cruce negocio-vs-documento) NO se piden.
         assert set(CAMPOS_EVIDENCIA).isdisjoint(CAMPOS_FUERA_DEL_CONTRATO)
         for campo in (

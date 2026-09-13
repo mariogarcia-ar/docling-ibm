@@ -9,9 +9,9 @@
 
 
 # notes
-read v2/readme.md
+read README.md
 keep this simplicity for the pseudocode 
-tidy v2/readme.md 
+tidy README.md 
 
 
 brew install libmagic

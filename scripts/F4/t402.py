@@ -6,7 +6,8 @@
 Muestra, **sin Ollama ni Docling** (los lectores se inyectan como dobles):
 
   1. Las **reglas de normalización** una por una, con los casos de la letra
-     chica de v1: el CUIT que el OCR pegó al campo siguiente (``"20-1 Ing,
+     chica del prompt de referencia: el CUIT que el OCR pegó al campo
+    siguiente (``"20-1 Ing,
      Brutas: 201641"`` → ``"20-1"``), la fecha impresa (``"14/08/2025"`` →
      ``"2025-08-14"``), el monto con separadores (``"$ 12.345,67"`` →
      ``12345.67``), el número de comprobante (``"00005-00007344"`` →
@@ -21,7 +22,8 @@ Muestra, **sin Ollama ni Docling** (los lectores se inyectan como dobles):
      ``combinar_evidencia`` sigue siendo el esqueleto de T-404.
 
 Con ``--origen`` corre la extracción **real** contra Ollama y muestra la
-comparación crudo → normalizado de cada fuente (el insumo de la paridad con v1
+comparación crudo → normalizado de cada fuente (el insumo de la medición de
+normalización
 de T-405).
 
 Uso:
@@ -153,7 +155,7 @@ def _normalizar_lectura(campos: dict[str, Any], fuente: str = "llm") -> Any:
 
 
 # ---------------------------------------------------------------------------
-# 1. Reglas, caso por caso (los ejemplos de la letra chica de v1)
+# 1. Reglas, caso por caso (los ejemplos de la letra chica de referencia)
 # ---------------------------------------------------------------------------
 
 #: ``(campo, valor crudo, valor esperado)`` por regla. El valor esperado es el
@@ -162,7 +164,7 @@ def _normalizar_lectura(campos: dict[str, Any], fuente: str = "llm") -> Any:
 _REGLAS: list[tuple[str, str, list[tuple[str, str, Any]]]] = [
     (
         NORM_CUIT,
-        "solo dígitos y los guiones propios; corte ante caracteres extraños (regla 2b de v1)",
+        "solo dígitos y los guiones propios; corte ante caracteres extraños (regla 2b del prompt de referencia)",
         [
             ("cuit_emisor", "20-12345678-9", "20-12345678-9"),
             ("cuit_emisor", "20-1 Ing, Brutas: 201641", "20-1"),
@@ -260,7 +262,7 @@ def _imprimir_reglas(reportes: list[dict[str, Any]], detalle: bool) -> int:
 ESCENARIOS: list[dict[str, Any]] = [
     {
         "nombre": "cuit_cortado_por_ocr",
-        "que": "el CUIT pegado al campo siguiente se corta (regla 2b de v1) y se avisa",
+        "que": "el CUIT pegado al campo siguiente se corta (regla 2b del prompt de referencia) y se avisa",
         "campos": {
             "cuit_emisor": _campo("20-1 Ing, Brutas: 201641", "C.U.I.T. 20-1 Ing, Brutas: 201641")
         },
@@ -363,7 +365,7 @@ ESCENARIOS: list[dict[str, Any]] = [
     },
     {
         "nombre": "moneda_sin_default",
-        "que": "una moneda no reconocida se conserva (v1 asumía ARS: acá no se inventa)",
+        "que": "una moneda no reconocida se conserva (el prompt de referencia asumía ARS: acá no se inventa)",
         "campos": {"moneda": _campo("EUR", "Moneda: EUR")},
         "valores": {"moneda": "EUR"},
         "crudos": {"moneda": "EUR"},
@@ -615,7 +617,7 @@ def _imprimir_cabecera() -> None:
     print(
         "T-402 · Normalización key-value de la extracción (F4/E-EXT-3)\n"
         f"    versión de reglas: {VERSION_NORMALIZACION}\n"
-        "    reglas de v1 portadas a código: prompts 10/11 (kvi) y kvg\n"
+        "    reglas del prompt portadas a código: prompts 10/11 (kvi) y kvg\n"
         "    regla dura: un dato ilegible conserva el crudo con aviso; no se inventa"
     )
 

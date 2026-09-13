@@ -5,7 +5,7 @@
   "letra_real": [
     {
       "id": "img_2025-08_2D2C9343",
-      "ruta": "v2/tests/fixtures/golden/2991f57d-c143-4b23-9f87-4dfb1214ef53.jpg",
+      "ruta": "tests/fixtures/golden/2991f57d-c143-4b23-9f87-4dfb1214ef53.jpg",
       "veredicto": "comprobante",
       "letra_derivada": "A",
       "letra_estado": "derivada_de_evidencia",
@@ -14,7 +14,7 @@
     },
     {
       "id": "pdf_2026-02_6D03019B",
-      "ruta": "v2/tests/fixtures/golden/af9f596b-bab2-4e69-b82a-c61fcdacdcbd.pdf",
+      "ruta": "tests/fixtures/golden/af9f596b-bab2-4e69-b82a-c61fcdacdcbd.pdf",
       "veredicto": "comprobante",
       "letra_derivada": "A",
       "letra_estado": "derivada_de_evidencia",
@@ -22,7 +22,7 @@
     },
     {
       "id": "img_2026-08_1CDFCDA0",
-      "ruta": "v2/tests/fixtures/golden/66cd35e9-a0a2-4342-b4f9-4c7e7c39d6b0.pdf",
+      "ruta": "tests/fixtures/golden/66cd35e9-a0a2-4342-b4f9-4c7e7c39d6b0.pdf",
       "veredicto": "comprobante",
       "letra_derivada": "A",
       "letra_estado": "derivada_de_evidencia",

@@ -4,7 +4,7 @@
 implementó la operación de su capacidad: ``process`` (F1, T-105/ORQ),
 ``validate`` (F2, T-203), ``classify`` (F3, T-304), ``extract`` y ``run``
 (**F6/T-601**, sobre las capacidades de F4/F5). ``ask`` es la consulta puntual
-del cliente (equivalente a ``v1/ask.py``).
+del cliente (equivalente a el cliente de preguntas original).
 
 El objetivo de exponer esta fachada desde F0 es **fijar la API pública** de la
 librería (E-LIB-1: "librería primero, cliente después") para que el cliente
@@ -75,7 +75,7 @@ def process(origen: str, *, docling_raw: bool = False) -> "ProcessedDocument":
     ``docling_raw`` (Opción A, decisión de alcance subplan F1 §2.5): cuando es
     ``True``, ``ProcessedDocument.markdown`` contiene el **crudo de Docling**
     (el markdown de ``export_to_markdown()`` del adaptador, sin el reordenado
-    por posición del exportador E-DOC-3); equivale a ``v1/run_raw.py``. El
+    por posición del exportador E-DOC-3); equivale a el modo crudo. El
     default ``False`` preserva el comportamiento actual (política combinada
     E-DOC-3, contrato F2/F3/F4). Aplica a **documento completo** (imagen / PDF
     apto / office / texto y PDF escaneado vía imagen renderizada); en un PDF
@@ -256,16 +256,16 @@ def extract(
     la ``CombinedEvidence`` con todas las lecturas conservadas y la resolución
     por campo — el mismo artefacto que produce el orquestador en el paso 4.
 
-    Sobre ``mode`` (``kvi``/``kvg``/``10``/``11``): son los modos **heredados** de
-    v1 (glosario y doc 03 §8.2). En v2 hay **un** contrato de extracción
-    versionado (``extraccion-key-value@1``) que cubre a todos, así que el modo se
-    registra en la trazabilidad por paridad verificable (T-604) pero **no** cambia
+    Sobre ``mode`` (``kvi``/``kvg``/``10``/``11``): son modos **heredados** de
+    corridas históricas (glosario y doc 03 §8.2). Hay **un solo** contrato de
+    extracción versionado (``extraccion-key-value@1``) que cubre a todos, así que
+    el modo se registra en la trazabilidad (T-604) pero **no** cambia
     el prompt ni el contrato: fingir una diferencia que no existe haría la
     paridad inauditable.
 
     Argumentos:
         origen: ruta del documento (pdf/imagen/office/texto).
-        mode: modo heredado de v1 (default ``kvi``; ver doc 03 §8.2).
+        mode: modo heredado (default ``kvi``; ver doc 03 §8.2).
         cliente: lector de modelos inyectable (``OllamaClient`` en producción).
         settings: ``Settings`` de la corrida.
         converter: convertidor Docling inyectable (tests).
@@ -300,8 +300,8 @@ def extract(
         "mode_heredado": mode,
         "nota": (
             "`extract` de la fachada (T-601) corre procesamiento + gate + los dos "
-            "flujos + combinación. El modo heredado de v1 se registra por paridad "
-            "(T-604); el contrato de extracción de v2 es uno solo "
+            "flujos + combinación. El modo heredado se registra por paridad "
+            "(T-604); el contrato de extracción del paquete es uno solo "
             f"({extraction_version()})."
         ),
     }
@@ -348,7 +348,7 @@ def run(
         condicion_impositiva: condición para la cadena contable (``21`` default).
         modelo: modelo de las etapas que hablan con el modelo.
         orientation: ``auto`` | ``horizontal`` | ``vertical``.
-        docling_raw: markdown crudo de Docling (equivalente a ``v1/run.py``).
+        docling_raw: markdown crudo de Docling (equivalente a el procesador original).
         clasificar_contable: si ``True``, corre la cadena 01→02→03.
         agente: agente IA inyectable (T-504); ``None`` no escala.
         cliente: lector de modelos inyectable.
@@ -397,7 +397,7 @@ def ask(
     converter: "Any" = None,
     max_chars: int = 20000,
 ) -> str:
-    """Pregunta libre sobre un documento (F6/T-601; equivale a ``v1/ask.py``).
+    """Pregunta libre sobre un documento (F6/T-601; equivale a el cliente de preguntas original).
 
     Es la capacidad de consulta puntual del cliente (doc 03 §8.2: ``ask.py`` →
     ``voucherflow ask``): procesa el documento con F1, arma un prompt de pregunta

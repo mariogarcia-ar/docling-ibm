@@ -82,7 +82,7 @@ from .registry import Registry, Rule
 #: Docling y capturaba la primera letra de la línea siguiente: el encabezado
 #: ``"FACTURA\n  Código: 1"`` producía la letra ``C`` (el ``C`` de
 #: "**C**ódigo") sobre **dos PDFs reales del golden** cuyo encabezado dice
-#: ``FACTURA A``. El patrón del WIP nunca se ejecutó como código en v1 (vivía en
+#: ``FACTURA A``. El patrón del WIP nunca se ejecutó como código en el sistema anterior (vivía en
 #: el prompt como ``criterio`` descriptivo), así que el defecto recién apareció
 #: al portarlo a un motor determinístico (T-301) y ejercitarlo con documentos
 #: reales (T-305).

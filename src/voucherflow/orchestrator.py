@@ -6,7 +6,7 @@ F0 dejó el esqueleto (``PipelineOrchestrator.ejecutar`` lanzaba
 ``NotImplementedError``). **T-601 lo implementa**: el orquestador encadena las
 etapas que las fases F1–F5 dejaron implementadas y devuelve el
 ``PipelineResult`` con el ``VoucherResult`` consolidado, la evidencia combinada
-y el ``CaseRecord``. Este módulo no se acopla a scripts de ``v1/``.
+y el ``CaseRecord``. Este módulo no se acopla a scripts de el sistema anterior.
 
 Qué encadena (doc 03 §5.1) y qué **no** hace
 --------------------------------------------
@@ -26,7 +26,7 @@ La **clasificación contable** (F3/T-304) es opcional en la corrida: la cadena
 01→02→03 llama al modelo tres veces, así que se pide explícitamente
 (``clasificar_contable=True``) y un fallo de la cadena **no** tumba el caso: se
 registra en la traza y el resultado viaja sin clasificación (no se inventa una,
-T-503). Es la misma política que v1, que anotaba los errores por paso y seguía.
+T-503). Es la misma política que el sistema anterior, que anotaba los errores por paso y seguía.
 
 Determinismo sin red (regla dura del repo)
 ------------------------------------------
@@ -95,7 +95,7 @@ ETAPA_TRAZABILIDAD = "trace"
 
 #: Artefactos derivados que la búsqueda recursiva **no** debe reprocesar como si
 #: fueran documentos de entrada: los escriben las corridas (sidecars, checkpoints
-#: de v1) o son salidas ya derivadas del pipeline.
+#: del sistema anterior) o son salidas ya derivadas del pipeline.
 EXCLUIDAS_POR_NOMBRE: tuple[str, ...] = (
     "*.case.json",
     "*_pipeline.json",
@@ -126,7 +126,7 @@ def iterar_documentos(
 ) -> list[Path]:
     """Descubre los documentos de una ruta: un archivo o una carpeta recursiva.
 
-    Es el equivalente v2 del ``find_source_files`` de ``v1/full_pipeline.py``: si
+    Es el equivalente del ``find_source_files`` de el pipeline completo original: si
     ``raiz`` es un archivo se devuelve tal cual; si es un directorio se recorren
     las subcarpetas y se devuelven los archivos soportados, **en orden
     determinista** (el resultado no debe depender del orden del filesystem: una
@@ -134,7 +134,7 @@ def iterar_documentos(
 
     Se excluyen los artefactos **derivados** (``EXCLUIDAS_POR_NOMBRE``): los
     sidecars y checkpoints que escriben las corridas no son documentos de entrada.
-    Una carpeta de ``files/`` con salidas de v1 dentro no debe reprocesar sus
+    Una carpeta de ``files/`` con salidas del sistema anterior dentro no debe reprocesar sus
     propios sidecars.
 
     Argumentos:
@@ -331,7 +331,7 @@ class PipelineOrchestrator:
         """Etapa ``processing`` (F1/T-105): documento → ``ProcessedDocument``.
 
         ``orientation`` (equivalente al ``--orientation`` de la CLI y de
-        ``v1/run.py``): ``auto`` conserva la política combinada del exportador
+        el procesador original): ``auto`` conserva la política combinada del exportador
         (E-DOC-3, la dominante). ``horizontal``/``vertical`` **re-exporta** el texto
         de los ``Box`` filtrando por esa orientación — es una decisión de la
         corrida, no del contrato de F1 (``ProcessedDocument`` no la conoce), así
@@ -463,7 +463,7 @@ class PipelineOrchestrator:
 
         Devuelve ``(clasificacion, detalle)``. Un fallo de la cadena **no**
         propaga la excepción: se registra en el detalle y la clasificación vuelve
-        ``None``. La justificación es la de v1 (``full_pipeline`` anotaba los
+        ``None``. La justificación es la del sistema anterior (``full_pipeline`` anotaba los
         errores por paso y seguía) y la de F5/T-503 ("un caso sin clasificar no es
         un caso mal clasificado"): tumbar el caso entero porque el paso contable
         falló sería perder el veredicto que ya se tiene.
@@ -547,7 +547,7 @@ class PipelineOrchestrator:
                 ``None``, el rol de cada etapa de ``Settings``).
             orientation: ``auto`` | ``horizontal`` | ``vertical`` (``--orientation``).
             docling_raw: si ``True``, el markdown es el crudo de Docling
-                (equivalente a ``v1/run.py`` sin reordenar; ver T-105/ORQ).
+                (equivalente a el procesador original sin reordenar; ver T-105/ORQ).
             usar_gate: si ``True`` (default), corre el gate de F2 antes de extraer.
                 Desactivarlo **no** evita el fast-fail: el caso sin comprobante se
                 resolverá más adelante por sus propias reglas.

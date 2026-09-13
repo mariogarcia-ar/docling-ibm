@@ -2,7 +2,7 @@
 
 Validan que el golden set sea íntegro (las rutas referenciadas existen, los
 splits referencian ids del CSV y no hay cruces train/eval) y que el esqueleto
-del paquete exponga los módulos de los 5 refactors sin acoplamiento a v1.
+del paquete exponga los módulos de los 5 refactors sin acoplamiento externo.
 
 **F2/T-204** agrega el etiquetado del ``veredicto`` del subconjunto acotado
 (F2-subplan §2.5): se valida que los valores pertenezcan al vocabulario del
@@ -39,7 +39,7 @@ class TestGoldenSet:
         assert len(filas) >= 5, "El golden set inicial debe tener al menos 5 casos"
 
     def test_rutas_del_casos_csv_existen(self, golden_dir):
-        repo_root = golden_dir.parents[2]  # v2/tests/golden -> raíz del repo
+        repo_root = golden_dir.parents[1]  # tests/golden -> raíz del repo
         with (golden_dir / "casos.csv").open(encoding="utf-8") as fh:
             for fila in csv.DictReader(fh):
                 ruta = repo_root / fila["ruta"]
@@ -210,14 +210,14 @@ class TestEsqueletoPaquete:
         assert reglas.ids_disparados("monotributo") == ["R1"]
         # R0 tiene mayor prioridad pero no dispara.
 
-    def test_sin_acoplamiento_a_v1(self):
-        # El paquete no debe importar rutas de scripts de v1 (sys.path).
+    def test_sin_acoplamiento_a_scripts_externos(self):
+        # El paquete no debe importar rutas de scripts sueltos (sys.path).
         import sys
 
         import voucherflow
 
         pkg_dir = str(voucherflow.__path__[0])
-        assert "v1" not in pkg_dir.split("ibm-docling")[1].split("voucherflow")[0] or True
+        assert "scripts" not in pkg_dir.split("voucherflow")[0]
 
     def test_processdocument_es_contrato_de_salida(self):
         doc = ProcessedDocument(tipo_entrada="imagen", ruta="x.jpg", markdown="# A")

@@ -1,6 +1,6 @@
-"""Fixtures y configuración compartida de la suite de F0.
+"""Fixtures y configuración compartida de la suite.
 
-La suite de F0 **no** requiere servicios reales (Docling/Ollama): los tests de
+La suite **no** requiere servicios reales (Docling/Ollama): los tests de
 ``OllamaClient`` usan mock de HTTP y los de Docling solo construcción. Los
 tests que necesiten servicios reales se marcan ``@pytest.mark.integration`` y
 no corren por defecto (ver ``pyproject.toml``).
@@ -15,8 +15,8 @@ from pathlib import Path
 import pytest
 
 # Garantiza que el paquete ``voucherflow`` sea importable cuando se corre
-# pytest desde ``v2/`` con el layout ``src/`` (sin instalación previa).
-SRC = Path(__file__).resolve().parents[2] / "src"
+# pytest desde la raíz del repo con el layout ``src/`` (sin instalación previa).
+SRC = Path(__file__).resolve().parents[1] / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 

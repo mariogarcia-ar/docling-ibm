@@ -1,6 +1,6 @@
 """Exportador de Markdown ordenado por posición (F1 / T-104, épica E-DOC-3).
 
-Porta el algoritmo de ``v1/lib/orientation.py`` (``export_orientation_text``)
+Porta el algoritmo de el módulo de orientación original (``export_orientation_text``)
 de forma **byte-compatible**, pero operando sobre la lista de :class:`Box` del
 contrato ``ProcessedDocument`` (no sobre el documento Docling crudo).
 
@@ -9,15 +9,15 @@ Reglas (doc 03 §4.1 y E-DOC-3; subplan F1 §5):
   - Agrupar en **líneas** por ``center_y`` (horizontal) o ``center_x``
     (vertical), con tolerancia **25.0**.
   - Horizontal: líneas ordenadas ``reverse=True`` (de abajo hacia arriba, como
-    v1); dentro de la línea por ``left`` ascendente.
+    ); dentro de la línea por ``left`` ascendente.
   - Vertical: líneas por ``center_x`` sin reverse; dentro por ``center_y`` con
     reverse.
   - Tablas (``Box.es_tabla``) → ítem único con su Markdown exportado y
-    orientación forzada horizontal (paridad v1: ``label=='table'``).
+    orientación forzada horizontal (paridad con el sistema anterior: ``label=='table'``).
   - Join de línea con ``' | '``, ``'\n'`` entre líneas y ``'\n'`` final.
   - Sin boxes → ``"No se encontraron textos en orientación {orient}.\n"``.
 
-Nota sobre coordenadas: v1 trabajaba con coordenadas Docling en puntos (escala
+Nota sobre coordenadas: el sistema anterior trabajaba con coordenadas Docling en puntos (escala
 de página). El ``Box`` de F0 conserva esas coordenadas tal cual (ver
 ``convert()``), por lo que la tolerancia 25.0 se mantiene con el mismo
 significado.
@@ -27,14 +27,14 @@ from __future__ import annotations
 
 from ..models.docling import Box
 
-#: Tolerancia de agrupación en línea (subplan F1 §5, igual que v1).
+#: Tolerancia de agrupación en línea (subplan F1 §5, igual que el sistema anterior).
 TOLERANCIA_LINEA = 25.0
 
 
 def _left_de_box(box: Box) -> float:
     """Devuelve el ``left`` (borde izquierdo) derivado del bbox.
 
-    En v1: ``left = min(bbox.l, bbox.r)``. Si no hay bbox, usa ``center_x``.
+    ``left = min(bbox.l, bbox.r)``. Si no hay bbox, usa ``center_x``.
     """
     if box.bbox is not None:
         l, _t, r, _b = box.bbox
@@ -65,14 +65,14 @@ def exportar_por_posicion(boxes: list[Box], orientacion: str = "horizontal") -> 
     is_horizontal = orientacion == "horizontal"
 
     # 1. Filtrar: un box participa si su orientación coincide con la pedida.
-    #    Las tablas SIEMPRE se tratan como horizontal (paridad v1).
+    #    Las tablas SIEMPRE se tratan como horizontal (paridad con el sistema anterior).
     boxes_utiles: list[dict] = []
     for box in boxes:
         if box.es_tabla:
             box_orient = "horizontal"
         else:
             if box.bbox is None:
-                continue  # sin posición no se puede ordenar (v1: sin prov -> skip)
+                continue  # sin posición no se puede ordenar (sin prov -> skip)
             ancho = abs(box.bbox[2] - box.bbox[0])
             alto = abs(box.bbox[3] - box.bbox[1])
             box_orient = "horizontal" if ancho >= alto else "vertical"

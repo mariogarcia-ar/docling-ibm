@@ -46,7 +46,7 @@ Decisiones de diseño (T-506)
 1. **Escritura atómica de verdad**: se escribe en un archivo temporal en el
    **mismo directorio** y se hace ``os.replace`` (atómico en POSIX y Windows). Si
    el proceso muere a mitad de la escritura, el sidecar anterior queda intacto —
-   nunca se lee un JSON truncado. Este es el patrón de la v1 que el §4 de los ADR
+   nunca se lee un JSON truncado. Este es el patrón de el sistema anterior que el §4 de los ADR
    manda respetar, y la base de la reanudación por checkpoint (F6/T-602).
 2. **El índice va *después* del sidecar, y es best-effort.** El sidecar es el
    dato; el índice es un derivado. Si el índice no se puede escribir (disco lleno,
@@ -166,7 +166,7 @@ class ResultadoPersistencia:
 def sidecar_para(documento_id: str) -> str:
     """Nombre de archivo sidecar canónico para un documento (helper).
 
-    Patrón heredado de v1 (``_pipeline.json`` / ``.case.json``), útil para
+    Patrón heredado (``_pipeline.json`` / ``.case.json``), útil para
     checkpoints y reanudación (F6/T-602).
     """
     return f"{documento_id}.case.json"

@@ -2,12 +2,12 @@
 
 Detecta si la orientación predominante de un documento es **horizontal** o
 **vertical** a partir de los ``Box`` ya extraídos (doc 03 §4.1: "Detección de
-orientación + rotación"; E-DOC-2 regla "orientación"). Es la versión v2 del
-``get_dominant_orientation``/``get_orientation_for_item`` de ``v1/lib/
+orientación + rotación"; E-DOC-2 regla "orientación"). Es la versión del
+``get_dominant_orientation``/``get_orientation_for_item`` de ``el módulo original
 orientation.py``, pero operando sobre la lista de :class:`Box` del contrato
 ``ProcessedDocument`` (no sobre el documento Docling crudo).
 
-Semántica (idéntica a v1):
+Semántica (idéntica al sistema anterior):
   - Cada box es ``horizontal`` si su ancho >= su alto (el texto corre en el
     eje X), ``vertical`` en caso contrario.
   - La orientación del documento es la **dominante**; empate → ``horizontal``.
@@ -28,7 +28,7 @@ ORIENTACIONES_VALIDAS = frozenset({ORIENTACION_HORIZONTAL, ORIENTACION_VERTICAL}
 
 
 def orientacion_por_box(box: Box) -> str | None:
-    """Devuelve la orientación de un box según sus dimensiones (v1).
+    """Devuelve la orientación de un box según sus dimensiones.
 
     Un box es ``horizontal`` si su ancho >= su alto; ``vertical`` en caso
     contrario. Devuelve ``None`` si el box no tiene ``bbox`` (sin posición).
@@ -42,11 +42,11 @@ def orientacion_por_box(box: Box) -> str | None:
 
 
 def detectar_orientacion(boxes: list[Box]) -> str:
-    """Devuelve la orientación dominante de un documento (v1 get_dominant_orientation).
+    """Devuelve la orientación dominante de un documento.
 
     Cuenta cuántos boxes son ``horizontal`` vs ``vertical`` y devuelve la
     dominante. Si no hay boxes con posición o hay empate, devuelve
-    ``horizontal`` (default de lectura; coincide con v1).
+    ``horizontal`` (default de lectura; coincide con el sistema anterior).
 
     Argumentos:
         boxes: lista de :class:`Box` del ``ProcessedDocument``.

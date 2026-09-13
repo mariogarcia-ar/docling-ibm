@@ -12,7 +12,7 @@ Las tres piezas del DoD
 -----------------------
 
 **(1) Workers.** ``EjecutorProcesos`` usa ``ProcessPoolExecutor`` con un
-``initializer`` por worker, que es el patrón de ``v1/full_pipeline.py``
+``initializer`` por worker, que es el patrón de el pipeline completo original
 (``init_worker``): un convertidor de Docling por **proceso** (los modelos son
 pesados y no se comparten entre procesos) y un cliente de modelos por proceso.
 El trabajo cruza la frontera del proceso como **dict serializable**: el worker
@@ -96,7 +96,7 @@ from .settings.config import CoolingSettings, Settings, cargar_settings
 VERSION_LOTE = "lote-batch@1"
 
 #: Sufijo del checkpoint por documento. Se conserva junto al documento (patrón de
-#: v1: ``<doc>_pipeline.json``) porque así la reanudación funciona sin tener que
+#: ``<doc>_pipeline.json``) porque así la reanudación funciona sin tener que
 #: pasar un directorio de salida, y ``iterar_documentos`` lo excluye del
 #: descubrimiento.
 SUFIJO_CHECKPOINT = ".batch.json"
@@ -149,7 +149,7 @@ class RelojReal:
 def ruta_checkpoint(documento: str | Path) -> Path:
     """Ruta del checkpoint de un documento (``<doc>.batch.json``).
 
-    Igual que en v1 (``<doc>_pipeline.json``) el checkpoint vive **junto al
+    Igual que en el sistema anterior (``<doc>_pipeline.json``) el checkpoint vive **junto al
     documento**: así la reanudación no exige recordar el directorio de salida y
     dos documentos homónimos en subcarpetas distintas no comparten archivo.
     """
@@ -565,7 +565,7 @@ class EjecutorSerial:
 
 
 def _init_worker() -> None:
-    """Inicializa el estado por worker del pool (patrón ``v1/full_pipeline.py``).
+    """Inicializa el estado por worker del pool (patrón el pipeline completo original).
 
     El worker construye su convertidor de Docling y su cliente de modelos de forma
     **perezosa** (``_worker_orquestador``): crear el convertidor acá obligaría a
@@ -588,7 +588,7 @@ def _worker_orquestador(opciones: dict[str, Any]) -> Any:
 
     Se cachea por proceso: el convertidor de Docling es caro y los modelos no se
     comparten entre procesos. Los ``Settings`` se cargan en el worker (no se
-    picklean desde el padre): es el mismo contrato que ``init_worker`` de v1 y
+    picklean desde el padre): es el mismo contrato que ``init_worker`` del sistema anterior y
     evita transportar configuración que podría tener objetos no serializables.
     """
     from .conclusion.agent import AgenteOllama

@@ -186,7 +186,7 @@ ESCENARIOS: list[dict[str, Any]] = [
         "markdown": None,
         "vista": True,
         "expectativa": {
-            "letra": "B",  # preferencia_letra="documento" (default de 11.1 de v1)
+            "letra": "B",  # preferencia_letra="documento" (default histórico)
             "certeza": "baja",
             "reglas": ["R2A", "R4", "R7"],
             "alertas": ["R7"],

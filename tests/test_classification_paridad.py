@@ -1,39 +1,36 @@
-"""Tests de **paridad** del subconjunto F3 (T-305, épicas E-CLAS-1/E-CLAS-2).
+"""Tests del subconjunto de clasificación F3 (T-305, épicas E-CLAS-1/E-CLAS-2).
 
 **DoD de F3** (``05-plan-ejecucion.md``): "La letra se decide por reglas sobre
-evidencia (no por el prompt); la cadena contable reproduce v1; tests de reglas
-R1-R7 unitarios." La parte de reglas unitarias la cubren T-301/T-303/T-304; este
-módulo cubre la **paridad** que pide T-305, en su tramo **determinista** (sin
-Ollama y sin v1), que es el único que puede correr en la suite default.
+evidencia (no por el prompt); tests de reglas R1-R7 unitarios." La parte de
+reglas unitarias la cubren T-301/T-303/T-304; este módulo cubre el tramo
+**determinista** del subconjunto de F3 (sin Ollama y sin red), que es el único
+que puede correr en la suite default.
 
 Qué se verifica:
 
-1. **Fidelidad de los prompts portados** — los ``system``/``user`` de los pasos
-   contables de v2 deben ser **idénticos** a los YAML de ``prompts/`` que usaba
-   v1 (``01..03-*.yaml``) y el ``11.1`` de v2 debe conservar la **guía de
-   lectura** de ``prompts/facturacion/11.1-deteccion_tipo_factura.yaml``. Es la
-   garantía de paridad *estructural*: la cadena v2 corre el mismo texto que v1.
-2. **Integridad del subconjunto de paridad** (``tests/golden/F3/``) — las rutas
-   existen, los ids reales están en ``casos.csv``, la ``letra_derivada`` está
-   sustentada por la ``evidencia_veredicto`` del golden (si no, sería una
-   etiqueta inventada) y las etiquetas se declaran como derivadas, no
-   "verificadas" por contador.
-3. **Paridad determinista de la letra** sobre los casos **sintéticos** del
-   subconjunto: v2 debe decidir la letra y la regla esperadas (R1/R2A/R2B/R3 y
-   la cascada R4→R5 con la alerta R7). Esto es exactamente el tramo que
+1. **Fidelidad de los prompts versionados en código** — los ``system``/``user``
+   de los pasos contables deben ser **idénticos** a los YAML de ``prompts/``
+   (``01..03-*.yaml``) y el ``11.1`` debe conservar la **guía de lectura** de
+   ``prompts/facturacion/11.1-deteccion_tipo_factura.yaml``. Los YAML son la
+   copia de referencia congelada que vive en el repo: si alguien retoca el
+   prompt en código, el test obliga a justificar el cambio.
+2. **Integridad del subconjunto** (``tests/golden/F3/``) — las rutas existen,
+   los ids reales están en ``casos.csv`` y la ``letra_derivada`` está sustentada
+   por la ``evidencia_veredicto`` del golden (si no, sería una etiqueta
+   inventada); las etiquetas se declaran como derivadas, no "verificadas" por
+   contador.
+3. **Exactitud determinista de la letra** sobre los casos **sintéticos** del
+   subconjunto: el motor debe decidir la letra y la regla esperadas (R1/R2A/R2B/
+   R3 y la cascada R4→R5 con la alerta R7). Esto es exactamente el tramo que
    ADR-006 sacó del prompt, así que se exige exactitud, no acuerdo.
 4. **Regresión del bug de R5 encontrado por T-305**: el ``\\s+`` del patrón
-   literal del WIP cruzaba el salto de línea del markdown de Docling y tomaba la
-   letra de la línea siguiente (``"FACTURA\\n  Código: 1"`` → ``C``). El test
-   fija el comportamiento correcto (la letra debe estar **en la misma línea**).
-5. **Lógica de comparación de los scripts** (``campos_desde_v1`` /
-   ``campos_desde_v2`` / ``comparar``) sin red: los estados
-   ``coincide``/``difiere``/``no_comparable`` y el criterio de "paridad o mejora".
+   literal cruzaba el salto de línea del markdown de Docling y tomaba la letra
+   de la línea siguiente (``"FACTURA\\n  Código: 1"`` → ``C``). El test fija el
+   comportamiento correcto (la letra debe estar **en la misma línea**).
 
-Reglas duras (F3-subplan §4): la suite default no corre Ollama ni v1; este módulo
-tampoco **importa** v1 ni ``scripts/`` (verifica los prompts leyendo los YAML
-como **datos**, y la lógica de comparación con un `importlib` acotado del script
-de paridad, sin ejecutar su ``main``).
+Reglas duras (F3-subplan §4): la suite default no corre Ollama ni red; este
+módulo tampoco **importa** ``scripts/`` (verifica los prompts leyendo los YAML
+como **datos**).
 """
 
 from __future__ import annotations
@@ -41,7 +38,6 @@ from __future__ import annotations
 import csv
 import importlib.util
 import json
-import re
 from pathlib import Path
 
 import pytest
@@ -64,26 +60,20 @@ from voucherflow.rules.tipo_comprobante_rules import (
 # Rutas
 # ---------------------------------------------------------------------------
 
-#: Raíz del paquete v2 (``v2/tests/test_classification_paridad.py`` → ``parents[1]``).
-RAIZ_V2 = Path(__file__).resolve().parents[1]
+#: Raíz del repo (``tests/test_classification_paridad.py`` → ``parents[1]``).
+RAIZ_REPO = Path(__file__).resolve().parents[1]
 
-#: Raíz del repo (contiene ``v1/`` y ``prompts/``).
-RAIZ_REPO = RAIZ_V2.parent
-
-#: Raíz del subconjunto de paridad de F3.
-F3_DIR = RAIZ_V2 / "tests" / "golden" / "F3"
+#: Raíz del subconjunto de clasificación de F3.
+F3_DIR = RAIZ_REPO / "tests" / "golden" / "F3"
 
 #: Manifiesto del subconjunto.
 SUBCONJUNTO = F3_DIR / "subconjunto.json"
 
-#: Prompts YAML de la raíz del repo (los que usaba v1).
+#: Prompts YAML de la raíz del repo (referencia congelada de la cadena contable).
 PROMPTS_RAIZ = RAIZ_REPO / "prompts"
 
 #: Índice del golden completo.
-CASOS_CSV = RAIZ_V2 / "tests" / "golden" / "casos.csv"
-
-#: Script de paridad contable (su lógica de comparación se prueba acá).
-PARIDAD_CONTABLE = RAIZ_V2 / "scripts" / "F3" / "paridad_contable.py"
+CASOS_CSV = RAIZ_REPO / "tests" / "golden" / "casos.csv"
 
 
 def _cargar_json(ruta: Path) -> dict:
@@ -94,8 +84,8 @@ def _cargar_modulo_script(ruta: Path):
     """Importa un script de ``scripts/F3/`` sin ejecutar su ``main`` (T-305).
 
     Se usa ``importlib`` con nombre propio para no colisionar con otros módulos
-    y para dejar claro que **no** se está ejecutando el script (que requeriría
-    Ollama); solo se prueban sus funciones puras.
+    y para dejar claro que **no** se está ejecutando el script; solo se prueban
+    sus funciones puras.
     """
     especificacion = importlib.util.spec_from_file_location(f"_{ruta.stem}_test", ruta)
     modulo = importlib.util.module_from_spec(especificacion)
@@ -106,7 +96,7 @@ def _cargar_modulo_script(ruta: Path):
 
 @pytest.fixture(scope="module")
 def subconjunto() -> dict:
-    """Manifiesto del subconjunto de paridad de F3."""
+    """Manifiesto del subconjunto de clasificación de F3."""
     return _cargar_json(SUBCONJUNTO)
 
 
@@ -118,12 +108,12 @@ def filas_golden() -> dict[str, dict]:
 
 
 # ---------------------------------------------------------------------------
-# 1. Fidelidad de los prompts portados
+# 1. Fidelidad de los prompts versionados
 # ---------------------------------------------------------------------------
 
 
 class TestFidelidadDePrompts:
-    """Los prompts de v2 son idénticos a los YAML que usaba v1 (paridad)."""
+    """Los prompts de la cadena contable son idénticos a los YAML de ``prompts/``."""
 
     #: Paso contable → archivo YAML de referencia en ``prompts/``.
     YAML_POR_PASO = {
@@ -133,42 +123,42 @@ class TestFidelidadDePrompts:
     }
 
     @pytest.mark.parametrize("paso", ["01", "02", "03"])
-    def test_system_prompt_identico_al_yaml_de_v1(self, paso: str):
-        # Paridad estructural: la cadena v2 corre **el mismo texto** que v1. Si
-        # alguien retoca el prompt, este test obliga a justificar el cambio (y a
-        # actualizar el criterio de paridad del subconjunto).
+    def test_system_prompt_identico_al_yaml_versionado(self, paso: str):
+        # La cadena corre **el mismo texto** que el YAML de referencia. Si
+        # alguien retoca el prompt, este test obliga a justificar el cambio.
         yaml = pytest.importorskip("yaml")
         ruta = PROMPTS_RAIZ / self.YAML_POR_PASO[paso]
         if not ruta.exists():  # pragma: no cover - el repo siempre los tiene
             pytest.skip(f"no está el YAML de referencia: {ruta}")
         datos = yaml.safe_load(ruta.read_text(encoding="utf-8"))
         assert PASOS_CONTABLES[paso]["system"].strip() == datos["system"].strip(), (
-            f"El system prompt del paso {paso} difiere del YAML de v1 "
-            f"({self.YAML_POR_PASO[paso]}): la paridad de la cadena depende de "
-            "que el texto sea el mismo (T-305)."
+            f"El system prompt del paso {paso} difiere del YAML de referencia "
+            f"({self.YAML_POR_PASO[paso]}): la cadena contable depende de que el "
+            "texto sea el mismo (T-305)."
         )
 
     @pytest.mark.parametrize("paso", ["01", "02", "03"])
-    def test_user_prompt_identico_al_yaml_de_v1(self, paso: str):
+    def test_user_prompt_identico_al_yaml_versionado(self, paso: str):
         yaml = pytest.importorskip("yaml")
         ruta = PROMPTS_RAIZ / self.YAML_POR_PASO[paso]
         if not ruta.exists():  # pragma: no cover
             pytest.skip(f"no está el YAML de referencia: {ruta}")
         datos = yaml.safe_load(ruta.read_text(encoding="utf-8"))
         assert PASOS_CONTABLES[paso]["user"].strip() == datos["user"].strip(), (
-            f"El user prompt del paso {paso} difiere del YAML de v1 (T-305)."
+            f"El user prompt del paso {paso} difiere del YAML de referencia (T-305)."
         )
 
-    def test_el_11_1_de_v2_conserva_la_guia_de_lectura(self):
-        # v2 reescribió `11.1` (ahora pide evidencia, no la decisión: ADR-006),
-        # pero debe conservar la **guía de lectura** del prompt de v1 para que la
-        # evidencia que llega al motor sea la misma que v1 usaba para decidir.
+    def test_el_11_1_conserva_la_guia_de_lectura(self):
+        # La detección de tipo reescribió `11.1` (ahora pide evidencia, no la
+        # decisión: ADR-006), pero debe conservar la **guía de lectura** del
+        # prompt de referencia para que la evidencia que llega al motor sea la
+        # misma que el sistema usaba para decidir.
         yaml = pytest.importorskip("yaml")
         ruta = PROMPTS_RAIZ / "facturacion" / "11.1-deteccion_tipo_factura.yaml"
         if not ruta.exists():  # pragma: no cover
             pytest.skip(f"no está el YAML de referencia: {ruta}")
         datos = yaml.safe_load(ruta.read_text(encoding="utf-8"))
-        system_v1 = datos["system_vlm"]
+        system_referencia = datos["system_vlm"]
 
         # La guía del recuadro (el corazón de R4) sigue instruida.
         for fragmento in ("recuadro", "COD. 01", "encabezado"):
@@ -177,16 +167,19 @@ class TestFidelidadDePrompts:
                 f"falta {fragmento!r} (T-305)."
             )
         # Y la guía textual del `system_llm` también.
-        system_llm_v1 = datos["system_llm"]
-        assert "FACTURA" in system_llm_v1 and "FACTURA" in SYSTEM_PROMPT_POR_FUENTE["llm"]
+        system_llm_referencia = datos["system_llm"]
+        assert (
+            "FACTURA" in system_llm_referencia
+            and "FACTURA" in SYSTEM_PROMPT_POR_FUENTE["llm"]
+        )
         assert "tipo_detectado_por_documento_explicacion" in SYSTEM_PROMPT_POR_FUENTE["llm"]
 
         # La instrucción de no inventar datos se conserva.
         assert "No inventes datos" in SYSTEM_PROMPT_TIPO_COMPROBANTE
 
-    def test_v2_no_le_pide_la_decision_al_modelo(self):
-        # La contracara de la paridad: v2 **saca** del prompt los campos que v1
-        # pedía (la decisión), tal como exige ADR-006.
+    def test_no_se_le_pide_la_decision_al_modelo(self):
+        # La contracara: el sistema **saca** del prompt los campos de decisión,
+        # tal como exige ADR-006.
         for prompt in SYSTEM_PROMPT_POR_FUENTE.values():
             assert "tipo_comprobante" not in prompt.replace(
                 "tipo_detectado_por_documento", ""
@@ -195,7 +188,7 @@ class TestFidelidadDePrompts:
 
 
 # ---------------------------------------------------------------------------
-# 2. Integridad del subconjunto de paridad
+# 2. Integridad del subconjunto
 # ---------------------------------------------------------------------------
 
 
@@ -245,34 +238,24 @@ class TestSubconjuntoF3:
         for caso in subconjunto["contable"]:
             assert (F3_DIR / caso["archivo"]).exists(), f"falta {caso['archivo']}"
 
-    def test_el_readme_documenta_las_metricas(self):
-        readme = (F3_DIR / "README.md").read_text(encoding="utf-8")
-        for pieza in (
-            "paridad_contable.py",
-            "paridad_11_1.py",
-            "mutar el repo",
-            "CC0006",
-            "Métricas reportadas",
-        ):
-            assert pieza in readme, f"el README del subconjunto no menciona {pieza!r}"
-
     def test_los_casos_sinteticos_no_quedan_sucios(self):
-        # v1 escribe SIEMPRE un sidecar junto al markdown: el subconjunto no debe
-        # tener residuos de una corrida de paridad (el script corre sobre copias).
+        # Una corrida real escribe SIEMPRE un sidecar junto al markdown: el
+        # subconjunto no debe tener residuos de una corrida (los scripts corren
+        # sobre copias en un temporal).
         residuos = list((F3_DIR / "casos").glob("*_classification.json"))
         assert residuos == [], (
-            f"quedaron sidecars de v1 en el subconjunto: {[r.name for r in residuos]} "
-            "(T-305 corre sobre copias en un temporal)."
+            f"quedaron sidecars en el subconjunto: {[r.name for r in residuos]} "
+            "(correr sobre copias en un temporal)."
         )
 
 
 # ---------------------------------------------------------------------------
-# 3. Paridad determinista de la letra (casos sintéticos)
+# 3. Exactitud determinista de la letra (casos sintéticos)
 # ---------------------------------------------------------------------------
 
 
 class TestParidadLetraDeterminista:
-    """v2 decide la letra esperada por reglas sobre la evidencia del texto."""
+    """El motor decide la letra esperada por reglas sobre la evidencia del texto."""
 
     @pytest.fixture(scope="class")
     def casos_sinteticos(self) -> list[dict]:
@@ -383,120 +366,21 @@ class TestRegresionR5SaltoDeLinea:
             assert extraer_letra_encabezado(texto) in {"A", "B", "C", "M", "E"}
 
 
-# ---------------------------------------------------------------------------
-# 5. Lógica de comparación de los scripts (sin red)
-# ---------------------------------------------------------------------------
-
-
-class TestLogicaDeComparacion:
-    """``paridad_contable.py`` compara y clasifica los resultados correctamente."""
-
-    @pytest.fixture(scope="class")
-    def modulo(self):
-        return _cargar_modulo_script(PARIDAD_CONTABLE)
-
-    def test_lee_los_campos_del_sidecar_de_v1(self, modulo):
-        sidecar = {
-            "pasos": {
-                "01_centro_costo": {
-                    "centros_costos": [
-                        {"codigo_centro_costo": "CC0004"},
-                        {"codigo_centro_costo": "CC0005"},
-                    ]
-                },
-                "02_macro_categoria": {
-                    "macro_categorias": [
-                        {"macro_categoria": "MC07"},
-                        {"macro_categoria": "MC08"},
-                    ]
-                },
-                "03_concepto_codigo_final": {
-                    "concepto": "CT017",
-                    "codigo_final": "48",
-                },
-            }
-        }
-        campos = modulo.campos_desde_v1(sidecar)
-        assert campos == {
-            "centro_costo": "CC0004",  # el PRIMERO, como v1
-            "macro_categoria": "MC07",
-            "concepto": "CT017",
-            "codigo": "48",
-        }
-
-    def test_tolera_pasos_vacios_o_faltantes(self, modulo):
-        assert modulo.campos_desde_v1({}) == {
-            "centro_costo": None,
-            "macro_categoria": None,
-            "concepto": None,
-            "codigo": None,
-        }
-
-    def test_lee_los_campos_del_resultado_de_v2(self, modulo):
-        class _Resultado:
-            centro_costo = "CC0006"
-            macro_categoria = "MC11"
-            concepto = "CT026"
-            codigo = None
-
-        assert modulo.campos_desde_v2(_Resultado())["codigo"] is None
-        assert modulo.campos_desde_v2(_Resultado())["centro_costo"] == "CC0006"
-
-    def test_comparar_detecta_coincidencia_diferencia_y_no_comparable(self, modulo):
-        coincide = modulo.comparar(
-            {"centro_costo": "CC0004", "macro_categoria": "MC07", "concepto": "CT017", "codigo": "48"},
-            {"centro_costo": "CC0004", "macro_categoria": "MC07", "concepto": "CT017", "codigo": "48"},
-        )
-        assert all(info["estado"] == "coincide" for info in coincide.values())
-
-        difiere = modulo.comparar(
-            {"centro_costo": "CC0004", "macro_categoria": None, "concepto": None, "codigo": None},
-            {"centro_costo": "CC0005", "macro_categoria": None, "concepto": None, "codigo": None},
-        )
-        assert difiere["centro_costo"]["estado"] == "difiere"
-        assert difiere["centro_costo"]["nota"], "una diferencia debe explicarse"
-
-        no_comparable = modulo.comparar(
-            {"centro_costo": None, "macro_categoria": None, "concepto": None, "codigo": None},
-            {"centro_costo": "CC0004", "macro_categoria": None, "concepto": None, "codigo": None},
-        )
-        assert no_comparable["centro_costo"]["estado"] == "no_comparable"
-
-    def test_la_diferencia_sugiere_revisar_antes_de_reportar_regresion(self, modulo):
-        # Criterio del DoD (§3.5): paridad **o mejora**, no un verde artificial.
-        comparacion = modulo.comparar(
-            {"centro_costo": None, "macro_categoria": None, "concepto": None, "codigo": "4221,13"},
-            {"centro_costo": None, "macro_categoria": None, "concepto": None, "codigo": "13"},
-        )
-        nota = comparacion["codigo"]["nota"]
-        assert "paridad" in nota.lower()
-
-    def test_el_script_de_paridad_contable_no_muta_el_repo(self):
-        # El script corre v1 sobre **copias** en un temporal: si alguien lo
-        # cambiara para correr sobre el fixture, dejaría sidecars de v1 (y el
-        # test de limpieza del subconjunto lo detecta, pero este lo dice antes).
-        fuente = PARIDAD_CONTABLE.read_text(encoding="utf-8")
-        assert "docs_temporales" in fuente, (
-            "paridad_contable.py debe correr v1 sobre copias temporales: v1 "
-            "escribe siempre un sidecar junto al markdown (T-305)."
-        )
-
 
 # ---------------------------------------------------------------------------
-# 6. Reporte de métricas del DoD (``scripts/F3/t305.py``)
+# 5. Reporte de métricas del DoD (``scripts/F3/t305.py``)
 # ---------------------------------------------------------------------------
-
 
 #: Script de métricas del DoD de F3.
-T305 = RAIZ_V2 / "scripts" / "F3" / "t305.py"
+T305 = RAIZ_REPO / "scripts" / "F3" / "t305.py"
 
 
 class TestMetricasDelDod:
     """``t305.py`` agrega las métricas del DoD de F3 (T-305, §10 del subplan).
 
-    El plan pide ``python scripts/F3/t305.py --subset golden`` como verificación
-    final (F3-subplan §10). Acá se prueba su **tramo determinista** (el que corre
-    sin Ollama y sin v1), que es el que puede ejecutarse en la suite default.
+    El plan pide ``python scripts/F3/t305.py`` como verificación final
+    (F3-subplan §10). Acá se prueba su tramo determinista, que es el que puede
+    ejecutarse sin Ollama, sin Docling y sin red.
     """
 
     @pytest.fixture(scope="class")
@@ -570,9 +454,7 @@ class TestMetricasDelDod:
         especificacion.loader.exec_module(modulo)
 
         salida = tmp_path / "t305.json"
-        monkeypatch.setattr(
-            "sys.argv", ["t305.py", "--json", str(salida), "--subset", "sinteticos"]
-        )
+        monkeypatch.setattr("sys.argv", ["t305.py", "--json", str(salida)])
         with pytest.raises(SystemExit) as salida_sistema:
             modulo.main()
         assert salida_sistema.value.code == 0
@@ -580,16 +462,8 @@ class TestMetricasDelDod:
         assert datos["tarea"] == "T-305"
         assert datos["letra"]["exactitud"] == 1.0
         assert "paridad_real" not in datos, (
-            "el nivel 'sinteticos' no debe correr la paridad real (necesita Ollama)"
-        )
-
-    def test_el_nivel_golden_es_el_que_corre_la_paridad_real(self):
-        # Verificación estática: la paridad real solo se corre en 'golden'/'todos'.
-        fuente = T305.read_text(encoding="utf-8")
-        assert 'args.subset in ("golden", "todos")' in fuente
-        assert "paridad_contable.py" in fuente and "paridad_11_1.py" in fuente, (
-            "t305.py debe **reutilizar** las herramientas de paridad, no "
-            "reimplementar la comparación (T-305)."
+            "el reporte ya no corre una comparación externa: el sistema es "
+            "autocontenido."
         )
 
     def test_el_reporte_declara_su_alcance(self, capsys, monkeypatch):
@@ -602,7 +476,7 @@ class TestMetricasDelDod:
         assert especificacion.loader is not None
         especificacion.loader.exec_module(modulo)
 
-        monkeypatch.setattr("sys.argv", ["t305.py", "--subset", "sinteticos"])
+        monkeypatch.setattr("sys.argv", ["t305.py"])
         with pytest.raises(SystemExit):
             modulo.main()
         salida = capsys.readouterr().out

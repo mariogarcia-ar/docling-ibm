@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Inspecciona T-605 (F6) — documentación de usuario y README de v2.
+"""Inspecciona T-605 (F6) — documentación de usuario y README.
 
 **Fase**: F6 (cliente) · **Tarea**: T-605 · **Épica**: E-CLI.
 
@@ -20,7 +20,7 @@ Qué muestra
    en la doc. Es la diferencia entre "el comando está documentado" y "el comando
    se puede usar" (un `--workers` sin explicar no sirve).
 4. **La navegación**: los enlaces relativos entre los documentos de la guía
-   resuelven (incluido `../../../BATCH.md`, que sale del árbol de `docs/`).
+   resuelven (incluido `../../BATCH.md`, que sale del árbol de `docs/`).
 5. **Las fronteras**: la doc **no promete** lo que el sistema no hace — que el
    CLI no carga correcciones HITL, que `--force`/`--workers` solo tienen efecto
    real en `batch`, y que un rechazo firme es certeza alta, no un error.
@@ -49,9 +49,8 @@ if str(_SRC) not in sys.path:
 
 from voucherflow.cli.main import COMANDOS, VERSION_CLI, construir_parser  # noqa: E402
 
-RAIZ_V2 = Path(__file__).resolve().parents[2]
-RAIZ_REPO = RAIZ_V2.parent
-DOC_USUARIO = RAIZ_V2 / "docs" / "usuario"
+RAIZ_REPO = Path(__file__).resolve().parents[2]
+DOC_USUARIO = RAIZ_REPO / "docs" / "usuario"
 
 DOCS_REQUERIDOS = (
     "README.md",
@@ -61,8 +60,8 @@ DOCS_REQUERIDOS = (
     "04-salidas.md",
 )
 
-#: El README de v2 debe apuntar a la guía del operador (T-605).
-README_V2 = RAIZ_V2 / "README.md"
+#: El README debe apuntar a la guía del operador (T-605).
+README = RAIZ_REPO / "README.md"
 
 #: La guía de lotes vive en la raíz del repo (T-602).
 BATCH_MD = RAIZ_REPO / "BATCH.md"
@@ -160,13 +159,13 @@ def _archivos() -> list[dict[str, Any]]:
     )
     salida.append(
         {
-            "que": "v2/README.md enlaza la guía del operador",
-            "ok": README_V2.is_file()
-            and "docs/usuario/" in README_V2.read_text(encoding="utf-8"),
+            "que": "README.md enlaza la guía del operador",
+            "ok": README.is_file()
+            and "docs/usuario/" in README.read_text(encoding="utf-8"),
             "lineas": 0,
             "detalle": "enlace presente"
-            if README_V2.is_file()
-            and "docs/usuario/" in README_V2.read_text(encoding="utf-8")
+            if README.is_file()
+            and "docs/usuario/" in README.read_text(encoding="utf-8")
             else "FALTA el enlace a docs/usuario/",
         }
     )

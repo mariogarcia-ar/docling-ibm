@@ -1,12 +1,12 @@
-# Golden set inicial — v2 (F0, T-004; etiquetado F2 en T-204)
+# Golden set inicial (F0, T-004; etiquetado F2 en T-204)
 
 Dataset de referencia etiquetado para medir el pipeline de `voucherflow`.
-Definido en `v2/docs/plan/06-estrategia-calidad.md` §3.
+Definido en `docs/plan/06-estrategia-calidad.md` §3.
 
 ## Qué contiene esta versión (golden v0.2)
 
 - **`casos.csv`**: índice de casos con: id, ruta relativa al archivo en
-  `v2/tests/fixtures/` (copia versionada), tipo de entrada, formato, y
+  `tests/fixtures/` (copia versionada), tipo de entrada, formato, y
   etiquetas de referencia. Desde **F2/T-204** incluye el `veredicto` etiquetado
   del subconjunto acotado (subplan §2.5) y la columna `evidencia_veredicto`.
 - **`casos/`**: (reservado) copias normalizadas de documentos **sin PII
@@ -25,9 +25,9 @@ Definido en `v2/docs/plan/06-estrategia-calidad.md` §3.
 
 1. **Origen**: muestras reales de `files/` (jpg/pdf/jpeg/png). `files/` es una
    carpeta **temporal e ignorada por git** (`.gitignore`); por eso los archivos
-   referenciados se **copian a `v2/tests/fixtures/`** (carpeta versionada) para
+   referenciados se **copian a `tests/fixtures/`** (carpeta versionada) para
    que los tests no dependan de `files/`. Al momento de F0 `files/` **no
-   contiene** `.md`/`.raw.md` generados (se producen con F1/v1); por eso el
+   contiene** `.md`/`.raw.md` generados (se producen con F1); por eso el
    etiquetado de *letra* y *condición fiscal* queda **`pendiente`** (requiere
    OCR/Markdown o criterio de contador). El *tipo de entrada* se etiqueta por
    extensión y el veredicto "es comprobante" queda `pendiente` salvo
@@ -36,8 +36,8 @@ Definido en `v2/docs/plan/06-estrategia-calidad.md` §3.
    `evidencia_veredicto`; el resto de las etiquetas de negocio sigue
    `pendiente` (ver §“Etiquetado del `veredicto` (F2)”).
 2. **Referencia por ruta, no duplicación**: `casos.csv` referencia el archivo
-   copiado en `v2/tests/fixtures/` con ruta relativa desde la raíz del repo
-   (p. ej. `v2/tests/fixtures/golden/<id>.jpg`). La mayoría vive en
+   copiado en `tests/fixtures/` con ruta relativa desde la raíz del repo
+   (p. ej. `tests/fixtures/golden/<id>.jpg`). La mayoría vive en
    `fixtures/golden/`; si el archivo ya formaba parte de los grupos
    `grandes/chicos/otros`, se referencia a esa copia (sin duplicar bytes).
 3. **Etiquetado por contador**: toda etiqueta de negocio (letra A/B/C/M/E,
@@ -50,7 +50,7 @@ Definido en `v2/docs/plan/06-estrategia-calidad.md` §3.
 
 ## Cómo se amplía
 
-1. Copiar el/los archivo(s) desde `files/` a `v2/tests/fixtures/` (o a
+1. Copiar el/los archivo(s) desde `files/` a `tests/fixtures/` (o a
    `fixtures/golden/` si es exclusivo del golden).
 2. Agregar filas a `casos.csv` apuntando a la ruta en `fixtures/`.
 3. Si el caso requiere copia normalizada (sin PII), crearla bajo `casos/`.
@@ -63,7 +63,7 @@ Definido en `v2/docs/plan/06-estrategia-calidad.md` §3.
 | Columna | Descripción |
 |---------|-------------|
 | `id` | Identificador del caso (hash corto o nombre de archivo sin extensión). |
-| `ruta` | Ruta relativa (desde la raíz del repo) al archivo en `v2/tests/fixtures/`. |
+| `ruta` | Ruta relativa (desde la raíz del repo) al archivo en `tests/fixtures/`. |
 | `mes` | Carpeta de mes de `files/` de origen (p. ej. `2026-08`). |
 | `tipo_entrada` | `imagen` \| `pdf` \| `pdf_escaneado` \| `office` \| `texto`. |
 | `formato` | Extensión real (`jpg`/`pdf`/`png`/`jpeg`/...). |

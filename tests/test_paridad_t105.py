@@ -1,32 +1,20 @@
-"""Tests de integración de **paridad T-105** (Fase F1, épica E-DOC).
+"""Tests de integración de **paridad estructural T-105** (Fase F1, épica E-DOC).
 
 **Fase / tarea**: F1 — Procesamiento (refactor docling) · **T-105** · E-DOC.
 **DoD de F1** (``05-plan-ejecucion.md`` §F1): "procesar los formatos de las
-ideas produce Markdown ordenado equivalente o superior a v1, con gate y elección
-de motor; cubierto por tests de formato sobre golden set".
+ideas produce Markdown ordenado, con gate y elección de motor; cubierto por
+tests de formato sobre golden set".
 **Estrategia de calidad** (``docs/plan/06-estrategia-calidad.md`` §4 Fase 1):
-"*Integración*: procesar una muestra real y comparar Markdown con el de v1
-(``run.py``/``run_raw.py``). *Métrica*: paridad de Markdown (estructural) ≥
-umbral acordado sobre la muestra". La estructura de caso golden propuesta en la
-estrategia §3.2 incluye un ``original.md`` (markdown de referencia de v1).
+"*Integración*: procesar una muestra real y comparar Markdown. *Métrica*:
+paridad de Markdown (estructural) ≥ umbral acordado sobre la muestra".
 
 **Decisión de comparación (documentada, 2026-09-06)**:
 
-  1. **Regla del paquete**: ``voucherflow`` NO importa v1 en runtime (DoD #1 de
-     ``05-plan-ejecucion.md`` §8). Esta regla aplica al **código del paquete**;
-     el test de integración vive en ``tests/`` y podría permitirse comparar
-     contra v1 de forma aislada. Aun así, se descartó **generar la referencia
-     v1 en runtime** (subprocess/sys.path sobre ``v1/lib/processor``): v1 es un
-     conjunto de scripts con imports absolutos ``from lib...`` (no un paquete
-     instalable), correr Docling dos veces (v1 + v2) duplicaría latencia y
-     re-descargas de modelos, y añade fragilidad (estado global de worker,
-     orientación auto por archivo) por un beneficio marginal en esta iteración.
-
-  2. **Enfoque elegido — invariantes estructurales de paridad + campos clave**:
-     se procesa la muestra acotada con ``api.process()`` (v2) y se validan
-     invariantes que la paridad con v1 exige conceptualmente:
-       - Markdown **no vacío** y sin pérdida grosera (la salida de v1 tampoco
-         es vacía para estos formatos).
+  **Enfoque elegido — invariantes estructurales + campos clave**:
+     se procesa la muestra acotada con ``api.process()`` y se validan los
+     invariantes que una paridad estructural exige:
+       - Markdown **no vacío** y sin pérdida grosera (la salida de referencia
+         tampoco es vacía para estos formatos).
        - Los **tokens/campos clave** del documento están presentes (p. ej. para
          el boleto ``9dfc597f``: "ALONSO", "SUV-255671438", "Venado Tuerto",
          "31700.00"). Se comparan **normalizados** (NBSP/guiones suaves/
@@ -38,18 +26,14 @@ estrategia §3.2 incluye un ``original.md`` (markdown de referencia de v1).
          coherente con la ruta. En el modo ``pdftotext`` no hay ``boxes``
          (solo texto plano con layout); en el fallback Docling sí hay ítems.
 
-  3. **Referencias v1 versionadas (futuro)**: hoy NO existen ``original.md``
-     de v1 en fixtures (verificado 2026-09-06; el ``.txt`` de pdftotext del
-     ``9dfc597f`` NO es referencia Docling/v1). Para una futura ampliación a
-     paridad **byte a byte** se versionarían las referencias generadas así:
-
-         cd v1 && python ocr_documents.py <dir>   # o run.py
-         # por archivo: v1/lib/processor.process_file(ruta, converter) -> <stem>.md
-         python run_raw.py --input <ruta>          # -> <stem>.raw.md (crudo)
-
-     y el helper :func:`_referencia_v1` leería ``<stem>.original.md`` junto al
-     fixture (estrategia §3.2). Hoy devuelve los campos esperados como
-     invariante; el mecanismo de lectura ya está previsto en el helper.
+  3. **Referencias versionadas (futuro)**: hoy NO existen ``original.md`` de
+     referencia en fixtures (verificado 2026-09-06; el ``.txt`` de pdftotext del
+     ``9dfc597f`` NO es una referencia Docling). Para una futura ampliación a
+     paridad **byte a byte** se versionarían las referencias generadas con
+     Docling y el helper :func:`_referencia_docling` leería
+     ``<stem>.original.md`` junto al fixture (estrategia §3.2). Hoy devuelve los
+     campos esperados como invariante; el mecanismo de lectura ya está previsto
+     en el helper.
 
   **Muestra acotada** (ver :data:`MUESTRA`): 1 PDF apto a texto nativo (boleto
   a 2 columnas), 2 imágenes chicas y 1 PDF escaneado — elegidos pequeños para
@@ -69,9 +53,9 @@ estrategia §3.2 incluye un ``original.md`` (markdown de referencia de v1).
   se defina ``VOUCHERFLOW_INTEGRATION=1`` (escape sin marcador). De ese modo:
 
       # Suite default: rápida, sin Docling (T-105 → skip).
-      cd v2 && python -m pytest tests -q
+      python -m pytest tests -q
       # T-105 explícito (Docling real; muestra chica, ~10-60 s/archivo).
-      cd v2 && python -m pytest tests/test_paridad_t105.py -m integration -q
+      python -m pytest tests/test_paridad_t105.py -m integration -q
 """
 from __future__ import annotations
 
@@ -81,16 +65,15 @@ from pathlib import Path
 
 import pytest
 
-# La regla dura del paquete (v2 no importa v1) se mantiene también en este test:
-# la paridad se valida por invariantes estructurales y campos clave, sin cargar
-# v1. El import de la API pública de v2 es suficiente.
+# La paridad se valida por invariantes estructurales y campos clave, sin
+# cargar nada externo al paquete. El import de la API pública es suficiente.
 from voucherflow.api import process
 
 pytestmark = pytest.mark.integration  # noqa: E402  (marcador de integración)
 
 #: Umbral de solapamiento que se usaría en una comparación de paridad
-#: estructural contra una referencia v1 (estrategia 06 §4 F1). Hoy se usa para
-#: documentar el criterio; la comparación efectiva se hace por invariantes.
+#: estructural contra una referencia versionada (estrategia 06 §4 F1). Hoy se
+#: usa para documentar el criterio; la comparación se hace por invariantes.
 UMBRAL_PARIDAD = 0.9
 
 
@@ -99,8 +82,8 @@ UMBRAL_PARIDAD = 0.9
 # ---------------------------------------------------------------------------
 #: Tuplas ``(id, ruta_relativa_a_fixtures, campos_esperados)``.
 #: ``campos_esperados`` son tokens/campos que el documento real contiene y que
-#: v1 (Docling) también transcribe; calibrados contra la salida real de v2 con
-#: Docling (2026-09-06). Normalizar hace la comparación robusta a NBSP/guiones
+#: Docling transcribe; calibrados contra la salida real con Docling
+#: (2026-09-06). Normalizar hace la comparación robusta a NBSP/guiones
 #: suaves/espaciado (el OCR puede variar).
 MUESTRA = [
     {
@@ -142,10 +125,10 @@ MUESTRA_IMAGENES = [c for c in MUESTRA if c["tipo_esperado"] == "imagen"]
 
 
 # ---------------------------------------------------------------------------
-# Helpers de normalización y referencia v1
+# Helpers de normalización y referencia
 # ---------------------------------------------------------------------------
 def _normalizar(texto: str) -> str:
-    """Normaliza texto para comparación robusta de tokens (paridad T-105).
+    """Normaliza texto para comparación robusta de tokens (T-105).
 
     - Convierte NBSP (``\\xa0``) y espacios no separables en espacio normal.
     - Elimina guiones suaves (soft hyphen ``\\u00ad``), guiones no separables
@@ -165,17 +148,16 @@ def _contiene_campo(markdown: str, campo: str) -> bool:
     return _normalizar(campo) in _normalizar(markdown)
 
 
-def _referencia_v1(fixtures_dir: Path, caso: dict) -> dict:
-    """Referencia de paridad de v1 para un caso (estrategia 06 §3.2).
+def _referencia_docling(fixtures_dir: Path, caso: dict) -> dict:
+    """Referencia de paridad para un caso (estrategia 06 §3.2).
 
     Devuelve un dict con ``modo``, ``campos`` y, si existiera, ``contenido``:
 
     - ``modo == "referencia_versionada"``: existe ``<stem>.original.md`` junto
-      al fixture (markdown de referencia de v1 versionado). Es el camino para
-      la futura paridad byte a byte / solapamiento de tokens ≥
+      al fixture (markdown de referencia versionado). Es el camino para la
+      futura paridad byte a byte / solapamiento de tokens ≥
       :data:`UMBRAL_PARIDAD`. Hoy no hay ninguno (verificado 2026-09-06), pero
-      el mecanismo queda listo: alcanza con generar la referencia con v1
-      (``cd v1 && python ocr_documents.py <dir>`` / ``run_raw.py --input``) y
+      el mecanismo queda listo: alcanza con generar la referencia con Docling y
       copiarla como ``<stem>.original.md`` en ``tests/fixtures/``.
     - ``modo == "invariantes_campos"``: no hay referencia versionada; se usan
       los ``campos`` esperados (calibrados con Docling) como invariante de
@@ -258,7 +240,7 @@ class TestParidadPdfAptoTextoNativo:
         # Invariantes de paridad estructural (estrategia 06 §4 F1).
         assert md and md.strip(), (
             f"T-105: el markdown del PDF apto '{caso['id']}' no debe estar vacío "
-            "(v1 tampoco produce salida vacía para un boleto a texto nativo)."
+            "(la salida de referencia tampoco es vacía para un boleto a texto nativo)."
         )
         assert doc.tipo_entrada == "pdf_texto", (
             f"T-105: el PDF apto '{caso['id']}' debe enrutarse como pdf_texto "
@@ -280,20 +262,20 @@ class TestParidadPdfAptoTextoNativo:
                 "cuando el fallback es Docling."
             )
 
-        # Campos clave del boleto presentes (paridad estructural con v1).
-        ref = _referencia_v1(fixtures_dir, caso)
+        # Campos clave del boleto presentes (paridad estructural).
+        ref = _referencia_docling(fixtures_dir, caso)
         assert ref["campos"], (
             f"T-105: falta referencia de campos para '{caso['id']}'."
         )
         ausentes = [c for c in ref["campos"] if not _contiene_campo(md, c)]
         assert not ausentes, (
             f"T-105: el markdown del boleto '{caso['id']}' perdió campos clave "
-            f"que v1 transcribe: {ausentes}. Markdown (inicio): {md[:400]!r}"
+            f"que la referencia transcribe: {ausentes}. Markdown (inicio): {md[:400]!r}"
         )
 
     @pytest.mark.integration
     def test_docling_raw_no_vacio(self, fixtures_dir) -> None:
-        """``docling_raw=True`` (equiv. v1/run_raw.py) produce crudo no vacío."""
+        """``docling_raw=True`` (el modo crudo) produce markdown no vacío."""
         caso = MUESTRA[0]
         ruta = fixtures_dir / caso["ruta"]
         assert ruta.exists(), f"Falta el fixture de la muestra T-105: {ruta}"
@@ -350,10 +332,10 @@ class TestParidadImagen:
         )
         assert doc.motor == "docling"
 
-        ref = _referencia_v1(fixtures_dir, caso)
+        ref = _referencia_docling(fixtures_dir, caso)
         ausentes = [c for c in ref["campos"] if not _contiene_campo(md, c)]
         assert not ausentes, (
-            f"T-105: la imagen '{caso['id']}' perdió texto que v1 transcribe: "
+            f"T-105: la imagen '{caso['id']}' perdió texto de la referencia: "
             f"{ausentes}. Markdown (inicio): {md[:300]!r}"
         )
 
@@ -388,11 +370,11 @@ class TestParidadPdfEscaneado:
             "(viene del pipeline de imagen)."
         )
 
-        ref = _referencia_v1(fixtures_dir, caso)
+        ref = _referencia_docling(fixtures_dir, caso)
         ausentes = [c for c in ref["campos"] if not _contiene_campo(md, c)]
         assert not ausentes, (
-            f"T-105: el PDF escaneado '{caso['id']}' perdió texto que v1 "
-            f"transcribe: {ausentes}. Markdown (inicio): {md[:300]!r}"
+            f"T-105: el PDF escaneado '{caso['id']}' perdió texto de la "
+            f"referencia: {ausentes}. Markdown (inicio): {md[:300]!r}"
         )
 
 
@@ -445,9 +427,9 @@ class TestParidadMuestra:
         )
 
         # Si el caso declara campos esperados, deben estar (pérdida grosera).
-        ref = _referencia_v1(fixtures_dir, caso)
+        ref = _referencia_docling(fixtures_dir, caso)
         ausentes = [c for c in ref["campos"] if not _contiene_campo(md, c)]
         assert not ausentes, (
-            f"T-105: '{caso['id']}' perdió campos clave de la referencia v1: "
+            f"T-105: '{caso['id']}' perdió campos clave de la referencia: "
             f"{ausentes}."
         )

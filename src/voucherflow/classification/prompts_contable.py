@@ -2,8 +2,8 @@
 
 **Fase**: F3 (clasificación) · **Tarea**: T-304 · **Épica**: E-CLAS-2.
 
-Porta a la librería los tres prompts YAML de ``prompts/01..03-*.yaml`` de v1
-(usados por ``v1/classification_pipeline.py``), **versionados en código**
+Porta a la librería los tres prompts YAML de ``prompts/01..03-*.yaml``
+(la referencia congelada de la cadena contable), **versionados en código**
 (ADR-005) con el mismo esquema de identificador que ``prompt_qween.py``
 (``qween-gate@2``) y ``prompt_tipo_comprobante.py`` (``tipo-comprobante@1``):
 
@@ -17,9 +17,9 @@ Identificador                 Etapa
 
 Por qué el texto vive en código y no en un YAML leído en runtime
 ----------------------------------------------------------------
-El plan pide **paridad** con v1 pero **sin acoplamiento a ``v1/``** (regla dura
-F3-subplan §4: "sin acoplamiento a ``v1/``: nada de ``sys.path`` ni imports de
-``classification_pipeline.py`` … ni prompts de ``v1/``"). Un YAML en runtime
+El plan pide **fidelidad al texto de referencia** pero **sin acoplamiento a
+scripts externos** (regla dura F3-subplan §4: nada de ``sys.path`` ni imports de
+scripts sueltos). Un YAML en runtime
 obligaría a leer archivos de datos y a decidir su ubicación en el paquete; el
 texto versionado en código es lo que ya hacen F2 y T-302, es auditable con
 ``git`` y permite registrar la versión exacta en la trazabilidad
@@ -32,7 +32,7 @@ resultado y rompería la paridad que T-305 debe verificar.
 
 Sustitución de placeholders
 ---------------------------
-v1 hacía ``user_prompt.replace("{{clave}}", valor)`` (``v1/lib/pipeline.py``).
+el sistema anterior hacía ``user_prompt.replace("{{clave}}", valor)`` (el pipeline original).
 Se conserva ese mecanismo **a propósito**: los prompts contienen llaves de los
 ejemplos JSON (``{ "centros_costos": [...] }``), así que ``str.format`` fallaría
 o exigiría escapar todo. :func:`renderizar_user` hace el reemplazo explícito y
@@ -58,11 +58,11 @@ VERSION_PROMPT_CONTABLE_02 = "contable-02@1"
 #: Versión del prompt del paso 03 (concepto + código final).
 VERSION_PROMPT_CONTABLE_03 = "contable-03@1"
 
-#: Condiciones impositivas válidas del paso 03 (enum del prompt de v1 y del
+#: Condiciones impositivas válidas del paso 03 (enum del prompt del sistema anterior y del
 #: contrato ``ClasificacionContable.condicion_impositiva``).
 CONDICIONES_IMPOSITIVAS: tuple[str, ...] = ("21", "10_5", "27", "2_5", "exento_no_gravado")
 
-#: Condición impositiva por defecto (igual que el CLI de v1).
+#: Condición impositiva por defecto (igual que el CLI del sistema anterior).
 CONDICION_IMPOSITIVA_DEFAULT = "21"
 
 #: Valor con el que la cadena marca los datos que todavía no extrae (F4). Es
@@ -394,11 +394,11 @@ def renderizar_user(
 ) -> str:
     """Renderiza la plantilla ``user`` de un paso contable (T-304).
 
-    Sustituye cada ``{{clave}}`` por su valor **tal cual v1**
+    Sustituye cada ``{{clave}}`` por su valor **tal cual**, sin escapar
     (``str.replace``; ver la nota del módulo sobre por qué no se usa
     ``str.format``). Los valores ``None`` se renderizan como
     :data:`VALOR_NO_INFORMADO` — la cadena es explícita sobre lo que no sabe, y
-    el prompt de v1 ya contempla ese texto ("no informado") como dato ausente.
+    el prompt del sistema anterior ya contempla ese texto ("no informado") como dato ausente.
 
     Argumentos:
         paso: ``"01"``, ``"02"`` o ``"03"``.
@@ -472,7 +472,7 @@ def condicion_impositiva_no_valida(condicion: str | None) -> str | None:
     """Valida la condición impositiva del paso 03 (T-304).
 
     Devuelve el **mensaje de error** (o ``None`` si es válida). Se devuelve el
-    mensaje en lugar de lanzar para que el CLI decida cómo reportarlo (v1 no
+    mensaje en lugar de lanzar para que el CLI decida cómo reportarlo (el sistema anterior no
     validaba nada y una condición desconocida llegaba al prompt como texto
     libre, con la consiguiente clasificación inventada).
 
