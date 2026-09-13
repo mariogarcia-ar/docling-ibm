@@ -97,6 +97,7 @@ import argparse
 import json
 import math
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -622,22 +623,67 @@ def _expandir(rutas: Sequence[Path], extensiones: frozenset[str]) -> list[Path]:
     return sorted(set(encontrados))
 
 
-def _raiz_comun(rutas: Sequence[Path]) -> Path:
-    """Raíz desde la cual se espeja el árbol en la carpeta de salida.
+def _raiz_espejado(
+    rutas: Sequence[Path], explicita: Path | None, salida: Path | None = None
+) -> tuple[Path, str]:
+    """Raíz desde la cual se espeja el árbol, con su motivo (para declararlo).
 
-    Las carpetas se toman tal cual y los archivos sueltos por su carpeta padre;
-    con eso ``python scripts/reducir_tokens.py ../files`` escribe
-    ``procesadas/2025-08/<hash>/img.jpg`` (sin repetir el nivel ``files/``).
+    ⚠️ **La raíz no puede depender de la ruta que se pasa**, o el nivel de
+    carpetas de la salida cambia entre corridas: procesar ``files`` escribía
+    ``procesadas/2025-08/<hash>/img.jpg``, pero procesar ``files/2025-08``
+    escribía ``procesadas/<hash>/img.jpg``. Por eso, si no hay ``--raiz``, se
+    **sube** desde las rutas hasta la primera carpeta que no tenga un nombre de
+    mes (``AAAA-MM``) — un nivel que no depende de desde dónde se invoque.
+    ``--raiz`` manda siempre.
+
+    Devuelve ``(raiz, motivo)``.
     """
+    if explicita is not None:
+        return explicita, "--raiz (explícita)"
+
     bases = [r if r.is_dir() else r.parent for r in rutas if r.exists()]
     if not bases:
-        return Path.cwd()
+        return Path.cwd(), "cwd (las rutas no existen)"
     if len(bases) == 1:
-        return bases[0]
-    try:
-        return Path(os.path.commonpath([str(b.resolve()) for b in bases]))
-    except ValueError:  # rutas sin ancestro común (volúmenes distintos)
-        return Path.cwd()
+        raiz = bases[0]
+    else:
+        try:
+            raiz = Path(os.path.commonpath([str(b.resolve()) for b in bases]))
+        except ValueError:  # rutas sin ancestro común (volúmenes distintos)
+            return Path.cwd(), "cwd (rutas sin ancestro común)"
+
+    subidas: list[str] = []
+    # Sube mientras el último nivel sea un mes (AAAA-MM), un hash de lote
+    # (hexadecimal) o esté dentro de la salida (p. ej. se apuntó a la carpeta de
+    # salida por error). Así la raíz queda en un nivel estable y no cambia según
+    # qué subcarpeta se haya pasado.
+    while raiz.parent != raiz:
+        if salida is not None and _esta_dentro(raiz, salida) and raiz != salida:
+            subidas.append(raiz.name)
+            raiz = raiz.parent
+            continue
+        if _es_nivel_de_corpus(raiz.name):
+            subidas.append(raiz.name)
+            raiz = raiz.parent
+            continue
+        break
+
+    if subidas:
+        return raiz, f"ascendida desde {bases[0]} (salteando: {', '.join(subidas)})"
+    return raiz, "derivada de las rutas"
+
+
+def _es_nivel_de_corpus(nombre: str) -> bool:
+    """True si el nombre es un nivel del corpus, no una raíz elegida.
+
+    Dos formas: mes (``2025-08``, ``2025_8``) e identificador de lote —el hash
+    hexadecimal de 8 caracteres que usa este corpus como carpeta por documento
+    (``2D2C9343``)—. Una carpeta elegida a mano (``files``, ``lote-final``,
+    ``mi_corpus``) no matchea ninguna, así que la subida se detiene ahí.
+    """
+    return bool(re.fullmatch(r"\d{4}[-_.]?\d{1,2}", nombre)) or bool(
+        re.fullmatch(r"[0-9A-Fa-f]{8}", nombre)
+    )
 
 
 def _esta_dentro(hijo: Path, padre: Path) -> bool:
@@ -836,8 +882,18 @@ def construir_parser() -> argparse.ArgumentParser:
         default="procesadas",
         help=(
             "Carpeta raíz de salida (default: %(default)s). El árbol se "
-            "espeja desde la raíz de la entrada, sin repetir el nombre de la "
-            "carpeta de entrada."
+            "espeja desde --raiz (o desde el nivel que no sea un mes), sin "
+            "repetir el nombre de la carpeta de entrada."
+        ),
+    )
+    parser.add_argument(
+        "--raiz",
+        type=Path,
+        help=(
+            "Raíz desde la cual se espeja el árbol en la salida. Si se omite, se "
+            "sube hasta el nivel que no sea un mes (procesar «files/2025-08» "
+            "espeja desde «files»), así la MISMA imagen escribe siempre el MISMO "
+            "archivo. Fijala cuando el corpus no tenga esa forma."
         ),
     )
     parser.add_argument(
@@ -998,7 +1054,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         detalle=args.detalle,
     )
 
-    raiz = _raiz_comun(rutas)
+    raiz, motivo_raiz = _raiz_espejado(rutas, args.raiz, salida)
     imagenes = [
         img for img in _expandir(rutas, extensiones) if not _esta_dentro(img, salida)
     ]
@@ -1010,7 +1066,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 0
 
     print(
-        f"raíz de espejado : {raiz}\n"
+        f"raíz de espejado : {raiz}   [{motivo_raiz}]\n"
         f"salida           : {salida}\n"
         f"imágenes         : {len(imagenes)}\n"
         f"objetivo         : lado mayor <= {opciones.lado_mayor}px, "

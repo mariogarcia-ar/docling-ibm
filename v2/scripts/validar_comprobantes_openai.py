@@ -1466,17 +1466,124 @@ def _expandir(rutas: Sequence[Path], extensiones: frozenset[str]) -> list[Path]:
     return sorted(set(encontrados))
 
 
-def _raiz_comun(rutas: Sequence[Path]) -> Path:
-    """Raíz desde la cual se espeja el árbol en la carpeta de salida."""
+def _raiz_espejado(
+    rutas: Sequence[Path], explicita: Path | None, salida: Path | None = None
+) -> tuple[Path, str]:
+    """Raíz desde la cual se espeja el árbol, con su motivo (para declararlo).
+
+    ⚠️ **La raíz no puede depender de la ruta que se pasa**, o el nivel de
+    carpetas de la salida cambia entre corridas: procesar ``procesados`` escribía
+    ``salida/2025-08/<hash>/…``, pero procesar ``procesados/2025-08`` escribía
+    ``salida/<hash>/…``. Peor: la reanudación (que saltea lo ya hecho) no
+    encontraba esos archivos y **se volvía a pagar** por documentos ya
+    procesados. Por eso, si no hay ``--raiz``, se **sube** desde las rutas hasta
+    la primera carpeta que no tenga un nombre de mes (``AAAA-MM``) — un nivel que
+    no depende de desde dónde se invoque. ``--raiz`` manda siempre.
+
+    Devuelve ``(raiz, motivo)``.
+    """
+    if explicita is not None:
+        return explicita, "--raiz (explícita)"
+
     bases = [r if r.is_dir() else r.parent for r in rutas if r.exists()]
     if not bases:
-        return Path.cwd()
-    if len(bases) == 1:
-        return bases[0]
+        return Path.cwd(), "cwd (las rutas no existen)"
+
+    raiz = bases[0] if len(bases) == 1 else _commonpath(bases)
+    subidas: list[str] = []
+    # Sube mientras el último nivel sea un mes (AAAA-MM), un hash de lote
+    # (hexadecimal) o esté dentro de la salida (p. ej. se apuntó a la carpeta de
+    # salida por error). Así la raíz queda en un nivel estable y no cambia según
+    # qué subcarpeta se haya pasado.
+    while raiz.parent != raiz:
+        if salida is not None and _esta_dentro(raiz, salida) and raiz != salida:
+            subidas.append(raiz.name)
+            raiz = raiz.parent
+            continue
+        if _es_nivel_de_corpus(raiz.name):
+            subidas.append(raiz.name)
+            raiz = raiz.parent
+            continue
+        break
+
+    if subidas:
+        return raiz, f"ascendida desde {bases[0]} (salteando: {', '.join(subidas)})"
+    return raiz, "derivada de las rutas"
+
+
+def _es_nivel_de_corpus(nombre: str) -> bool:
+    """True si el nombre es un nivel del corpus, no una raíz elegida.
+
+    Dos formas: mes (``2025-08``, ``2025_8``) e identificador de lote —el hash
+    hexadecimal de 8 caracteres que usa este corpus como carpeta por documento
+    (``2D2C9343``)—. Una carpeta elegida a mano (``procesados``, ``lote-final``,
+    ``mi_corpus``) no matchea ninguna, así que la subida se detiene ahí.
+    """
+    return bool(re.fullmatch(r"\d{4}[-_.]?\d{1,2}", nombre)) or bool(
+        re.fullmatch(r"[0-9A-Fa-f]{8}", nombre)
+    )
+
+
+def _commonpath(bases: Sequence[Path]) -> Path:
+    """Ancestro común de varias bases (``cwd`` si no comparten ninguno)."""
     try:
         return Path(os.path.commonpath([str(b.resolve()) for b in bases]))
-    except ValueError:
+    except ValueError:  # rutas sin ancestro común (volúmenes distintos)
         return Path.cwd()
+
+
+def _esta_dentro(hijo: Path, padre: Path) -> bool:
+    """True si ``hijo`` está dentro de ``padre`` (evita espejar desde la salida)."""
+    try:
+        hijo.resolve().relative_to(padre.resolve())
+        return True
+    except (ValueError, OSError):
+        return False
+
+
+def _es_nivel_mes(nombre: str) -> bool:
+    """True si el nombre de carpeta es un mes tipo ``2025-08`` / ``2025_8``."""
+    return bool(re.fullmatch(r"\d{4}[-_.]?\d{1,2}", nombre))
+
+
+def salida_de(img: Path, raiz: Path, salida: Path, sufijo: str) -> Path:
+    """Dónde se guarda el resultado de ``img`` espejando desde ``raiz``.
+
+    Función única para escribir y para buscar: si el cálculo se duplicara, la
+    reanudación y la escritura podrían divergir (y se pagaría dos veces el mismo
+    documento).
+    """
+    try:
+        relativo = img.resolve().relative_to(raiz.resolve())
+    except (ValueError, OSError):
+        relativo = Path(img.name)
+    return salida / relativo.with_suffix(f".{sufijo}.json")
+
+
+def _salidas_en_otras_raices(
+    salida: Path, raiz: Path, imagenes: Sequence[Path], sufijo: str
+) -> list[Path]:
+    """Salidas de estas imágenes que existen en OTRA ubicación de ``salida``.
+
+    Detecta el caso que hizo pagar dos veces: la misma imagen ya procesada con
+    otra raíz de espejado (p. ej. ``salida/2025-08/<hash>/x.json`` vs
+    ``salida/<hash>/x.json``). Devuelve los archivos encontrados, como aviso.
+    """
+    if not salida.is_dir():
+        return []
+    # Índice por nombre de archivo: la ruta esperada de cada imagen.
+    esperadas = {
+        salida_de(img, raiz, salida, sufijo).resolve() for img in imagenes
+    }
+    encontradas: list[Path] = []
+    for archivo in salida.rglob(f"*.{sufijo}.json"):
+        try:
+            if archivo.resolve() in esperadas:
+                continue
+        except OSError:
+            continue
+        encontradas.append(archivo)
+    return encontradas
 
 
 def ya_procesado(destino: Path) -> bool:
@@ -1874,8 +1981,11 @@ def apunte_de_registro(
         "fecha": local.date().isoformat(),
         "hora": local.strftime("%H:%M:%S"),
         "documento": registro.get("archivo_relativo") or registro.get("origen"),
+        # Identificador estable (sin la raíz de espejado) para deduplicar.
+        "documento_id": identificador_documento(registro),
         "origen": registro.get("origen"),
         "modo": registro.get("modo"),
+        "fuente": registro.get("fuente"),
         "modelo": modelo,
         "detalle_imagen": (registro.get("imagen") or {}).get("detalle"),
         "tokens_prompt": entrada,
@@ -1896,12 +2006,45 @@ def apunte_de_registro(
     }
 
 
+def identificador_documento(registro: dict) -> str | None:
+    """Identificador del documento, **independiente de la raíz de espejado**.
+
+    ⚠️ No sirve ``archivo_relativo``: la misma imagen escrita desde dos raíces
+    distintas produce relativos distintos (``2025-08/<hash>/x.jpg`` vs
+    ``<hash>/x.jpg``), y entonces el reporte de gastos contaba **dos veces** el
+    mismo documento. Se usa la ruta **resuelta del origen** (la imagen real en
+    disco), que no cambia según la raíz elegida; si la ruta ya no resuelve
+    (lote movido), se cae a la última parte de la ruta, que en este corpus es el
+    UUID del documento.
+    """
+    ruta = registro.get("origen")
+    if not ruta:
+        return registro.get("archivo_relativo")
+    p = Path(str(ruta))
+    try:
+        return str(p.resolve())
+    except OSError:
+        return p.name
+
+
 def _clave_apunte(apunte: dict) -> tuple:
-    """Clave de deduplicación: un documento+modo+modelo, en una fecha/hora."""
+    """Clave de deduplicación de un apunte de gasto.
+
+    **Qué es el mismo gasto**: el mismo documento, con el mismo modo y modelo,
+    en la **misma corrida** (misma fecha/hora). Esto es intencional: reprocesar
+    un documento (otro día, o con `--forzar`) es una llamada que **se pagó de
+    nuevo** y debe contarse aparte — si se colapsara, el reporte escondería
+    justamente el gasto que se quiere vigilar.
+
+    **Qué NO es un gasto distinto**: el mismo trabajo escrito en dos lugares por
+    cambiar la raíz de espejado. Eso se colapsa acá porque el ``documento_id``
+    (la imagen real) y la fecha coinciden, aunque la salida esté en otra carpeta.
+    """
     return (
-        apunte.get("documento"),
+        apunte.get("documento_id"),
         apunte.get("modo"),
         apunte.get("modelo"),
+        apunte.get("fuente"),
         apunte.get("fecha_hora"),
     )
 
@@ -2066,7 +2209,9 @@ def escribir_csv_gastos(
         "hora",
         "fecha_hora",
         "documento",
+        "documento_id",
         "modo",
+        "fuente",
         "modelo",
         "detalle_imagen",
         "tokens_prompt",
@@ -2126,6 +2271,10 @@ def construir_parser() -> argparse.ArgumentParser:
             "El reporte de gastos se arma del histórico de la carpeta de salida\n"
             "(--salida), no sólo de la última corrida: totales por día, modelo y\n"
             "modo, más una fila por extracción en el CSV.\n"
+            "\n"
+            "La salida espeja el árbol desde `--raiz` (o desde el nivel que no\n"
+            "sea un mes, p. ej. `2025-08`): la MISMA imagen escribe siempre el\n"
+            "mismo archivo, sin importar con qué subcarpeta se invoque.\n"
         ),
     )
     parser.add_argument(
@@ -2159,7 +2308,20 @@ def construir_parser() -> argparse.ArgumentParser:
         "-o",
         "--salida",
         default="validaciones",
-        help="Carpeta de salida: un JSON por documento (default: %(default)s).",
+        help=(
+            "Carpeta de salida: un JSON por documento (default: %(default)s). "
+            "Sin rutas, es la carpeta de la que se lee el reporte de gastos."
+        ),
+    )
+    parser.add_argument(
+        "--raiz",
+        type=Path,
+        help=(
+            "Raíz desde la cual se espeja el árbol en la salida. Si se omite, se "
+            "sube hasta el nivel que no sea un mes (procesar «procesados/2025-08» "
+            "espeja desde «procesados»), así la MISMA imagen escribe siempre el "
+            "MISMO archivo. Fijala cuando el corpus no tenga esa forma."
+        ),
     )
     parser.add_argument(
         "--modelo", default=MODELO_POR_DEFECTO, help="Modelo (default: %(default)s)."
@@ -2446,7 +2608,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     opciones = _opciones(temperatura=temperatura)
 
     rutas = [Path(r) for r in args.rutas]
-    raiz = _raiz_comun(rutas)
+    raiz, motivo_raiz = _raiz_espejado(rutas, args.raiz, opciones.salida)
     imagenes = _expandir(rutas, EXTENSIONES_IMAGEN)
     if args.limite > 0:
         imagenes = imagenes[: args.limite]
@@ -2466,11 +2628,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     tareas: list[tuple[Path, Path]] = []
     for img in imagenes:
-        try:
-            relativo = img.resolve().relative_to(raiz.resolve())
-        except (ValueError, OSError):
-            relativo = Path(img.name)
-        destino = opciones.salida / relativo.with_suffix(f".{sufijo}.json")
+        destino = salida_de(img, raiz, opciones.salida, sufijo)
         if not opciones.forzar and ya_procesado(destino):
             continue
         tareas.append((img, destino))
@@ -2478,7 +2636,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     print(
         f"modo             : {opciones.modo}\n"
         f"modelo           : {opciones.modelo} (detalle de imagen: {opciones.detalle})\n"
-        f"raíz de espejado : {raiz}\n"
+        f"raíz de espejado : {raiz}   [{motivo_raiz}]\n"
         f"salida           : {opciones.salida}\n"
         f"imágenes         : {len(imagenes)}"
         + (f" (pendientes: {len(tareas)})" if len(tareas) != len(imagenes) else "")
@@ -2487,8 +2645,24 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
 
     if not tareas:
-        print("Nada pendiente: todas las salidas ya existen (usá --forzar).", file=sys.stderr)
+        print(
+            "Nada pendiente: las salidas de todas las imágenes ya existen "
+            "(usá --forzar para rehacerlas).",
+            file=sys.stderr,
+        )
         return 0
+
+    # Aviso cuando la corrida va a pagar por documentos que quizá ya se pagaron
+    # en otra estructura de carpetas (pasó por cambiar la ruta de entrada).
+    if len(tareas) == len(imagenes) and len(imagenes) > 1:
+        otras = _salidas_en_otras_raices(opciones.salida, raiz, imagenes, sufijo)
+        if otras:
+            print(
+                f"⚠  {len(otras)} imagen(es) ya tienen salida en OTRA ubicación de "
+                f"{opciones.salida} (p. ej. {otras[0]}). Se van a volver a procesar "
+                "y pagar. Unificá con --raiz.",
+                file=sys.stderr,
+            )
 
     registros: list[dict] = []
     try:

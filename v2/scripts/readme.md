@@ -71,15 +71,23 @@ python scripts/reducir_tokens.py ../files -o salida --workers 4 \
 python scripts/reducir_tokens.py ../files --lado-mayor 1536 --workers 4
 ```
 
-**Carpeta de salida (`-o` / `--salida`).** El árbol se espeja desde la **raíz de
-la entrada**, sin repetir el nombre de la carpeta de entrada. Con
-`../files/2025-08/2D2C9343/foto.jpg`:
+**Carpeta de salida (`-o` / `--salida`).** El árbol se espeja desde `--raiz` (o
+desde el nivel que no sea un mes), sin repetir el nombre de la carpeta de
+entrada. Con `../files/2025-08/2D2C9343/foto.jpg`:
 
-| `-o` | Archivo resultante |
+| Invocación | Archivo resultante |
 |---|---|
-| *(omitida)* | `procesadas/2025-08/2D2C9343/foto.jpg` |
-| `salida` | `salida/2025-08/2D2C9343/foto.jpg` |
-| `/tmp/reducido` | `/tmp/reducido/2025-08/2D2C9343/foto.jpg` |
+| `../files` | `procesadas/2025-08/2D2C9343/foto.jpg` |
+| `../files/2025-08` | `procesadas/2025-08/2D2C9343/foto.jpg` |
+| `../files/2025-08/2D2C9343` | `procesadas/2025-08/2D2C9343/foto.jpg` |
+| `-o /tmp/reducido` | `/tmp/reducido/2025-08/2D2C9343/foto.jpg` |
+
+⚠️ **La misma imagen escribe siempre el mismo archivo**, sin importar con qué
+subcarpeta se invoque. La raíz **no** se deriva de la ruta pasada: se **sube**
+hasta el primer nivel que no sea un mes (`2025-08`) ni un hash de lote
+(`2D2C9343`). Sin esto, procesar `files` y después `files/2025-08` escribía dos
+árboles distintos y **volvía a pagar** por lo ya procesado. Para corpus con otra
+forma, fijá `--raiz`.
 
 ⚠️ `-o` es **solo para las imágenes**; el JSON del reporte va aparte con
 `--reporte`. Y si la salida cae dentro de la entrada (p. ej. `-o .`), el script
@@ -101,7 +109,8 @@ tokens de visión (estim.) : 1,423,303  →  214,020   (-85.0%)
 
 | Bandera | Efecto |
 |---|---|
-| `-o, --salida` | Carpeta raíz de salida (default `procesadas`). El árbol se espeja desde la raíz de la entrada. |
+| `-o, --salida` | Carpeta raíz de salida (default `procesadas`). El árbol se espeja desde `--raiz`. |
+| `--raiz DIR` | Raíz desde la cual se espeja el árbol. Si se omite, sube hasta el nivel que no sea mes/hash. |
 | `--lado-mayor PX` | Lado mayor objetivo (default 1024). **Nunca agranda.** |
 | `--calidad 1-100` | Calidad de reencode (default 80). |
 | `--piso-lado-menor PX` | Piso del lado menor, para imágenes muy alargadas (default 256). |
@@ -295,6 +304,7 @@ recalculan con la tabla vigente y el apunte lo declara en `fuente_costo`.
 | `--modo validar\|extraer\|diff` | Qué hacer (default `validar`). |
 | `--datos JSON\|DIR` | Datos cargados en Mendel (modos `validar`/`diff`). |
 | `-o, --salida` | Carpeta de salida, un JSON por documento (default `validaciones`). Sin rutas, es la carpeta de la que se lee el reporte de gastos. |
+| `--raiz DIR` | Raíz desde la cual se espeja el árbol. Si se omite, sube hasta el nivel que no sea mes/hash (procesar `procesados/2025-08` espeja desde `procesados`). |
 | `--modelo` | Modelo (default `gpt-4o`). |
 | `--detalle low\|high\|auto` | Resolución con que la API mira la imagen (default `high`). |
 | `--temperatura` | Default `0.2`, como recomienda el prompt; `none` para omitirla. |
@@ -336,6 +346,15 @@ interrumpido.
   ⚠️ Un registro **con error no cuenta como hecho**: se reintenta, para que
   arreglar la causa (clave, red, imagen) y volver a correr alcance (misma lección
   que los checkpoints de `batch` en T-603).
+- ⚠️ **La ruta de salida no depende de cómo se invoca.** Igual que en
+  `reducir_tokens.py`, la raíz de espejado **sube** hasta el nivel que no sea un
+  mes (`2025-08`) ni un hash de lote (`2D2C9343`): procesar `procesados`,
+  `procesados/2025-08` o `procesados/2025-08/<hash>` escribe **el mismo** archivo.
+  Antes no era así: cambiar la ruta de entrada movía las salidas, la reanudación
+  no las encontraba y **se volvía a pagar** por documentos ya procesados (pasó de
+  verdad, con 5 documentos). Si el corpus tiene otra forma, fijá `--raiz`. Cuando
+  detecta salidas de las mismas imágenes en otra ubicación, la corrida **avisa**
+  antes de gastar.
 - **Los fallos también se guardan** (con su registro y procedencia), para poder
   auditarlos; el resumen los lista y el exit code pasa a 1.
 - **Sin fuga de credenciales.** La clave se lee del entorno o del `.env` y nunca
