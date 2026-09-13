@@ -127,6 +127,20 @@ CATEGORIAS_CON_LITROS = frozenset({"COMBUSTIBLE", "NAFTA", "GASOIL", "GNC"})
 #: Tolerancia para comparar montos (redondeo de centavos).
 TOLERANCIA_MONTO = 0.011
 
+#: Proporción caracteres/token del prompt, **medida contra el uso real** de la
+#: API (2026-09-13): el texto de system + user + esquema dio 10.919 caracteres =
+#: 2.786 tokens en 10 extracciones reales con ``gpt-4o`` (3,92 char/token). Se usa
+#: para estimar el prompt en ``--dry-run`` sin llamar a la API.
+CHARS_POR_TOKEN_ESTIMADO = 3.92
+
+#: Tokens de salida típicos, para estimar cuando no hay histórico con qué
+#: calibrar. Medido en las mismas extracciones reales (~240).
+COMPLETION_TOKENS_TIPICO = 240
+
+#: Mínimo de extracciones previas para calibrar con el histórico en vez de con la
+#: fórmula. Con menos, el promedio sería ruido.
+MIN_MUESTRAS_PARA_CALIBRAR = 3
+
 #: Campos cuya discrepancia lleva el estado global a REVISAR (regla de negocio).
 CAMPOS_CRITICOS = (
     "importe_total_facturado",
@@ -1344,19 +1358,8 @@ def procesar(
         registro["resultado"] = diff_deterministico(extraccion, datos_doc)
         return registro
 
-    # En dry-run no hace falta el base64 ni gastar memoria codificando.
-    if opciones.dry_run:
-        try:
-            registro["imagen"] = info_imagen(img, opciones.detalle)
-        except OSError as exc:
-            registro["error"] = f"no se pudo leer la imagen: {exc}"
-            return registro
-        registro["resultado"] = {
-            "_dry_run": True,
-            "esquema": "validacion_comprobante" if opciones.modo == "validar" else "extraccion_comprobante",
-        }
-        return registro
-
+    # El dry-run no llega hasta acá: `main` estima el costo y sale antes de
+    # llamar a la API (así no se codifica base64 ni se gasta memoria al pedo).
     try:
         data_url, info = codificar_imagen(img, opciones.detalle)
     except OSError as exc:
@@ -1524,6 +1527,235 @@ def _es_nivel_de_corpus(nombre: str) -> bool:
     )
 
 
+def estimar_costo_corrida(
+    imagenes: Sequence[Path],
+    sistema: str,
+    user_template: str,
+    opciones: Opciones,
+) -> dict[str, Any]:
+    """Estima **cuánto costaría** procesar estas imágenes, sin llamar a la API.
+
+    Es lo que responde ``--dry-run``. La estimación se arma con lo que sí se sabe
+    sin gastar:
+
+    - **tokens de imagen**: fórmula de OpenAI según ``--detalle`` y el tamaño real
+      de cada archivo (la parte más pesada del prompt);
+    - **tokens de texto**: se construye el prompt **de verdad** (system + user +
+      esquema) y se convierte con :data:`CHARS_POR_TOKEN_ESTIMADO`, medido contra
+      el uso real de la API. Si la carpeta de salida ya tiene extracciones pagas,
+      se **calibra con ese histórico** (prompt real menos tokens de imagen), que
+      es más fiel que la fórmula;
+    - **tokens de salida**: promedio del histórico, o
+      :data:`COMPLETION_TOKENS_TIPICO`.
+
+    Devuelve el detalle por documento y los totales; ``confianza`` dice de dónde
+    salió el número (``historico``, ``formula`` o ``mixta``) para no presentar una
+    estimación como si fuera una factura.
+    """
+    # Prompt efectivo (el mismo que se enviaría para la primera imagen).
+    usuario = construir_mensaje_usuario(user_template, None, incluir_ejemplo=opciones.incluir_ejemplo)
+    if opciones.modo == "extraer":
+        usuario = prompt_de_extraccion(usuario)
+    esquema = esquema_validacion() if opciones.modo == "validar" else esquema_extraccion()
+    chars = len(sistema) + len(usuario) + len(json.dumps(esquema))
+    tokens_texto_formula = round(chars / CHARS_POR_TOKEN_ESTIMADO)
+
+    # Calibración con el histórico de la carpeta de salida, si alcanza.
+    medidas = _tokens_de_texto_historicos(opciones.salida, opciones)
+    if len(medidas) >= MIN_MUESTRAS_PARA_CALIBRAR:
+        tokens_texto = round(sum(medidas) / len(medidas))
+        confianza = "historico"
+    else:
+        tokens_texto = tokens_texto_formula
+        confianza = "formula"
+
+    salidas_historicas = _tokens_de_salida_historicos(opciones.salida, opciones)
+    tokens_salida = (
+        round(sum(salidas_historicas) / len(salidas_historicas))
+        if salidas_historicas
+        else COMPLETION_TOKENS_TIPICO
+    )
+    if salidas_historicas and confianza == "historico":
+        confianza = "historico"
+    elif salidas_historicas:
+        confianza = "mixta"
+
+    precio_entrada, precio_salida = precio_de(opciones.modelo, opciones.precios)
+
+    detalle: list[dict[str, Any]] = []
+    total_entrada = total_salida = 0
+    total_costo = 0.0
+    sin_precio = 0
+    for img in imagenes:
+        try:
+            info = info_imagen(img, opciones.detalle)
+        except OSError:
+            continue
+        tokens_img = info.get("tokens_estimados")
+        # Sin dimensiones legibles no se puede estimar la imagen: se cuenta el
+        # texto y se declara que falta la parte más pesada.
+        entrada = (tokens_img or 0) + tokens_texto
+        costo = costo_de_tokens(entrada, tokens_salida, precio_entrada, precio_salida)
+        if costo is None:
+            sin_precio += 1
+        else:
+            total_costo += costo
+        total_entrada += entrada
+        total_salida += tokens_salida
+        detalle.append(
+            {
+                "imagen": str(img),
+                "tokens_imagen": tokens_img,
+                "tokens_texto": tokens_texto,
+                "tokens_entrada": entrada,
+                "tokens_salida": tokens_salida,
+                "costo_usd": costo,
+            }
+        )
+
+    return {
+        "archivos": len(detalle),
+        "tokens_texto_estimados": tokens_texto,
+        "tokens_texto_formula": tokens_texto_formula,
+        "prompt_chars": chars,
+        "tokens_salida_estimados": tokens_salida,
+        "tokens_entrada_totales": total_entrada,
+        "tokens_salida_totales": total_salida,
+        "costo_usd_total": round(total_costo, 6) if total_costo else None,
+        "costo_usd_promedio": (
+            round(total_costo / (len(detalle) - sin_precio), 6)
+            if detalle and len(detalle) > sin_precio
+            else None
+        ),
+        "precio_entrada_usd_1m": precio_entrada,
+        "precio_salida_usd_1m": precio_salida,
+        "sin_precio": sin_precio,
+        "confianza": confianza,
+        "muestras_historico": len(medidas),
+        "detalle": detalle,
+        "opciones": {
+            "modo": opciones.modo,
+            "modelo": opciones.modelo,
+            "detalle_imagen": opciones.detalle,
+            "prompt_con_ejemplo_de_salida": opciones.incluir_ejemplo,
+        },
+    }
+
+
+def _tokens_de_texto_historicos(
+    salida: Path, opciones: Opciones
+) -> list[int]:
+    """Tokens de **texto** (prompt menos imagen) de las extracciones ya pagas.
+
+    Sirve para calibrar la estimación con datos propios en vez de con una
+    constante: el prompt del proyecto puede cambiar (otro esquema, otro prompt) y
+    la fórmula quedaría vieja.
+    """
+    medidas: list[int] = []
+    for registro in _registros_validos(salida, opciones):
+        uso = registro.get("uso") or {}
+        prompt = uso.get("prompt_tokens")
+        if prompt is None:
+            continue
+        img = (registro.get("imagen") or {}).get("tokens_estimados") or 0
+        texto = prompt - img
+        if texto > 0:
+            medidas.append(texto)
+    return medidas
+
+
+def _tokens_de_salida_historicos(salida: Path, opciones: Opciones) -> list[int]:
+    """Tokens de salida (``completion``) de las extracciones ya pagas."""
+    salidas: list[int] = []
+    for registro in _registros_validos(salida, opciones):
+        salida_tok = (registro.get("uso") or {}).get("completion_tokens")
+        if salida_tok:
+            salidas.append(salida_tok)
+    return salidas
+
+
+def _registros_validos(salida: Path, opciones: Opciones) -> list[dict]:
+    """Registros pagos de la carpeta de salida, del mismo modelo y modo.
+
+    Se filtra por modelo y modo porque los tokens no son comparables entre
+    modelos (ni entre comparar y solo extraer): mezclarlos daría una calibración
+    con un promedio que no corresponde a lo que se va a correr.
+    """
+    if not salida.is_dir():
+        return []
+    registros: list[dict] = []
+    for archivo in sorted(salida.rglob("*.json")):
+        if archivo.name in {"reporte.json", "gastos.json"}:
+            continue
+        try:
+            registro = json.loads(archivo.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            continue
+        if not isinstance(registro, dict) or registro.get("error"):
+            continue
+        if registro.get("modelo") != opciones.modelo:
+            continue
+        if registro.get("modo") != opciones.modo:
+            continue
+        registros.append(registro)
+    return registros
+
+
+def imprimir_estimacion(est: dict[str, Any], *, detalle: bool = False) -> None:
+    """Muestra la estimación de costo de una corrida (lo que imprime ``--dry-run``)."""
+    print("\n=== Estimación de costo (simulación: no se llamó a la API) ===")
+    if not est["archivos"]:
+        print("No hay imágenes que estimar.")
+        return
+    print(f"archivos          : {est['archivos']}")
+    print(
+        f"tokens por archivo: entrada ≈ {est['tokens_texto_estimados']:,} (texto+esquema) "
+        f"+ los píxeles de cada imagen | salida ≈ {est['tokens_salida_estimados']:,}"
+    )
+    print(
+        f"tokens totales    : entrada {est['tokens_entrada_totales']:,} | "
+        f"salida {est['tokens_salida_totales']:,}"
+    )
+    if est["costo_usd_total"] is not None:
+        print(f"COSTO ESTIMADO    : US$ {est['costo_usd_total']:.4f}", end="")
+        if est["costo_usd_promedio"] is not None:
+            print(f"   (≈ US$ {est['costo_usd_promedio']:.4f} por comprobante)")
+        else:
+            print()
+        print(
+            f"precios usados    : US$ {est['precio_entrada_usd_1m']}/1M entrada, "
+            f"US$ {est['precio_salida_usd_1m']}/1M salida ({est['opciones']['modelo']})"
+        )
+    else:
+        print(
+            "COSTO ESTIMADO    : — (no hay precio para el modelo "
+            f"{est['opciones']['modelo']}; pasá --precios o --precio-entrada/--precio-salida)"
+        )
+    # De dónde salió el número: una estimación no es una factura.
+    fuentes = {
+        "historico": f"calibrada con {est['muestras_historico']} extracción(es) previa(s)",
+        "formula": f"fórmula ({CHARS_POR_TOKEN_ESTIMADO} car/token; medido contra la API)",
+        "mixta": "texto por fórmula y salida por histórico",
+    }
+    print(f"confianza         : {fuentes.get(est['confianza'], est['confianza'])}")
+    if est["sin_precio"]:
+        print(
+            f"  ⚠ {est['sin_precio']} archivo(s) sin precio para su modelo; no "
+            "entran en el total",
+            file=sys.stderr,
+        )
+    if detalle:
+        print("\n-- por archivo --")
+        for d in est["detalle"]:
+            costo = f"US$ {d['costo_usd']:.4f}" if d["costo_usd"] is not None else "—"
+            img_tok = d["tokens_imagen"] if d["tokens_imagen"] is not None else "?"
+            print(
+                f"  {Path(d['imagen']).name[:44]:46} img={img_tok:>5} "
+                f"texto={d['tokens_texto']:>5} total={d['tokens_entrada']:>5}  {costo}"
+            )
+
+
+#: Componentes de un prompt que se construyen de verdad para estimar.
 def _commonpath(bases: Sequence[Path]) -> Path:
     """Ancestro común de varias bases (``cwd`` si no comparten ninguno)."""
     try:
@@ -2384,8 +2616,9 @@ def construir_parser() -> argparse.ArgumentParser:
         "--dry-run",
         action="store_true",
         help=(
-            "No llama a la API ni escribe archivos: solo informa qué se "
-            "enviaría (útil para verificar antes de gastar tokens)."
+            "SIMULACIÓN: estima cuánto costaría la corrida y sale sin llamar a "
+            "la API ni escribir archivos. Con --detalle-log agrega el detalle "
+            "por comprobante."
         ),
     )
     parser.add_argument("--detalle-log", action="store_true", help="Una línea por archivo.")
@@ -2420,7 +2653,8 @@ def construir_parser() -> argparse.ArgumentParser:
         metavar="ARCHIVO.json",
         help=(
             "Escribe el REPORTE DE GASTOS acumulado de la carpeta de salida: "
-            "totales por día, modelo y modo. Es independiente de --reporte."
+            "totales por día, modelo y modo. Es independiente de --reporte. "
+            "Con --dry-run, ese mismo archivo recibe la ESTIMACIÓN."
         ),
     )
     parser.add_argument(
@@ -2650,6 +2884,22 @@ def main(argv: Sequence[str] | None = None) -> int:
             "(usá --forzar para rehacerlas).",
             file=sys.stderr,
         )
+        return 0
+
+    # En simulación se estima el costo de lo que se iba a procesar y se sale sin
+    # llamar a la API ni escribir nada.
+    if opciones.dry_run:
+        est = estimar_costo_corrida(
+            [img for img, _ in tareas], sistema, user_template, opciones
+        )
+        imprimir_estimacion(est, detalle=args.detalle_log)
+        if args.reporte_gastos:
+            ruta = Path(args.reporte_gastos)
+            ruta.parent.mkdir(parents=True, exist_ok=True)
+            ruta.write_text(
+                json.dumps(est, ensure_ascii=False, indent=2), encoding="utf-8"
+            )
+            print(f"\nestimación escrita: {ruta}")
         return 0
 
     # Aviso cuando la corrida va a pagar por documentos que quizá ya se pagaron
