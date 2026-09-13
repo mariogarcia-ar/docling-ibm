@@ -22,6 +22,7 @@ Dos tipos de script conviven acá:
    |---|---|
    | `reducir_tokens.py` | Pre-reduce el peso y los tokens de visión de un corpus de imágenes. |
    | `validar_comprobantes_openai.py` | Valida/extrae campos de comprobantes con la API de OpenAI (visión), según el prompt de Mendel. |
+   | `validar_comprobantes_deepseek.py` | Lo mismo con la API de DeepSeek (visión): gemelo de la anterior, con las diferencias del proveedor. |
 
 ---
 
@@ -419,3 +420,76 @@ interrumpido.
   el script reintenta **una vez** sin ese parámetro y lo deja anotado.
 - **Imágenes grandes**: la API acepta hasta 20 MB por imagen; si una los supera,
   el script lo informa en vez de mandar una petición condenada a fallar.
+
+---
+
+## `validar_comprobantes_deepseek.py` — lo mismo, con la API de DeepSeek
+
+Es el **gemelo** del anterior: mismo prompt, mismos 3 modos, mismo formato de
+salida, misma reanudación y mismo reporte de gastos. Solo cambia el proveedor, y
+por eso se puede comparar la lectura de los dos modelos sobre el mismo corpus
+con exactamente el mismo prompt y el mismo `diff` determinístico.
+
+```bash
+# La clave va en el entorno o en un .env (el .gitignore ya lo excluye):
+# la plantilla documentada es ../.env.example, con las DOS claves de API.
+export DEEPSEEK_API_KEY=sk-...
+#    o:  echo 'DEEPSEEK_API_KEY=sk-...' >> .env
+#    Los dos pasos, desde la plantilla:  (ver ../.env.example)
+#      cp ../.env.example .env  &&  set -a && source .env && set +a
+
+# 1) Simular (no gasta) y después extraer 5
+python scripts/validar_comprobantes_deepseek.py ../procesados \
+  --modo extraer --limite 5 --dry-run --detalle-log
+python scripts/validar_comprobantes_deepseek.py ../procesados --modo extraer --limite 5
+
+# 2) Validar contra los datos cargados, y el diff local (no llama a la API)
+python scripts/validar_comprobantes_deepseek.py ../procesados --datos datos.json -o validaciones-deepseek
+python scripts/validar_comprobantes_deepseek.py ../procesados --modo diff --datos datos.json
+
+# 3) Reporte de gastos del histórico
+python scripts/validar_comprobantes_deepseek.py --salida validaciones-deepseek
+```
+
+⚠️ **Poné las dos claves en el mismo `.env` si vas a comparar los modelos.** Los
+dos scripts leen `./.env` por defecto y cada uno busca la suya
+(`OPENAI_API_KEY` / `DEEPSEEK_API_KEY`), así que con las dos cargadas podés
+correr la misma extracción con cada proveedor sin cambiar de entorno.
+
+### Diferencias con la versión OpenAI (todas del proveedor)
+
+| Tema | OpenAI (`gpt-4o`) | DeepSeek (`deepseek-flash`) |
+|---|---|---|
+| **Forma del JSON** | `json_schema` + `strict: true`: la impone el **servidor** | Solo `json_object` (JSON *válido*, no con la forma): se valida **local** con `jsonschema` y se **reintenta** con el error como feedback (hasta 3, declarado en `reintentos_esquema`) |
+| **JSON de ejemplo del prompt** | Se **omite** (lo reemplaza el esquema estricto) | **Obligatorio**: el JSON mode de DeepSeek exige que el prompt mencione «json» y traiga el ejemplo. Default: se incluye; `--prompt-minimo` lo quita (experimento) |
+| **Tokens de imagen** | Fórmula por mosaicos según `--detalle` y el tamaño real | **Tope fijo: 1.024 tokens por imagen.** DeepSeek redimensiona todo a ~1300×1300 px (y agranda las chicas a ~544×544): la resolución **no cambia** el costo |
+| **`temperature`** | Se manda (default `0.2`) | **No se manda**: thinking mode la ignora. Si se pide, se **declara** que se ignoró en vez de fingir que se aplicó |
+| **`reasoning_effort`** | `minimal/low/medium/high` | `none/low/high/max` (`none` apaga el thinking; default del proveedor: `high`) |
+| **Caché** | No expone el dato en `usage` | `prompt_cache_hit_tokens` / `prompt_cache_miss_tokens`: el prefijo repetido (system + imagen) se cobra a la tarifa de caché |
+| **Precios** | Tabla USD/1M (entrada/salida) | Tabla USD/1M con **3** valores: entrada, salida, **entrada-caché**, en tarifa **pico** (off-peak = mitad) |
+| **Fallo pagado** | Un registro con `error` no se cuenta como gasto | Si el fallo fue **después de reintentar**, los tokens ya se consumieron: se cuenta y se marca `fallo: true` |
+| **Límite de imagen** | 20 MB | 32 MiB (base64 inline) |
+| **`--base-url`** | — | Apuntable a un proxy (`https://api.deepseek.com` por defecto) |
+
+### Lo que se conserva igual (y se puede comparar)
+
+- Los **3 modos** (`validar` / `extraer` / `diff`) y el `diff` **sin gastar tokens**.
+- El **esquema** es exactamente el mismo objeto JSON; en DeepSeek se usa para
+  **validar** la respuesta en vez de imponerla en el servidor.
+- La **aritmética se recalcula en Python** (`cierra_aritmetica` + `faltantes`) y
+  gana sobre el veredicto del modelo, también acá.
+- La **reanudación**, el aviso de salidas en otra raíz y la verificación de
+  tamaño de imagen.
+- El **reporte de gastos** (por día, modelo y modo) del histórico de `--salida`.
+- La clave **nunca** se imprime ni se guarda.
+
+### Cotización
+
+Los precios de referencia son la tarifa **pico** (01:00-04:00 y 06:00-10:00 UTC,
+L-V) y el cálculo de `--dry-run` asume **sin caché**: es el techo, no el promedio.
+Fuera de esa ventana DeepSeek cobra la mitad, y el caché de contexto abarata la
+entrada repetida todavía más (una fracción del precio), así que el gasto real
+tiende a quedar por debajo de la estimación. Se pisan con `--precios`
+(`modelo=entrada/salida/caché`), `--precio-entrada`/`--precio-salida`/`--precio-cache`.
+Si un modelo no tiene precio, el costo queda `null` y el reporte lo declara en
+vez de sumar un cero que parecería exacto.

@@ -125,8 +125,11 @@ set -a && source .env && set +a
 proceso, así que hay que cargarlo con `source` (o `direnv`, o
 `docker compose --env-file`) antes de correr los comandos.
 
-> `scripts/validar_comprobantes_openai.py` es la excepción: acepta `--env` y por
-> defecto lee `./.env`, así que para ese script alcanza con tenerlo en disco.
+> Los scripts `scripts/validar_comprobantes_openai.py` y
+> `scripts/validar_comprobantes_deepseek.py` son la excepción: aceptan `--env` y
+> por defecto leen `./.env`, así que para esos scripts alcanza con tenerlo en
+> disco (la clave de cada uno sale de `OPENAI_API_KEY` y `DEEPSEEK_API_KEY`,
+> respectivamente).
 
 ## 5. Verificar que quedó bien
 
