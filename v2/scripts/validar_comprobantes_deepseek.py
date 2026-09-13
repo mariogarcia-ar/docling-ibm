@@ -153,6 +153,14 @@ BASE_URL_POR_DEFECTO = "https://api.deepseek.com"
 #: van con el mismo texto (el modelo no es determinístico).
 MAX_REINTENTOS_ESQUEMA = 3
 
+#: Tope de tokens de salida. Por defecto **no se manda**: DeepSeek ya usa 8K en
+#: modo no-thinking y **64K** con thinking activado (el default acá).
+#: ⚠️ Mandar un tope **menor** trunca el JSON a la mitad y el parseo falla con un
+#: error críptico (`Unterminated string`): se comprobó con 8.192, que parecía
+#: holgado pero es la octava parte del default del proveedor. Si hace falta
+#: acotar el gasto, subilo con `--max-tokens`, no lo bajes a ciegas.
+MAX_TOKENS_POR_DEFECTO: int | None = None
+
 #: Lado del cuadro al que DeepSeek redimensiona toda imagen antes de inferir
 #: (~1300×1300 = 1.690.000 px) y tope de tokens por imagen. Ver la guía
 #: «Vision → Token Usage»: una imagen grande y una gigante cuestan lo mismo; una
@@ -283,7 +291,11 @@ def _separar_template(user_template: str) -> tuple[str, str]:
 
 
 def construir_mensaje_usuario(
-    user_template: str, datos: dict | None, *, incluir_ejemplo: bool
+    user_template: str,
+    datos: dict | None,
+    *,
+    incluir_ejemplo: bool,
+    ejemplo_alternativo: str | None = None,
 ) -> str:
     """Arma el texto del mensaje ``user`` a partir del template del ``.md``.
 
@@ -291,6 +303,11 @@ def construir_mensaje_usuario(
     ``image_url``, que es el mecanismo de la API) y reemplaza el bloque de datos
     por el JSON real. Si ``incluir_ejemplo`` es falso, **quita el JSON de ejemplo
     de salida** (en DeepSeek es un experimento: el JSON mode lo pide explícito).
+
+    ``ejemplo_alternativo`` reemplaza el ejemplo del ``.md``. ⚠️ Hace falta en el
+    modo ``extraer``: el template trae el ejemplo del modo **comparar**
+    (``estado_global``/``campos``), así que sin esto el modelo devuelve esa forma
+    — y el validador, que espera la de extracción, la rechaza.
     """
     cabecera, ejemplo = _separar_template(user_template)
     cabecera = cabecera.replace("[IMAGEN]", "(imagen adjunta a continuación)")
@@ -301,9 +318,93 @@ def construir_mensaje_usuario(
             cabecera[: siguiente.start()] + bloque_datos + cabecera[siguiente.end() :]
         )
 
-    if incluir_ejemplo and ejemplo:
-        return f"{cabecera}\n\n{ejemplo}"
-    return cabecera
+    if not incluir_ejemplo:
+        return cabecera
+    return f"{cabecera}\n\n{ejemplo_alternativo or ejemplo}".rstrip()
+
+
+#: Cierre del SYSTEM PROMPT del ``.md`` que pertenece al modo **comparar**:
+#: desde «Instrucciones generales:» (ahí adentro está el ``estado_global`` y el
+#: «Respondé ÚNICAMENTE en el formato JSON especificado»). En el modo ``extraer``
+#: se reemplaza por :data:`INSTRUCCIONES_SISTEMA_EXTRACCION`.
+#:
+#: ⚠️ No es cosmético: el texto del ``.md`` está escrito para *comparar* contra
+#: los datos de Mendel. En OpenAI eso quedaba tapado porque el ``json_schema``
+#: estricto imponía la forma **en el servidor**; DeepSeek solo garantiza JSON
+#: válido, así que el prompt manda — y con este cierre el modelo devolvía
+#: ``estado_global``/``campos`` (la forma de *validar*) en vez de la extracción.
+_RE_CIERRE_SISTEMA = re.compile(r"\nInstrucciones generales:.*\Z", re.DOTALL)
+
+INSTRUCCIONES_SISTEMA_EXTRACCION = (
+    "\n"
+    "Instrucciones generales:\n"
+    "- Esta pasada es de **transcripción**, no de comparación: NO hay datos\n"
+    "  cargados con los que contrastar. No emitas un «estado global» ni\n"
+    "  comparaciones campo a campo; transcribí lo que muestra el comprobante.\n"
+    "- Completá **TODOS** los campos del formato JSON: ninguno es opcional. Si un\n"
+    "  dato no figura en el comprobante, va `null` (o `false`, o `[]` según el\n"
+    "  tipo), pero la clave tiene que estar.\n"
+    "- Si un dato no es legible en la imagen (borroso, cortado, arrugado), poné el\n"
+    "  campo en `null` y agregalo a `campos_no_legibles`; nunca lo omitas en\n"
+    "  silencio ni asumas un valor.\n"
+    "- Nunca inventes valores que no estén en la imagen.\n"
+    "- Priorizá transcribir con exactitud los importes y el CUIT: son los que se\n"
+    "  controlan después.\n"
+    "\n"
+    "Respondé ÚNICAMENTE con el objeto JSON del formato especificado, sin texto\n"
+    "adicional ni bloques de código alrededor."
+)
+
+
+def sistema_de_extraccion(sistema: str) -> str:
+    """Adapta el SYSTEM PROMPT del ``.md`` al modo ``extraer``.
+
+    Conserva las 15 reglas de negocio (son conocimiento del dominio y varias
+    —CUIT, importes, litros, legibilidad— aplican igual al transcribir) y
+    reemplaza el cierre de *comparación* por las instrucciones de transcripción.
+    Si el cierre no aparece (el ``.md`` cambió de forma), se agrega igual, así la
+    corrida no queda sin encuadre.
+    """
+    adaptado, n = _RE_CIERRE_SISTEMA.subn(
+        INSTRUCCIONES_SISTEMA_EXTRACCION, sistema
+    )
+    if n == 0:
+        adaptado = sistema.rstrip() + "\n" + INSTRUCCIONES_SISTEMA_EXTRACCION
+    return adaptado.strip()
+
+
+def ejemplo_desde_esquema(esquema: dict[str, Any]) -> str:
+    """Ejemplo de salida **generado desde el esquema** que se va a validar.
+
+    El JSON mode de DeepSeek exige que el prompt traiga un ejemplo de la salida,
+    y ese ejemplo es lo que el modelo copia. Escribirlo a mano permite que
+    divergja del validador (fue exactamente el bug de arriba: el ejemplo del
+    ``.md`` era el del modo *validar*). Generarlo del mismo esquema que valida
+    hace que **no puedan separarse**: si el esquema cambia, el ejemplo cambia.
+    """
+    return json.dumps(_valor_de_ejemplo(esquema), ensure_ascii=False, indent=2)
+
+
+def _valor_de_ejemplo(esquema: dict[str, Any]) -> Any:
+    """Valor de relleno con la **forma** del esquema (los «<…>» son a completar)."""
+    if "anyOf" in esquema:
+        # Se prefiere el tipo real sobre ``null``: así se ve la forma completa.
+        opciones = [o for o in esquema["anyOf"] if o.get("type") != "null"]
+        return _valor_de_ejemplo((opciones or esquema["anyOf"])[0])
+    if "enum" in esquema:
+        return esquema["enum"][0]
+    tipo = esquema.get("type")
+    if tipo == "object":
+        return {k: _valor_de_ejemplo(v) for k, v in esquema["properties"].items()}
+    if tipo == "array":
+        return ["<…>"]
+    if tipo == "string":
+        return f"<{esquema.get('description') or 'texto'}>"
+    if tipo == "number":
+        return 0
+    if tipo == "boolean":
+        return False
+    return None
 
 
 #: Instrucción extra del modo ``extraer``. El template del ``.md`` está escrito
@@ -336,6 +437,37 @@ INSTRUCCION_EXTRACCION = (
 def prompt_de_extraccion(usuario: str) -> str:
     """Agrega al mensaje del usuario las reglas de transcripción del modo extraer."""
     return usuario + INSTRUCCION_EXTRACCION
+
+
+def armar_prompt_efectivo(
+    modo: str,
+    sistema: str,
+    user_template: str,
+    datos: dict | None,
+    *,
+    incluir_ejemplo: bool,
+) -> tuple[str, str]:
+    """Devuelve ``(system, user)`` **efectivos** del modo.
+
+    ⚠️ Función única para correr y para estimar: si la estimación armara el
+    prompt por su cuenta, el costo simulado dejaría de corresponder al real
+    (misma lección que ``salida_de()``: escribir y calcular no pueden divergir).
+    """
+    esquema = esquema_validacion() if modo == "validar" else esquema_extraccion()
+    usuario = construir_mensaje_usuario(
+        user_template,
+        datos,
+        incluir_ejemplo=incluir_ejemplo,
+        # En ``extraer`` el ejemplo del .md es el de *comparar*: se reemplaza por
+        # uno generado del esquema de extracción (ver ``ejemplo_desde_esquema``).
+        ejemplo_alternativo=(
+            ejemplo_desde_esquema(esquema) if modo == "extraer" else None
+        ),
+    )
+    if modo == "extraer":
+        return sistema_de_extraccion(sistema), prompt_de_extraccion(usuario)
+    return sistema, usuario
+
 
 
 def hash_prompt(*partes: str) -> str:
@@ -763,8 +895,114 @@ def _errores_de_esquema(validador_clase: Any, esquema: dict, datos: Any) -> list
         key=lambda e: [str(p) for p in e.absolute_path],
     ):
         ruta = "/".join(str(p) for p in error.absolute_path) or "(raíz)"
-        errores.append(f"{ruta}: {error.message}")
+        # ⚠️ No se usa `error.message` tal cual: incluye el **valor** recibido
+        # («'x' is not of type 'number'»), o sea la lectura del comprobante, y
+        # este texto viaja al registro de salida y al log. Se nombra el problema
+        # por su tipo, sin citar el contenido del modelo.
+        tipo_esperado = (error.validator_value or {}).get("type") if isinstance(
+            error.validator_value, dict
+        ) else None
+        if error.validator == "required":
+            detalle = "falta una propiedad obligatoria"
+        elif error.validator in {"anyOf", "oneOf"}:
+            detalle = "no coincide con ninguno de los tipos permitidos"
+        elif error.validator == "type":
+            detalle = f"se esperaba el tipo «{tipo_esperado or 'declarado'}»"
+        elif error.validator == "additionalProperties":
+            detalle = "hay propiedades no declaradas en el esquema"
+        else:
+            detalle = f"no cumple la restricción «{error.validator}»"
+        errores.append(f"{ruta}: {detalle}")
     return errores
+
+
+def _tipo_compatible(esquema: dict[str, Any], valor: Any) -> bool:
+    """True si ``valor`` es del tipo que declara ``esquema`` (para elegir rama)."""
+    tipo = esquema.get("type")
+    if tipo == "null":
+        return valor is None
+    if tipo == "boolean":
+        return isinstance(valor, bool)
+    if tipo == "number":
+        return isinstance(valor, (int, float)) and not isinstance(valor, bool)
+    if tipo == "string":
+        return isinstance(valor, str)
+    if tipo == "object":
+        return isinstance(valor, dict)
+    if tipo == "array":
+        return isinstance(valor, list)
+    return True
+
+
+def _coincidencia_enum(valor: str, opciones: Sequence[Any]) -> str | None:
+    """Opción canónica del ``enum`` que corresponde a ``valor``, o ``None``.
+
+    Compara sin distinguir mayúsculas, tildes ni espacios: que el modelo devuelva
+    «Buena» donde el esquema dice «buena» es una diferencia de **formato**, no un
+    error de contenido. ``_norm`` (definida más abajo) es la misma normalización
+    que usa el diff.
+    """
+    objetivo = _norm(valor)
+    for opcion in opciones:
+        if isinstance(opcion, str) and _norm(opcion) == objetivo:
+            return opcion
+    return None
+
+
+def normalizar_por_esquema(
+    esquema: dict[str, Any], datos: Any, notas: list[str], ruta: str = ""
+) -> Any:
+    """Normaliza diferencias de **forma** contra el esquema, dejando constancia.
+
+    Hoy solo cubre los ``enum``: si el valor coincide con una de las opciones
+    salvo mayúsculas/tildes/espacios, se reemplaza por la opción canónica y se
+    anota en ``notas``. Es a propósito lo más acotado posible: cualquier otra
+    diferencia sigue siendo un error y se repregunta.
+
+    ⚠️ Por qué importa: cada repregunta **se paga**. Que el modelo devuelva
+    «Buena» en vez de «buena» costaba un reintento completo por un detalle
+    tipográfico (comprobado con un comprobante real). Se **declara** en el
+    registro en vez de corregirlo en silencio.
+    """
+    if not isinstance(esquema, dict):
+        return datos
+
+    if "enum" in esquema and isinstance(datos, str):
+        canonica = _coincidencia_enum(datos, esquema["enum"])
+        if canonica is not None and canonica != datos:
+            notas.append(
+                f"{ruta or '(raíz)'}: «{datos}» normalizado a «{canonica}»"
+            )
+            return canonica
+        return datos
+
+    if "anyOf" in esquema:
+        for opcion in esquema["anyOf"]:
+            if _tipo_compatible(opcion, datos):
+                return normalizar_por_esquema(opcion, datos, notas, ruta)
+        return datos
+
+    if esquema.get("type") == "object" and isinstance(datos, dict):
+        propiedades = esquema.get("properties", {})
+        return {
+            clave: (
+                normalizar_por_esquema(
+                    propiedades[clave], valor, notas, f"{ruta}/{clave}" if ruta else clave
+                )
+                if clave in propiedades
+                else valor
+            )
+            for clave, valor in datos.items()
+        }
+
+    if esquema.get("type") == "array" and isinstance(datos, list):
+        items = esquema.get("items", {})
+        return [
+            normalizar_por_esquema(items, valor, notas, f"{ruta}/{i}")
+            for i, valor in enumerate(datos)
+        ]
+
+    return datos
 
 
 def _acumular_uso(acumulado: dict[str, Any], uso: Any) -> None:
@@ -889,27 +1127,61 @@ def llamar_api(
             "avisos_esquema": list(avisos),
         }
 
+        # ⚠️ Un `finish_reason` de longitud significa que la generación se cortó
+        # por el tope de tokens: el JSON llega truncado y el error de parseo que
+        # sigue («Unterminated string») no explica la causa. Se detecta acá para
+        # poder decir **qué** pasó y cómo arreglarlo.
+        recortada = getattr(respuesta.choices[0], "finish_reason", None) == "length"
+
         try:
             datos = json.loads(texto)
         except json.JSONDecodeError as exc:
             # La doc de DeepSeek avisa que en JSON mode puede volver contenido
             # vacío de vez en cuando: se reintenta en vez de fallar al primero.
-            problema = f"la respuesta no era JSON válido ({exc})"
+            # ⚠️ Del error de `json` solo se toma la **posición**, no el mensaje:
+            # `json.JSONDecodeError` cita el fragmento de texto alrededor del
+            # fallo, que es la lectura del comprobante y no debe quedar en el
+            # registro ni en el log.
+            if recortada:
+                return Respuesta(
+                    None,
+                    **{**base, "avisos_esquema": list(avisos)},
+                    error=(
+                        "la respuesta se cortó por el tope de tokens de salida "
+                        "(finish_reason=length) y el JSON quedó incompleto. "
+                        f"El modelo generó {base['uso'].get('completion_tokens')} "
+                        "tokens. No lo reintentes con el mismo tope: subilo con "
+                        "--max-tokens o quitalo (por defecto el proveedor usa "
+                        "64K con thinking activado)."
+                    ),
+                )
+            problema = (
+                f"la respuesta no era JSON válido "
+                f"(carácter {exc.pos}: {exc.msg})"
+            )
             avisos.append(f"intento {intento}: {problema}")
             if intento == MAX_REINTENTOS_ESQUEMA:
                 return Respuesta(
                     None,
                     **{**base, "avisos_esquema": list(avisos)},
-                    error=(
-                        f"{problema} tras {intento} intento(s); "
-                        f"contenido: {texto[:200]}"
-                    ),
+                    error=f"{problema} tras {intento} intento(s); "
+                    f"la respuesta fue de {len(texto)} caracteres",
                 )
             _pedir_correccion(messages, texto, problema)
             continue
 
         errores = _errores_de_esquema(validador, esquema, datos)
         if errores:
+            # Antes de gastar una repregunta, se prueban las diferencias de
+            # **forma** (p. ej. «Buena» vs «buena»): si con eso el JSON ya cumple,
+            # no hace falta repreguntar y no se paga otro intento.
+            notas: list[str] = []
+            normalizado = normalizar_por_esquema(esquema, datos, notas)
+            if notas and not _errores_de_esquema(validador, esquema, normalizado):
+                avisos.extend(f"normalizado: {n}" for n in notas)
+                base["avisos_esquema"] = list(avisos)
+                return Respuesta(normalizado, **base)
+
             avisos.append(f"intento {intento}: {errores[0]}")
             if intento == MAX_REINTENTOS_ESQUEMA:
                 return Respuesta(
@@ -1498,7 +1770,6 @@ def procesar(
         "modelo": opciones.modelo,
         "modo": opciones.modo,
         "version_prompt": VERSION_PROMPT,
-        "prompt_hash": hash_prompt(sistema, user_template),
         "fuente": "api",
     }
 
@@ -1543,21 +1814,26 @@ def procesar(
         )
         return registro
 
-    usuario = construir_mensaje_usuario(
-        user_template, datos_doc, incluir_ejemplo=opciones.incluir_ejemplo
+    # Prompt efectivo del modo (misma función que usa el estimador, así el costo
+    # simulado corresponde al real).
+    sistema_efectivo, usuario = armar_prompt_efectivo(
+        opciones.modo,
+        sistema,
+        user_template,
+        datos_doc,
+        incluir_ejemplo=opciones.incluir_ejemplo,
     )
-    # Al extraer sin datos cargados, se agregan las reglas de transcripción:
-    # el template del .md está pensado para comparar, no para transcribir.
-    if opciones.modo == "extraer":
-        usuario = prompt_de_extraccion(usuario)
     esquema = (
         esquema_validacion() if opciones.modo == "validar" else esquema_extraccion()
     )
+    # El hash es del prompt **efectivo** (system adaptado + user armado): es lo
+    # que permite auditar después con qué prompt se generó cada salida.
+    registro["prompt_hash"] = hash_prompt(sistema_efectivo, usuario)
 
     respuesta = llamar_api(
         cliente,
         modelo=opciones.modelo,
-        sistema=sistema,
+        sistema=sistema_efectivo,
         usuario=usuario,
         data_url=data_url,
         esquema=esquema,
@@ -1578,6 +1854,9 @@ def procesar(
         registro["reintentos_esquema"] = respuesta.reintentos
         registro["avisos_esquema"] = respuesta.avisos_esquema
     if not respuesta.ok:
+        # El error viene con la lectura cruda del modelo recortada; se guarda
+        # entera en el registro para poder diagnosticar el fallo (el gasto ya
+        # está en `uso`).
         registro["error"] = respuesta.error
         return registro
 
@@ -1729,12 +2008,15 @@ def estimar_costo_corrida(
     salió el número (``historico``, ``formula`` o ``mixta``) para no presentar una
     estimación como si fuera una factura.
     """
-    # Prompt efectivo (el mismo que se enviaría para la primera imagen).
-    usuario = construir_mensaje_usuario(user_template, None, incluir_ejemplo=opciones.incluir_ejemplo)
-    if opciones.modo == "extraer":
-        usuario = prompt_de_extraccion(usuario)
+    # Prompt efectivo (el mismo que se enviaría para la primera imagen), con la
+    # MISMA función que usa `procesar`: si el estimador lo armara por su cuenta,
+    # el costo simulado dejaría de corresponder al real (p. ej. no contaba el
+    # cierre de system del modo extraer).
+    sistema_efectivo, usuario = armar_prompt_efectivo(
+        opciones.modo, sistema, user_template, None, incluir_ejemplo=opciones.incluir_ejemplo
+    )
     esquema = esquema_validacion() if opciones.modo == "validar" else esquema_extraccion()
-    chars = len(sistema) + len(usuario) + len(json.dumps(esquema))
+    chars = len(sistema_efectivo) + len(usuario) + len(json.dumps(esquema))
     tokens_texto_formula = round(chars / CHARS_POR_TOKEN_ESTIMADO)
 
     # Calibración con el histórico de la carpeta de salida, si alcanza.
@@ -2460,11 +2742,13 @@ def _es_gasto(registro: dict) -> bool:
     todo registro sin ``usage``: no se puede afirmar que gastó si el proveedor no
     lo reportó.
 
-    ⚠️ A diferencia de la versión OpenAI, un documento con ``error`` **sí puede
-    contar**: en DeepSeek un fallo *después* de reintentar por forma del JSON
-    igual consumió (y facturó) tokens de prompt. El apunte lo marca como
-    ``fallo: true`` para que el reporte lo declare, y no se esconde dentro del
-    total como si fuera una extracción válida.
+    ⚠️ Sí cuenta un documento con ``error``: en DeepSeek un fallo *después* de
+    reintentar por forma del JSON consumió (y facturó) tokens. Y se cuenta **una
+    sola vez por documento**, no una vez por intento: los tokens de todos los
+    intentos ya vienen sumados en ``uso`` (la conversación es una sola llamada
+    lógica con repreguntas), así que un apunte por intento multiplicaría el
+    gasto con el **mismo** ``prompt_tokens``. El apunte se marca ``fallo: true``
+    para que el reporte lo declare en vez de esconderlo dentro del total.
     """
     if registro.get("dry_run") or registro.get("fuente") == "diff_local":
         return False
@@ -2587,6 +2871,11 @@ def _clave_apunte(apunte: dict) -> tuple:
     )
 
 
+#: Entrada que registra el **apunte del fallo**. Un ``error`` se guarda en el
+#: registro para poder auditarlo, pero no representa ninguna extracción.
+APUNTE_DE_FALLO = {"error": "fallo de la llamada"}
+
+
 def leer_apuntes(salida: Path, opciones: Opciones) -> tuple[list[dict], int]:
     """Lee **todas** las salidas de una carpeta y las convierte en apuntes.
 
@@ -2611,10 +2900,18 @@ def leer_apuntes(salida: Path, opciones: Opciones) -> tuple[list[dict], int]:
         if not isinstance(registro, dict):
             descartados += 1
             continue
+        # Los reportes que guardan los apuntes ya calculados no se re-cuentan:
+        # ya están representados por los registros de documento que los generaron.
+        if isinstance(registro.get("apuntes"), list):
+            descartados += 1
+            continue
         apunte = apunte_de_registro(registro, opciones)
         if apunte is None:
             descartados += 1
             continue
+        # Un apunte de fallo nunca se guarda: puede tener el diccionario de error
+        # con la lectura cruda del modelo (que es justamente lo que se paga).
+        apunte.pop("error", None)
         apuntes.setdefault(_clave_apunte(apunte), apunte)
     return sorted(apuntes.values(), key=lambda a: a["fecha_hora"]), descartados
 
@@ -2931,7 +3228,15 @@ def construir_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
-        "--max-tokens", type=int, help="Tope de tokens de salida (opcional)."
+        "--max-tokens",
+        type=int,
+        default=MAX_TOKENS_POR_DEFECTO,
+        metavar="N",
+        help=(
+            "Tope de tokens de salida. Por defecto NO se manda: DeepSeek usa 8K "
+            "sin thinking y 64K con thinking (el default acá). ⚠️ Un tope "
+            "**menor** al que el modelo necesita **trunca el JSON** a la mitad."
+        ),
     )
     parser.add_argument(
         "--esfuerzo",
