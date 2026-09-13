@@ -154,6 +154,8 @@ correr sobre lo que dejó `reducir_tokens.py`.
 # 1) La clave va en el entorno o en un .env (el .gitignore ya lo excluye).
 export OPENAI_API_KEY=sk-...
 #    o:  echo 'OPENAI_API_KEY=sk-...' > .env
+#    Los dos pasos, con la plantilla documentada:  (ver ../.env.example)
+#      cp ../.env.example .env  &&  set -a && source .env && set +a
 
 # 2) Verificar el flujo sin gastar tokens
 python scripts/validar_comprobantes_openai.py ../procesados --modo extraer \
@@ -313,6 +315,21 @@ interrumpido.
 
 ### Cosas que conviene saber
 
+- **La aritmética se verifica en Python, no se le cree al modelo.** Al extraer,
+  el script suma los importes leídos (`subtotal + no_gravado + exento + iva +
+  impuestos`) y los compara con el total impreso. ⚠️ **El `cierra_aritmetica` que
+  devuelve el modelo no es confiable**: en comprobantes reales declaró `true` con
+  diferencias de $10,00 y $548,46. El veredicto del script queda en
+  `aritmetica` (con `suma`, `total`, `diferencia` y `faltantes`) y, si no cierra,
+  avisa en el log y en el resumen. Es la primera cosa a mirar cuando una
+  extracción parece dudosa: suele ser una línea de importe que el modelo no
+  transcribió.
+- **El modo `extraer` agrega reglas de transcripción.** El template del `.md`
+  está escrito para *comparar* contra datos cargados; al extraer sin datos, el
+  modelo **omitía en silencio** líneas que sí estaban impresas (no capturó
+  «SUBTOT. IMP. EXENTO: 10.118,12»). Por eso se le piden explícitamente todos los
+  rótulos de importe y que declare en `campos_no_legibles` lo que no puede leer —
+  nunca que lo deje afuera sin avisar.
 - **Reanudable.** Si el JSON de salida ya existe, se saltea; `--forzar` lo rehace.
   Un archivo de salida por documento, así un lote cortado se retoma sin repagar.
   `--dry-run` no escribe nada, justamente para que no envenene esa reanudación.

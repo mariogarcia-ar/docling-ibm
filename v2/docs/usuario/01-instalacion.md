@@ -110,6 +110,24 @@ export VOUCHERFLOW__COOLING__COOL_DOWN_S=120
 Las variables de entorno tienen **máxima prioridad** (salvo las banderas del
 comando).
 
+### Archivo `.env`
+
+Para no exportar las variables a mano en cada terminal, están `.env.example`
+(versionado, documenta **todas** las variables) y `.env` (tuyo, ignorado por
+git):
+
+```bash
+cp .env.example .env      # y descomentá/ajustá lo que necesites
+set -a && source .env && set +a
+```
+
+⚠️ **El `.env` no se carga solo.** El sistema lee variables del entorno del
+proceso, así que hay que cargarlo con `source` (o `direnv`, o
+`docker compose --env-file`) antes de correr los comandos.
+
+> `scripts/validar_comprobantes_openai.py` es la excepción: acepta `--env` y por
+> defecto lee `./.env`, así que para ese script alcanza con tenerlo en disco.
+
 ## 5. Verificar que quedó bien
 
 ```bash

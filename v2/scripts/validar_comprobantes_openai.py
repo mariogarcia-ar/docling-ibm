@@ -235,6 +235,38 @@ def construir_mensaje_usuario(
     return cabecera
 
 
+#: Instrucción extra del modo ``extraer``. El template del ``.md`` está escrito
+#: para *comparar* contra datos cargados; al extraer sin datos hay que pedir
+#: explícitamente la transcripción de TODOS los importes y declarar los que no
+#: se leen. Sin esto el modelo **omite en silencio** una línea que sí está
+#: impresa (se comprobó: no capturó «SUBTOT. IMP. EXENTO: 10.118,12» y el total
+#: no cerraba, sin marcarlo como no legible).
+INSTRUCCION_EXTRACCION = (
+    "\n\n---\n"
+    "En esta pasada NO hay datos cargados que comparar: transcribí lo que "
+    "muestra el comprobante.\n"
+    "\n"
+    "Reglas de transcripción:\n"
+    "- Recorré TODAS las líneas de importes del comprobante y cargá cada una en "
+    "su campo. Son fáciles de saltear: «SUBTOT. IMP. EXENTO», «SUBTOT. IMP. NETO "
+    "GRAVADO», «NO GRAVADO», «EXENTO», «PERCEPCIONES», «OTROS TRIBUTOS».\n"
+    "- No mezcles los rótulos: el NETO GRAVADO va en «subtotal», y el exento y el "
+    "no gravado tienen su propio campo. El «subtotal» NO es el total.\n"
+    "- Verificá la aritmética: subtotal + no_gravado + exento + impuestos debe dar "
+    "el total. Si no cierra, buscá el importe que falta y cargalo; si aun así no "
+    "cierra, poné «cierra_aritmetica» en false y explicá en «observaciones» que la "
+    "suma no da.\n"
+    "- Si un importe está impreso pero no lo podés leer, poné el campo en null y "
+    "listalo en «campos_no_legibles». NUNCA lo dejes afuera sin avisar.\n"
+    "- Transcribí sólo lo que ves. No calcules ni inventes importes."
+)
+
+
+def prompt_de_extraccion(usuario: str) -> str:
+    """Agrega al mensaje del usuario las reglas de transcripción del modo extraer."""
+    return usuario + INSTRUCCION_EXTRACCION
+
+
 def hash_prompt(*partes: str) -> str:
     """Hash corto del prompt efectivo, para auditar qué prompt produjo cada salida."""
     h = hashlib.sha256()
@@ -488,7 +520,15 @@ def esquema_extraccion() -> dict[str, Any]:
             "fecha_emision": _texto_o_null("Fecha impresa (DD/MM/AAAA u otro formato)."),
             "nro_factura": _texto_o_null("Punto de venta y número."),
             "moneda": _texto_o_null('Moneda ("ARS", "USD", …).'),
-            "subtotal": _numero_o_null("Neto sin impuestos, si está discriminado."),
+            "subtotal": _numero_o_null(
+                "Neto gravado, si está discriminado (sin IVA ni otros impuestos)."
+            ),
+            "no_gravado": _numero_o_null(
+                "Importe no gravado, si el comprobante lo muestra aparte."
+            ),
+            "exento": _numero_o_null(
+                "Importe exento (p. ej. «SUBTOT. IMP. EXENTO»), si figura."
+            ),
             "discrimina_impuestos": _booleano_o_null(
                 "Si el comprobante desglosa impuestos."
             ),
@@ -497,6 +537,9 @@ def esquema_extraccion() -> dict[str, Any]:
             "percepciones_iibb": _numero_o_null(),
             "otros_impuestos": _numero_o_null(),
             "importe_total": _numero_o_null("Total impreso en el comprobante."),
+            "cierra_aritmetica": _booleano_o_null(
+                "Si los importes transcriptos suman el total declarado."
+            ),
             "rubro_emisor": _texto_o_null(
                 "Rubro/actividad del emisor inferido de la imagen."
             ),
@@ -972,9 +1015,13 @@ def diff_deterministico(extraccion: dict, datos: dict) -> dict[str, Any]:
     )
 
     # 7. Subtotal (NETO si discrimina; si no discrimina, subtotal == total).
+    # Ojo: el neto gravado NO incluye el exento ni el no gravado, así que para
+    # comprobantes tipo B/C sin discriminación se contrasta contra el total.
     mismo_subtotal = _mismo_monto(extraccion.get("subtotal"), datos.get("subtotal"))
-    if extraccion.get("discrimina_impuestos") is False and mismo_subtotal is None:
-        mismo_subtotal = _mismo_monto(extraccion.get("importe_total"), datos.get("subtotal"))
+    if mismo_subtotal is None and extraccion.get("discrimina_impuestos") is False:
+        mismo_subtotal = _mismo_monto(
+            extraccion.get("importe_total"), datos.get("subtotal")
+        )
     marcar(
         "subtotal",
         _campo(
@@ -987,6 +1034,30 @@ def diff_deterministico(extraccion: dict, datos: dict) -> dict[str, Any]:
         ),
         True,
     )
+
+    # 7 bis. Exento / no gravado: el prompt los trata aparte del subtotal, así
+    # que una diferencia ahí NO es un error de subtotal (es un dato que el
+    # comprobante discrimina y la carga puede no reflejar como campo propio).
+    for nombre_pdf, clave_ext, clave_datos in (
+        ("importe_no_gravado", "no_gravado", "monto_no_gravado"),
+        ("importe_exento", "exento", None),
+    ):
+        leido = extraccion.get(clave_ext)
+        cargado = datos.get(clave_datos) if clave_datos else None
+        if leido is None and cargado in (None, 0):
+            coincide: Any = "no_verificable"
+        elif clave_datos is None:
+            coincide = "no_verificable"
+        else:
+            coincide = _mismo_monto(leido, cargado)
+        campos[nombre_pdf] = _campo(
+            leido,
+            cargado,
+            coincide,
+            None
+            if coincide in (True, "no_verificable")
+            else "El importe no coincide con el cargado.",
+        )
 
     # 8. Impuestos.
     campos["impuestos"] = _comparar_impuestos(extraccion, datos)
@@ -1303,6 +1374,10 @@ def procesar(
     usuario = construir_mensaje_usuario(
         user_template, datos_doc, incluir_ejemplo=opciones.incluir_ejemplo
     )
+    # Al extraer sin datos cargados, se agregan las reglas de transcripción:
+    # el template del .md está pensado para comparar, no para transcribir.
+    if opciones.modo == "extraer":
+        usuario = prompt_de_extraccion(usuario)
     esquema = (
         esquema_validacion() if opciones.modo == "validar" else esquema_extraccion()
     )
@@ -1348,6 +1423,26 @@ def procesar(
     registro["resultado"] = respuesta.datos
     if opciones.modo == "extraer":
         registro["extraccion"] = respuesta.datos
+        # La aritmética se recalcula en Python: el `cierra_aritmetica` que
+        # devuelve el modelo no es confiable (dijo `true` con diferencias de
+        # 10,00 y 569,00 en comprobantes reales).
+        aritmetica = verificar_aritmetica(respuesta.datos)
+        registro["aritmetica"] = aritmetica
+        if aritmetica["calculable"]:
+            respuesta.datos["cierra_aritmetica"] = aritmetica["cierra"]
+            if not aritmetica["cierra"]:
+                aviso = (
+                    f"Los importes leídos suman {aritmetica['suma']:,.2f} y el "
+                    f"total impreso es {aritmetica['total']:,.2f} "
+                    f"(diferencia {aritmetica['diferencia']:,.2f})."
+                )
+                if aritmetica["faltantes"]:
+                    aviso += (
+                        " Puede faltar alguno de: "
+                        + ", ".join(aritmetica["faltantes"])
+                        + "."
+                    )
+                registro["aritmetica"]["aviso"] = aviso
     return registro
 
 
@@ -1450,11 +1545,31 @@ def resumen(registros: Sequence[dict], opciones: Opciones) -> dict[str, Any]:
     entrada, salida = precio_de(opciones.modelo, opciones.precios)
     costo = costo_de_tokens(prompt_tokens, completion_tokens, entrada, salida)
 
+    # Señal de calidad de la lectura: comprobantes cuyos importes NO suman el
+    # total. Se calcula en Python (no se le cree al modelo), así que es la
+    # primera cosa a mirar cuando una extracción parece dudosa.
+    aritmetica_ok = aritmetica_mal = aritmetica_nd = 0
+    for r in registros:
+        if r.get("error"):
+            continue
+        a = r.get("aritmetica")
+        if not a or not a.get("calculable"):
+            aritmetica_nd += 1
+        elif a["cierra"]:
+            aritmetica_ok += 1
+        else:
+            aritmetica_mal += 1
+
     return {
         "archivos": len(registros),
         "ok": len(registros) - len(errores),
         "errores": len(errores),
         "estados_globales": estados,
+        "aritmetica": {
+            "cierra": aritmetica_ok,
+            "no_cierra": aritmetica_mal,
+            "no_calculable": aritmetica_nd,
+        },
         "tokens": {
             "prompt": prompt_tokens,
             "completion": completion_tokens,
@@ -1482,6 +1597,15 @@ def _imprimir_resumen(rep: dict) -> None:
     if rep["estados_globales"]:
         for estado, n in sorted(rep["estados_globales"].items()):
             print(f"    {estado:<13} : {n}")
+    arit = rep.get("aritmetica") or {}
+    if arit.get("no_cierra"):
+        print(
+            f"  ⚠ aritmética     : {arit['no_cierra']} comprobante(s) cuyos importes "
+            "no suman el total (revisar la lectura)",
+            file=sys.stderr,
+        )
+    elif arit.get("cierra"):
+        print(f"  aritmética       : {arit['cierra']} cierran el total")
     t = rep["tokens"]
     if t["prompt"] or t["completion"]:
         print(f"tokens API        : prompt {t['prompt']:,} | completion {t['completion']:,}")
@@ -1496,6 +1620,66 @@ def _imprimir_resumen(rep: dict) -> None:
         print(f"  ✗ {error['origen']}: {error['error']}", file=sys.stderr)
     if rep["errores"] > len(rep["detalle_errores"]):
         print(f"  … y {rep['errores'] - len(rep['detalle_errores'])} errores más", file=sys.stderr)
+
+
+#: Campos de importe que deben sumar el total (en el orden en que se suman).
+COMPONENTES_DEL_TOTAL = (
+    "subtotal",
+    "no_gravado",
+    "exento",
+    "iva",
+    "impuestos_internos",
+    "percepciones_iibb",
+    "otros_impuestos",
+)
+
+
+def verificar_aritmetica(extraccion: dict) -> dict[str, Any]:
+    """Comprueba **en Python** si los importes leídos suman el total.
+
+    No se le cree al modelo: su ``cierra_aritmetica`` sale ``true`` incluso
+    cuando la suma no da (se comprobó con un comprobante real: declaró ``true``
+    con 10,00 de diferencia). Es la misma regla que el prompt aplica al diff de
+    campos — lo que se puede calcular, se calcula en código y se audita.
+
+    Una diferencia acá es una **señal valiosa**: o falta un importe (p. ej. una
+    línea que el modelo no transcribió) o el modelo leyó mal un dígito.
+
+    Devuelve ``{"calculable", "suma", "total", "diferencia", "cierra", "faltantes"}``;
+    ``calculable`` es ``False`` si no hay ningún importe o no hay total.
+    """
+    componentes = {k: a_numero(extraccion.get(k)) for k in COMPONENTES_DEL_TOTAL}
+    presentes = {k: v for k, v in componentes.items() if v is not None}
+    total = a_numero(extraccion.get("importe_total"))
+    if not presentes or total is None:
+        return {
+            "calculable": False,
+            "suma": sum(presentes.values()) if presentes else None,
+            "total": total,
+            "diferencia": None,
+            "cierra": None,
+            "faltantes": [],
+        }
+
+    suma = sum(presentes.values())
+    diferencia = round(total - suma, 2)
+    cierra = abs(diferencia) < 0.05
+    # Cuando no cierra, el candidato más probable es un campo de importe que
+    # quedó en null: el modelo no lo transcribió. Se listan todos los ausentes
+    # (sin adivinar cuál), para que quien revise mire ahí primero.
+    faltantes = (
+        [k for k in COMPONENTES_DEL_TOTAL if componentes.get(k) is None]
+        if not cierra
+        else []
+    )
+    return {
+        "calculable": True,
+        "suma": round(suma, 2),
+        "total": total,
+        "diferencia": diferencia,
+        "cierra": cierra,
+        "faltantes": faltantes,
+    }
 
 
 # --------------------------------------------------------------------------- #
@@ -2461,6 +2645,9 @@ def _imprimir_detalle(registro: dict) -> None:
         + (f"  datos={registro.get('datos_clave')}" if registro.get("datos_clave") else ""),
         file=sys.stderr,
     )
+    # La aritmética que no cierra es una señal: se avisa acá mismo.
+    if aviso := (registro.get("aritmetica") or {}).get("aviso"):
+        print(f"      ⚠ aritmética: {aviso}", file=sys.stderr)
 
 
 if __name__ == "__main__":
