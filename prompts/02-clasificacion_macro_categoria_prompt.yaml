@@ -1,0 +1,63 @@
+system: |
+  Clasificá el gasto en hasta tres macro categorías. Ordenalas por
+  probabilidad y devolvé SOLO JSON válido, sin markdown ni texto extra.
+  No repitas códigos ni inventes opciones.
+
+  Usá estos datos:
+  - centro_costo: código ya asignado.
+  - proveedor: comercio emisor.
+  - descripcion: rubro o detalle dominante del gasto.
+  - monto: importe total.
+
+  Aplicá esta tabla:
+  | Código | Macro | Señales principales |
+  |--------|-------|---------------------|
+  | MC01 | RRHH | Uniformes, cursos y asistencia médica del personal. |
+  | MC02 | Movilidad y Representación | Viáticos, viajes, combustible, peajes, regalos y agasajos comerciales. |
+  | MC03 | Marketing y Comercial | Publicidad, promoción, cartelería y merchandising. |
+  | MC04 | Infraestructura y Edificios | Edificios, alquileres, servicios edilicios, limpieza y seguridad edilicia. |
+  | MC05 | Tecnología y Comunicaciones | Software, telefonía, internet, computación y licencias. |
+  | MC06 | Administración y Oficina | Papelería, artículos de escritorio e insumos administrativos genéricos. |
+  | MC07 | Operaciones y Logística | Materiales, insumos, herramientas operativas, fletes y envíos. |
+  | MC08 | Activos y Mantenimiento | Vehículos propios, maquinaria y vehículos en stock. |
+  | MC09 | Servicios Profesionales | Honorarios, asesoramiento y gastos legales. |
+  | MC10 | Impuestos y Tasas | Impuestos, tasas y débitos/créditos bancarios. |
+  | MC11 | Servicios Generales | Servicios sin otra categoría específica. Fallback de servicios. |
+  | MC12 | Seguros | Pólizas y coberturas. |
+  | MC13 | Gastos Financieros | Gastos bancarios, intereses, tarjetas y diferencias de cambio. |
+  | MC14 | Pérdidas y Ajustes | Incobrables, faltantes y gastos no-servicio sin encaje. |
+  | MC15 | Agricultura | Semillas y agroquímicos; usala sólo con centro_costo CC0007. |
+
+  Devolvé este formato. Poné primero la opción principal y devolvé menos
+  opciones si no existen alternativas razonables:
+  {
+    "macro_categorias": [
+      {
+        "macro_categoria": "MCNN",
+        "nombre": "nombre exacto de la tabla",
+        "confianza": "alta | media | baja",
+        "criterio_inferido": true,
+        "justificacion": "una oración breve basada en proveedor o descripcion"
+      }
+    ]
+  }
+
+  Aplicá estas reglas:
+  - Buscá primero señales explícitas en descripcion y luego en proveedor.
+  - Priorizá la macro cuya señal coincida mejor con el gasto.
+  - Usá monto sólo para desempatar; no lo uses como señal única.
+  - Usá MC15 sólo si centro_costo es exactamente CC0007.
+  - Si parece agro pero el centro no es CC0007, elegí otra macro y explicá la inconsistencia.
+  - Usá MC11 si el gasto es un servicio sin categoría específica.
+  - Usá MC14 si no es un servicio y no encaja en otra macro.
+  - Usá MC06 sólo para oficina y administración genérica; no la uses como comodín.
+  - Bajá la confianza ante señales débiles o contradictorias.
+  - Usá sólo los cinco campos definidos para cada opción.
+
+user: |
+  Clasificá el siguiente gasto.
+
+  centro_costo: {{centro_costo}}
+  proveedor: {{proveedor}}
+  descripcion: {{descripcion}}
+  monto: {{monto}}
