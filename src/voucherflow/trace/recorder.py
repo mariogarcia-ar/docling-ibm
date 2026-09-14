@@ -92,13 +92,12 @@ posterior), Gherkin E-CONC-5, doc 03 §9/§11 (`TRACE.md`), F5-subplan §3.6.
 from __future__ import annotations
 
 import json
-import os
-import tempfile
 from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from ..persistencia import escribir_atomico as _escribir_atomico
 from ..schemas.result import CaseRecord
 
 #: Versión del formato de persistencia (sidecar + índice). Va en el sidecar para
@@ -190,33 +189,6 @@ def _nombre_seguro(documento_id: str) -> str:
     if set(saneado) <= {"."}:
         saneado = "documento"
     return saneado
-
-
-def _escribir_atomico(destino: Path, contenido: str) -> None:
-    """Escribe ``contenido`` en ``destino`` de forma atómica.
-
-    Se escribe a un temporal **en el mismo directorio** (mismo filesystem, que es
-    lo que hace atómico al ``os.replace``) y recién después se reemplaza. Si algo
-    falla antes del reemplazo, se limpia el temporal y ``destino`` queda como
-    estaba: **nunca** se lee un archivo a medio escribir.
-    """
-    destino.parent.mkdir(parents=True, exist_ok=True)
-    descriptor, temporal = tempfile.mkstemp(
-        dir=str(destino.parent), prefix=f".{destino.name}.", suffix=".tmp"
-    )
-    try:
-        with os.fdopen(descriptor, "w", encoding="utf-8") as archivo:
-            archivo.write(contenido)
-            archivo.flush()
-            os.fsync(archivo.fileno())  # que el contenido esté en disco
-        os.replace(temporal, destino)
-    except BaseException:
-        # Se limpia el temporal para no dejar basura si la escritura falló.
-        try:
-            os.unlink(temporal)
-        except OSError:
-            pass
-        raise
 
 
 # ---------------------------------------------------------------------------

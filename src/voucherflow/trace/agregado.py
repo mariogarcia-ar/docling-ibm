@@ -75,13 +75,13 @@ from __future__ import annotations
 
 import json
 import os
-import tempfile
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from ..persistencia import escribir_atomico as _escribir_atomico
 from ..schemas.result import SCHEMA_VERSION, CaseRecord
 from .metricas import VERSION_METRICAS, metricas_de
 from .recorder import VERSION_TRAZA, CaseRecorder, sidecar_para
@@ -421,31 +421,6 @@ def agregado_del_recorder(
 # ---------------------------------------------------------------------------
 # Persistencia
 # ---------------------------------------------------------------------------
-
-
-def _escribir_atomico(destino: Path, contenido: str) -> None:
-    """Escribe de forma atómica (mismo patrón que el sidecar y el checkpoint).
-
-    Temporal en el mismo directorio + ``os.replace``: si el proceso muere a mitad,
-    el agregado anterior queda intacto. Importa más que en otros archivos: el
-    agregado es lo que se mira para saber si el lote terminó.
-    """
-    destino.parent.mkdir(parents=True, exist_ok=True)
-    descriptor, temporal = tempfile.mkstemp(
-        dir=str(destino.parent), prefix=f".{destino.name}.", suffix=".tmp"
-    )
-    try:
-        with os.fdopen(descriptor, "w", encoding="utf-8") as archivo:
-            archivo.write(contenido)
-            archivo.flush()
-            os.fsync(archivo.fileno())
-        os.replace(temporal, destino)
-    except BaseException:
-        try:
-            os.unlink(temporal)
-        except OSError:
-            pass
-        raise
 
 
 def escribir_agregado(ruta: str | Path, agregado: Agregado) -> Path:

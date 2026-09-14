@@ -42,6 +42,7 @@ from ..corpus.recorrido import (
 from ..corpus.recorrido import (
     salida_de,
 )
+from ..persistencia import escribir_json_atomico
 from . import costos
 from .config import (
     CHARS_POR_TOKEN_ESTIMADO,
@@ -780,21 +781,6 @@ PRECIOS_REFERENCIA: dict[str, tuple[float, float, float]] = {
 Precios = tuple[float | None, float | None, float | None]
 
 
-def _clave_modelo(modelo: str, tabla: dict[str, Any]) -> str | None:
-    """Busca el modelo en la tabla, tolerando el sufijo de fecha o versión.
-
-    ``deepseek-flash-2026-08`` matchea la entrada ``deepseek-flash``; el match
-    exacto gana sobre el prefijo.
-    """
-    if modelo in tabla:
-        return modelo
-    for clave in sorted(tabla, key=len, reverse=True):
-        if clave != "*" and modelo.startswith(clave):
-            return clave
-    return "*" if "*" in tabla else None
-
-
-
 def _fmt_precio(valor: float | None) -> str:
     """Precio para los avisos: el número o ``—`` si no está definido."""
     return f"{valor:g}" if valor is not None else "—"
@@ -1363,10 +1349,4 @@ def _guardar(destino: Path, contenido: dict[str, Any]) -> None:
     Un archivo a medio escribir es peor que no tenerlo: la reanudación lo leería
     como "hecho" y el dato quedaría corrupto sin que nadie lo note.
     """
-    destino.parent.mkdir(parents=True, exist_ok=True)
-    temporal = destino.with_suffix(destino.suffix + ".tmp")
-    temporal.write_text(
-        json.dumps(contenido, ensure_ascii=False, indent=2, default=str),
-        encoding="utf-8",
-    )
-    os.replace(temporal, destino)
+    escribir_json_atomico(destino, contenido)

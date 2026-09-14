@@ -77,7 +77,6 @@ from __future__ import annotations
 
 import json
 import os
-import tempfile
 import time
 from collections.abc import Sequence
 from dataclasses import dataclass, field
@@ -90,6 +89,7 @@ from .orchestrator import (
     identificador_de_archivo,
     iterar_documentos,
 )
+from .persistencia import escribir_atomico as _escribir_atomico
 from .schemas.result import CaseRecord, VoucherResult
 from .settings.config import CoolingSettings, Settings, cargar_settings
 
@@ -156,32 +156,6 @@ def ruta_checkpoint(documento: str | Path) -> Path:
     """
     ruta = Path(documento)
     return ruta.with_name(f"{ruta.stem}{SUFIJO_CHECKPOINT}")
-
-
-def _escribir_atomico(destino: Path, contenido: str) -> None:
-    """Escribe ``contenido`` en ``destino`` de forma atómica (patrón F5/T-506).
-
-    Temporal en el mismo directorio + ``os.replace``: si la corrida muere a mitad,
-    el checkpoint anterior queda intacto y nunca se lee un JSON truncado — que en
-    un mecanismo de reanudación sería peor que no tener checkpoint, porque
-    haría saltear un documento con la marca de "completado".
-    """
-    destino.parent.mkdir(parents=True, exist_ok=True)
-    descriptor, temporal = tempfile.mkstemp(
-        dir=str(destino.parent), prefix=f".{destino.name}.", suffix=".tmp"
-    )
-    try:
-        with os.fdopen(descriptor, "w", encoding="utf-8") as archivo:
-            archivo.write(contenido)
-            archivo.flush()
-            os.fsync(archivo.fileno())
-        os.replace(temporal, destino)
-    except BaseException:
-        try:
-            os.unlink(temporal)
-        except OSError:
-            pass
-        raise
 
 
 @dataclass(frozen=True)
