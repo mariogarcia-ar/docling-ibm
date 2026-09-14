@@ -59,6 +59,22 @@ PROMPT_POR_DEFECTO = (
     Path(__file__).resolve().parent / "prompts" / "validacion-mendel.yaml"
 )
 
+#: ``.env`` que se carga **solo**, sin pedir ``--env``.
+#:
+#: ⚠️ Esto **no es una comodidad: es la corrección de una regresión del port**.
+#: Los dos scripts originales (``validar-deepseek.py`` / ``validar-openai.py``,
+#: recuperables con ``git show 31aa6dd^:<ruta>``) declaraban
+#: ``--env`` con ``default=Path(".env")``: el archivo se cargaba **siempre**.
+#: Al unificar en ``voucherflow-lab`` la bandera quedó sin default, así que un
+#: ``.env`` en disco dejó de tener efecto y el operador recibía «falta la
+#: credencial» con la clave ahí al lado. La documentación de entonces lo
+#: *explicaba* en vez de *arreglarlo* (ver el aviso de `.env.example`), que es
+#: justo lo que lo dejó pasar.
+#:
+#: Solo se aplica si el archivo **existe**: sin él, la credencial puede venir
+#: igual del entorno, y no tener un `.env` no es un error.
+ENV_POR_DEFECTO = Path(".env")
+
 
 def construir_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
@@ -109,7 +125,9 @@ def construir_parser() -> argparse.ArgumentParser:
                         help="procesar solo las primeras N (0 = todas)")
     parser.add_argument("--forzar", action="store_true",
                         help="reprocesar lo ya hecho (por defecto reanuda)")
-    parser.add_argument("--env", type=Path, help="archivo .env con la credencial")
+    parser.add_argument("--env", type=Path, default=None,
+                        help=f"archivo .env con la credencial "
+                             f"(default: {ENV_POR_DEFECTO}, si existe)")
     parser.add_argument("--api-key", help="credencial explícita (no se imprime)")
     parser.add_argument("--dry-run", action="store_true",
                         help="estimar el costo sin llamar a la API")
@@ -347,16 +365,26 @@ def main(argv: list[str] | None = None) -> int:
     # El `.env` se carga **antes** de resolver la credencial, y sin pisar lo que
     # ya esté exportado: una variable del entorno gana sobre el archivo (así se
     # puede probar otra clave sin editar el `.env`).
-    if args.env:
-        if not args.env.is_file():
-            print(f"error: no existe el .env {args.env}", file=sys.stderr)
+    #
+    # ⚠️ `./.env` se carga **solo** si existe, sin pedir `--env` (es lo que
+    # hacían los scripts originales; ver `ENV_POR_DEFECTO`). Un `--env` explícito
+    # que no existe sí es un error: ahí el operador afirmó que estaba.
+    ruta_env = args.env
+    if ruta_env is None and ENV_POR_DEFECTO.is_file():
+        ruta_env = ENV_POR_DEFECTO
+    if ruta_env is not None:
+        if not ruta_env.is_file():
+            print(f"error: no existe el .env {ruta_env}", file=sys.stderr)
             return 2
-        entorno.cargar_env(args.env)
+        entorno.cargar_env(ruta_env)
 
     print(f"proveedor : {args.proveedor}")
     print(f"operación : {args.operacion}")
     print(f"prompt    : {args.prompt} ({VERSION_PROMPT})")
     print(f"salida    : {salida}")
+    # Se declara qué `.env` se leyó (o que no hubo ninguno): un archivo en disco
+    # que no se carga es la causa de «falta la credencial» con la clave al lado.
+    print(f"credencial: {ruta_env if ruta_env else 'del entorno (no hay .env)'}")
     if args.dry_run:
         print("modo      : --dry-run (simulación: no llama a la API ni escribe)")
     print()

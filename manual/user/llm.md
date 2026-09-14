@@ -241,11 +241,27 @@ Se resuelve en este orden:
 
 1. `--api-key` (explícita; **nunca** se imprime ni se guarda en la salida).
 2. La variable de entorno **del proveedor elegido**.
-3. Un `.env` cargado con `--env` (que **no pisa** lo que ya esté en el entorno,
-   así podés probar otra clave sin editar el archivo).
+3. El `.env`: el `./.env` del directorio de trabajo **se carga solo si existe**,
+   y `--env ARCHIVO` apunta a otro (ninguno de los dos pisa lo que ya esté en el
+   entorno, así podés probar otra clave sin editar el archivo).
 
 ```bash
-voucherflow-lab var/processed --env .env -p deepseek
+# Con un .env en el directorio de trabajo alcanza con esto:
+voucherflow-lab var/processed -p deepseek
+
+# Otro archivo, o un .env que no está en el cwd:
+voucherflow-lab var/processed --env .env.produccion -p deepseek
+```
+
+El arranque **declara qué `.env` leyó**, para que un archivo en el lugar
+equivocado no se confunda con una clave inválida:
+
+```
+proveedor : deepseek
+operación : extraer
+prompt    : …/validacion-mendel.yaml (mendel-validacion@1)
+salida    : var/validations
+credencial: .env
 ```
 
 Si falta, el comando sale con código `2` y un mensaje que nombra la variable que
@@ -254,6 +270,10 @@ esperaba:
 ```
 error: falta la credencial: definí DEEPSEEK_API_KEY en el entorno o pasala con --api-key
 ```
+
+⚠️ Un `--env ARCHIVO` que **no existe** sí es un error (ahí afirmaste que
+estaba); el `./.env` por defecto es opcional, porque la credencial puede venir
+del entorno.
 
 ⚠️ `voucherflow-lab` es la **única** herramienta que carga el `.env` por sí
 misma. El resto del CLI lee el entorno del proceso:
@@ -329,7 +349,7 @@ identificaría como iguales dos corridas que mandaron prompts distintos.
 | `--max-tokens N` | Techo de tokens de salida (default: el del proveedor). |
 | `--prompt-fiel` | Incluye siempre el ejemplo de salida del prompt, aunque el proveedor imponga el esquema (cuesta tokens: solo para comparar). |
 | `--api-key CLAVE` | Credencial explícita (no se imprime). |
-| `--env ARCHIVO` | `.env` con la credencial (sin pisar el entorno). |
+| `--env ARCHIVO` | `.env` con la credencial (sin pisar el entorno). Default: `./.env`, si existe. |
 
 ### Precios
 

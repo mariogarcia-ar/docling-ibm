@@ -17,6 +17,7 @@ literal.
 from __future__ import annotations
 
 import os
+from pathlib import Path
 
 import pytest
 
@@ -183,3 +184,114 @@ class TestCargarEnv:
         capturado = capsys.readouterr()
         assert "AIza-secreta" not in capturado.out
         assert "AIza-secreta" not in capturado.err
+
+
+class TestElCliCargaElEnvSolo:
+    """⚠️ Regresión del port: el ``./.env`` se carga **sin** pedir ``--env``.
+
+    Los dos scripts originales (``validar-deepseek.py`` / ``validar-openai.py``,
+    recuperables con ``git show 31aa6dd^:<ruta>``) declaraban
+    ``--env`` con ``default=Path(".env")``. Al unificar en ``voucherflow-lab``
+    la bandera quedó sin default, así que un ``.env`` en disco dejó de tener
+    efecto: el operador recibía «falta la credencial» con la clave ahí al lado
+    (y la doc lo explicaba en vez de arreglarlo, que es lo que lo dejó pasar).
+
+    Se ejercita el CLI real con ``ejecutar`` doble, no ``cargar_env`` sola: el
+    bug estaba en el **cableado**, no en el parser de ``.env``.
+    """
+
+    @pytest.fixture(autouse=True)
+    def _ejecutar_doble(self, monkeypatch):
+        """Captura lo que el CLI le pasa a ``corrida.ejecutar`` sin tocar la red."""
+        from voucherflow.llm import cli, corrida
+
+        self.recibido: dict = {}
+
+        def falso_ejecutar(**kw):
+            self.recibido = kw
+            return 0
+
+        monkeypatch.setattr(corrida, "ejecutar", falso_ejecutar)
+        monkeypatch.setattr(cli.corrida, "ejecutar", falso_ejecutar)
+        # La carpeta de salida sale de la configuración: no es lo que se prueba.
+        monkeypatch.setattr(
+            "voucherflow.settings.config.cargar_settings",
+            lambda: type("A", (), {"paths": type("P", (), {
+                "resolver": staticmethod(lambda k: Path("var/validations"))
+            })()})(),
+        )
+
+    def _correr(self, argv, cwd, monkeypatch):
+        """Corre el CLI desde ``cwd`` (el ``./.env`` depende del directorio)."""
+        from voucherflow.llm import cli
+
+        monkeypatch.chdir(cwd)
+        return cli.main(argv)
+
+    def test_un_env_en_el_cwd_se_carga_sin_la_bandera(self, tmp_path, monkeypatch):
+        """El caso del bug: el comando pelado tiene que resolver la credencial."""
+        (tmp_path / ".env").write_text(
+            "DEEPSEEK_API_KEY=sk-del-archivo\n", encoding="utf-8"
+        )
+        codigo = self._correr(["x.jpg", "-p", "deepseek"], tmp_path, monkeypatch)
+        assert codigo == 0
+        assert self.recibido["api_key"] == "sk-del-archivo"
+
+    def test_sin_env_no_es_un_error(self, tmp_path, monkeypatch):
+        """No tener ``.env`` no rompe: la credencial puede venir del entorno."""
+        codigo = self._correr(["x.jpg", "-p", "deepseek"], tmp_path, monkeypatch)
+        assert codigo == 0
+        assert self.recibido["api_key"] is None
+
+    def test_el_entorno_no_se_pisa(self, tmp_path, monkeypatch):
+        """Lo exportado gana: es lo que permite probar otra clave sin editar el archivo."""
+        monkeypatch.setenv("DEEPSEEK_API_KEY", "sk-de-la-terminal")
+        (tmp_path / ".env").write_text(
+            "DEEPSEEK_API_KEY=sk-del-archivo\n", encoding="utf-8"
+        )
+        self._correr(["x.jpg", "-p", "deepseek"], tmp_path, monkeypatch)
+        assert self.recibido["api_key"] == "sk-de-la-terminal"
+
+    def test_env_explicito_apunta_a_otro_archivo(self, tmp_path, monkeypatch):
+        """``--env`` sigue sirviendo para un ``.env`` fuera del cwd."""
+        otro = tmp_path / "otro.env"
+        otro.write_text("DEEPSEEK_API_KEY=sk-de-otro\n", encoding="utf-8")
+        casa = tmp_path / "casa"
+        casa.mkdir()
+        (casa / ".env").write_text("DEEPSEEK_API_KEY=sk-del-cwd\n", encoding="utf-8")
+        self._correr(
+            ["x.jpg", "-p", "deepseek", "--env", str(otro)], casa, monkeypatch
+        )
+        assert self.recibido["api_key"] == "sk-de-otro"
+
+    def test_un_env_explicito_que_no_existe_si_es_un_error(self, tmp_path, monkeypatch):
+        """⚠️ Ahí el operador **afirmó** que estaba: el default sí es opcional."""
+        codigo = self._correr(
+            ["x.jpg", "-p", "deepseek", "--env", "no-existe.env"],
+            tmp_path,
+            monkeypatch,
+        )
+        assert codigo == 2
+        assert not self.recibido
+
+    def test_declara_que_env_cargo(self, tmp_path, monkeypatch, capsys):
+        """Un `.env` en el lugar equivocado no debe leerse como clave inválida."""
+        (tmp_path / ".env").write_text(
+            "DEEPSEEK_API_KEY=sk-del-archivo\n", encoding="utf-8"
+        )
+        self._correr(["x.jpg", "-p", "deepseek"], tmp_path, monkeypatch)
+        assert "credencial: .env" in capsys.readouterr().out
+
+    def test_declara_cuando_no_hay_env(self, tmp_path, monkeypatch, capsys):
+        self._correr(["x.jpg", "-p", "deepseek"], tmp_path, monkeypatch)
+        assert "no hay .env" in capsys.readouterr().out
+
+    def test_la_clave_no_aparece_en_la_declaracion(self, tmp_path, monkeypatch, capsys):
+        """La línea nueva nombra el archivo, nunca el valor."""
+        (tmp_path / ".env").write_text(
+            "DEEPSEEK_API_KEY=sk-secreta\n", encoding="utf-8"
+        )
+        self._correr(["x.jpg", "-p", "deepseek"], tmp_path, monkeypatch)
+        capturado = capsys.readouterr()
+        assert "sk-secreta" not in capturado.out
+        assert "sk-secreta" not in capturado.err

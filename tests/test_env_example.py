@@ -211,8 +211,22 @@ def test_advierte_que_el_env_no_se_carga_solo() -> None:
     """⚠️ El aviso que evita la confusión más común.
 
     Un `.env` en disco no tiene efecto por sí solo: el sistema lee el entorno
-    del proceso. La única excepción (`voucherflow-lab --env`) también se declara.
+    del proceso. La única excepción (`voucherflow-lab`) también se declara.
     """
     texto = _texto()
     assert "NO se carga solo" in texto
     assert "--env" in texto
+
+
+def test_declara_que_el_lab_carga_el_env_por_su_cuenta() -> None:
+    """⚠️ La excepción es real y hay que decirla **como es**.
+
+    La plantilla decía «acepta `--env .env` y lo carga él mismo», que era
+    cierto pero incompleto: el laboratorio carga el `./.env` **solo**, sin la
+    bandera (los scripts originales lo hacían con ``default=Path(".env")`` y el
+    port perdió ese default). El aviso tiene que nombrado así, o el operador
+    sigue creyendo que sin `--env` su `.env` no cuenta.
+    """
+    texto = _texto()
+    assert "voucherflow-lab" in texto
+    assert "él mismo" in texto
