@@ -330,6 +330,9 @@ def _log(entorno: EntornoCLI) -> str:
 class TestContratoCLI:
     def test_subcomandos_del_dod_existen(self):
         # E-CLI-1 / F6.md T-601: los diez subcomandos + extract-detect y arca.
+        # ``corpus`` se sumó después (viene de scripts/operacion/reducir-tokens.py,
+        # que se refactorizó a src/voucherflow/corpus/): es una decisión explícita,
+        # no un comando accidental. Si alguien agrega un 13.º, este test falla.
         esperados = {
             "process",
             "validate",
@@ -342,6 +345,7 @@ class TestContratoCLI:
             "arca",
             "case",
             "hitl",
+            "corpus",
         }
         assert set(COMANDOS) == esperados
         # El despacho cubre exactamente los comandos del contrato (sin huérfanos).

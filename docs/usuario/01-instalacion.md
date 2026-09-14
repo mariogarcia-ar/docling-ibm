@@ -122,10 +122,10 @@ set -a && source .env && set +a
 proceso, así que hay que cargarlo con `source` (o `direnv`, o
 `docker compose --env-file`) antes de correr los comandos.
 
-> El laboratorio de LLM externos (`voucherflow-lab`) es la excepción: acepta `--env` y
-> por defecto leen `./.env`, así que para esos scripts alcanza con tenerlo en
-> disco (la clave de cada uno sale de `OPENAI_API_KEY` y `DEEPSEEK_API_KEY`,
-> respectivamente).
+> El laboratorio de LLM externos (`voucherflow-lab`) es la excepción: acepta
+> `--env` y carga el archivo él mismo, así que ahí alcanza con tenerlo en disco.
+> La credencial sale de la variable del **proveedor elegido** con `--proveedor`:
+> `OPENAI_API_KEY`, `DEEPSEEK_API_KEY` o `GEMINI_API_KEY`.
 
 ## 5. Verificar que quedó bien
 

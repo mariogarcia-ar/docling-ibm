@@ -667,16 +667,20 @@ def test_el_parser_usa_los_defaults_seguros() -> None:
 
 
 def test_el_servidor_es_un_binario_aparte_del_cli() -> None:
-    """El servidor **no** es el duodécimo subcomando del CLI.
+    """El servidor **no** es un subcomando del CLI.
 
-    El contrato de once subcomandos (E-CLI-1) está verificado por T-604/T-605; el
+    El contrato de subcomandos (E-CLI-1) está verificado por T-604/T-605; el
     diagrama C4 muestra CLI y API HTTP como contenedores separados. Este test fija
     esa decisión: si alguien agrega ``serve`` al CLI, tiene que actualizar a
     propósito la paridad y la documentación (y este test falla).
+
+    ⚠️ La cuenta subió de 11 a **12** al sumar ``corpus`` (que sí es una capacidad
+    del pipeline, no un contenedor aparte). Lo que este test protege es lo de
+    siempre: que ``serve``/``http`` **no** estén en el CLI.
     """
     from voucherflow.cli.main import COMANDOS
 
-    assert len(COMANDOS) == 11
+    assert len(COMANDOS) == 12
     assert "serve" not in COMANDOS
     assert "http" not in COMANDOS
 

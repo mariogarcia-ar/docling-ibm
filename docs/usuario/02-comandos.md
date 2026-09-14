@@ -421,6 +421,70 @@ muestreo de auditoría (un caso resuelto que se revisa por control de calidad).
 
 ---
 
+## `corpus` — pre-reducir las imágenes
+
+```bash
+voucherflow corpus var/files --solo-medir                 # medir, sin escribir
+voucherflow corpus var/files -o var/processed --workers 4
+voucherflow corpus var/files/2025-08 --limite 20 --detalle
+```
+
+**Para qué sirve**: baja el **peso** y los **tokens de visión** de un corpus de
+imágenes antes de procesarlo. Reducir el lado mayor a 1024 px y reencodear con
+calidad moderada baja el costo de las llamadas a los modelos de visión y el
+espacio en disco, sobre todo si el corpus se va a mandar más de una vez.
+
+**Empezá siempre con `--solo-medir`**: calcula qué se reduciría y cuánto, sin
+escribir nada. En ese modo el porcentaje de **peso** no se reporta (no se midió),
+y la salida lo dice en vez de inventar un número.
+
+**Alineación al VLM**: las dimensiones se redondean a múltiplos de 28 para que el
+preprocesador de Qwen2.5-VL no re-escale la imagen por su cuenta (si re-escala, el
+conteo de tokens deja de ser predecible). Por eso el objetivo es **aproximado**:
+1024 puede quedar en 1036. Usá `--sin-alinear` solo si el destino **no** es
+Qwen2.5-VL.
+
+| Bandera | Qué hace |
+|---|---|
+| `-o, --salida DIR` | Carpeta raíz de salida (default: `var/processed`, de la configuración). |
+| `--raiz DIR` | Raíz desde la cual se espeja el árbol. Fijala si el corpus no tiene forma de mes. |
+| `--lado-mayor PX` | Lado mayor objetivo (default: `1024`). **Nunca agranda.** |
+| `--calidad 1-100` | Calidad del reencode (default: `80`). |
+| `--piso-lado-menor PX` | Piso del lado menor, para imágenes muy alargadas (default: `256`). |
+| `--sin-alinear` | No alinear a múltiplos de 28 (solo si el destino no es Qwen2.5-VL). |
+| `--backend {pillow,ffmpeg}` | Motor de reencode (default: `pillow`). |
+| `--formato {mismo,jpg}` | `mismo` conserva la extensión; `jpg` fuerza JPEG. |
+| `--extensiones LISTA` | Extensiones a procesar (default: `.jpeg,.jpg,.png`). |
+| `--forzar` | Reescribe el destino aunque exista (sin esto, **reanuda**). |
+| `--copiar-no-reducidas` | Copia sin tocar las que ya entran en el objetivo (salida completa). |
+| `--solo-medir` | No escribe nada: solo mide y reporta. |
+| `--workers N` | Hilos concurrentes (default: `4`). Usá `1` si el equipo se calienta. |
+| `--limite N` | Procesa solo las primeras N imágenes (`0` = todas). |
+| `--detalle` | Una línea por archivo (a stderr). |
+| `--reporte ARCHIVO.json` | Reporte completo (resumen + por archivo). |
+
+**La salida espeja el árbol desde la raíz de la entrada**, sin repetir el nombre
+de la carpeta de entrada: `var/files/2025-08/2D2C9343/foto.jpg` sale a
+`var/processed/2025-08/2D2C9343/foto.jpg`. La raíz se **sube** automáticamente
+salteando los niveles de mes (`2025-08`) y de lote, así que **la misma imagen
+escribe siempre el mismo archivo** sin importar desde qué subcarpeta invoques la
+corrida. Eso es lo que hace que la reanudación funcione (y que no se reprocese lo
+que ya está).
+
+**Qué significa cada estado**: `reducido` (se escribió), `omitido` (no se tocó:
+ya entraba en el objetivo, o el destino ya existía) y `fallo` (imagen ilegible o
+error de escritura). Un `omitido` **no** es un error.
+
+**Código de salida**: `0` si todo salió bien (o no había nada que hacer), `1` si
+hubo algún fallo, `2` si los argumentos no son válidos.
+
+**⚠️ Ojo con el OCR**: reducir *antes* de un OCR clásico (RapidOCR/EasyOCR) puede
+degradar la letra chica, porque el OCR lee píxeles. En ese caso bajá la reducción
+(`--lado-mayor 1536` o `2048`) o medí primero con `--solo-medir`. Para el camino
+**VLM** (la imagen viaja al modelo) reducir es lo correcto.
+
+---
+
 ## Combinaciones útiles
 
 ```bash

@@ -345,8 +345,11 @@ python scripts/verificacion/etapa-conclusion.py       # veredictos, certeza y HI
 ```
 
 Las utilidades de `scripts/operacion/` preparan y diagnostican el corpus
-(reducir tokens de visión, generar fixtures). El detalle está en
-[`scripts/readme.md`](scripts/readme.md).
+(generar fixtures). El detalle está en [`scripts/readme.md`](scripts/readme.md).
+
+La **reducción de imágenes** (bajar peso y tokens de visión antes de procesar) es
+parte del pipeline: `voucherflow corpus var/files --solo-medir`. Ver
+[`docs/usuario/02-comandos.md`](docs/usuario/02-comandos.md#corpus--pre-reducir-las-imágenes).
 
 El **laboratorio de LLM externos** —ajustar y evaluar el prompt con OpenAI,
 DeepSeek o Gemini— es un binario aparte: `voucherflow-lab`. Guía en

@@ -42,7 +42,12 @@ from .config import MODELO_POR_DEFECTO, VERSION_PROMPT
 from .datos import buscar_datos, cargar_datos
 from .esquemas import esquema_extraccion, esquema_validacion
 from .evaluador import diff_deterministico, verificar_aritmetica
-from .proveedores import PROVEEDORES, describir_proveedores, proveedor_por_nombre
+from .proveedores import (
+    PROVEEDOR_POR_DEFECTO,
+    PROVEEDORES,
+    describir_proveedores,
+    proveedor_por_nombre,
+)
 
 #: Operaciones del comando. Son las tres del ciclo de ajuste.
 OPERACIONES = ("extraer", "validar", "diff")
@@ -75,7 +80,7 @@ def construir_parser() -> argparse.ArgumentParser:
         help="carpeta de salida (default: el de la configuración, var/validations)",
     )
     parser.add_argument(
-        "-p", "--proveedor", default="deepseek", choices=sorted(PROVEEDORES),
+        "-p", "--proveedor", default=PROVEEDOR_POR_DEFECTO, choices=sorted(PROVEEDORES),
         help="proveedor del modelo (default: deepseek)",
     )
     parser.add_argument("-m", "--modelo", help="modelo (default: el del proveedor)")
@@ -262,8 +267,10 @@ def main(argv: list[str] | None = None) -> int:
     datos = cargar_datos(args.datos) if args.datos else {}
     try:
         # La credencial se resuelve acá y no antes: un proveedor sin clave
-        # (los tests, `--listar-proveedores`) no tiene por qué fallar.
-        credencial = entorno.resolver_api_key(args.api_key)
+        # (los tests, `--listar-proveedores`) no tiene por qué fallar. Se pasa
+        # el proveedor elegido porque la variable depende de él
+        # (OPENAI_API_KEY / DEEPSEEK_API_KEY / GEMINI_API_KEY).
+        credencial = entorno.resolver_api_key(args.api_key, args.proveedor)
     except RuntimeError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2

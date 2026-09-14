@@ -34,8 +34,33 @@ def cargar_env(ruta: Path | None) -> None:
             os.environ[clave] = valor
 
 
-def resolver_api_key(explicita: str | None) -> str | None:
-    """Devuelve la clave de API: la del argumento o la del entorno."""
-    return explicita or os.environ.get("DEEPSEEK_API_KEY") or None
+def resolver_api_key(
+    explicita: str | None, proveedor: str | None = None
+) -> str | None:
+    """Devuelve la clave de API: la del argumento o la del **proveedor elegido**.
+
+    ⚠️ La variable depende del proveedor (``OPENAI_API_KEY``,
+    ``DEEPSEEK_API_KEY``, ``GEMINI_API_KEY``). Estuvo cableada a
+    ``DEEPSEEK_API_KEY`` — el proveedor que se usó primero —, y eso rompía a los
+    demás de dos maneras: con la clave correcta en el entorno igual decía «falta
+    la credencial», y con la de DeepSeek presente le mandaba **esa** clave al
+    endpoint de otro proveedor. Si no se indica proveedor, se usa la variable
+    del adaptador por defecto.
+    """
+    if explicita:
+        return explicita
+    variable = _variable_de(proveedor)
+    return os.environ.get(variable) or None
+
+
+def _variable_de(proveedor: str | None) -> str:
+    """Nombre de la variable de entorno de la credencial de ``proveedor``.
+
+    Se importa acá adentro (no arriba) porque ``proveedores`` importa a este
+    módulo: hacerlo a nivel de módulo sería un ciclo.
+    """
+    from .proveedores import PROVEEDOR_POR_DEFECTO, proveedor_por_nombre
+
+    return proveedor_por_nombre(proveedor or PROVEEDOR_POR_DEFECTO).capacidades.variable_api_key
 
 

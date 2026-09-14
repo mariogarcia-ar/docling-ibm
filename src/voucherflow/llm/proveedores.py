@@ -258,6 +258,10 @@ PROVEEDORES: dict[str, type[_AdaptadorOpenAI]] = {
     "gemini": AdaptadorGemini,
 }
 
+#: Proveedor que se usa cuando no se indica ninguno (una sola fuente de verdad:
+#: lo consumen el CLI y la resolución de la credencial).
+PROVEEDOR_POR_DEFECTO = "deepseek"
+
 
 def proveedor_por_nombre(nombre: str) -> _AdaptadorOpenAI:
     """Instancia un proveedor por su nombre, con un error que lista los válidos."""

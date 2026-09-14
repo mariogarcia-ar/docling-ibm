@@ -132,13 +132,23 @@ def _enlaces_markdown(texto: str) -> list[str]:
     return re.findall(r"\[[^\]]*\]\(([^)]+)\)", texto)
 
 
+def _sin_ancla(destino: str) -> str:
+    """El destino sin el fragmento ``#ancla``.
+
+    El ancla **no** es parte de la ruta:``x.md#seccion`` apunta al archivo
+    ``x.md``. Sin esto, un enlace con ancla se lee como si el archivo no
+existiera.
+    """
+    return destino.split("#", 1)[0]
+
+
 def test_el_readme_enlaza_los_documentos_que_promete() -> None:
     """Todo destino relativo del README existe (no hay enlaces roto)."""
     roto: list[str] = []
     for destino in _enlaces_markdown(_texto("README.md")):
         if "://" in destino or destino.startswith("#"):
             continue
-        ruta = (DOC_USUARIO / destino).resolve()
+        ruta = (DOC_USUARIO / _sin_ancla(destino)).resolve()
         if not ruta.exists():
             roto.append(destino)
     assert not roto, f"docs/usuario/README.md tiene enlaces rotos: {roto}"
@@ -163,7 +173,7 @@ def test_las_referencias_relativas_de_la_guia_existen() -> None:
         for destino in _enlaces_markdown(_texto(nombre)):
             if "://" in destino or destino.startswith("#"):
                 continue
-            if not (DOC_USUARIO / destino).resolve().exists():
+            if not (DOC_USUARIO / _sin_ancla(destino)).resolve().exists():
                 roto.append(f"{nombre} → {destino}")
     assert not roto, f"Enlaces relativos rotos en la guía: {roto}"
 
@@ -344,6 +354,6 @@ def test_el_readme_enlaza_la_guia_del_operador() -> None:
         if "://" in destino or destino.startswith("#"):
             continue
         if "docs/usuario" in destino:
-            assert (RAIZ / destino).resolve().exists(), (
+            assert (RAIZ / _sin_ancla(destino)).resolve().exists(), (
                 f"README.md enlaza {destino}, que no existe."
             )

@@ -16,6 +16,7 @@ Subcomandos (doc 03 §8.1 y `ORCH-CLI.md` §3):
 ``case``           ``show``/``list`` la trazabilidad persistida (F5/T-506) y
                    ``aggregate`` reconstruye el agregado del lote (F6/T-603).
 ``hitl``           ``list`` la cola de revisión humana (F5/T-505).
+``corpus``         pre-reduce peso y tokens de visión de un corpus de imágenes.
 
 Argumentos comunes (E-CLI-1): ``--force``, ``--orientation``,
 ``--condicion-impositiva``, ``--model``, ``--workers``. Cada uno viaja al módulo
@@ -55,6 +56,7 @@ COMANDOS: tuple[str, ...] = (
     "arca",
     "case",
     "hitl",
+    "corpus",
 )
 
 #: Condición impositiva por defecto de la cadena contable (F3/T-304).
@@ -298,6 +300,8 @@ def construir_parser() -> argparse.ArgumentParser:
     p.add_argument("--dir", dest="dir_casos", default=None, help="Directorio de sidecars (índice, F5/T-506).")
     p.add_argument("--certeza", choices=["alta", "baja"], default=None, help="Filtra por certeza del caso.")
     p.add_argument("--prioridad", choices=["alta", "baja"], default=None, help="Filtra por prioridad de la revisión.")
+
+    _cmd_corpus_parser(sub)
 
     return parser
 
@@ -938,8 +942,30 @@ def _filtros(pares: Sequence[str]) -> dict[str, Any]:
 
 #: Tabla de subcomandos → implementación. Es una constante (y no un ``if`` largo)
 #: para que la lista de comandos del contrato (E-CLI-1) sea verificable en tests.
+def _cmd_corpus_parser(sub: argparse._SubParsersAction) -> None:
+    """Registra el subcomando ``corpus`` (la CLI vive en ``voucherflow.corpus.cli``)."""
+    from ..corpus.cli import agregar_parser
+
+    agregar_parser(sub)
+
+
+def _cmd_corpus(args: argparse.Namespace, entorno: EntornoCLI) -> int:
+    """``corpus``: pre-reduce peso y tokens de visión de un corpus (F1..F5 no lo hacían).
+
+    El adaptador solo conecta los flujos del entorno con el subcomando: la
+    lógica (planificar, procesar, reportar) vive en ``voucherflow.corpus``.
+    """
+    from ..corpus.cli import EntornoCorpus, main as main_corpus
+
+    return main_corpus(
+        args,
+        entorno=EntornoCorpus(stdout=entorno.stdout, stderr=entorno.stderr),
+    )
+
+
 DESPACHO: dict[str, Callable[[argparse.Namespace, EntornoCLI], int]] = {
     "process": _cmd_process,
+
     "validate": _cmd_validate,
     "classify": _cmd_classify,
     "extract": _cmd_extract,
@@ -950,6 +976,7 @@ DESPACHO: dict[str, Callable[[argparse.Namespace, EntornoCLI], int]] = {
     "arca": _cmd_arca,
     "case": _cmd_case,
     "hitl": _cmd_hitl,
+    "corpus": _cmd_corpus,
 }
 
 
