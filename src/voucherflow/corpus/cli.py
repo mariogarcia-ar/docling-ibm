@@ -20,6 +20,8 @@ from .corrida import (
     EXTENSIONES_POR_DEFECTO,
     ErrorCorpus,
     contar_fallos,
+    describir_colisiones,
+    detectar_colisiones,
     escribir_reporte,
     normalizar_extensiones,
     planificar,
@@ -272,6 +274,14 @@ def main(
         elif i % CADA_CUANTOS_PROGRESO == 0:
             entorno.log(f"  … {i}/{len(tareas)}")
 
+    # ⚠️ Antes de escribir UNA sola imagen: dos originales que apunten al mismo
+    # destino se pisarían entre sí y el reporte los contaría a los dos. Se
+    # rechaza el lote entero (código de uso) en vez de perder archivos.
+    colisiones = detectar_colisiones(tareas)
+    if colisiones:
+        entorno.log(f"error: {describir_colisiones(colisiones)}")
+        return EXIT_USO
+
     try:
         resultados = _ejecutar_tareas(tareas, opciones, on_resultado)
     except KeyboardInterrupt:
@@ -329,6 +339,8 @@ def imprimir_resumen(
     entorno.dato(f"  reducidos               : {rep['reducidos']}")
     entorno.dato(f"  omitidos                : {rep['omitidos']}")
     entorno.dato(f"  fallos                  : {rep['fallos']}")
+    if rep["copiadas"]:
+        entorno.dato(f"    copiadas (sin reducir)  : {rep['copiadas']}")
 
     # Si no hubo medición de destino (simulación), se informa el total de
     # origen y se aclara que la reducción de peso NO se midió.
@@ -340,11 +352,21 @@ def imprimir_resumen(
             "  →  (no medido: simulación)"
         )
     else:
+        # El signo va en el número, no en el formato: reducir puede AUMENTAR el
+        # peso (un escaneo 1-bit que pasa a RGB), y «(-{pct})» con un negativo
+        # imprimía «--238.0%».
+        signo = "-" if pct_peso >= 0 else "+"
         entorno.dato(
             f"peso                      : {formato_bytes(rep['peso_origen_bytes'])}"
             f"  →  {formato_bytes(rep['peso_destino_bytes'])}"
-            f"   (-{pct_peso}%)"
+            f"   ({signo}{abs(pct_peso)}%)"
         )
+        if pct_peso < 0:
+            entorno.log(
+                "⚠  el peso SUBIÓ: la imagen original ya venía más comprimida que"
+                " el reencode (típico de escaneos 1-bit/PNG). Los tokens de visión"
+                " igual bajan; mirá --detalle para ver qué archivos engordaron."
+            )
 
     if rep["tokens_origen_estimados"]:
         pct_tok = rep["reduccion_tokens_pct"]
@@ -367,6 +389,25 @@ def imprimir_resumen(
             entorno.log(f"  {r.origen}: {r.motivo}")
         if len(fallos) > 20:
             entorno.log(f"  … y {len(fallos) - 20} más")
+
+    # ⚠️ Un archivo que engordó es invisible en el agregado (el total puede bajar
+    # igual). Se listan los peores para que el operador sepa cuáles revisar.
+    engordaron = [r for r in resultados if r.engordo]
+    if engordaron:
+        peores = sorted(
+            engordaron,
+            key=lambda r: (r.peso_destino or 0) / (r.peso_origen or 1),
+            reverse=True,
+        )
+        entorno.log(f"\n--- El peso subió ({len(engordaron)}) ---")
+        for r in peores[:20]:
+            factor = r.peso_destino / r.peso_origen
+            entorno.log(
+                f"  {r.origen}: {formato_bytes(r.peso_origen)} → "
+                f"{formato_bytes(r.peso_destino)} (x{factor:.1f})"
+            )
+        if len(peores) > 20:
+            entorno.log(f"  … y {len(peores) - 20} más")
 
 
 def formato_bytes(n: int | None) -> str:

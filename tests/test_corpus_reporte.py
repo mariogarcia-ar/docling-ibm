@@ -16,12 +16,17 @@ import pytest
 from voucherflow.corpus.corrida import (
     ErrorCorpus,
     contar_fallos,
+    describir_colisiones,
+    detectar_colisiones,
     escribir_reporte,
     normalizar_extensiones,
     planificar,
     validar,
 )
 from voucherflow.corpus.modelo import (
+    CATEGORIA_COPIA,
+    CATEGORIA_LECTURA,
+    CATEGORIA_REANUDADO,
     ESTADO_FALLO,
     ESTADO_OMITIDO,
     ESTADO_REDUCIDO,
@@ -58,15 +63,19 @@ def _resultado(
     peso_origen=200_000,
     peso_destino=5_000,
     nombre="x.jpg",
+    motivo="",
+    categoria="",
 ) -> Resultado:
     return Resultado(
         Path(nombre),
         Path("out") / nombre,
         estado,
+        motivo=motivo,
         dims_origen=dims_origen,
         dims_destino=dims_destino,
         peso_origen=peso_origen,
         peso_destino=peso_destino,
+        categoria=categoria,
     )
 
 
@@ -285,3 +294,175 @@ class TestContarFallos:
 
     def test_sin_resultados_no_hay_fallos(self):
         assert contar_fallos([]) == 0
+
+
+class TestColisionesDeDestino:
+    """⚠️ Regresión: dos originales escribiendo el MISMO archivo.
+
+    Con ``--formato jpg`` (o con ``foto.JPG`` y ``foto.jpg``, que colisionan ya
+    con el default) el plan calculaba un solo destino para dos originales. La
+    corrida terminaba con un archivo y el reporte daba por reducidos a los DOS:
+    pérdida silenciosa de datos que además el reporte afirmaba como éxito.
+    """
+
+    def _tarea(self, tmp_path: Path, origen: str, destino: str):
+        return (tmp_path / "files" / origen, tmp_path / "out" / destino)
+
+    def test_detecta_dos_originales_al_mismo_destino(self, tmp_path):
+        tareas = [
+            self._tarea(tmp_path, "factura.jpg", "factura.jpg"),
+            self._tarea(tmp_path, "factura.png", "factura.jpg"),
+        ]
+        colisiones = detectar_colisiones(tareas)
+        assert len(colisiones) == 1
+        assert len(next(iter(colisiones.values()))) == 2
+
+    def test_no_marca_destinos_distintos(self, tmp_path):
+        """Control: sin esto, la guarda podría rechazar todo y pasar igual."""
+        tareas = [
+            self._tarea(tmp_path, "a.jpg", "a.jpg"),
+            self._tarea(tmp_path, "b.jpg", "b.jpg"),
+        ]
+        assert detectar_colisiones(tareas) == {}
+
+    def test_el_mismo_original_dos_veces_no_es_colision(self, tmp_path):
+        """Pasar la carpeta y una imagen de adentro ya lo resuelve ``expandir``."""
+        tarea = self._tarea(tmp_path, "a.jpg", "a.jpg")
+        assert detectar_colisiones([tarea, tarea]) == {}
+
+    def test_detecta_la_colision_por_ruta_no_normalizada(self, tmp_path):
+        """El corpus se recorre con rutas que pueden traer ``..`` o symlinks."""
+        tareas = [
+            self._tarea(tmp_path, "a.jpg", "sub/a.jpg"),
+            self._tarea(tmp_path, "b.jpg", "sub/../sub/a.jpg"),
+        ]
+        assert len(detectar_colisiones(tareas)) == 1
+
+    def test_el_texto_nombra_los_dos_originales(self, tmp_path):
+        tareas = [
+            self._tarea(tmp_path, "factura.jpg", "factura.jpg"),
+            self._tarea(tmp_path, "factura.png", "factura.jpg"),
+        ]
+        texto = describir_colisiones(detectar_colisiones(tareas))
+        assert "factura.jpg" in texto and "factura.png" in texto
+        assert "--formato mismo" in texto  # la salida sugerida
+
+    def test_planificar_con_formato_jpg_produce_la_colision(self, tmp_path):
+        """El caso real que la motivó, a nivel de plan (dos nombres base iguales)."""
+        from PIL import Image
+
+        corpus = tmp_path / "files"
+        corpus.mkdir()
+        Image.new("RGB", (3000, 4000)).save(corpus / "factura.jpg", "JPEG")
+        Image.new("RGB", (3000, 4000)).save(corpus / "factura.png", "PNG")
+        _, _, tareas = planificar([corpus], _opciones(tmp_path, formato="jpg"))
+        assert len(tareas) == 2
+        assert len(detectar_colisiones(tareas)) == 1
+
+    def test_formato_mismo_igualmente_colisiona_con_mayusculas(self, tmp_path):
+        """``foto.JPG`` y ``foto.jpg`` son el mismo archivo en macOS/Windows."""
+        tareas = [
+            self._tarea(tmp_path, "foto.JPG", "foto.jpg"),
+            self._tarea(tmp_path, "foto.jpg", "foto.jpg"),
+        ]
+        assert len(detectar_colisiones(tareas)) == 1
+
+
+class TestContadoresDelReporte:
+    """Lo que el reporte agrega para no mezclar causas distintas."""
+
+    def test_cuenta_las_copiadas(self, tmp_path):
+        rep = resumen(
+            [
+                _resultado(ESTADO_OMITIDO, categoria=CATEGORIA_COPIA),
+                _resultado(ESTADO_OMITIDO, nombre="b.jpg", categoria=CATEGORIA_COPIA),
+                _resultado(ESTADO_REDUCIDO, nombre="c.jpg"),
+            ],
+            _opciones(tmp_path),
+        )
+        assert rep["copiadas"] == 2
+
+    def test_una_omision_no_copiada_no_cuenta(self, tmp_path):
+        """«ya entra en el objetivo» sin copiar no dejó archivo en la salida."""
+        rep = resumen(
+            [
+                _resultado(
+                    ESTADO_OMITIDO, motivo="3000x4000px ya entra en el objetivo"
+                )
+            ],
+            _opciones(tmp_path),
+        )
+        assert rep["copiadas"] == 0
+
+    def test_distingue_el_fallo_de_lectura(self, tmp_path):
+        """Una imagen ilegible no es lo mismo que un disco lleno."""
+        rep = resumen(
+            [
+                _resultado(
+                    ESTADO_FALLO,
+                    nombre="roto.jpg",
+                    motivo="no se pudo leer: [Errno 13]",
+                    categoria=CATEGORIA_LECTURA,
+                ),
+                _resultado(
+                    ESTADO_FALLO, nombre="pisa.jpg", motivo="PermissionError: denied"
+                ),
+            ],
+            _opciones(tmp_path),
+        )
+        assert rep["fallos"] == 2
+        assert rep["fallos_lectura"] == 1
+
+    def test_cuenta_los_que_ya_estaban(self, tmp_path):
+        rep = resumen(
+            [_resultado(ESTADO_OMITIDO, categoria=CATEGORIA_REANUDADO)],
+            _opciones(tmp_path),
+        )
+        assert rep["ya_estaba"] == 1
+
+    def test_el_motivo_no_cambia_los_numeros(self, tmp_path):
+        """⚠️ Antes los contadores buscaban TEXTO dentro de ``motivo``.
+
+        Retocar un mensaje cambiaba los números del reporte en silencio. Ahora
+        manda el dato: un ``reanudado`` con prosa de copia sigue siendo
+        reanudado, y cuenta donde corresponde.
+        """
+        rep = resumen(
+            [
+                _resultado(
+                    ESTADO_OMITIDO,
+                    motivo="texto que antes contaba como copia: copiada sin reducir",
+                    categoria=CATEGORIA_REANUDADO,
+                )
+            ],
+            _opciones(tmp_path),
+        )
+        assert rep["copiadas"] == 0
+        assert rep["ya_estaba"] == 1
+
+    def test_cuenta_los_que_engordaron(self, tmp_path):
+        """Un archivo que creció no es un fallo, pero el reporte lo declara."""
+        rep = resumen(
+            [
+                _resultado(ESTADO_REDUCIDO, peso_origen=1_000, peso_destino=3_000),
+                _resultado(ESTADO_REDUCIDO, nombre="b.jpg"),
+            ],
+            _opciones(tmp_path),
+        )
+        assert rep["engordaron"] == 1
+
+    def test_sin_engordar_no_cuenta(self, tmp_path):
+        rep = resumen([_resultado(ESTADO_REDUCIDO)], _opciones(tmp_path))
+        assert rep["engordaron"] == 0
+
+    def test_un_fallo_no_entra_en_ningun_contador_de_omitidos(self, tmp_path):
+        rep = resumen(
+            [
+                _resultado(
+                    ESTADO_FALLO,
+                    motivo="no se pudo escribir: PermissionError",
+                )
+            ],
+            _opciones(tmp_path),
+        )
+        assert (rep["copiadas"], rep["ya_estaba"], rep["fallos_lectura"]) == (0, 0, 0)

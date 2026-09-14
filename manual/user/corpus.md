@@ -65,6 +65,13 @@ Dos cosas que el reporte **no** inventa y conviene saber leer:
   *gridding* de Qwen2.5-VL). Sirve para comparar antes/después; no es lo que
   reporta el servidor.
 
+⚠️ **Ojo con los escaneos 1-bit o en blanco y negro puro.** Un PNG de una sola
+capa de color pesa una fracción de lo que pesa el mismo contenido en RGB. La
+reducción conserva el modo del original, así que el peso baja; pero si por algún
+motivo subiera, el resumen lo dice y lista los archivos que engordaron. Los
+tokens de visión bajan igual: **el objetivo real de la herramienta son los
+tokens**, no los bytes.
+
 ---
 
 ## La corrida real
@@ -86,6 +93,20 @@ tokens de visión (estim.) : 126,960  →  36,260   (-71.4%)
 Bajar el **60% del peso** y el **71% de los tokens** es lo típico en un corpus de
 fotos de celular: son imágenes de 1500-4000 px que el modelo no necesita
 mayores.
+
+Si algún archivo **engordó** (pasa con escaneos ya optimizados), el resumen lo
+avisa y lo lista, porque dentro del total queda invisible:
+
+```
+peso                      : 4.4 KiB  →  15.0 KiB   (+238.0%)
+
+⚠  el peso SUBIÓ: la imagen original ya venía más comprimida que el reencode
+   (típico de escaneos 1-bit/PNG). Los tokens de visión igual bajan; mirá
+   --detalle para ver qué archivos engordaron.
+
+--- El peso subió (1) ---
+  var/files/escaneo.png: 2.2 KiB → 7.5 KiB (x3.4)
+```
 
 **Probar primero con pocas** y ver el detalle:
 
@@ -136,8 +157,17 @@ tu corpus no tiene esa forma, fijá `--raiz` explícito.
 | Estado | Qué pasó | ¿Es un problema? |
 |---|---|---|
 | `reducido` | Se escribió una versión reducida. | No |
-| `omitido` | No se tocó: ya entraba en el objetivo, o el destino ya existía. | No |
+| `omitido` | No se tocó la imagen: ya entraba en el objetivo, o el destino ya existía. | No |
 | `fallo` | Imagen ilegible o error de escritura. | Sí (exit `1`) |
+
+Dentro de los omitidos, la **categoría** del reporte separa dos casos que
+significan lo contrario para vos:
+
+| `categoria` | Qué pasó | La salida… |
+|---|---|---|
+| `copia` | se escribió el archivo **sin reducir** (ya entraba en el objetivo, o cambió el formato pedido) | queda **completa** |
+| `reanudado` | el destino ya existía de una corrida anterior | ya estaba, no se repitió |
+| `lectura` | (solo dentro de `fallo`) no se pudo leer el original | — |
 
 Una imagen que **ya entra** en el objetivo no se toca: no se copia ni se
 reencoda. Si necesitás que la salida quede **completa** (por ejemplo, para
@@ -197,8 +227,7 @@ Usá `--sin-alinear` **solo** si el destino no es Qwen2.5-VL.
 | `--piso-lado-menor PX` | Piso del lado menor, para imágenes muy alargadas (default: `256`). |
 | `--sin-alinear` | No alinear a múltiplos de 28 (solo si el destino no es Qwen2.5-VL). |
 | `--backend {pillow,ffmpeg}` | Motor de reencode (default: `pillow`). |
-| `--formato {mismo,jpg}` | `mismo` conserva la extensión; `jpg` fuerza JPEG y reescribe la extensión. |
-| `--extensiones LISTA` | Extensiones a procesar (default: `.jpeg,.jpg,.png`). |
+| `--formato {mismo,jpg}` | `mismo` conserva la extensión; `jpg` fuerza JPEG y reescribe la extensión. || `--extensiones LISTA` | Extensiones a procesar (default: `.jpeg,.jpg,.png`). |
 | `--forzar` | Reescribe el destino aunque exista (sin esto, **reanuda**). |
 | `--copiar-no-reducidas` | Copia sin tocar las que ya entran en el objetivo (salida completa). |
 | `--solo-medir` | No escribe nada: solo mide y reporta. |
@@ -235,11 +264,14 @@ corrida:
 
 ```json
 {
-  "version": "voucherflow-corpus@1",
+  "version": "voucherflow-corpus@2",
   "archivos": 40,
   "reducidos": 35,
   "omitidos": 5,
   "fallos": 0,
+  "copiadas": 0,
+  "ya_estaba": 5,
+  "fallos_lectura": 0,
   "reduccion_peso_pct": 60.1,
   "reduccion_tokens_pct": 71.4,
   "opciones": {
@@ -261,6 +293,7 @@ corrida:
       "origen": "var/files/2026-08/002B0C61/fec99960-….jpg",
       "destino": "var/processed/2026-08/002B0C61/fec99960-….jpg",
       "estado": "reducido",
+      "categoria": "",
       "motivo": "",
       "dims_origen": [1564, 1920],
       "dims_destino": [840, 1036],
@@ -356,7 +389,8 @@ done
    3000×4000 salía 1024×1365 (~1.4 Mpx) en vez de 768×1024 (~0.79 Mpx): ~45% más
    tokens para el mismo presupuesto. Acá se reduce por **lado mayor**.
 3. **Siempre escribía JPEG, incluso en un archivo `.png`** (bytes JPEG con
-   nombre de PNG). Acá el formato se elige por extensión, o se fuerza con
+   nombre de PNG). Acá el formato se elige por la **extensión del destino**, así
+   que `foto.webp` sale WEBP y `foto.tif` sale TIFF, o se fuerza con
    `--formato jpg`.
 
 A eso se le suman las tres que sí eran del script: sin paralelismo, sin
@@ -365,6 +399,30 @@ reanudación y sin reporte.
 **Nunca se escribe sobre la entrada.** Si el destino coincide con el origen, la
 imagen se omite con un motivo explícito. La comparación es sobre rutas resueltas,
 así que `a/../a/x.jpg` también se detecta.
+
+**Dos originales no pueden escribir el mismo archivo.** Con `--formato jpg`,
+`factura.jpg` y `factura.png` apuntan los dos a `factura.jpg`; también colisionan
+`foto.JPG` y `foto.jpg` con el `--formato mismo`. Si eso pasara, la corrida
+terminaría con un archivo y el reporte daría por reducidos a los dos. El comando
+**rechaza el lote entero antes de escribir nada** (código de salida `2`) y muestra
+qué originales chocan:
+
+```
+error: dos o más originales escribirían el mismo archivo de salida:
+
+  destino: var/processed/2025-08/2D2C9343/factura.jpg
+    ← var/files/2025-08/2D2C9343/factura.jpg
+    ← var/files/2025-08/2D2C9343/factura.png
+
+Se aborta sin escribir nada: seguir perdería archivos y el reporte los daría por
+reducidos igual.
+  · «--formato mismo» conserva la extensión de cada original.
+  · «--raiz» (o «--salida») cambia el nivel desde el que se espeja.
+```
+
+**`--sin-alinear` desactiva de verdad la alineación** a múltiplos de 28, también
+cuando el cálculo pasaría por la librería de Docling (que alinea siempre). Con la
+bandera, un objetivo de 1000 px da 750×1000 en vez de 756×1008.
 
 **Dónde vive el código.** `src/voucherflow/corpus/`. El recorrido y la regla de
 espejado (`recorrido.py`) son **compartidos** con el pipeline

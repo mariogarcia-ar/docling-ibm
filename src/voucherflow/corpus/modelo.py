@@ -20,6 +20,19 @@ ESTADO_FALLO = "fallo"
 
 ESTADOS = frozenset({ESTADO_REDUCIDO, ESTADO_OMITIDO, ESTADO_FALLO})
 
+#: Categoría que **afina** un estado para el reporte (``""`` = sin categoría).
+#:
+#: Existe porque ``omitido`` cubre cosas que significan lo contrario para el
+#: operador: una **copia** dejó archivo en la salida (el corpus queda completo) y
+#: una **omisión** no (quedan huecos). Antes el reporte las distinguía buscando
+#: texto dentro de ``motivo``, que es prosa: retocar un mensaje cambiaba los
+#: números en silencio. Ahora es un dato.
+CATEGORIA_COPIA = "copia"
+CATEGORIA_REANUDADO = "reanudado"
+CATEGORIA_LECTURA = "lectura"
+
+CATEGORIAS = frozenset({CATEGORIA_COPIA, CATEGORIA_REANUDADO, CATEGORIA_LECTURA})
+
 
 @dataclass
 class Opciones:
@@ -72,17 +85,38 @@ class Resultado:
     dims_destino: tuple[int, int] | None = None
     peso_origen: int | None = None
     peso_destino: int | None = None
+    categoria: str = ""
 
     def __post_init__(self) -> None:
         if self.estado not in ESTADOS:
             raise ValueError(
                 f"estado desconocido: {self.estado!r} (válidos: {sorted(ESTADOS)})"
             )
+        if self.categoria and self.categoria not in CATEGORIAS:
+            raise ValueError(
+                f"categoría desconocida: {self.categoria!r} "
+                f"(válidas: {sorted(CATEGORIAS)})"
+            )
 
     @property
     def ok(self) -> bool:
         """False solo si hubo fallo (una omisión es un resultado válido)."""
         return self.estado != ESTADO_FALLO
+
+    @property
+    def es_copia(self) -> bool:
+        """True si dejó un archivo en la salida **sin reducir** la imagen."""
+        return self.categoria == CATEGORIA_COPIA
+
+    @property
+    def engordo(self) -> bool:
+        """True si el destino pesa más que el origen (posible en escaneos ya
+        comprimidos: 1-bit/L en PNG que pasan a JPEG o a RGB)."""
+        return (
+            self.peso_origen is not None
+            and self.peso_destino is not None
+            and self.peso_destino > self.peso_origen
+        )
 
     @property
     def tokens_origen(self) -> int | None:
@@ -97,6 +131,7 @@ class Resultado:
             "origen": str(self.origen),
             "destino": str(self.destino) if self.destino else None,
             "estado": self.estado,
+            "categoria": self.categoria,
             "motivo": self.motivo,
             "dims_origen": list(self.dims_origen) if self.dims_origen else None,
             "dims_destino": list(self.dims_destino) if self.dims_destino else None,
@@ -124,4 +159,5 @@ class Resultado:
             dims_destino=_dims("dims_destino"),
             peso_origen=datos.get("peso_origen_bytes"),
             peso_destino=datos.get("peso_destino_bytes"),
+            categoria=datos.get("categoria", ""),
         )

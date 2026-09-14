@@ -14,6 +14,8 @@ from typing import Any
 
 from .dimensiones import ORIGEN_DEFAULTS, tokens_estimados_vlm
 from .modelo import (
+    CATEGORIA_LECTURA,
+    CATEGORIA_REANUDADO,
     ESTADO_FALLO,
     ESTADO_OMITIDO,
     ESTADO_REDUCIDO,
@@ -34,11 +36,36 @@ def _valor(r: Resultado, campo: str, *, origen: bool) -> int | None:
 
 
 def _sumatoria(resultados: Sequence[Resultado], campo: str, *, origen: bool) -> int:
-    """Suma ``peso_*`` o ``tokens_*`` de los resultados, ignorando ``None``."""
+    """Suma ``peso_*`` o ``tokens_*``, ignorando lo que no se midió.
+
+    ``is not None`` y no ``if valor``: un 0 medido es un dato, y un archivo de 0
+    bytes cuenta. La comprobación contraria (la tupla de ``comparar``) ya lo
+    hacía así; era la única inconsistencia en la regla de honestidad del módulo.
+    """
     return sum(
         valor
         for valor in (_valor(r, campo, origen=origen) for r in resultados)
-        if valor
+        if valor is not None
+    )
+
+
+def contar_categoria(resultados: Sequence[Resultado], categoria: str) -> int:
+    """Cuántos resultados traen esa categoría.
+
+    Se cuenta el **dato**, no el texto del motivo: retocar un mensaje cambiaba
+    los números del reporte en silencio (una «copia» —deja archivo, la salida
+    queda completa— y una omisión que no escribe nada son las dos ``omitido``,
+    y significan lo contrario para el operador).
+    """
+    return sum(1 for r in resultados if r.categoria == categoria)
+
+
+def contar_errores_lectura(resultados: Sequence[Resultado]) -> int:
+    """Fallos de lectura: una imagen ilegible no es un disco lleno."""
+    return sum(
+        1
+        for r in resultados
+        if r.estado == ESTADO_FALLO and r.categoria == CATEGORIA_LECTURA
     )
 
 
@@ -55,7 +82,7 @@ def comparar(resultados: Sequence[Resultado], campo: str) -> tuple[int, int, flo
         (_valor(r, campo, origen=True), _valor(r, campo, origen=False))
         for r in resultados
     ]
-    medidos = [(a, d) for a, d in pares if a and d is not None]
+    medidos = [(a, d) for a, d in pares if a is not None and d is not None]
     antes = sum(a for a, _ in medidos)
     despues = sum(d for _, d in medidos)
     if not antes:
@@ -82,6 +109,10 @@ def resumen(resultados: Sequence[Resultado], opciones: Opciones) -> dict[str, An
         "reducidos": por_estado.get(ESTADO_REDUCIDO, 0),
         "omitidos": por_estado.get(ESTADO_OMITIDO, 0),
         "fallos": por_estado.get(ESTADO_FALLO, 0),
+        "copiadas": sum(1 for r in resultados if r.es_copia),
+        "ya_estaba": contar_categoria(resultados, CATEGORIA_REANUDADO),
+        "fallos_lectura": contar_errores_lectura(resultados),
+        "engordaron": sum(1 for r in resultados if r.engordo),
         "peso_origen_bytes": _sumatoria(resultados, "peso", origen=True),
         "peso_destino_bytes": _sumatoria(resultados, "peso", origen=False),
         "peso_comparado_origen_bytes": peso_o_cmp,

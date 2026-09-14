@@ -20,6 +20,24 @@ utilidad suelta. Al moverla se corrigieron tres cosas que el script arrastraba:
    :class:`~voucherflow.corpus.modelo.Resultado` es tipado y reconstruible
    (``desde_dict``), y el reporte lleva ``version``.
 
+Una segunda ronda de revisión (contrato ``voucherflow-corpus@2``) corrigió
+cuatro defectos que la primera no cubría, todos de la misma familia —**el
+reporte no puede afirmar algo que no pasó**—:
+
+4. **Dos originales escribiendo el mismo destino.** Con ``--formato jpg`` (o con
+   ``foto.JPG`` y ``foto.jpg``) el plan las colisionaba: quedaba un archivo y el
+   reporte contaba **dos** reducidos. Ahora
+   :func:`~voucherflow.corpus.corrida.detectar_colisiones` rechaza el lote antes
+   de escribir nada.
+5. **Reducir podía AUMENTAR el peso.** ``convert("RGB")`` incondicional inflaba
+   un escaneo 1-bit; el modo del original ahora se conserva, y si el peso sube el
+   resumen lo avisa y lista los archivos (dentro del total quedaban invisibles).
+6. **``--sin-alinear`` era inerte** cuando el cálculo pasaba por la librería de
+   Docling (que alinea siempre): la bandera solo llegaba al fallback.
+7. **El formato se elegía por el original**, no por el destino, así que
+   ``foto.webp`` salía con bytes JPEG (el defecto del loop base, corregido solo
+   para ``.png``).
+
 Uso:
     voucherflow corpus <ruta|carpeta>... [opciones]
 
@@ -33,6 +51,8 @@ from .corrida import (
     VERSION_CORPUS,
     ErrorCorpus,
     contar_fallos,
+    describir_colisiones,
+    detectar_colisiones,
     ejecutar,
     escribir_reporte,
     normalizar_extensiones,
@@ -49,6 +69,10 @@ from .dimensiones import (
     tokens_estimados_vlm,
 )
 from .modelo import (
+    CATEGORIA_COPIA,
+    CATEGORIA_LECTURA,
+    CATEGORIA_REANUDADO,
+    CATEGORIAS,
     ESTADO_FALLO,
     ESTADO_OMITIDO,
     ESTADO_REDUCIDO,
@@ -68,6 +92,10 @@ from .reporte import comparar, resumen
 
 __all__ = [
     "CALIDAD",
+    "CATEGORIAS",
+    "CATEGORIA_COPIA",
+    "CATEGORIA_LECTURA",
+    "CATEGORIA_REANUDADO",
     "ESTADOS",
     "ESTADO_FALLO",
     "ESTADO_OMITIDO",
@@ -83,6 +111,8 @@ __all__ = [
     "VERSION_CORPUS",
     "comparar",
     "contar_fallos",
+    "describir_colisiones",
+    "detectar_colisiones",
     "dimensiones_objetivo",
     "ejecutar",
     "es_nivel_de_corpus",

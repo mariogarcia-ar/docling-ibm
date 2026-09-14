@@ -97,6 +97,15 @@ def dimensiones_objetivo(
     if lado_mayor_real <= lado_mayor:
         return ancho, alto
 
+    # ``--sin-alinear``: la librería alinea SIEMPRE (usa el ``smart_resize`` de
+    # Qwen2.5-VL), así que la bandera era inerte en el caso normal —solo llegaba
+    # al fallback—. El camino local ya hace la reducción correcta por lado mayor
+    # con el piso del lado menor, y está cubierto por la suite.
+    if not alinear:
+        return _dimensiones_local(
+            ancho, alto, lado_mayor, piso_lado_menor, alinear=False
+        )
+
     if _dimensiones_libreria is not None:
         try:
             nuevo = _dimensiones_libreria(
@@ -130,7 +139,15 @@ def _dimensiones_local(
     lado_menor_real = min(ancho, alto)
     max_size = lado_mayor
     if lado_menor_real >= piso_lado_menor and lado_mayor_real:
-        requerido = math.ceil(piso_lado_menor * lado_mayor_real / lado_menor_real)
+        # ⚠️ El piso se alinea HACIA ARRIBA a la grilla (256 → 280): con 256
+        # pelado, el redondeo final a múltiplos de 28 dejaba el lado menor en
+        # 252 y el piso declarado no se cumplía (la librería sí lo cumple).
+        piso_grilla = piso_lado_menor
+        if alinear:
+            piso_grilla = (
+                math.ceil(piso_lado_menor / FACTOR_PATCH_QWEN2VL) * FACTOR_PATCH_QWEN2VL
+            )
+        requerido = math.ceil(piso_grilla * lado_mayor_real / lado_menor_real)
         if requerido > max_size:
             max_size = min(requerido, lado_mayor_real)
 

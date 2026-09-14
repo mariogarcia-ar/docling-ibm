@@ -15,6 +15,7 @@ import pytest
 from voucherflow.corpus.dimensiones import (
     FACTOR_PATCH_QWEN2VL,
     LADO_MAYOR_PX,
+    LADO_MENOR_MINIMO_PX,
     _dimensiones_local,
     dimensiones_objetivo,
     tokens_estimados_vlm,
@@ -152,3 +153,119 @@ class TestTokens:
 
     def test_una_imagen_chica_cuesta_poco(self):
         assert tokens_estimados_vlm(600, 800) < tokens_estimados_vlm(3000, 4000)
+
+
+class TestSinAlinearEfectivo:
+    """⚠️ Regresión: ``--sin-alinear`` era INERTE con la librería importable.
+
+    ``dimensiones_objetivo`` no le pasaba el flag a ``dimensiones_objetivo_vlm``,
+    que alinea siempre (usa el ``smart_resize`` de Qwen2.5-VL). La bandera solo
+    llegaba al fallback local, así que en el caso normal —la librería está— no
+    cambiaba nada, mientras la doc prometía desactivar la alineación. Un destino
+    que NO es Qwen2.5-VL (PaddleOCR, un OCR clásico) no debe pagarla.
+    """
+
+    def test_sin_alinear_cambia_el_resultado(self):
+        assert dimensiones_objetivo(3000, 4000, 1000) != dimensiones_objetivo(
+            3000, 4000, 1000, alinear=False
+        )
+
+    def test_sin_alinear_deja_de_ser_multiplo(self):
+        ancho, alto = dimensiones_objetivo(3000, 4000, 1000, alinear=False)
+        assert ancho % FACTOR_PATCH_QWEN2VL != 0 or alto % FACTOR_PATCH_QWEN2VL != 0
+
+    @pytest.mark.parametrize("ancho,alto", [(3000, 4000), (2000, 2000), (5000, 7000)])
+    def test_sin_alinear_no_agranda_ni_pasa_el_objetivo(self, ancho, alto):
+        n_ancho, n_alto = dimensiones_objetivo(ancho, alto, 1000, alinear=False)
+        assert n_ancho <= ancho and n_alto <= alto
+        assert max(n_ancho, n_alto) <= 1000
+
+    @pytest.mark.parametrize("ancho,alto", [(3000, 4000), (2060, 2060)])
+    def test_sin_alinear_no_reduce_menos(self, ancho, alto):
+        """Desactivar la alineación no puede dejar la imagen más grande."""
+        con = dimensiones_objetivo(ancho, alto, 1000)
+        sin = dimensiones_objetivo(ancho, alto, 1000, alinear=False)
+        assert max(sin) <= max(con)
+
+
+class TestPisoDelLadoMenorEnElFallback:
+    """⚠️ Regresión: el fallback dejaba el lado menor en 252 con piso 256.
+
+    El camino de la librería alinea el piso HACIA ARRIBA (256 → 280) para que
+    sobreviva al redondeo a múltiplos de 28; el fallback usaba 256 pelado y
+    terminaba en 252, incumpliendo el piso que el propio módulo declara.
+    """
+
+    @pytest.mark.parametrize("ancho,alto", [(4000, 300), (6000, 400)])
+    def test_el_fallback_respeta_el_piso(self, ancho, alto):
+        n_ancho, n_alto = _dimensiones_local(
+            ancho, alto, LADO_MAYOR_PX, LADO_MENOR_MINIMO_PX
+        )
+        assert min(n_ancho, n_alto) >= LADO_MENOR_MINIMO_PX
+
+    def test_los_dos_caminos_coinciden(self):
+        """Si divergen, el reporte miente sobre lo que hizo la librería."""
+        fallback = _dimensiones_local(4000, 300, LADO_MAYOR_PX, LADO_MENOR_MINIMO_PX)
+        assert fallback == dimensiones_objetivo(4000, 300, LADO_MAYOR_PX)
+
+    def test_tampoco_agranda_al_respetar_el_piso(self):
+        n_ancho, n_alto = _dimensiones_local(4000, 300, 1024, LADO_MENOR_MINIMO_PX)
+        assert n_ancho <= 4000 and n_alto <= 300
+
+
+class TestSinAlinearDeshaceLaGrilla:
+    """El valor exacto, sin la grilla de 28 (``--sin-alinear``).
+
+    La librería de Docling alinea siempre; con ``--sin-alinear`` la reducción
+    pasa por el camino local, que baja al valor exacto. Lo que no puede pasar es
+    que el resultado quede **más grande** que el alineado: sería exactamente el
+    defecto 1 del loop base.
+    """
+
+    def test_baja_al_valor_exacto(self):
+        alineado = dimensiones_objetivo(3000, 4000, 1000)
+        exacto = dimensiones_objetivo(3000, 4000, 1000, alinear=False)
+        assert max(exacto) < max(alineado)
+        assert max(exacto) <= 1000
+
+    def test_el_lado_mayor_coincide_con_el_alineado_o_baja(self):
+        for ancho, alto in [(3000, 4000), (2000, 2000), (5000, 7000)]:
+            alineado = dimensiones_objetivo(ancho, alto, 1000)
+            exacto = dimensiones_objetivo(ancho, alto, 1000, alinear=False)
+            assert max(exacto) <= max(alineado)
+
+    def test_sin_alinear_no_agranda(self):
+        for ancho, alto in [(3000, 4000), (2000, 2000), (5000, 7000)]:
+            n_ancho, n_alto = dimensiones_objetivo(ancho, alto, 1000, alinear=False)
+            assert n_ancho <= ancho and n_alto <= alto
+
+    def test_el_camino_sin_alinear_es_el_local(self):
+        """Se reusa el camino local cubierto, no un desalineado aparte."""
+        assert dimensiones_objetivo(3000, 4000, 1000, alinear=False) == _dimensiones_local(
+            3000, 4000, 1000, LADO_MENOR_MINIMO_PX, alinear=False
+        )
+
+    def test_sin_alinear_respeta_el_piso_del_lado_menor(self):
+        n_ancho, n_alto = dimensiones_objetivo(4000, 300, 1024, alinear=False)
+        assert min(n_ancho, n_alto) >= LADO_MENOR_MINIMO_PX
+
+
+class TestFallbackSinLibreria:
+    """El camino local debe dar lo mismo que la librería (o el reporte miente)."""
+
+    def test_el_fallback_se_usa_si_la_libreria_no_esta(self, monkeypatch):
+        from voucherflow.corpus import dimensiones
+
+        monkeypatch.setattr(dimensiones, "_dimensiones_libreria", None)
+        resultado = dimensiones.dimensiones_objetivo(3000, 4000, 1024)
+        assert resultado == _dimensiones_local(3000, 4000, 1024, LADO_MENOR_MINIMO_PX)
+        assert max(resultado) % FACTOR_PATCH_QWEN2VL == 0
+
+    def test_el_fallback_con_sin_alinear_no_alinea(self, monkeypatch):
+        from voucherflow.corpus import dimensiones
+
+        monkeypatch.setattr(dimensiones, "_dimensiones_libreria", None)
+        n_ancho, n_alto = dimensiones.dimensiones_objetivo(
+            3000, 4000, 1000, alinear=False
+        )
+        assert n_ancho % FACTOR_PATCH_QWEN2VL != 0 or n_alto % FACTOR_PATCH_QWEN2VL != 0

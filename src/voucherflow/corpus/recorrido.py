@@ -133,9 +133,15 @@ def salida_de(archivo: Path, raiz: Path, salida: Path, sufijo: str) -> Path:
     Función única para escribir y para buscar: si el cálculo se duplicara, la
     reanudación y la escritura podrían divergir (y se pagaría dos veces el mismo
     documento).
+
+    Con ``sufijo=""`` (ver ``NINGUN_SUFIJO`` en
+    :mod:`voucherflow.corpus.corrida`) se reemplaza la extensión en vez de
+    agregar un sufijo, que es lo que necesita la reducción de imágenes.
     """
     try:
         relativo = archivo.resolve().relative_to(raiz.resolve())
     except (ValueError, OSError):
         relativo = Path(archivo.name)
+    if not sufijo:
+        return salida / relativo
     return salida / relativo.with_suffix(f".{sufijo}.json")

@@ -82,7 +82,14 @@ def _medir_con_ffprobe(ruta: Path) -> tuple[int, int] | None:
 
 
 def extension_destino(origen: Path, formato: str) -> str:
-    """Extensión del archivo de salida según ``formato`` (``mismo`` o ``jpg``)."""
+    """Extensión del archivo de salida según ``formato`` (``mismo`` o ``jpg``).
+
+    Con ``mismo`` se conserva la extensión del original. Con ``jpg`` se fuerza
+    ``.jpg`` para **todo** el lote, lo que hace que dos originales con el mismo
+    nombre base (``factura.jpg`` y ``factura.png``) calculen el mismo destino;
+    quien planifica es responsable de detectarlo (ver
+    :func:`voucherflow.corpus.corrida.detectar_colisiones`).
+    """
     if formato == "jpg":
         return ".jpg"
     return origen.suffix.lower() or ".jpg"
@@ -108,20 +115,73 @@ def reducir(
         _reducir_pillow(origen, destino, dims, calidad)
 
 
+def _modo_destino(img, tipo: str) -> str:
+    """Modo de la imagen reducida: se conserva salvo que el destino lo impida.
+
+    ⚠️ **Por qué no se convierte a RGB siempre.** Un escaneo 1-bit (o ``L``) en
+    PNG pesa una fracción de lo que pesa el mismo contenido en RGB de 24 bits.
+    Convertirlo sin condición hacía que el «reducido» fuera **más pesado** que
+    el original: el módulo prohíbe agrandar por *dimensiones*, y el peso merece
+    la misma regla. La conversión queda donde es obligatoria: un JPEG no puede
+    llevar alfa (y ``1`` sale mejor como ``L``).
+    """
+    if tipo != "JPEG":
+        return img.mode  # PNG/WEBP/TIFF conservan 1/L/P/RGBA tal cual
+    if img.mode in ("RGBA", "LA", "PA", "P"):
+        return "RGB"  # el alfa/paleta no existe en JPEG
+    if img.mode == "1":
+        return "L"  # blanco y negro puro: JPEG lo guarda en escala de grises
+    return img.mode if img.mode in ("L", "RGB", "CMYK") else "RGB"
+
+
 def _reducir_pillow(
     origen: Path, destino: Path, dims: tuple[int, int], calidad: int
 ) -> None:
-    """Reduce y reencoda con Pillow (backend por defecto)."""
+    """Reduce y reencoda con Pillow (backend por defecto).
+
+    El formato sale de la **extensión del destino**, no del original (el defecto
+    3 del loop base era escribir bytes JPEG en un archivo ``.png``).
+    """
     from PIL import Image, ImageOps
 
     with Image.open(origen) as img:
         img = ImageOps.exif_transpose(img)  # respeta orientación EXIF
-        img = img.convert("RGB")  # PNG con alfa / paleta → RGB para JPEG
+        tipo = tipo_salida(destino.suffix)
+        img = img.convert(_modo_destino(img, tipo))
         reducida = img.resize(dims, Image.Resampling.LANCZOS)
-        if origen.suffix.lower() == ".png" and destino.suffix.lower() == ".png":
+        if tipo == "PNG":
             reducida.save(destino, "PNG", optimize=True)
-        else:
+        elif tipo == "JPEG":
             reducida.save(destino, "JPEG", quality=calidad, optimize=True)
+        else:
+            reducida.save(destino, tipo)
+
+
+#: Extensión → nombre de formato de Pillow, para conservarlo al reencodear.
+#: Explícito y no ``sufijo.upper()``: ``.tif`` no es ``TIF`` sino ``TIFF``.
+FORMATOS_POR_EXTENSION = {
+    ".png": "PNG",
+    ".jpg": "JPEG",
+    ".jpeg": "JPEG",
+    ".webp": "WEBP",
+    ".tif": "TIFF",
+    ".tiff": "TIFF",
+    ".bmp": "BMP",
+    ".gif": "GIF",
+}
+
+
+def tipo_salida(sufijo: str) -> str:
+    """Formato de escritura según la extensión del destino (``.webp`` → WEBP).
+
+    Antes cualquier extensión que no fuera ``.png`` se escribía como JPEG: con
+    ``--formato mismo`` un ``foto.webp`` salía con bytes JPEG y nombre ``.webp``
+    (el defecto 3 del loop base, corregido solo para ``.png``).
+
+    Es pública porque la rama de copia de :mod:`voucherflow.corpus.reduccion`
+    también necesita saber si el destino puede recibir los bytes del original.
+    """
+    return FORMATOS_POR_EXTENSION.get(sufijo.lower(), "JPEG")
 
 
 def _reducir_ffmpeg(

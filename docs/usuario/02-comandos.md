@@ -442,7 +442,13 @@ y la salida lo dice en vez de inventar un número.
 preprocesador de Qwen2.5-VL no re-escale la imagen por su cuenta (si re-escala, el
 conteo de tokens deja de ser predecible). Por eso el objetivo es **aproximado**:
 1024 puede quedar en 1036. Usá `--sin-alinear` solo si el destino **no** es
-Qwen2.5-VL.
+Qwen2.5-VL: con esa bandera el objetivo es exacto (1000 en vez de 1008).
+
+⚠️ **Reducir puede subir el peso.** Un escaneo en blanco y negro puro (1-bit) o
+en escala de grises ya viene muy comprimido: el reencode puede pesar más que el
+original. El resumen del comando lo avisa y lista los archivos que engordaron
+(dentro del total quedarían invisibles). Los **tokens de visión bajan igual**, y
+ese es el objetivo real de la herramienta.
 
 | Bandera | Qué hace |
 |---|---|
@@ -454,6 +460,12 @@ Qwen2.5-VL.
 | `--sin-alinear` | No alinear a múltiplos de 28 (solo si el destino no es Qwen2.5-VL). |
 | `--backend {pillow,ffmpeg}` | Motor de reencode (default: `pillow`). |
 | `--formato {mismo,jpg}` | `mismo` conserva la extensión; `jpg` fuerza JPEG. |
+
+⚠️ **`--formato jpg` reescribe la extensión de todo el lote**, así que dos
+originales con el mismo nombre base (`factura.jpg` y `factura.png`) apuntarían al
+mismo archivo. El comando detecta la colisión y **rechaza el lote sin escribir
+nada** (código `2`), en vez de perder un archivo y reportar los dos como
+reducidos. Con `--formato mismo` no hay colisión entre formatos distintos.
 | `--extensiones LISTA` | Extensiones a procesar (default: `.jpeg,.jpg,.png`). |
 | `--forzar` | Reescribe el destino aunque exista (sin esto, **reanuda**). |
 | `--copiar-no-reducidas` | Copia sin tocar las que ya entran en el objetivo (salida completa). |

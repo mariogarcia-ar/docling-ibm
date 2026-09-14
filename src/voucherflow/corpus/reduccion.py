@@ -10,8 +10,11 @@ import shutil
 from pathlib import Path
 
 from .dimensiones import dimensiones_objetivo
-from .imagen import medir, reducir
+from .imagen import medir, reducir, tipo_salida
 from .modelo import (
+    CATEGORIA_COPIA,
+    CATEGORIA_LECTURA,
+    CATEGORIA_REANUDADO,
     ESTADO_FALLO,
     ESTADO_OMITIDO,
     ESTADO_REDUCIDO,
@@ -28,7 +31,13 @@ def procesar(origen: Path, destino: Path, opciones: Opciones) -> Resultado:
     try:
         peso_origen = origen.stat().st_size
     except OSError as exc:
-        return Resultado(origen, None, ESTADO_FALLO, f"no se pudo leer: {exc}")
+        return Resultado(
+            origen,
+            None,
+            ESTADO_FALLO,
+            f"no se pudo leer: {exc}",
+            categoria=CATEGORIA_LECTURA,
+        )
 
     dims_origen = medir(origen)
     if dims_origen is None:
@@ -38,6 +47,7 @@ def procesar(origen: Path, destino: Path, opciones: Opciones) -> Resultado:
             ESTADO_FALLO,
             "no se pudieron leer las dimensiones (imagen ilegible)",
             peso_origen=peso_origen,
+            categoria=CATEGORIA_LECTURA,
         )
 
     # Seguridad: nunca escribir sobre la entrada (lección de T-604 para `process`).
@@ -75,6 +85,7 @@ def procesar(origen: Path, destino: Path, opciones: Opciones) -> Resultado:
             dims_destino=medir(destino),
             peso_origen=peso_origen,
             peso_destino=destino.stat().st_size,
+            categoria=CATEGORIA_REANUDADO,
         )
 
     if not opciones.escribir:
@@ -109,7 +120,7 @@ def procesar(origen: Path, destino: Path, opciones: Opciones) -> Resultado:
             peso_origen=peso_origen,
         )
 
-    return Resultado(
+    resultado = Resultado(
         origen,
         destino,
         ESTADO_REDUCIDO,
@@ -119,6 +130,14 @@ def procesar(origen: Path, destino: Path, opciones: Opciones) -> Resultado:
         peso_origen=peso_origen,
         peso_destino=peso_destino,
     )
+    if resultado.engordo:
+        # No es un fallo (los tokens bajan igual), pero el operador tiene que
+        # poder verlo: dentro del total del corpus queda invisible.
+        resultado.motivo = (
+            f"el peso subió ({peso_destino} > {peso_origen} bytes): la imagen ya "
+            "venía más comprimida que el reencode"
+        )
+    return resultado
 
 
 def _ya_entra(
@@ -156,8 +175,49 @@ def _ya_entra(
             dims_destino=dims,
             peso_origen=peso_origen,
         )
-
     ya_existe = destino.exists() and not opciones.forzar
+    # ⚠️ Copiar los bytes no sirve si el formato pedido no es el del original:
+    # un PNG copiado a ``foto.jpg`` queda con nombre que miente sobre el
+    # contenido (y ningún visor le cree — el defecto 3 del loop base, en la
+    # rama de copia). Ahí se reencoda SIN cambiar el tamaño.
+    if tipo_salida(origen.suffix) != tipo_salida(destino.suffix):
+        if ya_existe:
+            return Resultado(
+                origen,
+                destino,
+                ESTADO_OMITIDO,
+                "el destino ya existe (usar --forzar para reescribir)",
+                dims_origen=dims,
+                dims_destino=medir(destino),
+                peso_origen=peso_origen,
+                peso_destino=destino.stat().st_size,
+                categoria=CATEGORIA_REANUDADO,
+            )
+        try:
+            destino.parent.mkdir(parents=True, exist_ok=True)
+            reducir(
+                origen,
+                destino,
+                dims,
+                backend=opciones.backend,
+                calidad=opciones.calidad,
+            )
+        except Exception as exc:  # noqa: BLE001 - un archivo malo no corta el lote
+            return Resultado(
+                origen, destino, ESTADO_FALLO, f"{type(exc).__name__}: {exc}"
+            )
+        return Resultado(
+            origen,
+            destino,
+            ESTADO_OMITIDO,
+            "reencodada al formato pedido, sin reducir (ya entra en el objetivo)",
+            dims_origen=dims,
+            dims_destino=dims,
+            peso_origen=peso_origen,
+            peso_destino=destino.stat().st_size,
+            categoria=CATEGORIA_COPIA,
+        )
+
     try:
         if not ya_existe:
             destino.parent.mkdir(parents=True, exist_ok=True)
@@ -179,4 +239,6 @@ def _ya_entra(
         dims_destino=dims,
         peso_origen=peso_origen,
         peso_destino=(destino.stat().st_size if destino.exists() else None),
+        # Una copia sigue siendo una copia aunque ya estuviera: hay archivo.
+        categoria=CATEGORIA_COPIA if not ya_existe else CATEGORIA_REANUDADO,
     )

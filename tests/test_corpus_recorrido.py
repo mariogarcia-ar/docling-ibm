@@ -211,3 +211,21 @@ class TestSalidaDe:
         assert salida_de(imagen, corpus, Path("/out"), "v") == salida_de(
             imagen, corpus, Path("/out"), "v"
         )
+
+    def test_sufijo_vacio_reemplaza_la_extension(self, corpus):
+        """El caso de la reducción de imágenes: escribe la imagen, no un sidecar.
+
+        Con sufijo vacío la extensión se REEMPLAZA: ``factura.jpg`` →
+        ``out/…/factura.jpg`` (y quien llame decide qué extensión quiere).
+        """
+        imagen = corpus / "2025-08" / "2D2C9343" / "factura.jpg"
+        destino = salida_de(imagen, corpus, Path("/out"), "")
+        assert destino == Path("/out/2025-08/2D2C9343/factura.jpg")
+
+    def test_sufijo_vacio_conserva_el_nivel_de_carpetas(self, corpus):
+        """La propiedad que importa: el espejado no depende del llamador."""
+        imagen = corpus / "2025-08" / "2D2C9343" / "factura.jpg"
+        desde_raiz = salida_de(imagen, corpus, Path("/out"), "")
+        raiz_mes, _ = raiz_espejado([corpus / "2025-08"], None)
+        desde_mes = salida_de(imagen, raiz_mes, Path("/out"), "")
+        assert desde_raiz == desde_mes

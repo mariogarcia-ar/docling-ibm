@@ -295,3 +295,117 @@ class TestViaCliPrincipal:
     def test_main_reporta_el_resumen(self, corpus, tmp_path, capsys):
         main(["corpus", str(corpus), "-o", str(tmp_path / "out"), "--workers", "1"])
         assert "=== Resumen ===" in capsys.readouterr().out
+
+
+class TestColisionDeDestinos:
+    """⚠️ Regresión de punta a punta: dos originales, un solo destino.
+
+    Antes: la corrida escribía un archivo, contaba dos «reducidos» y salía 0.
+    Pérdida silenciosa de datos que el reporte presentaba como éxito.
+    """
+
+    @pytest.fixture
+    def corpus_con_colision(self, tmp_path: Path) -> Path:
+        """Mismo nombre base en dos formatos: ``--formato jpg`` los colisiona."""
+        from PIL import Image
+
+        raiz = tmp_path / "files"
+        raiz.mkdir()
+        Image.new("RGB", (3000, 4000), (255, 0, 0)).save(raiz / "factura.jpg", "JPEG")
+        Image.new("RGB", (3000, 4000), (0, 0, 255)).save(raiz / "factura.png", "PNG")
+        return raiz
+
+    def test_rechaza_el_lote_y_da_2(self, corpus_con_colision, tmp_path, entorno):
+        codigo, _, error = _correr(
+            [
+                str(corpus_con_colision),
+                "-o",
+                str(tmp_path / "out"),
+                "--formato",
+                "jpg",
+            ],
+            entorno,
+        )
+        assert codigo == 2
+        assert "mismo archivo de salida" in error
+
+    def test_no_escribe_ni_un_archivo(self, corpus_con_colision, tmp_path, entorno):
+        """Se aborta ANTES de tocar el corpus: el lote no se hace a medias."""
+        _correr(
+            [str(corpus_con_colision), "-o", str(tmp_path / "out"), "--formato", "jpg"],
+            entorno,
+        )
+        assert not (tmp_path / "out").exists()
+
+    def test_nombra_los_dos_originales(self, corpus_con_colision, tmp_path, entorno):
+        _, _, error = _correr(
+            [str(corpus_con_colision), "-o", str(tmp_path / "out"), "--formato", "jpg"],
+            entorno,
+        )
+        assert "factura.jpg" in error and "factura.png" in error
+
+    def test_con_formato_mismo_no_hay_colision(self, corpus_con_colision, tmp_path, entorno):
+        """Control: es el ``--formato jpg`` el que la produce, no el corpus."""
+        codigo, _, _ = _correr(
+            [str(corpus_con_colision), "-o", str(tmp_path / "out"), "--workers", "1"],
+            entorno,
+        )
+        assert codigo == 0
+        assert (tmp_path / "out" / "factura.jpg").exists()
+        assert (tmp_path / "out" / "factura.png").exists()
+
+    def test_solo_medir_tambien_rechaza(self, corpus_con_colision, tmp_path, entorno):
+        """La simulación no debe aprobar un plan que la corrida real rechazaría."""
+        codigo, _, _ = _correr(
+            [
+                str(corpus_con_colision),
+                "-o",
+                str(tmp_path / "out"),
+                "--formato",
+                "jpg",
+                "--solo-medir",
+            ],
+            entorno,
+        )
+        assert codigo == 2
+
+
+class TestPesoQueSube:
+    """⚠️ Regresión: reducir puede AUMENTAR el peso (escaneo 1-bit → RGB).
+
+    El signo se imprime con el número, no en el formato: antes salía
+    «(--238.0%)». Y el archivo que engordó se lista, porque dentro del agregado
+    queda invisible.
+    """
+
+    @pytest.fixture
+    def escaneo_1bit(self, tmp_path: Path) -> Path:
+        from PIL import Image
+
+        raiz = tmp_path / "files"
+        raiz.mkdir()
+        img = Image.new("1", (2000, 2000), 1)
+        px = img.load()
+        for y in range(0, 2000, 2):
+            for x in range(0, 2000, 2):
+                px[x, y] = 0
+        img.save(raiz / "escaneo.png", "PNG", optimize=True)
+        return raiz
+
+    def test_el_peso_no_sube(self, escaneo_1bit, tmp_path, entorno):
+        _correr([str(escaneo_1bit), "-o", str(tmp_path / "out"), "--workers", "1"], entorno)
+        origen = (escaneo_1bit / "escaneo.png").stat().st_size
+        destino = (tmp_path / "out" / "escaneo.png").stat().st_size
+        assert destino <= origen
+
+    def test_el_porcentaje_no_lleva_doble_signo(self, escaneo_1bit, tmp_path, entorno):
+        _, salida, _ = _correr(
+            [str(escaneo_1bit), "-o", str(tmp_path / "out"), "--workers", "1"], entorno
+        )
+        assert "--" not in salida
+
+    def test_no_avisa_de_peso_si_no_subio(self, escaneo_1bit, tmp_path, entorno):
+        _, _, error = _correr(
+            [str(escaneo_1bit), "-o", str(tmp_path / "out"), "--workers", "1"], entorno
+        )
+        assert "el peso SUBIÓ" not in error
