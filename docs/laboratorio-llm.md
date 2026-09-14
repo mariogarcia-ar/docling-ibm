@@ -41,7 +41,7 @@ negocio** y sin volver a gastar. Sin él, "el prompt mejoró" es una impresión.
 
 ```bash
 # El lote completo, sin llamar a la API ni escribir nada
-voucherflow-lab var/processed --dry-run --forzar
+voucherflow-lab var/processed --dry-run
 ```
 
 ```
@@ -54,9 +54,12 @@ postura del precio: PICO y SIN caché: es el techo
 confianza         : fórmula (3.92 car/token; medido contra la API)
 ```
 
-⚠️ `--forzar` es necesario para simular el lote **completo**: sin él, la
-estimación cubre solo lo pendiente. La postura del precio es el **techo** (tarifa
-pico y sin caché): la corrida real sale igual o menos.
+El `--dry-run` recorre **todo el lote**, incluidas las imágenes ya procesadas: no
+saltea nada (saltear es cosa de la corrida real, que reanuda). Por eso `--forzar`
+es innecesario acá —si lo pasás igual, se avisa y no cambia la estimación—.
+
+La postura del precio es el **techo** (tarifa pico y sin caché): la corrida real
+sale igual o menos.
 
 ### 2. Extraer el corpus
 
@@ -163,14 +166,38 @@ Tres cosas que el reporte **declara** en vez de disimular:
 ### Reporte de gastos
 
 ```bash
-voucherflow-lab var/processed --reporte-gastos gastos.json --tz -03:00
-voucherflow-lab var/processed --reporte-gastos gastos.json \
-    --csv-gastos gastos.csv --csv-delim ';' --csv-decimal ','
+voucherflow-lab --reporte-gastos gastos.json -o var/processed --tz -03:00
+voucherflow-lab --reporte-gastos gastos.json --csv-gastos gastos.csv \
+    -o var/processed --csv-delim ';' --csv-decimal ','
 ```
 
 Lee **todo el histórico** de la carpeta de salida (no la última corrida) y agrupa
-por día, modelo y modo. No cuentan los `--dry-run` (no se llamó a la API) ni los
-fallos sin uso.
+por día, modelo y modo. Como es una consulta, **no recorre rutas ni necesita
+credencial**: alcanza con `-o` (o la carpeta de la configuración).
+
+```
+=== Reporte de gastos (API) ===
+período           : 2026-09-13 → 2026-09-13 (UTC-03:00)
+extracciones      : 1
+tokens            : prompt 3,017 (de los cuales 2,816 de caché) | completion 250
+costo total       : US$ 0.000377
+```
+
+No cuentan los `--dry-run` (no se llamó a la API) ni el modo `diff`. Un fallo que
+**sí** consumió tokens se suma al total y se declara aparte («FALLOS PAGADOS»):
+es gasto real, pero no es una extracción.
+
+Dos avisos que el reporte no esconde:
+
+- **SIN PRECIO**: si el modelo no está en la tabla, esas extracciones suman US$ 0
+  y el costo real es mayor (el comando sale con código 1).
+- **PARCIAL**: si solo se conoce el precio de entrada o el de salida, el total es
+  un **piso**, no el total.
+
+El `--tz` acepta `local` (default), `UTC` o un offset como `-03:00`. Los apuntes
+se deduplican por **documento real + momento**: el mismo comprobante escrito en
+dos carpetas (por invocar el comando con otra raíz) no se cobra dos veces, pero
+reprocesarlo en otro momento sí cuenta (se pagó de nuevo).
 
 ## Lo que este laboratorio no hace
 

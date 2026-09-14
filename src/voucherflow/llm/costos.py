@@ -64,7 +64,8 @@ PRECIOS_CACHE: dict[str, float] = {
 
 
 #: Cómo se obtuvo una estimación. Se declara en el reporte: una estimación nunca
-#: se presenta como una factura.
+#: se presenta como una factura. Las tres las usa `corrida.estimar_costo_corrida`,
+#: que es quien sabe si calibró con el histórico.
 CONFIANZA_FORMULA = "formula"
 CONFIANZA_HISTORICO = "historico"
 CONFIANZA_MIXTA = "mixta"
@@ -137,8 +138,15 @@ def precio_de(
 
 
 def precio_cache_de(modelo: str, precios_cache: dict[str, float] | None = None) -> float | None:
-    """Precio de la entrada cacheada del modelo, si el proveedor lo expone."""
-    tabla = PRECIOS_CACHE if precios_cache is None else precios_cache
+    """Precio de la entrada cacheada del modelo, si el proveedor lo expone.
+
+    ⚠️ ``None`` y ``{}`` significan lo mismo (**usar la tabla de referencia**),
+    igual que en :func:`precio_de`. Antes ``{}`` devolvía ``None`` y ``None``
+    devolvía el precio: el default de ``Opciones.precios_cache`` es ``{}``, así
+    que el precio de caché se perdía en silencio al construir las opciones por
+    código (el CLI lo tapaba pasando la tabla a mano).
+    """
+    tabla = PRECIOS_CACHE if not precios_cache else precios_cache
     clave = clave_modelo(modelo, tabla)
     return tabla[clave] if clave is not None else None
 

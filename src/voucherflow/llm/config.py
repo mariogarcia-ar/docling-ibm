@@ -23,15 +23,15 @@ MIME_POR_EXTENSION = {
 
 MODELO_POR_DEFECTO = "deepseek-flash"
 
-BASE_URL_POR_DEFECTO = "https://api.deepseek.com"
+#: ⚠️ `BASE_URL_POR_DEFECTO`, `PIXELES_OBJETIVO_IMAGEN` y
+#: `PIXELES_MINIMOS_IMAGEN` se eliminaron: la URL base y los topes de píxeles
+#: son **capacidades de un proveedor** y viven en `proveedores.py` (``base_url``
+#: y ``tokens_por_imagen``), como pide el encabezado de este módulo. Tenerlos acá
+#: era una segunda fuente de verdad que nadie leía.
 
 MAX_REINTENTOS_ESQUEMA = 3
 
-PIXELES_OBJETIVO_IMAGEN = 1300 * 1300
-
 TOKENS_MAX_IMAGEN = 1024
-
-PIXELES_MINIMOS_IMAGEN = 544 * 544
 
 LIMITE_BYTES_IMAGEN = 32 * 1024 * 1024
 

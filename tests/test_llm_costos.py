@@ -11,6 +11,9 @@ sin precio, un precio a medias, una entrada cacheada.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+from typing import Any
+
 import pytest
 
 from voucherflow.llm.costos import (
@@ -28,6 +31,7 @@ from voucherflow.llm.costos import (
     precio_cache_de,
     precio_de,
 )
+from voucherflow.llm.protocolo import CLAVE_CACHE_HIT
 
 
 class TestClaveModelo:
@@ -140,6 +144,102 @@ class TestPrecioCacheDe:
     def test_un_modelo_sin_cache_devuelve_none(self):
         # OpenAI no expone un precio de caché distinto en esta tabla.
         assert precio_cache_de("gpt-4o") is None
+
+    def test_la_tabla_vacia_usa_la_de_referencia(self):
+        """⚠️ ``{}`` y ``None`` significan lo mismo: usar la referencia.
+
+        Antes ``{}`` devolvía ``None`` y ``None`` devolvía el precio. El default
+        de ``Opciones.precios_cache`` es ``{}``, así que el precio de caché se
+        perdía en silencio al construir las opciones por código (el CLI lo tapaba
+        pasando la tabla a mano). Es la misma política que ``precio_de``.
+        """
+        assert precio_cache_de("deepseek-flash", {}) == PRECIOS_CACHE["deepseek-flash"]
+        assert precio_cache_de("deepseek-flash", None) == PRECIOS_CACHE["deepseek-flash"]
+
+    def test_una_tabla_explicita_pisa_la_de_referencia(self):
+        assert precio_cache_de("deepseek-flash", {"deepseek-flash": 0.001}) == 0.001
+        # Una tabla que no tiene el modelo no cae a la de referencia: el
+        # llamador declaró su propia tabla y hay que respetarla.
+        assert precio_cache_de("deepseek-flash", {"otro": 0.001}) is None
+
+
+class TestCosturaAdaptadorCosto:
+    """La junta adaptador→costo, que es donde vivía el bug más caro del módulo.
+
+    Cada mitad estaba testeada por separado y la costura no: el adaptador emitía
+    ``cache_hit_tokens`` y el costo leía ``prompt_cache_hit_tokens``, así que el
+    descuento de la caché **nunca** se aplicaba y el gasto se reportaba ~3,2x de
+    más. Estos tests usan las constantes compartidas, no literales.
+    """
+
+    def _uso_normalizado(self, **uso_kwargs):
+        from voucherflow.llm.proveedores import AdaptadorDeepSeek
+
+        @dataclass
+        class _Uso:
+            prompt_tokens: int = 3017
+            completion_tokens: int = 250
+            total_tokens: int = 3267
+            prompt_cache_hit_tokens: int | None = None
+            prompt_cache_miss_tokens: int | None = None
+
+        @dataclass
+        class _Eleccion:
+            message: Any
+            finish_reason: str = "stop"
+
+        @dataclass
+        class _Respuesta:
+            choices: list
+            usage: Any = None
+
+        lectura = AdaptadorDeepSeek().leer_respuesta(
+            _Respuesta(
+                [_Eleccion(type("M", (), {"content": "{}"})())],
+                _Uso(**uso_kwargs) if uso_kwargs else _Uso(),
+            )
+        )
+        return lectura["uso"]
+
+    def test_el_uso_del_adaptador_sirve_para_cobrar_el_descuento(self):
+        uso = self._uso_normalizado(
+            prompt_cache_hit_tokens=2816, prompt_cache_miss_tokens=201
+        )
+        precio_entrada, precio_salida = precio_de("deepseek-flash", {})
+        precio_cache = precio_cache_de("deepseek-flash", {})
+
+        # Exactamente lo que hace `corrida.procesar` al cobrar.
+        costo = costo_de_tokens(
+            uso.get("prompt_tokens") or 0,
+            uso.get("completion_tokens") or 0,
+            precio_entrada,
+            precio_salida,
+            cache_hit_tokens=uso.get(CLAVE_CACHE_HIT) or 0,
+            precio_cache=precio_cache,
+        )
+        # Con la caché aplicada el costo es una fracción del que saldría sin ella.
+        sin_cache = costo_de_tokens(
+            uso["prompt_tokens"], uso["completion_tokens"], precio_entrada, precio_salida
+        )
+        assert precio_cache is not None
+        assert costo < sin_cache
+        # `costo_de_tokens` redondea a 6 decimales (una extracción cuesta centavos).
+        assert costo == round((201 * 0.30 + 2816 * 0.006 + 250 * 1.20) / 1e6, 6)
+
+    def test_sin_cache_expuesta_el_costo_no_cambia(self):
+        uso = self._uso_normalizado()
+        precio_entrada, precio_salida = precio_de("deepseek-flash", {})
+        assert uso.get(CLAVE_CACHE_HIT) is None
+        assert costo_de_tokens(
+            uso["prompt_tokens"],
+            uso["completion_tokens"],
+            precio_entrada,
+            precio_salida,
+            cache_hit_tokens=uso.get(CLAVE_CACHE_HIT) or 0,
+            precio_cache=precio_cache_de("deepseek-flash", {}),
+        ) == costo_de_tokens(
+            uso["prompt_tokens"], uso["completion_tokens"], precio_entrada, precio_salida
+        )
 
 
 class TestFormato:

@@ -30,7 +30,6 @@ from typing import Any
 
 from .config import MAX_REINTENTOS_ESQUEMA
 from .esquema import _errores_de_esquema, _validador_jsonschema, normalizar_por_esquema
-from .protocolo import Capacidades
 from .proveedores import AdaptadorDeepSeek, proveedor_por_nombre
 
 
@@ -99,15 +98,6 @@ def _pedir_correccion(
             ],
         }
     )
-
-
-def capacidades_del_proveedor(proveedor: str | Any) -> Capacidades:
-    """Normaliza el proveedor recibido: nombre, instancia o nada (por defecto)."""
-    if isinstance(proveedor, str):
-        return proveedor_por_nombre(proveedor).capacidades
-    if proveedor is None:
-        return AdaptadorDeepSeek().capacidades
-    return proveedor.capacidades
 
 
 def llamar_api(

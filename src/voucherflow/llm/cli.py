@@ -130,6 +130,10 @@ def construir_parser() -> argparse.ArgumentParser:
     gastos.add_argument("--reporte-gastos", type=Path,
                         help="agregar el gasto del histórico de la salida y salir")
     gastos.add_argument("--csv-gastos", type=Path, help="además, escribir un CSV")
+    gastos.add_argument("--csv-delim", default=",", metavar="C",
+                        help="delimitador del CSV de gastos (default: «,»; Excel es-AR usa «;»)")
+    gastos.add_argument("--csv-decimal", default=".", metavar="C",
+                        help="separador decimal del CSV (default: «.»; Excel es-AR usa «,»)")
     gastos.add_argument("--tz", default="local", help="zona horaria del reporte (default: local)")
 
     # Introspección.
@@ -175,12 +179,113 @@ def _mostrar_proveedores() -> int:
     return 0
 
 
+def _normalizar_argv(argv: list[str] | None) -> list[str]:
+    """Une los valores que empiezan con ``-`` al argumento que los espera.
+
+    ``argparse`` lee ``--tz -03:00`` como «falta un argumento» porque el valor
+    arranca con ``-`` y lo toma por una bandera. Un offset horario es un valor
+    legítimo (y el ejemplo documentado del reporte), así que se reescribe a la
+    forma ``--tz=-03:00`` antes de parsear.
+
+    Con ``argv=None`` se normaliza ``sys.argv[1:]``: es el camino del binario
+    real (``entrypoint`` llama a ``main()`` sin argumentos), y si no se
+    normalizara ahí, la bandera seguiría fallando desde la terminal.
+    """
+    if argv is None:
+        argv = sys.argv[1:]
+    con_valor_negativo = ("--tz",)
+    normalizado: list[str] = []
+    i = 0
+    while i < len(argv):
+        actual = argv[i]
+        if actual in con_valor_negativo and i + 1 < len(argv) and argv[i + 1].startswith("-"):
+            normalizado.append(f"{actual}={argv[i + 1]}")
+            i += 2
+            continue
+        normalizado.append(actual)
+        i += 1
+    return normalizado
+
+
+def _reportar_gastos(args: argparse.Namespace, salida: Path) -> int:
+    """Atiende ``--reporte-gastos`` / ``--csv-gastos`` y devuelve el código de salida.
+
+    Lee el histórico de la carpeta, imprime el reporte y escribe lo que se haya
+    pedido. No llama a la API ni toca la credencial: es consulta, no corrida.
+    """
+    try:
+        tz, tz_etiqueta = corrida._tz_desde(args.tz)
+    except ValueError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+
+    opciones = corrida.Opciones(
+        modo="gastos",
+        modelo=_resolver_modelo(args.proveedor, args.modelo),
+        detalle=args.detalle,
+        temperatura=None,
+        max_tokens=None,
+        esfuerzo=None,
+        salida=salida,
+        forzar=False,
+        workers=1,
+        dry_run=True,  # no es una corrida: nada de esto se usa para cobrar
+        incluir_ejemplo=False,
+        precios=_precios_de(args),
+        # Se pasa la tabla explícita: es el default del CLI. La política de
+        # `None`/`{}` (usar la referencia) ahora es la misma en `costos`, así que
+        # esto es redundante a propósito — deja el reporte atado a los precios
+        # de la corrida que lo invoca.
+        precios_cache=costos.PRECIOS_CACHE,
+        tz=tz,
+        tz_etiqueta=tz_etiqueta,
+        csv_delim=args.csv_delim,
+        csv_decimal=args.csv_decimal,
+    )
+
+    try:
+        rep, apuntes = corrida.reporte_de_gastos(
+            salida,
+            opciones,
+            json_salida=args.reporte_gastos,
+            csv_salida=args.csv_gastos,
+        )
+    except OSError as exc:
+        print(f"error: no se pudo escribir el reporte: {exc}", file=sys.stderr)
+        return 2
+
+    corrida.imprimir_reporte_gastos(rep, apuntes)
+    if args.reporte_gastos:
+        print(f"\nreporte           : {args.reporte_gastos}")
+    if args.csv_gastos:
+        print(f"csv               : {args.csv_gastos}")
+    # Un total incompleto no es un éxito: el número que muestra es un piso.
+    return 1 if rep["costo_parcial"] else 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = construir_parser()
-    args = parser.parse_args(argv)
+    args = parser.parse_args(_normalizar_argv(argv))
 
     if args.listar_proveedores:
         return _mostrar_proveedores()
+
+    # La carpeta de salida: la pedida con `-o`, o la de la configuración. El
+    # default sale de `paths.validations` y no de un literal, así los paths
+    # viven en un solo lugar (`voucherflow.yaml` / `VOUCHERFLOW__PATHS__…`).
+    # Se resuelve antes del reporte de gastos, que la necesita y no tiene rutas.
+    from voucherflow.settings.config import cargar_settings
+
+    ajustes = cargar_settings()
+    salida = args.salida or ajustes.paths.resolver("validations")
+
+    # El reporte de gastos es un modo de **consulta**: lee el histórico de la
+    # carpeta de salida y sale. No recorre rutas, no arma el prompt y no
+    # necesita credencial, así que se atiende antes de validar esas cosas.
+    # (Estas banderas existían en el parser pero nadie las leía: el reporte era
+    # código inalcanzable.)
+    if args.reporte_gastos or args.csv_gastos:
+        return _reportar_gastos(args, salida)
 
     if args.operacion in {"validar", "diff"} and not args.datos:
         parser.error(f"--datos es obligatorio con la operación {args.operacion}")
@@ -200,12 +305,16 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     if args.forzar and args.dry_run:
-        print("error: --forzar y --dry-run son excluyentes", file=sys.stderr)
-        return 2
-    if args.forzar:
-        # Sin esto, `main` estima solo los pendientes: para simular el lote
-        # completo hay que forzarlo (o usar una salida vacía).
-        print("nota: --forzar con --dry-run estima el lote completo")
+        # ⚠️ No son excluyentes. El dry-run **no escribe**, así que `--forzar`
+        # no tiene nada que forzar: es inocuo. Rechazarlo era un error, porque
+        # la documentación del laboratorio invita justamente a esa combinación
+        # para simular el lote completo (y el mensaje contradecía a la nota que
+        # decía que esa combinación estima el lote completo).
+        print(
+            "nota: --forzar no cambia la estimación: --dry-run ya recorre el "
+            "lote completo, sin saltar lo ya procesado.",
+            file=sys.stderr,
+        )
 
     # El `.env` se carga **antes** de resolver la credencial, y sin pisar lo que
     # ya esté exportado: una variable del entorno gana sobre el archivo (así se
@@ -215,14 +324,6 @@ def main(argv: list[str] | None = None) -> int:
             print(f"error: no existe el .env {args.env}", file=sys.stderr)
             return 2
         entorno.cargar_env(args.env)
-
-    # La carpeta de salida: la pedida con `-o`, o la de la configuración. El
-    # default sale de `paths.validations` y no de un literal, así los paths
-    # viven en un solo lugar (`voucherflow.yaml` / `VOUCHERFLOW__PATHS__…`).
-    from voucherflow.settings.config import cargar_settings
-
-    ajustes = cargar_settings()
-    salida = args.salida or ajustes.paths.resolver("validations")
 
     print(f"proveedor : {args.proveedor}")
     print(f"operación : {args.operacion}")

@@ -18,7 +18,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from .protocolo import Capacidades
+from .protocolo import CLAVE_CACHE_HIT, CLAVE_CACHE_MISS, Capacidades
 
 #: Nombre del parámetro del SDK para el techo de tokens de salida.
 CAMPO_MAX_TOKENS = "max_completion_tokens"
@@ -51,6 +51,12 @@ def _uso_normalizado(uso: Any, *, con_cache: bool) -> dict[str, Any]:
     Se leen con ``getattr`` porque los SDK no devuelven exactamente el mismo
     objeto. Un campo ausente queda en ``None``, no en cero: no es lo mismo «no
     hubo tokens de caché» que «el proveedor no me dijo».
+
+    ⚠️ Las claves de caché son las del **SDK** (:data:`CLAVE_CACHE_HIT`), no
+    nombres propios: el uso lo consume ``corrida.py``, que lee el campo tal como
+    lo nombra el proveedor. Usar un nombre propio acá fue un bug real —el
+    descuento de la caché dejó de aplicarse en silencio— y los nombres distintos
+    en cada punta no lo delataban, porque un ``dict`` no tiene forma.
     """
     if uso is None:
         return {"prompt_tokens": None, "completion_tokens": None, "total_tokens": None}
@@ -60,8 +66,8 @@ def _uso_normalizado(uso: Any, *, con_cache: bool) -> dict[str, Any]:
         "total_tokens": getattr(uso, "total_tokens", None),
     }
     if con_cache:
-        datos["cache_hit_tokens"] = getattr(uso, "prompt_cache_hit_tokens", None)
-        datos["cache_miss_tokens"] = getattr(uso, "prompt_cache_miss_tokens", None)
+        datos[CLAVE_CACHE_HIT] = getattr(uso, CLAVE_CACHE_HIT, None)
+        datos[CLAVE_CACHE_MISS] = getattr(uso, CLAVE_CACHE_MISS, None)
     return datos
 
 

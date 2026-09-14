@@ -32,6 +32,23 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Protocol, runtime_checkable
 
+#: Clave del uso normalizado con los tokens de entrada servidos desde el caché
+#: del proveedor. Es el **nombre del campo del SDK** (``usage.prompt_cache_hit_tokens``)
+#: a propósito: el uso viaja de ``leer_respuesta`` al registro, al costo y al
+#: reporte, y los dos extremos tienen que hablar del mismo campo.
+#:
+#: ⚠️ No es cosmético. El adaptador emitía ``cache_hit_tokens`` (nombre propio) y
+#: ``corrida.py`` leía ``prompt_cache_hit_tokens`` (el del proveedor): al no
+#: coincidir nunca, el descuento de la caché no se aplicaba **jamás** y el gasto
+#: se reportaba ~3,2x de más. Como el ``dict`` no tiene forma, nada lo detectaba:
+#: cada mitad estaba testeada y la costura no.
+CLAVE_CACHE_HIT = "prompt_cache_hit_tokens"
+
+#: Ídem para la parte de la entrada que **no** salió de caché (se cobra al precio
+#: lleno). Se lee solo para el reporte.
+CLAVE_CACHE_MISS = "prompt_cache_miss_tokens"
+
+
 
 @dataclass(frozen=True)
 class Capacidades:
@@ -139,5 +156,9 @@ class ProveedorLLM(Protocol):
         El SDK devuelve objetos distintos según el proveedor; el núcleo no
         debería saberlo. ``uso`` incluye los tokens de caché cuando el proveedor
         los expone (si no, simplemente no están).
+
+        ⚠️ Las claves de ``uso`` son las del SDK (:data:`CLAVE_CACHE_HIT` y
+        :data:`CLAVE_CACHE_MISS`), no nombres propios: quien consume el uso es
+        ``corrida.py`` y compara contra el ``usage`` real del proveedor.
         """
         ...

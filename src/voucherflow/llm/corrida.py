@@ -52,7 +52,15 @@ from .config import (
     TOKENS_MAX_IMAGEN,  # noqa: E402
     VERSION_PROMPT,
 )
-from .costos import costo_de_tokens, precio_cache_de, precio_de
+from .costos import (
+    CONFIANZA_FORMULA,
+    CONFIANZA_HISTORICO,
+    CONFIANZA_MIXTA,
+    costo_de_tokens,
+    formatear_precio,
+    precio_cache_de,
+    precio_de,
+)
 from .datos import buscar_datos
 from .ejecucion import llamar_api  # noqa: E402
 from .esquema import _validador_jsonschema
@@ -60,6 +68,7 @@ from .esquemas import esquema_extraccion, esquema_validacion
 from .evaluador import diff_deterministico, verificar_aritmetica
 from .imagenes import codificar_imagen, info_imagen
 from .prompts import armar_prompt_efectivo, hash_prompt
+from .protocolo import CLAVE_CACHE_HIT, CLAVE_CACHE_MISS
 from .proveedores import proveedor_por_nombre
 
 
@@ -232,7 +241,9 @@ def procesar(
         respuesta.uso.get("completion_tokens") or 0,
         p_entrada,
         p_salida,
-        cache_hit_tokens=respuesta.uso.get("prompt_cache_hit_tokens") or 0,
+        # Las claves son las del SDK, compartidas con el adaptador: cuando cada
+        # punta usaba su propio nombre, la caché no se descontaba nunca.
+        cache_hit_tokens=respuesta.uso.get(CLAVE_CACHE_HIT) or 0,
         precio_cache=p_cache,
     )
 
@@ -303,10 +314,10 @@ def estimar_costo_corrida(
     medidas = _tokens_de_texto_historicos(opciones.salida, opciones)
     if len(medidas) >= MIN_MUESTRAS_PARA_CALIBRAR:
         tokens_texto = round(sum(medidas) / len(medidas))
-        confianza = "historico"
+        confianza = CONFIANZA_HISTORICO
     else:
         tokens_texto = tokens_texto_formula
-        confianza = "formula"
+        confianza = CONFIANZA_FORMULA
 
     salidas_historicas = _tokens_de_salida_historicos(opciones.salida, opciones)
     tokens_salida = (
@@ -314,10 +325,10 @@ def estimar_costo_corrida(
         if salidas_historicas
         else COMPLETION_TOKENS_TIPICO
     )
-    if salidas_historicas and confianza == "historico":
-        confianza = "historico"
+    if salidas_historicas and confianza == CONFIANZA_HISTORICO:
+        confianza = CONFIANZA_HISTORICO
     elif salidas_historicas:
-        confianza = "mixta"
+        confianza = CONFIANZA_MIXTA
 
     precio_entrada, precio_salida = precio_de(opciones.modelo, opciones.precios)
     # El caché no se sabe de antemano: se estima el caso **sin caché** (el más
@@ -376,7 +387,7 @@ def estimar_costo_corrida(
         "tokens_entrada_totales": total_entrada,
         "tokens_salida_totales": total_salida,
         "cache_hit_historicos": sum(
-            (registro.get("uso") or {}).get("prompt_cache_hit_tokens") or 0
+            (registro.get("uso") or {}).get(CLAVE_CACHE_HIT) or 0
             for registro in _registros_validos(opciones.salida, opciones)
         ),
         "costo_usd_total": round(total_costo, 6) if total_costo else None,
@@ -491,9 +502,9 @@ def imprimir_estimacion(est: dict[str, Any], *, detalle: bool = False) -> None:
         else:
             print()
         print(
-            f"precios usados    : US$ {_fmt_precio(est['precio_entrada_usd_1m'])}/1M "
-            f"entrada, US$ {_fmt_precio(est['precio_salida_usd_1m'])}/1M salida, "
-            f"US$ {_fmt_precio(est.get('precio_entrada_cache_usd_1m'))}/1M entrada-caché "
+            f"precios usados    : US$ {formatear_precio(est['precio_entrada_usd_1m'])}/1M "
+            f"entrada, US$ {formatear_precio(est['precio_salida_usd_1m'])}/1M salida, "
+            f"US$ {formatear_precio(est.get('precio_entrada_cache_usd_1m'))}/1M entrada-caché "
             f"({est['opciones']['modelo']})"
         )
         print(
@@ -532,24 +543,31 @@ def imprimir_estimacion(est: dict[str, Any], *, detalle: bool = False) -> None:
 def _salidas_en_otras_raices(
     salida: Path, raiz: Path, imagenes: Sequence[Path], sufijo: str
 ) -> list[Path]:
-    """Salidas de estas imágenes que existen en OTRA ubicación de ``salida``.
+    """Salidas de **estas** imágenes que ya existen en OTRA ubicación de ``salida``.
 
     Detecta el caso que hizo pagar dos veces: la misma imagen ya procesada con
-    otra raíz de espejado (p. ej. ``salida/2025-08/<hash>/x.json`` vs
-    ``salida/<hash>/x.json``). Devuelve los archivos encontrados, como aviso.
+    otra raíz de espejado (``salida/2025-08/<hash>/x.json`` vs
+    ``salida/<hash>/x.json``). La reanudación no las encuentra —busca la ruta
+    calculada— así que el documento se vuelve a pagar sin que nada lo avise.
+
+    ⚠️ El emparejamiento es por **cola de ruta** (carpeta contenedora + nombre),
+    no por el nombre suelto ni por «todo lo que no sea la ruta esperada»:
+    cualquiera de esas dos cosas marcaría archivos de otros documentos y el aviso
+    se volvería ruido que nadie lee.
     """
     if not salida.is_dir():
         return []
-    # Índice por nombre de archivo: la ruta esperada de cada imagen.
-    esperadas = {
-        salida_de(img, raiz, salida, sufijo).resolve() for img in imagenes
-    }
+    esperadas = {salida_de(img, raiz, salida, sufijo).resolve() for img in imagenes}
+    # Cola de cada salida esperada: es lo que sobrevive a un cambio de raíz.
+    colas = {(p.parent.name, p.name) for p in esperadas}
     encontradas: list[Path] = []
     for archivo in salida.rglob(f"*.{sufijo}.json"):
+        if (archivo.parent.name, archivo.name) not in colas:
+            continue
         try:
             if archivo.resolve() in esperadas:
                 continue
-        except OSError:
+        except OSError:  # pragma: no cover - rutas raras del sistema
             continue
         encontradas.append(archivo)
     return encontradas
@@ -599,7 +617,7 @@ def resumen(registros: Sequence[dict], opciones: Opciones) -> dict[str, Any]:
     """Resumen agregado de **una corrida**: estados, errores, tokens y costo.
 
     Es el reporte de la corrida (qué se procesó ahora). Para el reporte de
-    **gastos** acumulado y con fechas, ver :func:`ledger_de_registros`.
+    **gastos** acumulado y con fechas, ver :func:`reporte_de_gastos`.
     """
     estados: dict[str, int] = {}
     errores: list[dict[str, str]] = []
@@ -618,8 +636,8 @@ def resumen(registros: Sequence[dict], opciones: Opciones) -> dict[str, Any]:
         uso = r.get("uso") or {}
         prompt_tokens += uso.get("prompt_tokens") or 0
         completion_tokens += uso.get("completion_tokens") or 0
-        cache_hit_tokens += uso.get("prompt_cache_hit_tokens") or 0
-        cache_miss_tokens += uso.get("prompt_cache_miss_tokens") or 0
+        cache_hit_tokens += uso.get(CLAVE_CACHE_HIT) or 0
+        cache_miss_tokens += uso.get(CLAVE_CACHE_MISS) or 0
         reintentos += r.get("reintentos_esquema") or 0
         tokens_imagen_estimados += (r.get("imagen") or {}).get("tokens_estimados") or 0
 
@@ -732,55 +750,16 @@ def _imprimir_resumen(rep: dict) -> None:
         print(f"  … y {rep['errores'] - len(rep['detalle_errores'])} errores más", file=sys.stderr)
 
 
-#: Campos de importe que deben sumar el total (en el orden en que se suman).
-
-
-
-
-# --------------------------------------------------------------------------- #
-# Precios de referencia (editables / override por CLI)
-# --------------------------------------------------------------------------- #
-#
-# ⚠️ Los precios CAMBIAN y dependen del modelo y de la cuenta. Estos valores son
-# una **referencia** editable (USD por 1M de tokens, entrada/salida); el número
-# que manda es el del proveedor. Cualquier precio pasado por CLI
-# (``--precio-entrada`` / ``--precio-salida``) pisa esta tabla, y ``--precios``
-# permite precios por modelo. Si no hay precio para un modelo, el costo queda
-# en ``null`` en vez de inventarse (y el reporte lo declara).
-
-#: Precios de referencia (USD por 1M de tokens), como
-#: ``modelo -> (entrada, salida, entrada_cache_hit)``.
-#:
-#: ⚠️ DeepSeek cobra distinto en **horario pico** (01:00-04:00 y 06:00-10:00 UTC,
-#: de lunes a viernes; el resto es «off-peak» a **mitad de precio**). Acá se usa
-#: la tarifa **pico**, que es la más cara, así la estimación no queda corta. Si
-#: corrés fuera de esa ventana, pasá ``--precios`` con la mitad.
-#:
-#: El **caché de contexto** (``prompt_cache_hit_tokens``) tiene su propia tarifa,
-#: dos órdenes por debajo de la de entrada: es lo que abarata el prompt repetido
-#: en todo el lote, porque el prefijo (system + imagen) es idéntico.
-PRECIOS_REFERENCIA: dict[str, tuple[float, float, float]] = {
-    "deepseek-flash": (0.30, 1.20, 0.006),
-    "deepseek-v4-pro": (1.32, 3.96, 0.044),
-    # Alias legacy: la API los sigue aceptando y los sirve con el Flash actual.
-    "deepseek-v4-flash": (0.30, 1.20, 0.006),
-    "deepseek-v4-flash-vision-exp": (0.30, 1.20, 0.006),
-}
-
-#: Tupla de precios tal como la maneja el resto del script.
-Precios = tuple[float | None, float | None, float | None]
-
-
-def _fmt_precio(valor: float | None) -> str:
-    """Precio para los avisos: el número o ``—`` si no está definido."""
-    return f"{valor:g}" if valor is not None else "—"
-
-
-
-
 # --------------------------------------------------------------------------- #
 # Reporte de gastos (registro contable acumulado)
 # --------------------------------------------------------------------------- #
+#
+# ⚠️ Acá vivía una **segunda** tabla de precios (`PRECIOS_REFERENCIA`), un tipo
+# `Precios` de tres elementos y el helper `_fmt_precio`. Los tres duplicaban lo
+# que ya está en `costos.py` (`PRECIOS_REFERENCIA`, con la tupla de dos precios
+# que el resto del código usa, y `formatear_precio`), y ninguno se leía: dos
+# tablas de precios son una deriva silenciosa en el dato que el usuario ve.
+# La única fuente es `costos.py`.
 
 
 def _tz_desde(texto: str) -> tuple[timezone | None, str]:
@@ -858,7 +837,7 @@ def apunte_de_registro(
     uso = registro.get("uso") or {}
     entrada = uso.get("prompt_tokens") or 0
     salida = uso.get("completion_tokens") or 0
-    cache_hit = uso.get("prompt_cache_hit_tokens") or 0
+    cache_hit = uso.get(CLAVE_CACHE_HIT) or 0
     modelo = registro.get("modelo") or "desconocido"
     p_entrada, p_salida = precio_de(modelo, opciones.precios)
     p_cache = precio_cache_de(modelo, opciones.precios_cache)
@@ -955,11 +934,6 @@ def _clave_apunte(apunte: dict) -> tuple:
         apunte.get("fuente"),
         apunte.get("fecha_hora"),
     )
-
-
-#: Entrada que registra el **apunte del fallo**. Un ``error`` se guarda en el
-#: registro para poder auditarlo, pero no representa ninguna extracción.
-APUNTE_DE_FALLO = {"error": "fallo de la llamada"}
 
 
 def leer_apuntes(salida: Path, opciones: Opciones) -> tuple[list[dict], int]:
@@ -1198,6 +1172,43 @@ def escribir_csv_gastos(
                         fila[clave] = f"{fila[clave]:.4f}".replace(".", decimal)
             escritor.writerow(fila)
 
+
+def reporte_de_gastos(
+    salida: Path,
+    opciones: Opciones,
+    *,
+    json_salida: Path | None = None,
+    csv_salida: Path | None = None,
+    escribir: bool = True,
+) -> tuple[dict[str, Any], list[dict]]:
+    """Arma el reporte de gastos del **histórico** de la carpeta de salida.
+
+    Es el punto de entrada que faltaba: ``leer_apuntes`` / ``totalizar`` /
+    ``imprimir_reporte_gastos`` / ``escribir_csv_gastos`` estaban escritos y
+    documentados, pero nadie los llamaba —las banderas ``--reporte-gastos`` y
+    ``--csv-gastos`` se registraban en el CLI y no se leían—, así que el reporte
+    existía sin ser alcanzable.
+
+    Devuelve ``(reporte, apuntes)``. Con ``escribir=False`` no toca el disco (lo
+    usan los tests y un futuro ``--solo-medir`` del reporte).
+    """
+    apuntes, descartados = leer_apuntes(salida, opciones)
+    rep = totalizar(apuntes)
+    rep["descartados"] = descartados
+    rep["opciones"] = {"tz": opciones.tz_etiqueta, "salida": str(salida)}
+    if escribir:
+        if json_salida:
+            _guardar(json_salida, rep)
+        if csv_salida:
+            escribir_csv_gastos(
+                csv_salida,
+                apuntes,
+                delim=opciones.csv_delim,
+                decimal=opciones.csv_decimal,
+            )
+    return rep, apuntes
+
+
 # ---------------------------------------------------------------------------
 # Orquestación: de las rutas al resultado
 # ---------------------------------------------------------------------------
@@ -1295,6 +1306,27 @@ def ejecutar(
         if not opciones.forzar and ya_procesado(salida_de(img, raiz, opciones.salida, sufijo)):
             continue
         pendientes.append(img)
+
+    # ⚠️ Aviso antes de pagar: si estas imágenes ya tienen salida en OTRA
+    # ubicación de la carpeta, la reanudación no las ve y se van a pagar dos
+    # veces (es el bug que costó 5 documentos duplicados). No se aborta porque
+    # puede ser intencional (otra raíz pedida a propósito), pero se declara.
+    if pendientes:
+        repetidas = _salidas_en_otras_raices(
+            opciones.salida, raiz, pendientes, sufijo
+        )
+        if repetidas:
+            print(
+                f"⚠  {len(repetidas)} imagen(es) de este lote ya tienen salida en "
+                "OTRA ubicación de la carpeta de salida. La reanudación no las "
+                "encuentra, así que se van a volver a pagar:",
+                file=sys.stderr,
+            )
+            for archivo in repetidas[:5]:
+                print(f"      {archivo}", file=sys.stderr)
+            if len(repetidas) > 5:
+                print(f"      … y {len(repetidas) - 5} más", file=sys.stderr)
+
     print(f"a procesar: {len(pendientes)} de {len(imagenes_rutas)}  (raíz: {motivo_raiz})")
     print()
 

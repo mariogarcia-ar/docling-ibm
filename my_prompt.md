@@ -1,3 +1,8 @@
+# revisar
+- comprimir las imagenes
+- crear un lote usando llm frontier (el lote tiene como objetivo tenerlo como referencia para un posterior entrenamiento)
+
+
 # Flujo
  - es procesable por texto, continuar
 

@@ -20,6 +20,7 @@ from typing import Any
 
 import pytest
 
+from voucherflow.llm.protocolo import CLAVE_CACHE_HIT, CLAVE_CACHE_MISS
 from voucherflow.llm.proveedores import (
     PROVEEDORES,
     AdaptadorDeepSeek,
@@ -261,12 +262,35 @@ class TestLeerRespuesta:
     def test_el_uso_de_cache_solo_se_lee_de_quien_lo_expone(self):
         uso = _Uso(prompt_cache_hit_tokens=800, prompt_cache_miss_tokens=200)
         con = AdaptadorDeepSeek().leer_respuesta(_Respuesta([_Eleccion(_Mensaje("{}"))], uso))
-        assert con["uso"]["cache_hit_tokens"] == 800
+        assert con["uso"][CLAVE_CACHE_HIT] == 800
+        assert con["uso"][CLAVE_CACHE_MISS] == 200
 
         # OpenAI no lo expone: el campo no aparece, y no se rellena con 0 porque
         # "no hubo caché" y "no me dijeron" no son lo mismo.
         sin = AdaptadorOpenAI().leer_respuesta(_Respuesta([_Eleccion(_Mensaje("{}"))], uso))
-        assert "cache_hit_tokens" not in sin["uso"]
+        assert CLAVE_CACHE_HIT not in sin["uso"]
+
+    def test_la_clave_de_cache_es_la_del_sdk(self):
+        """⚠️ Regresión del bug de mayor impacto del módulo.
+
+        El adaptador emitía ``cache_hit_tokens`` y ``corrida.py`` leía
+        ``prompt_cache_hit_tokens``: al no coincidir nunca, el descuento de la
+        caché no se aplicaba **jamás** y el gasto se reportaba ~3,2x de más. Un
+        ``dict`` no tiene forma, así que nada lo detectaba: cada mitad estaba
+        testeada por separado y la costura no.
+
+        La clave tiene que ser el nombre del campo del SDK, porque es el mismo
+        que lee el consumidor del uso.
+        """
+        uso = _Uso(prompt_cache_hit_tokens=2816, prompt_cache_miss_tokens=201)
+        lectura = AdaptadorDeepSeek().leer_respuesta(
+            _Respuesta([_Eleccion(_Mensaje("{}"))], uso)
+        )
+        assert CLAVE_CACHE_HIT == "prompt_cache_hit_tokens"
+        # El nombre que ``corrida.py`` usa para cobrar el descuento TIENE que
+        # estar en el uso normalizado.
+        assert lectura["uso"][CLAVE_CACHE_HIT] == 2816
+        assert "cache_hit_tokens" not in lectura["uso"]
 
     def test_sin_uso_no_se_inventan_tokens(self):
         r = AdaptadorOpenAI().leer_respuesta(_Respuesta([_Eleccion(_Mensaje("{}"))], None))
