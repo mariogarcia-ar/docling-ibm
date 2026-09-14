@@ -1,6 +1,23 @@
 # revisar
 - comprimir las imagenes
 - crear un lote usando llm frontier (el lote tiene como objetivo tenerlo como referencia para un posterior entrenamiento)
+- proceso de extraccion y validacion
+ - extraer ocr de pdf
+ - extraer ocr de imagenes
+ - extraer ocr de otros formatos
+
+ - extrer informaicon de las facturas, nd, nc
+  - usando ocr
+  - usando vision
+
+- validar informacion extraida de facturas, nd, nc
+  - usando reglas de negocios (programacion)
+  - usando reglas de llm 
+  - usando reglas de vision
+
+- concluir
+  - 
+
 
 
 # Flujo

@@ -163,6 +163,22 @@ def _precios_de(args: argparse.Namespace) -> dict[str, tuple[float | None, float
     return tabla
 
 
+def _precios_cache_de(
+    args: argparse.Namespace,
+) -> dict[str, float]:
+    """Precio de la entrada cacheada: la bandera pisa la tabla de referencia.
+
+    ⚠️ ``--precio-cache`` se declaraba en el parser y **nadie lo leía**: el CLI
+    pasaba siempre ``costos.PRECIOS_CACHE``, así que una tarifa distinta (un tramo
+    off-peak, otra cuenta) se ignoraba en silencio y el costo salía con el precio
+    de referencia. La tabla de referencia se usa solo cuando no se pasa la bandera.
+    """
+    if args.precio_cache is None:
+        return costos.PRECIOS_CACHE
+    # Una tarifa suelta aplica a todos los modelos, como `--precio-entrada`.
+    return {"*": args.precio_cache}
+
+
 def _mostrar_proveedores() -> int:
     print("Proveedores disponibles\n")
     for ficha in describir_proveedores():
@@ -232,11 +248,8 @@ def _reportar_gastos(args: argparse.Namespace, salida: Path) -> int:
         dry_run=True,  # no es una corrida: nada de esto se usa para cobrar
         incluir_ejemplo=False,
         precios=_precios_de(args),
-        # Se pasa la tabla explícita: es el default del CLI. La política de
-        # `None`/`{}` (usar la referencia) ahora es la misma en `costos`, así que
-        # esto es redundante a propósito — deja el reporte atado a los precios
-        # de la corrida que lo invoca.
-        precios_cache=costos.PRECIOS_CACHE,
+        # La bandera pisa la tabla de referencia (ver `_precios_cache_de`).
+        precios_cache=_precios_cache_de(args),
         tz=tz,
         tz_etiqueta=tz_etiqueta,
         csv_delim=args.csv_delim,
@@ -355,7 +368,7 @@ def main(argv: list[str] | None = None) -> int:
         precio_entrada=args.precio_entrada,
         precio_salida=args.precio_salida,
         precios=_precios_de(args),
-        precios_cache=costos.PRECIOS_CACHE,
+        precios_cache=_precios_cache_de(args),
         # `tz` es un `timezone`; el CLI acepta `local` o un offset como -03:00.
         tz=corrida._tz_desde(args.tz)[0],
         tz_etiqueta=corrida._tz_desde(args.tz)[1],
