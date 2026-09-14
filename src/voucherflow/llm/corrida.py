@@ -80,6 +80,10 @@ class Opciones:
     #: Delimitador y separador decimal del CSV de gastos (Excel es-AR usa «;» y «,»).
     csv_delim: str = ","
     csv_decimal: str = "."
+    #: Sufijo de los archivos de salida. La reanudación lo usa para saber si un
+    #: documento ya está procesado: si cambia, los anteriores **no** cuentan como
+    #: hechos —y es a propósito—: son de otra corrida.
+    sufijo: str = ".json"
 
 
 def procesar(
@@ -91,6 +95,7 @@ def procesar(
     datos: dict[str, dict],
     extracciones: dict[str, dict],
     opciones: Opciones,
+    proveedor: str = "deepseek",
 ) -> dict[str, Any]:
     """Procesa una imagen y devuelve el registro (con procedencia) para guardar."""
     try:
@@ -176,6 +181,9 @@ def procesar(
         detalle=opciones.detalle,
         max_tokens=opciones.max_tokens,
         esfuerzo=opciones.esfuerzo,
+        # Sin esto, la llamada iría siempre al endpoint del default: un cliente
+        # de Gemini hablaría con DeepSeek.
+        proveedor=proveedor,
     )
     registro["uso"] = respuesta.uso
     registro["esquema_validado"] = _validador_jsonschema() is not None
@@ -717,6 +725,9 @@ def resumen(registros: Sequence[dict], opciones: Opciones) -> dict[str, Any]:
         tokens_imagen_estimados += (r.get("imagen") or {}).get("tokens_estimados") or 0
 
     entrada, salida = precio_de(opciones.modelo, opciones.precios)
+    # La entrada cacheada se cobra a su tarifa: contarla al precio lleno inflaría
+    # el gasto de una corrida con el mismo prefijo repetido (el caso del lote).
+    p_cache = precio_cache_de(opciones.modelo, opciones.precios_cache)
     costo = costo_de_tokens(
         prompt_tokens,
         completion_tokens,
@@ -966,6 +977,7 @@ def apunte_de_registro(
     cache_hit = uso.get("prompt_cache_hit_tokens") or 0
     modelo = registro.get("modelo") or "desconocido"
     p_entrada, p_salida = precio_de(modelo, opciones.precios)
+    p_cache = precio_cache_de(modelo, opciones.precios_cache)
     # Si el registro ya trae el costo (y no hay precios nuevos), se respeta.
     costo = registro.get("costo_usd")
     if costo is None:
@@ -1352,50 +1364,68 @@ def ejecutar(
     """
     from concurrent.futures import ThreadPoolExecutor
 
+    # La raíz del espejado es explícita (y viene con su motivo para declararlo):
+    # derivarla de la ruta pasada hacía que el mismo documento escribiera en dos
+    # lugares distintos según cómo se invocara el comando.
+    raiz, motivo_raiz = _raiz_espejado(rutas, None, opciones.salida)
     imagenes_rutas = _expandir(rutas, EXTENSIONES_IMAGEN)
     if limite:
         imagenes_rutas = imagenes_rutas[:limite]
     if not imagenes_rutas:
-        print("no se encontraron imágenes en las rutas dadas", file=sys.stderr)
-        return 2
+        print("No hay imágenes que procesar.", file=sys.stderr)
+        return 0
 
     datos = datos or {}
     cliente = None
     if not opciones.dry_run and opciones.modo != "diff":
-        cliente = _cliente_del_proveedor(proveedor, api_key)
+        try:
+            cliente = _cliente_del_proveedor(proveedor, api_key)
+        except RuntimeError as exc:
+            # Falta la credencial o el SDK: es un error de uso, no una falla de
+            # la corrida. Se reporta limpio, sin traceback.
+            print(f"error: {exc}", file=sys.stderr)
+            return 2
 
     # --dry-run: estima y sale sin llamar a la API ni escribir nada.
     if opciones.dry_run:
         estimacion = estimar_costo_corrida(
             imagenes_rutas, sistema, user_template, opciones
         )
-        imprimir_estimacion(estimacion)
+        imprimir_estimacion(estimacion, detalle=detalle_log)
         if json_salida:
             _guardar(json_salida, {"estimacion": estimacion})
         return 0
 
-    extracciones = leer_extracciones_previas(opciones.salida)
-    # `diff` reutiliza lo ya extraído: no vuelve a llamar a la API.
-    pendientes = [
-        img
-        for img in imagenes_rutas
-        if opciones.modo == "diff"
-        or opciones.forzar
-        or not ya_procesado(salida_de(img, opciones.salida, None, opciones.sufijo))
+    # El modo `diff` reutiliza las extracciones previas: no vuelve a pagar.
+    extracciones = (
+        leer_extracciones_previas(opciones.salida) if opciones.modo == "diff" else {}
+    )
+    # El sufijo distingue una extracción de una validación: una corrida de
+    # `validar` no pisa lo que dejó `extraer`.
+    sufijo = {"validar": "validacion", "extraer": "extraccion", "diff": "validacion"}[
+        opciones.modo
     ]
-    print(f"a procesar: {len(pendientes)} de {len(imagenes_rutas)}")
+
+    pendientes: list[Path] = []
+    for img in imagenes_rutas:
+        if not opciones.forzar and ya_procesado(salida_de(img, raiz, opciones.salida, sufijo)):
+            continue
+        pendientes.append(img)
+    print(f"a procesar: {len(pendientes)} de {len(imagenes_rutas)}  (raíz: {motivo_raiz})")
     print()
 
     registros: list[dict[str, Any]] = []
 
     def _una(img: Path) -> dict[str, Any]:
         return procesar(
-            img, Path("."), cliente, sistema, user_template, datos, extracciones, opciones
+            img, raiz, cliente, sistema, user_template, datos, extracciones,
+            opciones, proveedor,
         )
 
     with ThreadPoolExecutor(max_workers=max(1, opciones.workers)) as pool:
         for registro in pool.map(_una, pendientes):
             registros.append(registro)
+            destino = salida_de(Path(registro["origen"]), raiz, opciones.salida, sufijo)
             if registro.get("error"):
                 print(
                     f"  ✗ {Path(registro['origen']).name}: "
@@ -1403,7 +1433,7 @@ def ejecutar(
                     file=sys.stderr,
                 )
             else:
-                _guardar(salida_de(Path(registro["origen"]), opciones.salida, None, opciones.sufijo), registro)
+                _guardar(destino, registro)
                 if detalle_log:
                     print(f"  ✓ {Path(registro['origen']).name}")
 

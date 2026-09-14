@@ -89,6 +89,13 @@ def construir_parser() -> argparse.ArgumentParser:
                         help=f"documento del prompt (default: {PROMPT_POR_DEFECTO})")
     parser.add_argument("--detalle", default="high", choices=("low", "high", "auto"),
                         help="detalle de la imagen (default: high)")
+    parser.add_argument(
+        "--prompt-fiel", action="store_true",
+        help=(
+            "incluir SIEMPRE el ejemplo de salida del prompt, aunque el "
+            "proveedor imponga el esquema (cuesta tokens: solo para comparar)"
+        ),
+    )
     parser.add_argument("--temperatura", type=float,
                         help="temperatura (se declara si el proveedor la ignora)")
     parser.add_argument("--esfuerzo", help="esfuerzo de razonamiento del proveedor")
@@ -197,6 +204,15 @@ def main(argv: list[str] | None = None) -> int:
         # completo hay que forzarlo (o usar una salida vacía).
         print("nota: --forzar con --dry-run estima el lote completo")
 
+    # El `.env` se carga **antes** de resolver la credencial, y sin pisar lo que
+    # ya esté exportado: una variable del entorno gana sobre el archivo (así se
+    # puede probar otra clave sin editar el `.env`).
+    if args.env:
+        if not args.env.is_file():
+            print(f"error: no existe el .env {args.env}", file=sys.stderr)
+            return 2
+        entorno.cargar_env(args.env)
+
     print(f"proveedor : {args.proveedor}")
     print(f"operación : {args.operacion}")
     print(f"prompt    : {args.prompt} ({VERSION_PROMPT})")
@@ -216,16 +232,31 @@ def main(argv: list[str] | None = None) -> int:
         forzar=args.forzar,
         workers=args.workers,
         dry_run=args.dry_run,
-        incluir_ejemplo=False,
+        # La forma de la respuesta: si el proveedor **no** impone el esquema en
+        # el servidor (DeepSeek, Gemini), el ejemplo tiene que viajar en el
+        # prompt o el modelo devuelve una forma que el validador rechaza.
+        # `--prompt-fiel` lo fuerza igual, para medir cuánto aporta.
+        incluir_ejemplo=(
+            args.prompt_fiel
+            or not proveedor_por_nombre(args.proveedor).capacidades.esquema_estricto
+        ),
         precio_entrada=args.precio_entrada,
         precio_salida=args.precio_salida,
         precios=_precios_de(args),
         precios_cache=costos.PRECIOS_CACHE,
-        tz=args.tz,
-        tz_etiqueta=args.tz,
+        # `tz` es un `timezone`; el CLI acepta `local` o un offset como -03:00.
+        tz=corrida._tz_desde(args.tz)[0],
+        tz_etiqueta=corrida._tz_desde(args.tz)[1],
     )
 
     datos = cargar_datos(args.datos) if args.datos else {}
+    try:
+        # La credencial se resuelve acá y no antes: un proveedor sin clave
+        # (los tests, `--listar-proveedores`) no tiene por qué fallar.
+        credencial = entorno.resolver_api_key(args.api_key)
+    except RuntimeError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
     return corrida.ejecutar(
         rutas=[Path(r) for r in args.rutas],
         opciones=opciones,
@@ -233,7 +264,7 @@ def main(argv: list[str] | None = None) -> int:
         user_template=user_template,
         datos=datos,
         proveedor=args.proveedor,
-        api_key=entorno.resolver_api_key(args.api_key),
+        api_key=credencial,
         limite=args.limite,
         detalle_log=args.detalle_log,
         json_salida=args.json,
