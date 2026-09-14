@@ -115,9 +115,15 @@ del modelo, no la de la vara.
 
 ## El prompt
 
-Vive en `src/voucherflow/llm/prompts/validacion-mendel.md` y se edita ahí: el
-código lo lee (`--prompt` apunta a otro archivo si hace falta). El documento trae
-dos bloques de código —SYSTEM y USER— que se extraen en orden.
+El prompt **efectivo** vive en `src/voucherflow/llm/prompts/validacion-mendel.yaml`
+y se edita ahí: el código lo lee (`--prompt` apunta a otro archivo si hace falta).
+Al lado, `validacion-mendel.md` es el **documento** que lo explica —de dónde
+salió, qué decide cada regla y qué no hay que tocar—, y no lo duplica: si copiara
+las reglas habría dos versiones y una mentiría.
+
+El YAML tiene tres claves: `system` (las 15 reglas), `user` (el pedido + el
+*template* del JSON de entrada) y `ejemplo_salida` (el formato de la respuesta).
+Las tres se pueden ver por separado porque el código las trata distinto.
 
 Dos modos de armado:
 

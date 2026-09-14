@@ -52,9 +52,10 @@ MODO_POR_OPERACION = {"extraer": "extraer", "validar": "validar", "diff": "diff"
 
 #: Prompt por defecto (el documento de trabajo que se ajusta).
 #: El prompt vive en la librería: es un dato versionado del sistema, no de un
-#: script. Se puede pisar con --prompt.
+#: script. Acepta `.yaml` (el prompt efectivo) o `.md` (el documento). Se puede
+#: pisar con --prompt.
 PROMPT_POR_DEFECTO = (
-    Path(__file__).resolve().parent / "prompts" / "validacion-mendel.md"
+    Path(__file__).resolve().parent / "prompts" / "validacion-mendel.yaml"
 )
 
 

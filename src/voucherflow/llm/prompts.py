@@ -1,14 +1,16 @@
 """Armado del prompt efectivo: del template del `.md` al mensaje que se manda.
 
-El prompt no se escribe acá: vive en el `.md` (``prompt-validacion-mendel.md``),
-que es el documento de trabajo donde se ajusta. Este módulo lo **lee**, lo adapta
-al modo y lo hashea.
+El prompt no se escribe acá: vive en ``prompts/validacion-mendel.yaml``, que es
+el prompt **efectivo** —lo que se manda al modelo—. Al lado está
+``validacion-mendel.md``, el documento que lo explica. Este módulo lo **lee**
+(acepta `.yaml` y `.md`), lo adapta al modo y lo hashea.
 
 Tres piezas y el problema que resuelve cada una:
 
-* :func:`cargar_prompt` separa el SYSTEM y el USER de los bloques de código del
-  documento. El `.md` sigue siendo la fuente única: se ajusta ahí y el código lo
-  toma.
+* :func:`cargar_prompt` lee el SYSTEM y el USER. Del `.yaml` toma las claves y
+  vuelve a unir ``ejemplo_salida`` al ``user``; del `.md` extrae los bloques de
+  código. Los dos formatos dan el mismo prompt, así que el archivo se puede
+  mover sin tocar el código.
 * :func:`construir_mensaje_usuario` arma el mensaje del usuario. El template trae
   el JSON de ejemplo de salida (~78% del texto): con esquema estricto es
   redundante, así que se **omite** por defecto. En modo extracción se reemplaza
@@ -38,13 +40,21 @@ _RE_BLOQUE_MD = re.compile(r"```[a-zA-Z]*\n(.*?)```", re.DOTALL)
 
 
 def cargar_prompt(ruta: Path) -> tuple[str, str]:
-    """Extrae ``(system_prompt, user_template)`` del ``.md`` del prompt.
+    """Lee ``(system_prompt, user_template)`` del prompt.
 
-    Espera los dos bloques de código del documento, en orden:
-    el del encabezado ``## SYSTEM PROMPT`` y el de ``## USER PROMPT (template)``.
+    Acepta los **dos formatos**, así el prompt se puede mover sin tocar el código:
+
+    * ``.yaml`` (**preferido**): el prompt efectivo, como los demás de
+      ``prompts/``. Claves ``system`` y ``user``, más ``ejemplo_salida`` —que se
+      vuelve a anexar al ``user`` para reconstruir el template original.
+    * ``.md``: extrae los dos bloques de código del documento. Se conserva
+      porque es el formato en el que el prompt se redacta y se revisa.
     """
     if not ruta.is_file():
         raise FileNotFoundError(f"no se encontró el prompt: {ruta}")
+    if ruta.suffix.lower() in {".yaml", ".yml"}:
+        return _cargar_prompt_yaml(ruta)
+
     texto = ruta.read_text(encoding="utf-8")
     bloques = _RE_BLOQUE_MD.findall(texto)
     if len(bloques) < 2:
@@ -53,6 +63,36 @@ def cargar_prompt(ruta: Path) -> tuple[str, str]:
             f"(SYSTEM PROMPT y USER PROMPT); se encontraron {len(bloques)}"
         )
     return bloques[0].strip(), bloques[1].strip()
+
+
+def _cargar_prompt_yaml(ruta: Path) -> tuple[str, str]:
+    """Lee el prompt de un YAML y reconstruye el template del ``user``.
+
+    El YAML separa ``user`` (el pedido + el template de datos) de
+    ``ejemplo_salida`` (el formato de respuesta) porque el código los trata
+    distinto: el primero se manda, el segundo se recorta o se reemplaza. Al
+    leerlos se vuelven a unir con la **misma** separación del original, así el
+    prompt que llega al modelo no cambia.
+    """
+    try:
+        import yaml
+    except ImportError as exc:  # pragma: no cover - depende del entorno
+        raise RuntimeError(
+            "hace falta PyYAML para leer el prompt en formato YAML "
+            "(`pip install PyYAML`)"
+        ) from exc
+
+    datos = yaml.safe_load(ruta.read_text(encoding="utf-8"))
+    if not isinstance(datos, dict) or "system" not in datos or "user" not in datos:
+        raise ValueError(
+            f"el YAML de {ruta} debe tener al menos las claves `system` y `user`"
+        )
+    system = str(datos["system"]).rstrip("\n")
+    user = str(datos["user"]).rstrip("\n")
+    ejemplo = str(datos.get("ejemplo_salida") or "").rstrip("\n")
+    # La separación es la del documento original: una línea en blanco entre el
+    # pedido y el ejemplo de salida.
+    return system, f"{user}\n\n{ejemplo}" if ejemplo else user
 
 
 #: Desde "Analizá el comprobante … formato JSON:" hasta el final del ejemplo.
