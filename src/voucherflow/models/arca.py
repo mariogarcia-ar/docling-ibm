@@ -41,6 +41,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Any
 
+from ..fechas import formato_afip
 from ..rules.gaps import Gap, ResultadoBusqueda
 
 logger = logging.getLogger(__name__)
@@ -321,7 +322,7 @@ class ArcaClient:
             "PtoVta": pto_vta,
             "CbteTipo": self._tipo_afip(letra),
             "CbteNro": nro_cbte,
-            "CbteFch": self._fecha_afip(valores.get("fecha_emision")),
+            "CbteFch": formato_afip(valores.get("fecha_emision")),
             "ImpTotal": valores.get("importe_total_facturado"),
             "DocTipoReceptor": DOC_TIPO_CUIT,
             "DocNroReceptor": self._solo_digitos(valores.get("cuit_receptor")),
@@ -332,16 +333,6 @@ class ArcaClient:
         """CUIT sin guiones (el padrón los espera como dígitos)."""
         return re.sub(r"\D", "", str(valor or ""))
 
-    @staticmethod
-    def _fecha_afip(valor: Any) -> str:
-        """Fecha en ``YYYYMMDD`` (formato del WSCDC) a partir del ISO de T-402."""
-        texto = str(valor or "")
-        coincidencia = re.match(r"^(\d{4})-(\d{2})-(\d{2})$", texto)
-        if not coincidencia:
-            # El WSCDC admite la fecha vacía; se manda tal cual y el padrón
-            # decide. No se inventa una fecha.
-            return texto
-        return "".join(coincidencia.groups())
 
     @staticmethod
     def _tipo_afip(letra: str | None) -> int:

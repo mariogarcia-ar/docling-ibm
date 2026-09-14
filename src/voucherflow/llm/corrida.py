@@ -20,7 +20,6 @@ from __future__ import annotations
 
 import csv
 import json
-import os
 import re
 import sys
 from collections.abc import Sequence
@@ -528,15 +527,6 @@ def imprimir_estimacion(est: dict[str, Any], *, detalle: bool = False) -> None:
                 f"  {Path(d['imagen']).name[:44]:46} img={img_tok:>5} "
                 f"texto={d['tokens_texto']:>5} total={d['tokens_entrada']:>5}  {costo}"
             )
-
-
-#: Componentes de un prompt que se construyen de verdad para estimar.
-def _commonpath(bases: Sequence[Path]) -> Path:
-    """Ancestro común de varias bases (``cwd`` si no comparten ninguno)."""
-    try:
-        return Path(os.path.commonpath([str(b.resolve()) for b in bases]))
-    except ValueError:  # rutas sin ancestro común (volúmenes distintos)
-        return Path.cwd()
 
 
 def _salidas_en_otras_raices(

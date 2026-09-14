@@ -15,11 +15,12 @@ desde dónde se invoque.
 
 from __future__ import annotations
 
-import os
 import re
 import sys
 from collections.abc import Sequence
 from pathlib import Path
+
+from ..rutas import ancestro_comun
 
 #: Motivo que se declara cuando no hay rutas existentes de dónde derivar la raíz.
 MOTIVO_CWD = "cwd (las rutas no existen)"
@@ -77,10 +78,11 @@ def raiz_espejado(
     if len(bases) == 1:
         raiz = bases[0]
     else:
-        raiz = _commonpath(bases)
-        if raiz == Path.cwd() and not _comparten_ancestro(bases):
-            # Distinguible de "el ancestro común es el cwd por casualidad".
-            return raiz, "cwd (rutas sin ancestro común)"
+        comun = ancestro_comun(bases)
+        if comun is None:
+            # Se declara en vez de devolver un `cwd` que parecería válido.
+            return Path.cwd(), "cwd (rutas sin ancestro común)"
+        raiz = comun
 
     subidas: list[str] = []
     # Sube mientras el último nivel sea un mes (AAAA-MM), un hash de lote
@@ -101,23 +103,6 @@ def raiz_espejado(
     if subidas:
         return raiz, f"ascendida desde {bases[0]} (salteando: {', '.join(subidas)})"
     return raiz, "derivada de las rutas"
-
-
-def _commonpath(bases: Sequence[Path]) -> Path:
-    """Ancestro común de varias bases (``cwd`` si no comparten ninguno)."""
-    try:
-        return Path(os.path.commonpath([str(b.resolve()) for b in bases]))
-    except ValueError:  # rutas sin ancestro común (volúmenes distintos)
-        return Path.cwd()
-
-
-def _comparten_ancestro(bases: Sequence[Path]) -> bool:
-    """True si las bases tienen un ancestro común real (no un ``cwd`` de caída)."""
-    try:
-        os.path.commonpath([str(b.resolve()) for b in bases])
-        return True
-    except ValueError:
-        return False
 
 
 def es_nivel_de_corpus(nombre: str) -> bool:

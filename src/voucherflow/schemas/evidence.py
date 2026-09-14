@@ -32,11 +32,12 @@ porque:
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+
+from ..fechas import ahora_utc_iso
 
 # ---------------------------------------------------------------------------
 # Criterio de cambio versionado del contrato
@@ -325,11 +326,6 @@ class CombinedEvidence(BaseModel):
 # ---------------------------------------------------------------------------
 
 
-def _utc_now_iso() -> str:
-    """Timestamp ISO-8601 en UTC (para meta/evidencia)."""
-    return datetime.now(timezone.utc).isoformat()
-
-
 #: Centinela para distinguir «no pases `decision`» de «pasá `decision=None`».
 #: Sin esto, `derivar_evidencia(e)` y `derivar_evidencia(e, decision=None)`
 #: serían indistinguibles, y la segunda es un caso real: re-concluir sobre el
@@ -343,7 +339,7 @@ def nueva_meta(modelo: str | None = None, version_prompt: str | None = None) -> 
     ``version_prompt`` suele ser del estilo ``"11.1@sha:abc123"`` (hash/versión
     de prompt, requisito de trazabilidad E-CONC-5 / ADR-005).
     """
-    meta: dict[str, Any] = {"timestamp": _utc_now_iso()}
+    meta: dict[str, Any] = {"timestamp": ahora_utc_iso()}
     if modelo:
         meta["modelo"] = modelo
     if version_prompt:

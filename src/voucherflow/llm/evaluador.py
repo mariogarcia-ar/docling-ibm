@@ -24,10 +24,10 @@ from __future__ import annotations
 
 import re
 import unicodedata
-from datetime import date, datetime
 from typing import Any
 
 from voucherflow.extraction.key_value import normalizar_monto
+from voucherflow.fechas import como_fecha
 
 # ---------------------------------------------------------------------------
 # Constantes de las reglas
@@ -103,17 +103,6 @@ def _mismo_monto(a: Any, b: Any) -> bool | None:
     return abs(na - nb) < TOLERANCIA_MONTO
 
 
-def _a_fecha(valor: Any) -> date | None:
-    """Parsea fechas habituales de comprobantes."""
-    texto = str(valor or "").strip()
-    if not texto:
-        return None
-    for formato in ("%d/%m/%Y", "%d-%m-%Y", "%Y-%m-%d", "%d/%m/%y", "%d.%m.%Y"):
-        try:
-            return datetime.strptime(texto, formato).date()
-        except ValueError:
-            continue
-    return None
 
 
 def _campo(
@@ -247,7 +236,7 @@ def diff_deterministico(extraccion: dict, datos: dict) -> dict[str, Any]:
     )
 
     # 4. Fecha de emisión (se compara como fecha, no como texto).
-    fecha_leida, fecha_cargada = _a_fecha(extraccion.get("fecha_emision")), _a_fecha(
+    fecha_leida, fecha_cargada = como_fecha(extraccion.get("fecha_emision")), como_fecha(
         datos.get("fecha_emision")
     )
     marcar(
