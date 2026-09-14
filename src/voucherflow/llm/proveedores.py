@@ -16,7 +16,6 @@ valida localmente; cuando ignora la temperatura, **lo sabe** y lo registra.
 
 from __future__ import annotations
 
-import json
 from typing import Any
 
 from .protocolo import Capacidades

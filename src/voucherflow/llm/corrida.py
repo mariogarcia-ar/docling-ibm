@@ -23,14 +23,14 @@ import json
 import os
 import re
 from dataclasses import dataclass, field
-from datetime import date, datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Sequence
 
 import sys
 
-from . import costos, ejecucion, prompts
-from .costos import costo_de_tokens, parsear_precios, precio_cache_de, precio_de
+from . import costos
+from .costos import costo_de_tokens, precio_cache_de, precio_de
 from .prompts import armar_prompt_efectivo, hash_prompt
 from .proveedores import proveedor_por_nombre
 from .config import (
@@ -45,7 +45,7 @@ from .datos import buscar_datos
 from .esquema import _validador_jsonschema
 from .esquemas import esquema_extraccion, esquema_validacion
 from .evaluador import diff_deterministico, verificar_aritmetica
-from .imagenes import codificar_imagen, info_imagen, tokens_imagen
+from .imagenes import codificar_imagen, info_imagen
 from .config import TOKENS_MAX_IMAGEN  # noqa: E402
 from .ejecucion import llamar_api  # noqa: E402
 
@@ -54,12 +54,11 @@ from .ejecucion import llamar_api  # noqa: E402
 # pagar dos veces el mismo documento, así que se importan (con alias privado,
 # para no tocar los call sites) en vez de redefinirlas.
 from ..corpus.recorrido import (  # noqa: E402
-    es_nivel_de_corpus as _es_nivel_de_corpus,
-    esta_dentro as _esta_dentro,
     expandir as _expandir,
     raiz_espejado as _raiz_espejado,
     salida_de,
 )
+
 
 @dataclass
 class Opciones:

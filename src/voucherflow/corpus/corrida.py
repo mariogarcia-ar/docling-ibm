@@ -17,7 +17,6 @@ from .imagen import extension_destino, ffmpeg_no_disponible
 from .modelo import ESTADO_FALLO, Opciones, Resultado
 from .recorrido import esta_dentro, expandir, raiz_espejado
 from .reduccion import procesar
-from .reporte import resumen
 
 #: Versión del contrato de la capacidad (para el reporte).
 VERSION_CORPUS = "voucherflow-corpus@1"
@@ -107,7 +106,6 @@ def ejecutar(
     el CLI muestre el detalle o el avance sin que esta función sepa de impresión.
     """
     resultados: list[Resultado] = []
-    total = len(tareas)
 
     if opciones.workers == 1:
         for i, (origen, destino) in enumerate(tareas, 1):
@@ -128,24 +126,6 @@ def ejecutar(
             if on_resultado is not None:
                 on_resultado(resultado, i)
     return resultados
-
-
-def correr(
-    rutas: Sequence[Path],
-    opciones: Opciones,
-    *,
-    extensiones: frozenset[str] = EXTENSIONES_POR_DEFECTO,
-    raiz: Path | None = None,
-    limite: int = 0,
-    on_resultado: Callable[[Resultado, int], None] | None = None,
-) -> tuple[dict, list[Resultado]]:
-    """Planifica, procesa y devuelve ``(resumen, resultados)``."""
-    validar(opciones)
-    _, _, tareas = planificar(
-        rutas, opciones, extensiones=extensiones, raiz=raiz, limite=limite
-    )
-    resultados = ejecutar(tareas, opciones, on_resultado=on_resultado)
-    return resumen(resultados, opciones), resultados
 
 
 def escribir_reporte(

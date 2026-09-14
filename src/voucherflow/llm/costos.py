@@ -25,7 +25,6 @@ from typing import Any
 from .config import (
     CHARS_POR_TOKEN_ESTIMADO,
     COMPLETION_TOKENS_TIPICO,
-    MIN_MUESTRAS_PARA_CALIBRAR,
 )
 
 #: Precios de referencia (USD por 1M de tokens: entrada, salida).

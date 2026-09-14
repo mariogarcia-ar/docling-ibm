@@ -19,7 +19,6 @@ from .corrida import (
     EXTENSIONES_POR_DEFECTO,
     ErrorCorpus,
     contar_fallos,
-    correr,
     escribir_reporte,
     normalizar_extensiones,
     planificar,

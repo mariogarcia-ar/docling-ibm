@@ -13,11 +13,10 @@ gasta una llamada y devuelve un error que habla del payload, no del archivo.
 from __future__ import annotations
 
 import base64
-import math
 from pathlib import Path
 from typing import Any
 
-from .config import LIMITE_BYTES_IMAGEN, MIME_POR_EXTENSION, TOKENS_MAX_IMAGEN
+from .config import MIME_POR_EXTENSION, TOKENS_MAX_IMAGEN
 
 # --------------------------------------------------------------------------- #
 # Imagen: codificación y estimación de tokens

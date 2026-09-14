@@ -334,5 +334,4 @@ __all__ = [
     "OllamaHTTPError",
     "OllamaTimeoutError",
     "RespuestaOllama",
-    "calcular_backoff",
 ]
