@@ -172,3 +172,36 @@ def test_declara_que_es_la_vara_de_calidad_del_run():
     # Y tiene que decir cómo se mide, no solo que se mide.
     assert "-M diff" in texto or "--operacion diff" in texto
     assert "--datos" in texto
+
+
+def test_documenta_que_el_costo_de_imagen_depende_del_proveedor():
+    """⚠️ El manual nombraba solo la fórmula de DeepSeek («tope fijo»).
+
+    Con `-p openai` la estimación erró de 0,9x a 12x, y el operador no tenía cómo
+    saber que el número cambiaba según el proveedor.
+    """
+    texto = _texto()
+    assert "tope fijo" in texto
+    assert "mosaicos" in texto
+    # Y los números que hacen la diferencia visible.
+    assert "1.105" in texto  # el A4 que se subestimaba
+    assert "85" in texto  # el detalle low que se sobreestimaba 12x
+
+
+def test_documenta_el_limite_de_peso_real():
+    """El corte práctico es ~24 MB por el inflado de base64, no 32."""
+    texto = _texto()
+    assert "base64" in texto
+    assert "24 MB" in texto or "24 MB" in texto
+    assert "corpus" in texto  # a dónde mandarlo a reducir
+
+
+def test_las_estrategias_documentadas_son_las_reales():
+    """La tabla del manual no puede inventar una estrategia que el código no tiene."""
+    from voucherflow.llm.protocolo import ESTRATEGIAS_IMAGEN
+
+    texto = _texto()
+    for estrategia in ESTRATEGIAS_IMAGEN:
+        # `tope_fijo` se documenta como «tope fijo», `mosaicos` como «mosaicos».
+        legible = estrategia.replace("_", " ")
+        assert legible in texto, f"la estrategia {estrategia!r} no está documentada"

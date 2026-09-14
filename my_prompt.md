@@ -1,5 +1,6 @@
 # revisar
 - comprimir las imagenes
+- revisar la calidad y que procesamiento tengo que realizar en los otros docs o archivos.
 - crear un lote usando llm frontier (el lote tiene como objetivo tenerlo como referencia para un posterior entrenamiento)
 - proceso de extraccion y validacion
  - extraer ocr de pdf

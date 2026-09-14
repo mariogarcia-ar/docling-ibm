@@ -49,7 +49,6 @@ from .config import (
     EXTENSIONES_IMAGEN,
     LIMITE_BYTES_IMAGEN,
     MIN_MUESTRAS_PARA_CALIBRAR,
-    TOKENS_MAX_IMAGEN,  # noqa: E402
     VERSION_PROMPT,
 )
 from .costos import (
@@ -66,10 +65,10 @@ from .ejecucion import llamar_api  # noqa: E402
 from .esquema import _validador_jsonschema
 from .esquemas import esquema_extraccion, esquema_validacion
 from .evaluador import diff_deterministico, verificar_aritmetica
-from .imagenes import codificar_imagen, info_imagen
+from .imagenes import codificar_imagen, info_imagen, tokens_imagen
 from .prompts import armar_prompt_efectivo, hash_prompt
 from .protocolo import CLAVE_CACHE_HIT, CLAVE_CACHE_MISS
-from .proveedores import proveedor_por_nombre
+from .proveedores import PROVEEDOR_POR_DEFECTO, proveedor_por_nombre
 
 #: Códigos de salida (los mismos del resto del CLI: `corpus.cli` los declara
 #: igual). Viven acá porque `ejecutar` es quien los devuelve.
@@ -94,6 +93,12 @@ class Opciones:
     workers: int
     dry_run: bool
     incluir_ejemplo: bool
+    #: Nombre del proveedor elegido. Se guarda **acá** y no solo se pasa a
+    #: `procesar` porque la estimación también lo necesita: el costo de la imagen
+    #: se calcula distinto según el proveedor (OpenAI por mosaicos, DeepSeek a
+    #: tope fijo), y sin este dato el `--dry-run` proyectaba todo con la fórmula
+    #: de DeepSeek (de 0,9x a 12x de error con `-p openai`).
+    proveedor: str = PROVEEDOR_POR_DEFECTO
     #: Precio único para todos los modelos (pisa la tabla si viene de la CLI).
     precio_entrada: float | None = None
     precio_salida: float | None = None
@@ -170,7 +175,9 @@ def procesar(
     # El dry-run no llega hasta acá: `main` estima el costo y sale antes de
     # llamar a la API (así no se codifica base64 ni se gasta memoria al pedo).
     try:
-        data_url, info = codificar_imagen(img, opciones.detalle)
+        data_url, info = codificar_imagen(
+            img, opciones.detalle, proveedor_por_nombre(proveedor).capacidades
+        )
     except OSError as exc:
         registro["error"] = f"no se pudo leer la imagen: {exc}"
         return registro
@@ -291,9 +298,11 @@ def estimar_costo_corrida(
     Es lo que responde ``--dry-run``. La estimación se arma con lo que sí se sabe
     sin gastar:
 
-    - **tokens de imagen**: **tope fijo por imagen** (1.024 tokens; DeepSeek
-      redimensiona toda imagen a ~1300×1300 px antes de inferir), así que la
-      resolución no cambia el costo. Ver :func:`tokens_imagen`.
+    - **tokens de imagen**: se calculan con la **estrategia del proveedor
+      elegido** (ver :func:`tokens_imagen`). DeepSeek cobra un tope fijo (1.024,
+      la resolución no cambia el costo); OpenAI cobra por mosaicos de 512, así que
+      ahí la resolución sí decide (de 255 a 1.105+ tokens, y 85 con
+      ``--detalle low``).
     - **tokens de texto**: se construye el prompt **de verdad** (system + user +
       esquema) y se convierte con :data:`CHARS_POR_TOKEN_ESTIMADO`, medido contra
       el uso real de la API. Si la carpeta de salida ya tiene extracciones pagas,
@@ -342,13 +351,17 @@ def estimar_costo_corrida(
     # caro) y se declara, en vez de suponer un ahorro que puede no darse.
     precio_cache = precio_cache_de(opciones.modelo, opciones.precios_cache)
 
+    # ⚠️ La fórmula de la imagen la declara el **proveedor**: estimar todos con el
+    # tope de DeepSeek daba de 0,9x a 12x de error con `-p openai`.
+    capacidades = proveedor_por_nombre(opciones.proveedor).capacidades
+
     detalle: list[dict[str, Any]] = []
     total_entrada = total_salida = 0
     total_costo = 0.0
     sin_precio = 0
     for img in imagenes:
         try:
-            info = info_imagen(img, opciones.detalle)
+            info = info_imagen(img, opciones.detalle, capacidades)
         except OSError:
             continue
         tokens_img = info.get("tokens_estimados")
@@ -389,7 +402,14 @@ def estimar_costo_corrida(
         "tokens_texto_estimados": tokens_texto,
         "tokens_texto_formula": tokens_texto_formula,
         "prompt_chars": chars,
-        "tokens_imagen": TOKENS_MAX_IMAGEN,
+        # Tokens de imagen del proveedor elegido. Se calcula con la primera imagen
+        # (o el tope declarado si no hay ninguna legible) para que el resumen no
+        # prometa un número que no corresponde a la estrategia del proveedor.
+        "tokens_imagen": (
+            detalle[0]["tokens_imagen"]
+            if detalle and detalle[0]["tokens_imagen"] is not None
+            else tokens_imagen(0, 0, opciones.detalle, capacidades)
+        ),
         "tokens_salida_estimados": tokens_salida,
         "tokens_entrada_totales": total_entrada,
         "tokens_salida_totales": total_salida,
@@ -415,9 +435,10 @@ def estimar_costo_corrida(
             "modelo": opciones.modelo,
             "detalle_imagen": opciones.detalle,
             "prompt_con_ejemplo_de_salida": opciones.incluir_ejemplo,
-            # Se declara porque el cálculo de DeepSeek es distinto al de OpenAI:
-            # la resolución no cambia el costo de la imagen (tope fijo por imagen).
-            "tokens_imagen_fijos": TOKENS_MAX_IMAGEN,
+            # Cómo cobra la imagen **este** proveedor, para que el reporte no
+            # tenga que adivinar por qué el número cambió entre proveedores.
+            "proveedor": capacidades.nombre,
+            "estrategia_imagen": capacidades.estrategia_imagen,
         },
     }
 
@@ -490,7 +511,7 @@ def imprimir_estimacion(est: dict[str, Any], *, detalle: bool = False) -> None:
     print(f"archivos          : {est['archivos']}")
     print(
         f"tokens por archivo: entrada ≈ {est['tokens_texto_estimados']:,} (texto+esquema) "
-        f"+ {est['tokens_imagen']:,} de imagen (tope fijo de DeepSeek) | "
+        f"+ {est['tokens_imagen']:,} de imagen ({est['opciones']['proveedor']}) | "
         f"salida ≈ {est['tokens_salida_estimados']:,}"
     )
     print(

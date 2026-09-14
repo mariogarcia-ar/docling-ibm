@@ -18,7 +18,13 @@ from __future__ import annotations
 
 from typing import Any
 
-from .protocolo import CLAVE_CACHE_HIT, CLAVE_CACHE_MISS, Capacidades
+from .protocolo import (
+    CLAVE_CACHE_HIT,
+    CLAVE_CACHE_MISS,
+    ESTRATEGIA_MOSAICOS,
+    ESTRATEGIA_TOPE_FIJO,
+    Capacidades,
+)
 
 #: Nombre del parámetro del SDK para el techo de tokens de salida.
 CAMPO_MAX_TOKENS = "max_completion_tokens"
@@ -163,7 +169,9 @@ class AdaptadorOpenAI(_AdaptadorOpenAI):
         esquema_estricto=True,
         temperatura_efectiva=True,
         esfuerzos=(),
-        tokens_por_imagen=1024,
+        # OpenAI cobra por mosaicos de 512: la resolución SÍ cambia el costo
+        # (de 255 a 1105+ tokens), y `detail=low` baja a 85 planos.
+        estrategia_imagen=ESTRATEGIA_MOSAICOS,
         expone_cache=False,
         acepta_detalle=True,
         acepta_max_tokens=True,
@@ -199,6 +207,7 @@ class AdaptadorDeepSeek(_AdaptadorOpenAI):
         esfuerzos=("none", "low", "high", "max"),
         # Tope fijo: DeepSeek redimensiona toda imagen a ~1300×1300 y **agranda**
         # las chicas, así que el costo no depende del tamaño original.
+        estrategia_imagen=ESTRATEGIA_TOPE_FIJO,
         tokens_por_imagen=1024,
         expone_cache=True,  # prompt_cache_hit_tokens
         acepta_detalle=False,  # `detail` no cambia el costo
@@ -238,6 +247,10 @@ class AdaptadorGemini(_AdaptadorOpenAI):
         esquema_estricto=False,
         temperatura_efectiva=True,
         esfuerzos=("none", "minimal", "low", "medium", "high"),
+        # Gemini no es OpenAI y su capa compatible **no** documenta la fórmula de
+        # mosaicos ni acepta `detail`: se declara el tope fijo para no extrapolar
+        # una fórmula que podría no aplicar. Si se mide lo contrario, se cambia acá.
+        estrategia_imagen=ESTRATEGIA_TOPE_FIJO,
         tokens_por_imagen=1024,
         expone_cache=False,
         acepta_detalle=False,

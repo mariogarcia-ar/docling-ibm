@@ -87,7 +87,7 @@ No llama a la API ni escribe nada: estima el costo del lote completo.
 
 ```
 archivos          : 3542
-tokens por archivo: entrada ≈ 2,769 (texto+esquema) + 1,024 de imagen (tope fijo de DeepSeek) | salida ≈ 240
+tokens por archivo: entrada ≈ 2,769 (texto+esquema) + 1,024 de imagen (deepseek) | salida ≈ 240
 tokens totales    : entrada 13,434,182 | salida 850,080
 COSTO ESTIMADO    : US$ 40.1400   (≈ US$ 0.0113 por comprobante)
 precios usados    : US$ 0.3/1M entrada, US$ 1.2/1M salida, US$ 0.006/1M entrada-caché (deepseek-flash)
@@ -95,7 +95,23 @@ postura del precio: PICO (01:00-04:00 y 06:00-10:00 UTC, L-V) y SIN caché: es e
 confianza         : fórmula (3.92 car/token; medido contra la API)
 ```
 
-Tres cosas que el número **declara** en vez de disimular:
+⚠️ **El costo de la imagen depende del proveedor**, así que el número cambia con
+`-p`. La línea «tokens por archivo» nombra el proveedor con el que se estimó:
+
+| | DeepSeek | OpenAI |
+|---|---|---|
+| Cómo cobra | **tope fijo**: redimensiona a ~1300×1300 (y **agranda** las chicas) | **mosaicos de 512**: `85 + 170 × mosaicos` |
+| Una foto 4000×3000 | 1.024 (igual que cualquier tamaño) | 765 |
+| Un A4 a 300 dpi | 1.024 | **1.105** |
+| Una miniatura 120×90 | 1.024 | 255 |
+| `--detalle low` | 1.024 (no ahorra) | **85** (ahorra hasta 12×) |
+
+O sea: **en DeepSeek el peso y la resolución son irrelevantes** (40 MB y 4 KB
+cuestan igual); **en OpenAI manda la resolución, no los bytes** (una de 40 MB y
+una de 4 MB con las mismas medidas cuestan lo mismo). Gemini se estima a tope
+fijo: su capa compatible no documenta la fórmula de mosaicos ni acepta `--detalle`.
+
+Tres cosas más que el número **declara** en vez de disimular:
 
 - **Recorre todo el lote**, incluidas las imágenes ya procesadas. Saltear lo hecho
   es cosa de la corrida real (que reanuda); para simular el gasto total eso sería
@@ -199,7 +215,8 @@ voucherflow-lab --listar-proveedores
 | Temperatura | tiene efecto | **la ignora** → se declara | tiene efecto |
 | Esfuerzo | — | `none/low/high/max` | `none/minimal/low/medium/high` |
 | Entrada cacheada | — | **expone** (se cobra más barato) | — |
-| `--detalle` | tiene efecto | **no cambia el costo** | no lo acepta |
+| Costo de la imagen | **por resolución** (mosaicos) | **fijo** (no mira el tamaño) | fijo (estimado) |
+| `--detalle low` | **ahorra hasta 12×** (85 tokens) | no cambia el costo | no lo acepta |
 
 El modelo por defecto lo declara cada proveedor: si no pasás `-m`, se usa el
 suyo (no el de otro proveedor, que haría estimar el costo con precios ajenos).
@@ -433,6 +450,39 @@ puede rastrear hasta el prompt que lo generó.
 
 ---
 
+## Qué se paga por una imagen
+
+⚠️ **No se paga el peso del archivo.** Se pagan **píxeles**, y cada proveedor los
+cuenta distinto. Una imagen de 40 MB y una de 4 KB cuestan lo mismo **si miden lo
+mismo**.
+
+| | DeepSeek | OpenAI |
+|---|---|---|
+| Cómo cobra | **tope fijo** | **mosaicos de 512** |
+| Qué hace con la imagen | la redimensiona a ~1300×1300 y **agranda** las chicas | la recorta a 2048 el lado mayor y a 768 el menor (nunca agranda) |
+| Una foto 4000×3000 | 1.024 | 765 |
+| Un A4 a 300 dpi (2480×3508) | 1.024 | **1.105** |
+| Una miniatura 120×90 | 1.024 | 255 |
+| Con `--detalle low` | 1.024 (no ahorra) | **85** (ahorra hasta 12×) |
+
+Dos consecuencias prácticas:
+
+- **En DeepSeek la resolución no importa**: 40 MB y 4 KB cuestan igual, y una foto
+  más grande que 1300×1300 tampoco cuesta más (la baja antes de leerla).
+- **En OpenAI sí importa, pero es la resolución y no los bytes**: dos imágenes con
+  las mismas medidas cuestan igual pesen 0,5 MB o 40 MB. Y `--detalle low` es el
+  ahorro más grande disponible ahí.
+
+Gemini se estima a tope fijo: su capa compatible no documenta la fórmula de
+mosaicos ni acepta `--detalle`. Si se mide lo contrario, se cambia en
+`proveedores.py` (una línea).
+
+⚠️ **El peso sí importa para otro límite**: una imagen de más de ~24 MB **crudos**
+no se puede mandar (el proveedor limita el payload en base64, que infla un 33 %).
+Ver [Notas técnicas](#notas-tecnicas).
+
+---
+
 ## La caché de contexto
 
 DeepSeek cobra **mucho más barato** la parte de la entrada que sirvió de su caché
@@ -544,6 +594,13 @@ evidencia del gasto que ese fallo pudo haber consumido.
 DeepSeek, el registro lleva `nota_temperatura` diciendo que no tuvo efecto: creer
 que un ajuste influyó cuando no cambió nada hace inauditable la comparación de
 prompts.
+
+**El límite de peso.** Una imagen se manda como *data URL* en base64, y el base64
+infla un 33 %. Los proveedores limitan ese payload, así que el corte práctico es
+de **~24 MB de archivo** (24 MB × 4/3 = 32 MB). El comando rechaza la imagen
+**antes** de mandarla y avisa con qué reducida quedó: una petición condenada a
+fallar igual gasta una llamada. Para eso está `voucherflow corpus`, que además es
+lo que baja el peso sin cambiar la resolución.
 
 **Si el proveedor no impone el esquema, la validación es local y se paga.** OpenAI
 con `strict` garantiza la forma en el servidor; DeepSeek no. Ahí el núcleo valida

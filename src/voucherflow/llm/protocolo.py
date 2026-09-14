@@ -48,6 +48,18 @@ CLAVE_CACHE_HIT = "prompt_cache_hit_tokens"
 #: lleno). Se lee solo para el reporte.
 CLAVE_CACHE_MISS = "prompt_cache_miss_tokens"
 
+#: El proveedor cobra un número **fijo** de tokens por imagen, sin mirar su
+#: tamaño (DeepSeek redimensiona a ~1300×1300 y agranda las chicas).
+ESTRATEGIA_TOPE_FIJO = "tope_fijo"
+
+#: El proveedor cobra por **mosaicos** de 512 px, así que la resolución decide el
+#: costo (OpenAI: ``85 + 170 × mosaicos``; ``detail=low`` plano en 85).
+ESTRATEGIA_MOSAICOS = "mosaicos"
+
+#: Estrategias válidas. Se valida en :meth:`Capacidades.__post_init__` para que un
+#: proveedor nuevo no entre con un valor que nadie sabe interpretar (la
+#: estimación caería en el default en silencio).
+ESTRATEGIAS_IMAGEN = (ESTRATEGIA_TOPE_FIJO, ESTRATEGIA_MOSAICOS)
 
 
 @dataclass(frozen=True)
@@ -84,8 +96,19 @@ class Capacidades:
     #: Valores válidos de ``reasoning_effort``. Vacío = el proveedor no lo usa.
     esfuerzos: tuple[str, ...] = ()
 
-    #: Tokens que consume una imagen. Los proveedores no lo calculan igual: unos
-    #: por fórmula de mosaicos, otros con un tope fijo.
+    #: **Cómo** cobra el proveedor una imagen. No es un número: los proveedores
+    #: no lo calculan igual, y la diferencia es grande.
+    #:
+    #: * ``TOPE_FIJO`` (DeepSeek): redimensiona toda imagen a ~1300×1300 y cobra
+    #:   siempre ``tokens_por_imagen``. La resolución **no** cambia el costo.
+    #: * ``MOSAICOS`` (OpenAI): ``85 + 170 × mosaicos`` de 512 px, con ``detail``
+    #:   ``low`` plano en 85. Acá la resolución **sí** cambia el costo (hasta 12x).
+    #:
+    #: Tener solo un ``int`` obligaba a estimar todos los proveedores con el tope
+    #: de DeepSeek: con ``-p openai`` la estimación erraba de 0,9x a 12x.
+    estrategia_imagen: str = ESTRATEGIA_TOPE_FIJO
+
+    #: Tokens de una imagen cuando la estrategia es :data:`ESTRATEGIA_TOPE_FIJO`.
     tokens_por_imagen: int = 1024
 
     #: ¿El proveedor expone cuántos tokens de entrada salieron de su caché?
@@ -101,6 +124,19 @@ class Capacidades:
     #: para que una limitación no quede escondida en el código.
     notas: tuple[str, ...] = field(default_factory=tuple)
 
+    def __post_init__(self) -> None:
+        """Valida lo que el núcleo va a interpretar por su cuenta.
+
+        Se valida **acá** y no en quien estima: un valor desconocido haría que la
+        estimación caiga al default en silencio, y el error saldría a la luz como
+        un número plausible en vez de como un error de configuración.
+        """
+        if self.estrategia_imagen not in ESTRATEGIAS_IMAGEN:
+            raise ValueError(
+                f"{self.nombre}: estrategia_imagen desconocida "
+                f"{self.estrategia_imagen!r} (válidas: {', '.join(ESTRATEGIAS_IMAGEN)})"
+            )
+
     def como_diccionario(self) -> dict[str, Any]:
         """Vista serializable, para dejarla en el registro de la corrida."""
         return {
@@ -110,6 +146,7 @@ class Capacidades:
             "esquema_estricto": self.esquema_estricto,
             "temperatura_efectiva": self.temperatura_efectiva,
             "esfuerzos": list(self.esfuerzos),
+            "estrategia_imagen": self.estrategia_imagen,
             "tokens_por_imagen": self.tokens_por_imagen,
             "expone_cache": self.expone_cache,
             "notas": list(self.notas),

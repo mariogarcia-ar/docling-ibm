@@ -187,7 +187,14 @@ def _mostrar_proveedores() -> int:
         print(f"    esquema estricto    : {'sí' if ficha['esquema_estricto'] else 'no (valida local)'}")
         print(f"    temperatura         : {'tiene efecto' if ficha['temperatura_efectiva'] else 'la ignora (se declara)'}")
         print(f"    esfuerzos           : {', '.join(ficha['esfuerzos']) or '—'}")
-        print(f"    tokens por imagen   : {ficha['tokens_por_imagen']}")
+        # Cómo cobra la imagen, que es lo que cambia el costo entre proveedores.
+        if ficha["estrategia_imagen"] == "mosaicos":
+            print("    costo de la imagen  : por resolución (mosaicos de 512; `detail=low` = 85)")
+        else:
+            print(
+                f"    costo de la imagen  : fijo, {ficha['tokens_por_imagen']} por imagen "
+                "(no mira el tamaño)"
+            )
         print(f"    caché de entrada    : {'expone' if ficha['expone_cache'] else 'no expone'}")
         for nota in ficha["notas"]:
             print(f"    · {nota}")
@@ -247,6 +254,7 @@ def _reportar_gastos(args: argparse.Namespace, salida: Path) -> int:
         workers=1,
         dry_run=True,  # no es una corrida: nada de esto se usa para cobrar
         incluir_ejemplo=False,
+        proveedor=args.proveedor,
         precios=_precios_de(args),
         # La bandera pisa la tabla de referencia (ver `_precios_cache_de`).
         precios_cache=_precios_cache_de(args),
@@ -365,6 +373,9 @@ def main(argv: list[str] | None = None) -> int:
             args.prompt_fiel
             or not proveedor_por_nombre(args.proveedor).capacidades.esquema_estricto
         ),
+        # El proveedor viaja en las opciones porque la estimación del costo de la
+        # imagen depende de él (OpenAI cobra por mosaicos, DeepSeek a tope fijo).
+        proveedor=args.proveedor,
         precio_entrada=args.precio_entrada,
         precio_salida=args.precio_salida,
         precios=_precios_de(args),
