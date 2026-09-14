@@ -48,6 +48,7 @@ justificar una clasificación ante una auditoría.
 | 04 | [`04-decisiones-abiertas-adr.md`](04-decisiones-abiertas-adr.md) | SA | Decisiones técnicas abiertas y ADR preliminares |
 | 05 | [`05-plan-ejecucion.md`](05-plan-ejecucion.md) · carpeta [`05-plan/`](05-plan/) ([F0](05-plan/F0.md) · [F1](05-plan/F1.md) · [F2](05-plan/F2.md) · [F3](05-plan/F3.md) · [F4](05-plan/F4.md) · [F5](05-plan/F5.md) · [F6](05-plan/F6.md)) | PM | WBS/fases, MoSCoW, estimaciones, riesgos, DoR/DoD + archivo de seguimiento (tracking) por fase |
 | 06 | [`06-estrategia-calidad.md`](06-estrategia-calidad.md) | BA/SA/PM→DEV/QA | Estrategia de pruebas, golden set, métricas y criterios de salida por fase |
+| 07 | [`07-extracciones-esperadas.md`](07-extracciones-esperadas.md) | BA/SA/QA | 🟡 **Propuesta** (no implementada): dataset versionado de lecturas de referencia (`tests/expected-extraction/`) para comparar el pipeline local contra un modelo externo. ⚠️ Mide **acuerdo**, no exactitud: la referencia tiene errores medidos |
 
 ---
 
@@ -57,6 +58,8 @@ justificar una clasificación ante una auditoría.
 - **SA** (cómo): `03`, `04`.
 - **PM** (cuándo y con qué orden): `05`.
 - **Calidad** (cómo se valida): `06`.
+- **Datos de referencia** (con qué se compara): `06` §3 (golden curado por contador)
+  y `07` (lecturas de modelo, **otro tier**).
 
 Los diagramas están en Mermaid. Cada documento es autocontenido y referencia a
 los demás cuando hace falta.
