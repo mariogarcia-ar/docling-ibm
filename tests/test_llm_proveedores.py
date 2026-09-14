@@ -76,6 +76,20 @@ class TestCatalogo:
         assert len(fichas) == 3
         assert json.dumps(fichas)  # no rompe con tipos raros
 
+    def test_cada_proveedor_declara_su_modelo_por_defecto(self):
+        """⚠️ Asumir el modelo de otro hace que la estimación use sus precios.
+
+        Antes del arreglo, una corrida contra OpenAI se estimaba con los precios
+        de DeepSeek: el número parecía válido y era de otro proveedor.
+        """
+        modelos = {n: PROVEEDORES[n]().capacidades.modelo_por_defecto for n in PROVEEDORES}
+        assert all(modelos.values()), modelos
+        assert len(set(modelos.values())) == len(modelos), (
+            f"dos proveedores comparten modelo por defecto: {modelos}"
+        )
+        assert modelos["openai"] == "gpt-4o"
+        assert modelos["gemini"].startswith("gemini")
+
     def test_todos_declaran_su_credencial(self):
         for adaptador in PROVEEDORES.values():
             assert adaptador().capacidades.variable_api_key.endswith("_API_KEY")

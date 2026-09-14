@@ -345,8 +345,12 @@ python scripts/verificacion/etapa-conclusion.py       # veredictos, certeza y HI
 ```
 
 Las utilidades de `scripts/operacion/` preparan y diagnostican el corpus
-(reducir tokens de visión, validar con OpenAI/DeepSeek, generar fixtures). El
-detalle está en [`scripts/readme.md`](scripts/readme.md).
+(reducir tokens de visión, generar fixtures). El detalle está en
+[`scripts/readme.md`](scripts/readme.md).
+
+El **laboratorio de LLM externos** —ajustar y evaluar el prompt con OpenAI,
+DeepSeek o Gemini— es un binario aparte: `voucherflow-lab`. Guía en
+[`docs/laboratorio-llm.md`](docs/laboratorio-llm.md).
 
 ## Documentación
 

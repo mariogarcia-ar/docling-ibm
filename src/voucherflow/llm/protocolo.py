@@ -51,6 +51,11 @@ class Capacidades:
     #: Variable de entorno de la credencial.
     variable_api_key: str = "OPENAI_API_KEY"
 
+    #: Modelo por defecto del proveedor. Cada uno tiene el suyo: asumir el de
+    #: otro haría que una corrida contra OpenAI se estimara con los precios de
+    #: DeepSeek (y el número parecería válido).
+    modelo_por_defecto: str = ""
+
     #: ¿El servidor **impone** la forma del JSON contra el esquema? Si es
     #: ``False``, hay que validar localmente y reintentar con el error.
     esquema_estricto: bool = True
@@ -83,6 +88,7 @@ class Capacidades:
         """Vista serializable, para dejarla en el registro de la corrida."""
         return {
             "proveedor": self.nombre,
+            "modelo_por_defecto": self.modelo_por_defecto,
             "base_url": self.base_url,
             "esquema_estricto": self.esquema_estricto,
             "temperatura_efectiva": self.temperatura_efectiva,

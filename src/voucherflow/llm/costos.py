@@ -22,6 +22,12 @@ from __future__ import annotations
 
 from typing import Any
 
+from .config import (
+    CHARS_POR_TOKEN_ESTIMADO,
+    COMPLETION_TOKENS_TIPICO,
+    MIN_MUESTRAS_PARA_CALIBRAR,
+)
+
 #: Precios de referencia (USD por 1M de tokens: entrada, salida).
 #:
 #: ⚠️ Los precios **cambian** y dependen del modelo y de la cuenta. Esta tabla es
@@ -55,19 +61,8 @@ PRECIOS_CACHE: dict[str, float] = {
     "deepseek-v4-pro": 0.044,
 }
 
-#: Caracteres por token, para estimar el texto del prompt sin llamar a la API.
-#: ⚠️ Medido sobre ``gpt-4o`` (10.919 chars = 2.786 tokens en 10 extracciones
-#: reales). Es el tokenizador de **otro** modelo: sirve como arranque, y con
-#: suficientes muestras del mismo modelo el histórico lo reemplaza.
-CHARS_POR_TOKEN_ESTIMADO = 3.92
 
-#: Tokens de salida típicos, cuando no hay histórico con qué calibrar (~240
-#: medido en las mismas extracciones).
-COMPLETION_TOKENS_TIPICO = 240
 
-#: Mínimo de extracciones previas para calibrar con el histórico. Con menos, el
-#: promedio es ruido y presentarlo como medición sería mentir.
-MIN_MUESTRAS_PARA_CALIBRAR = 3
 
 #: Cómo se obtuvo una estimación. Se declara en el reporte: una estimación nunca
 #: se presenta como una factura.

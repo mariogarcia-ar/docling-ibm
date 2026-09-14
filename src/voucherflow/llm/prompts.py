@@ -1,33 +1,121 @@
-"""Armado del prompt efectivo y del ejemplo que lo acompaña.
+"""Armado del prompt efectivo: del template del `.md` al mensaje que se manda.
 
-El prompt de validación se escribió para **comparar** contra los datos cargados:
-su bloque final («Instrucciones generales») incluye el `estado_global` y una
-tabla de reglas que solo aplican al modo `validar`. Cuando lo que se quiere es
-**extraer** —sin datos con qué comparar— ese cierre sobra, y un modelo que no
-tiene la forma impuesta por el servidor (DeepSeek, Gemini) lo obedece: devuelve
-`estado_global` y `campos` en modo extracción, y el consumidor lo rechaza.
+El prompt no se escribe acá: vive en el `.md` (``prompt-validacion-mendel.md``),
+que es el documento de trabajo donde se ajusta. Este módulo lo **lee**, lo adapta
+al modo y lo hashea.
 
-Por eso hay dos piezas:
+Tres piezas y el problema que resuelve cada una:
 
-* :func:`sistema_de_extraccion` reemplaza el cierre de comparación por una
-  instrucción de extracción, conservando las reglas de negocio (son el dominio,
-  no el modo). Aplica a los proveedores sin esquema estricto.
-* :func:`ejemplo_desde_esquema` **genera** el JSON de ejemplo a partir del mismo
-  esquema que valida, en vez de mantener una copia escrita a mano que puede
-  divergir. El ejemplo es lo que sostiene la forma cuando el servidor no la
-  impone.
+* :func:`cargar_prompt` separa el SYSTEM y el USER de los bloques de código del
+  documento. El `.md` sigue siendo la fuente única: se ajusta ahí y el código lo
+  toma.
+* :func:`construir_mensaje_usuario` arma el mensaje del usuario. El template trae
+  el JSON de ejemplo de salida (~78% del texto): con esquema estricto es
+  redundante, así que se **omite** por defecto. En modo extracción se reemplaza
+  por un ejemplo generado del esquema que valida.
+* :func:`armar_prompt_efectivo` es la **función única** que usan correr y
+  estimar. Si la estimación de costo armara el prompt por su cuenta, el número
+  simulado dejaría de corresponder al real (misma lección que ``salida_de()``:
+  escribir y calcular no pueden divergir).
 
-⚠️ Un prompt con un ejemplo que no coincide con el esquema es peor que no tener
-ejemplo: el modelo copia la forma equivocada y el error aparece como un fallo de
-validación, no como el ejemplo desactualizado que es.
+⚠️ :func:`hash_prompt` se calcula sobre el prompt **efectivo** —después de
+adaptarlo—, no sobre el crudo. Hashear el crudo identificaría como iguales dos
+corridas que mandaron textos distintos.
 """
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
+from pathlib import Path
 from typing import Any
 
+from .esquemas import esquema_extraccion, esquema_validacion
+
+#: Bloque de fenced code con el SYSTEM PROMPT y el USER PROMPT del .md.
+_RE_BLOQUE_MD = re.compile(r"```[a-zA-Z]*\n(.*?)```", re.DOTALL)
+
+
+def cargar_prompt(ruta: Path) -> tuple[str, str]:
+    """Extrae ``(system_prompt, user_template)`` del ``.md`` del prompt.
+
+    Espera los dos bloques de código del documento, en orden:
+    el del encabezado ``## SYSTEM PROMPT`` y el de ``## USER PROMPT (template)``.
+    """
+    if not ruta.is_file():
+        raise FileNotFoundError(f"no se encontró el prompt: {ruta}")
+    texto = ruta.read_text(encoding="utf-8")
+    bloques = _RE_BLOQUE_MD.findall(texto)
+    if len(bloques) < 2:
+        raise ValueError(
+            f"se esperaban al menos 2 bloques ```…``` en {ruta} "
+            f"(SYSTEM PROMPT y USER PROMPT); se encontraron {len(bloques)}"
+        )
+    return bloques[0].strip(), bloques[1].strip()
+
+
+#: Desde "Analizá el comprobante … formato JSON:" hasta el final del ejemplo.
+_RE_EJEMPLO_SALIDA = re.compile(
+    r"\n*Analizá el comprobante contra estos datos y devolvé el resultado en el\n"
+    r"siguiente formato JSON:.*\Z",
+    re.DOTALL,
+)
+
+
+def _separar_template(user_template: str) -> tuple[str, str]:
+    """Parte el template en (cabecera con los datos, bloque de ejemplo de salida)."""
+    coincidencia = _RE_EJEMPLO_SALIDA.search(user_template)
+    if not coincidencia:
+        return user_template, ""
+    return user_template[: coincidencia.start()].rstrip(), user_template[
+        coincidencia.start() :
+    ].strip()
+
+
+def construir_mensaje_usuario(
+    user_template: str,
+    datos: dict | None,
+    *,
+    incluir_ejemplo: bool,
+    ejemplo_alternativo: str | None = None,
+) -> str:
+    """Arma el texto del mensaje ``user`` a partir del template del ``.md``.
+
+    Sustituye ``[IMAGEN]`` por una nota (la imagen viaja como parte de contenido
+    ``image_url``, que es el mecanismo de la API) y reemplaza el bloque de datos
+    por el JSON real. Si ``incluir_ejemplo`` es falso, **quita el JSON de ejemplo
+    de salida** (en DeepSeek es un experimento: el JSON mode lo pide explícito).
+
+    ``ejemplo_alternativo`` reemplaza el ejemplo del ``.md``. ⚠️ Hace falta en el
+    modo ``extraer``: el template trae el ejemplo del modo **comparar**
+    (``estado_global``/``campos``), así que sin esto el modelo devuelve esa forma
+    — y el validador, que espera la de extracción, la rechaza.
+    """
+    cabecera, ejemplo = _separar_template(user_template)
+    cabecera = cabecera.replace("[IMAGEN]", "(imagen adjunta a continuación)")
+
+    if siguiente := re.search(r"\{.*\}", cabecera, re.DOTALL):
+        bloque_datos = json.dumps(datos, ensure_ascii=False, indent=2) if datos else "{}"
+        cabecera = (
+            cabecera[: siguiente.start()] + bloque_datos + cabecera[siguiente.end() :]
+        )
+
+    if not incluir_ejemplo:
+        return cabecera
+    return f"{cabecera}\n\n{ejemplo_alternativo or ejemplo}".rstrip()
+
+
+#: Cierre del SYSTEM PROMPT del ``.md`` que pertenece al modo **comparar**:
+#: desde «Instrucciones generales:» (ahí adentro está el ``estado_global`` y el
+#: «Respondé ÚNICAMENTE en el formato JSON especificado»). En el modo ``extraer``
+#: se reemplaza por :data:`INSTRUCCIONES_SISTEMA_EXTRACCION`.
+#:
+#: ⚠️ No es cosmético: el texto del ``.md`` está escrito para *comparar* contra
+#: los datos de Mendel. En OpenAI eso quedaba tapado porque el ``json_schema``
+#: estricto imponía la forma **en el servidor**; DeepSeek solo garantiza JSON
+#: válido, así que el prompt manda — y con este cierre el modelo devolvía
+#: ``estado_global``/``campos`` (la forma de *validar*) en vez de la extracción.
 _RE_CIERRE_SISTEMA = re.compile(r"\nInstrucciones generales:.*\Z", re.DOTALL)
 
 INSTRUCCIONES_SISTEMA_EXTRACCION = (
@@ -162,3 +250,15 @@ def armar_prompt_efectivo(
     if modo == "extraer":
         return sistema_de_extraccion(sistema), prompt_de_extraccion(usuario)
     return sistema, usuario
+
+
+
+def hash_prompt(*partes: str) -> str:
+    """Hash corto del prompt efectivo, para auditar qué prompt produjo cada salida."""
+    h = hashlib.sha256()
+    for parte in partes:
+        h.update(parte.encode("utf-8"))
+        h.update(b"\x00")
+    return f"sha256:{h.hexdigest()[:16]}"
+
+

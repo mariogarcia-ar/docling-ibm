@@ -122,8 +122,7 @@ set -a && source .env && set +a
 proceso, así que hay que cargarlo con `source` (o `direnv`, o
 `docker compose --env-file`) antes de correr los comandos.
 
-> Los scripts `scripts/operacion/validar-openai.py` y
-> `scripts/operacion/validar-deepseek.py` son la excepción: aceptan `--env` y
+> El laboratorio de LLM externos (`voucherflow-lab`) es la excepción: acepta `--env` y
 > por defecto leen `./.env`, así que para esos scripts alcanza con tenerlo en
 > disco (la clave de cada uno sale de `OPENAI_API_KEY` y `DEEPSEEK_API_KEY`,
 > respectivamente).

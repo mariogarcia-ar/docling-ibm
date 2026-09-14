@@ -54,6 +54,10 @@ voucherflow = "voucherflow.cli.main:entrypoint"
 # contenedores del nivel Cliente, y el contrato de once subcomandos de E-CLI-1
 # está verificado por T-604/T-605 (no se reabre por una tarea de fase 2).
 voucherflow-http = "voucherflow.http.__main__:main"
+# Laboratorio de LLM externos: extrae comprobantes con un proveedor externo
+# y evalúa el prompt contra los datos cargados. Reemplaza a los dos scripts
+# gemelos (uno por proveedor) por un comando donde el proveedor es argumento.
+voucherflow-lab = "voucherflow.llm.cli:entrypoint"
 
 [project.urls]
 Homepage = "https://github.com/example/voucherflow"  # placeholder: lo define el dueño del repo (ADR-007)

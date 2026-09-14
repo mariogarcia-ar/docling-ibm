@@ -154,6 +154,7 @@ class AdaptadorOpenAI(_AdaptadorOpenAI):
         nombre="openai",
         base_url=None,
         variable_api_key="OPENAI_API_KEY",
+        modelo_por_defecto="gpt-4o",
         esquema_estricto=True,
         temperatura_efectiva=True,
         esfuerzos=(),
@@ -187,6 +188,7 @@ class AdaptadorDeepSeek(_AdaptadorOpenAI):
         nombre="deepseek",
         base_url="https://api.deepseek.com",
         variable_api_key="DEEPSEEK_API_KEY",
+        modelo_por_defecto="deepseek-flash",
         esquema_estricto=False,
         temperatura_efectiva=False,  # el thinking mode la ignora
         esfuerzos=("none", "low", "high", "max"),
@@ -227,6 +229,7 @@ class AdaptadorGemini(_AdaptadorOpenAI):
         nombre="gemini",
         base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
         variable_api_key="GEMINI_API_KEY",
+        modelo_por_defecto="gemini-2.5-flash",
         esquema_estricto=False,
         temperatura_efectiva=True,
         esfuerzos=("none", "minimal", "low", "medium", "high"),
