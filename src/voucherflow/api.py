@@ -280,7 +280,7 @@ def extract(
         (el llamador decide; el pipeline completo lo resuelve como rechazo).
     """
     from .orchestrator import PipelineOrchestrator
-    from .schemas.evidence import CombinedEvidence
+    from .schemas.evidence import derivar_evidencia
 
     orquestador = PipelineOrchestrator(
         cliente=cliente, settings=settings, converter=converter
@@ -295,21 +295,17 @@ def extract(
     evidencia = orquestador.combinar(
         _identificador_de_archivo(origen), extraccion.evidencias
     )
-    trazabilidad = dict(evidencia.trazabilidad)
-    trazabilidad["api_extract"] = {
-        "mode_heredado": mode,
-        "nota": (
-            "`extract` de la fachada (T-601) corre procesamiento + gate + los dos "
-            "flujos + combinación. El modo heredado se registra por paridad "
-            "(T-604); el contrato de extracción del paquete es uno solo "
-            f"({extraction_version()})."
-        ),
-    }
-    return CombinedEvidence(
-        documento_id=evidencia.documento_id,
-        campos=dict(evidencia.campos),
-        decision=evidencia.decision,
-        trazabilidad=trazabilidad,
+    return derivar_evidencia(
+        evidencia,
+        api_extract={
+            "mode_heredado": mode,
+            "nota": (
+                "`extract` de la fachada (T-601) corre procesamiento + gate + los dos "
+                "flujos + combinación. El modo heredado se registra por paridad "
+                "(T-604); el contrato de extracción del paquete es uno solo "
+                f"({extraction_version()})."
+            ),
+        },
     )
 
 

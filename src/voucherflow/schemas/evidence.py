@@ -330,6 +330,13 @@ def _utc_now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+#: Centinela para distinguir «no pases `decision`» de «pasá `decision=None`».
+#: Sin esto, `derivar_evidencia(e)` y `derivar_evidencia(e, decision=None)`
+#: serían indistinguibles, y la segunda es un caso real: re-concluir sobre el
+#: caso enriquecido deja el veredicto anterior sin efecto.
+_SIN_CAMBIO: Any = object()
+
+
 def nueva_meta(modelo: str | None = None, version_prompt: str | None = None) -> dict[str, Any]:
     """Construye el dict ``meta`` estándar de una ``EvidenceField``.
 
@@ -342,6 +349,45 @@ def nueva_meta(modelo: str | None = None, version_prompt: str | None = None) -> 
     if version_prompt:
         meta["version_prompt"] = version_prompt
     return meta
+
+
+def derivar_evidencia(
+    evidencia: CombinedEvidence,
+    *,
+    decision: Decision | None | Any = _SIN_CAMBIO,
+    campos: dict[str, CampoCombinado] | None = None,
+    **anotaciones: Any,
+) -> CombinedEvidence:
+    """Copia una ``CombinedEvidence`` ampliando su traza.
+
+    Es el patrón de **todas** las etapas que enriquecen un caso: combinar,
+    concluir, anotar la búsqueda de gaps, envolver desde la fachada o desde el
+    CLI. Cada una conserva el documento y sus campos y **agrega** una clave a la
+    trazabilidad. Escribir ese ``dict(evidencia.trazabilidad)`` a mano en cada
+    sitio repetía la misma decisión, y una de las copias podía olvidarse de
+    partir de la traza anterior (perdiendo la evidencia de la etapa previa).
+
+    Solo se pueden cambiar los campos que el contrato permite:
+
+    - ``documento_id`` **no** es parámetro: la evidencia derivada es del mismo
+      documento. Permitirlo abriría la puerta a mezclar casos sin que se note.
+    - ``campos`` se reemplaza cuando la etapa los recalcula (p. ej. la
+      combinación adicional de gaps); si se omite, se copia el dict original.
+    - ``decision``: el veredicto **final** del caso. Si se omite, se **conserva**
+      el que traía (una anotación de traza no cambia el veredicto). Se pasa
+      ``decision=None`` explícito cuando el veredicto anterior dejó de regir —
+      p. ej. se va a re-concluir sobre el caso enriquecido.
+
+    ``**anotaciones`` son las claves que se agregan a la trazabilidad.
+    """
+    traza = dict(evidencia.trazabilidad)
+    traza.update(anotaciones)
+    return CombinedEvidence(
+        documento_id=evidencia.documento_id,
+        campos=campos if campos is not None else dict(evidencia.campos),
+        decision=evidencia.decision if decision is _SIN_CAMBIO else decision,
+        trazabilidad=traza,
+    )
 
 
 __all__ = [

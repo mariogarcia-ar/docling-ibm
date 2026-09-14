@@ -526,22 +526,18 @@ def _extraer_archivo(
         modelo=args.model,
     )
     evidencia = orch.combinar(documento_id, extraccion.evidencias)
-    trazabilidad = dict(evidencia.trazabilidad)
-    trazabilidad["cli_extract"] = {
-        "mode_heredado": mode,
-        "version_cli": VERSION_CLI,
-        "nota": (
-            "El modo heredado (kvi/kvg/10/11) se registra para la paridad de "
-            "T-604; el contrato de extracción del paquete es uno solo."
-        ),
-    }
-    from ..schemas.evidence import CombinedEvidence
+    from ..schemas.evidence import derivar_evidencia
 
-    return CombinedEvidence(
-        documento_id=evidencia.documento_id,
-        campos=dict(evidencia.campos),
-        decision=evidencia.decision,
-        trazabilidad=trazabilidad,
+    return derivar_evidencia(
+        evidencia,
+        cli_extract={
+            "mode_heredado": mode,
+            "version_cli": VERSION_CLI,
+            "nota": (
+                "El modo heredado (kvi/kvg/10/11) se registra para la paridad de "
+                "T-604; el contrato de extracción del paquete es uno solo."
+            ),
+        },
     )
 
 

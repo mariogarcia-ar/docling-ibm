@@ -46,7 +46,7 @@ from ..rules.gaps import (
     buscar_evidencia_adicional,
     detectar_gaps,
 )
-from ..schemas.evidence import CombinedEvidence, SourceEvidence
+from ..schemas.evidence import CombinedEvidence, SourceEvidence, derivar_evidencia
 from ..schemas.result import ClasificacionContable, HitlDecision, VoucherResult
 from ..settings.config import Settings
 from .agent import Agente, DecisionAgente
@@ -134,39 +134,35 @@ def _adjuntar_conclusion(
     :func:`concluir_con_busqueda` (T-502) compartan exactamente el mismo camino
     — la decisión no puede depender de si hubo búsqueda o no.
     """
-    trazabilidad = dict(evidencia.trazabilidad)
-    trazabilidad["etapa"] = VERSION_CRUZADAS
-    trazabilidad["conclusion"] = {
-        **conclusion.como_dict(),
-        "letra_vigente": contexto.letra,
-        "fuente_letra": (
-            contexto.fuente_letra.value if contexto.fuente_letra else None
-        ),
-        "campos_criticos_ausentes": list(contexto.campos_criticos_ausentes),
-        "campos_ausentes": list(contexto.campos_ausentes),
-        "lectura_invalida": contexto.lectura_invalida,
-        "coherente": contexto.coherente,
-        "incoherencias": list(contexto.incoherencias),
-        "nota": (
-            "Conclusión T-501 (pasada 2, E-CONC-1): reglas cruzadas "
-            "(negocio + fast-fail + conflicto R7) sobre la evidencia combinada. "
-            "La certeza se deriva de la etapa que decidió (glosario §2). El "
-            "Decision de F0 se adjunta solo si el código concluyó: un caso "
-            "ambiguo no lo decidió nadie (viaja sin Decision, con su "
-            "ConclusionResult en la traza) y espera al agente (T-504) o al "
-            "HITL (T-505). La consolidación del VoucherResult es T-503."
-        ),
-    }
-
-    return CombinedEvidence(
-        documento_id=evidencia.documento_id,
-        campos=dict(evidencia.campos),
+    return derivar_evidencia(
+        evidencia,
         # ``decision`` es el veredicto **final** del caso (contrato de F0): se
         # adjunta solo cuando el código concluyó. El estado completo —incluido
         # el caso ambiguo— viaja en ``trazabilidad['conclusion']`` y en el
         # ``ConclusionResult`` que devuelve el módulo ``conclusion``.
         decision=conclusion.decision,
-        trazabilidad=trazabilidad,
+        etapa=VERSION_CRUZADAS,
+        conclusion={
+            **conclusion.como_dict(),
+            "letra_vigente": contexto.letra,
+            "fuente_letra": (
+                contexto.fuente_letra.value if contexto.fuente_letra else None
+            ),
+            "campos_criticos_ausentes": list(contexto.campos_criticos_ausentes),
+            "campos_ausentes": list(contexto.campos_ausentes),
+            "lectura_invalida": contexto.lectura_invalida,
+            "coherente": contexto.coherente,
+            "incoherencias": list(contexto.incoherencias),
+            "nota": (
+                "Conclusión T-501 (pasada 2, E-CONC-1): reglas cruzadas "
+                "(negocio + fast-fail + conflicto R7) sobre la evidencia combinada.\n"
+                "La certeza se deriva de la etapa que decidió (glosario §2). El "
+                "Decision de F0 se adjunta solo si el código concluyó: un caso "
+                "ambiguo no lo decidió nadie (viaja sin Decision, con su "
+                "ConclusionResult en la traza) y espera al agente (T-504) o al "
+                "HITL (T-505). La consolidación del VoucherResult es T-503."
+            ),
+        },
     )
 
 
@@ -689,15 +685,13 @@ def _fusionar_evidencia(
 
     combinacion = combinar(sources, documento_id=evidencia.documento_id)
 
-    trazabilidad = dict(evidencia.trazabilidad)
-    trazabilidad["combinacion_adicional"] = resumen_combinacion(combinacion)
-    return CombinedEvidence(
-        documento_id=evidencia.documento_id,
+    return derivar_evidencia(
+        evidencia,
         campos=combinacion.campos,
         # ``decision`` vuelve a ``None``: se va a re-concluir sobre el caso
         # enriquecido, así que el veredicto anterior ya no rige.
         decision=None,
-        trazabilidad=trazabilidad,
+        combinacion_adicional=resumen_combinacion(combinacion),
     )
 
 
@@ -707,14 +701,10 @@ def _anotar_busqueda(
     busqueda: ResultadoBusquedaAdicional,
 ) -> CombinedEvidence:
     """Agrega a la traza lo que pasó con la detección y la búsqueda (E-CONC-5)."""
-    trazabilidad = dict(evidencia.trazabilidad)
-    trazabilidad["gaps"] = deteccion.como_dict()
-    trazabilidad["busqueda_evidencia_adicional"] = busqueda.como_dict()
-    return CombinedEvidence(
-        documento_id=evidencia.documento_id,
-        campos=dict(evidencia.campos),
-        decision=evidencia.decision,
-        trazabilidad=trazabilidad,
+    return derivar_evidencia(
+        evidencia,
+        gaps=deteccion.como_dict(),
+        busqueda_evidencia_adicional=busqueda.como_dict(),
     )
 
 
