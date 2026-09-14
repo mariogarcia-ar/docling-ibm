@@ -109,6 +109,39 @@ class HitlSettings:
 
 
 @dataclass
+class PathsSettings:
+    """Dónde viven los datos del proyecto.
+
+    Todo cuelga de ``var``: un solo directorio que ignorar en git, respaldar o
+    borrar. Las tres carpetas tienen un rol distinto y conviene no mezclarlas:
+
+    * ``files`` — el corpus de entrada, **como llegó**. No se toca.
+    * ``processed`` — lo que produce ``processing`` (markdown y artefactos).
+    * ``validations`` — lo que produce el laboratorio de LLM externos.
+
+    ⚠️ Las rutas son **relativas al directorio de trabajo**. Para una corrida
+    reproducible conviene fijarlas absolutas en ``voucherflow.yaml``.
+    """
+
+    var: str = "var"
+    files: str = "var/files"
+    processed: str = "var/processed"
+    validations: str = "var/validations"
+
+    def resolver(self, cual: str, base: Path | None = None) -> Path:
+        """Ruta de una de las carpetas, resuelta contra ``base`` (o el cwd)."""
+        if cual not in {"var", "files", "processed", "validations"}:
+            raise ValueError(
+                f"carpeta desconocida: {cual!r} "
+                "(válidas: var, files, processed, validations)"
+            )
+        ruta = Path(getattr(self, cual))
+        if ruta.is_absolute() or base is None:
+            return ruta
+        return base / ruta
+
+
+@dataclass
 class Settings:
     """Configuración raíz de la librería.
 
@@ -121,6 +154,7 @@ class Settings:
     modelos: dict[str, ModeloRol] = field(default_factory=dict)
     cooling: CoolingSettings = field(default_factory=CoolingSettings)
     hitl: HitlSettings = field(default_factory=HitlSettings)
+    paths: PathsSettings = field(default_factory=PathsSettings)
     workers: int = 1
     #: Ruta del archivo YAML efectivamente cargado (si hubo).
     archivo_config: str | None = None
@@ -128,6 +162,13 @@ class Settings:
     def modelo_para(self, rol: str) -> ModeloRol | None:
         """Modelo asignado a un rol (ocr/vlm/llm/agente) o ``None``."""
         return self.modelos.get(rol)
+
+    def carpeta(self, cual: str, base: Path | None = None) -> Path:
+        """Ruta de una carpeta de datos (``files``/``processed``/``validations``).
+
+        Atajo para no repetir ``settings.paths.resolver(...)`` en cada llamador.
+        """
+        return self.paths.resolver(cual, base)
 
     # -- helpers de acceso directo -----------------------------------------
     @property
@@ -179,6 +220,22 @@ _DEFAULTS: dict[str, Any] = {
         "vlm": {"rol": "vlm", "modelo": "qwen2.5vl:3b", "num_ctx": 4096},
         "llm": {"rol": "llm", "modelo": "qwen2.5:7b", "num_ctx": 8192},
         "agente": {"rol": "agente", "modelo": "qwen2.5:7b", "num_ctx": 8192},
+    },
+    # Dónde viven los datos. Todo bajo `var/` para que haya **un** lugar que
+    # borrar, respaldar o ignorar en git, y para que los scripts no inventen
+    # cada uno su propia carpeta.
+    #
+    # ⚠️ Son rutas **relativas al directorio de trabajo**: si se corre desde
+    # otro lado, se resuelven distinto. Para una instalación real, conviene
+    # fijarlas absolutas en `voucherflow.yaml` o con las variables de entorno.
+    "paths": {
+        "var": "var",
+        # El corpus de entrada, tal como llega (un mes por carpeta).
+        "files": "var/files",
+        # Salida de `processing`: el markdown y los artefactos por documento.
+        "processed": "var/processed",
+        # Salida del laboratorio de LLM externos (una por documento).
+        "validations": "var/validations",
     },
 }
 
@@ -308,12 +365,20 @@ def _from_dict(datos: dict[str, Any], archivo: str | None = None) -> Settings:
             num_ctx=int(m["num_ctx"]) if m.get("num_ctx") is not None else None,
             temperatura=float(m["temperatura"]) if m.get("temperatura") is not None else None,
         )
+    path_raw = d.get("paths", {})
+    paths = PathsSettings(
+        var=str(path_raw.get("var", "var")),
+        files=str(path_raw.get("files", "var/files")),
+        processed=str(path_raw.get("processed", "var/processed")),
+        validations=str(path_raw.get("validations", "var/validations")),
+    )
     return Settings(
         schema_version=str(d.get("schema_version", "1.0.0")),
         ollama=ollama,
         modelos=modelos,
         cooling=cooling,
         hitl=hitl,
+        paths=paths,
         workers=int(d.get("workers", 1)),
         archivo_config=archivo,
     )

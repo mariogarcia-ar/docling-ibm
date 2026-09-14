@@ -200,7 +200,7 @@ datos, sale como "no calculable" con su motivo — «no saber» nunca se reporta
 
 ```bash
 voucherflow run factura.pdf                      # pipeline completo
-voucherflow batch files/2025-08 -o lote.json     # carpeta recursiva, con workers
+voucherflow batch var/files/2025-08 -o lote.json     # carpeta recursiva, con workers
 voucherflow case list --dir salida/cases         # trazabilidad persistida
 voucherflow hitl list --dir salida/cases         # cola de revisión
 ```

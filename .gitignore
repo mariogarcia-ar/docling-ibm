@@ -1,4 +1,6 @@
-files/
+# Datos del proyecto: TODO bajo var/ (corpus, procesados, validaciones).
+# Un solo lugar que ignorar, respaldar o borrar.
+var/
 .env
 certs/
 
@@ -53,7 +55,4 @@ dmypy.json
 pyre-check/
 *.log
 tests/fixtures/**/*.md
-/procesadas/
-/procesados/
-/validaciones/
 .DS_Store

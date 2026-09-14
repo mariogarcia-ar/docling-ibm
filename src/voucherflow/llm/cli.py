@@ -69,8 +69,10 @@ def construir_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("rutas", nargs="*", help="archivo o carpeta de imágenes")
     parser.add_argument(
-        "-o", "--salida", type=Path, default=Path("validaciones"),
-        help="carpeta de salida (default: validaciones)",
+        # El default sale de la configuración (`paths.validations`), no de un
+        # literal: así los paths viven en un solo lugar.
+        "-o", "--salida", type=Path, default=None,
+        help="carpeta de salida (default: el de la configuración, var/validations)",
     )
     parser.add_argument(
         "-p", "--proveedor", default="deepseek", choices=sorted(PROVEEDORES),
@@ -213,10 +215,18 @@ def main(argv: list[str] | None = None) -> int:
             return 2
         entorno.cargar_env(args.env)
 
+    # La carpeta de salida: la pedida con `-o`, o la de la configuración. El
+    # default sale de `paths.validations` y no de un literal, así los paths
+    # viven en un solo lugar (`voucherflow.yaml` / `VOUCHERFLOW__PATHS__…`).
+    from voucherflow.settings.config import cargar_settings
+
+    ajustes = cargar_settings()
+    salida = args.salida or ajustes.paths.resolver("validations")
+
     print(f"proveedor : {args.proveedor}")
     print(f"operación : {args.operacion}")
     print(f"prompt    : {args.prompt} ({VERSION_PROMPT})")
-    print(f"salida    : {args.salida}")
+    print(f"salida    : {salida}")
     if args.dry_run:
         print("modo      : --dry-run (simulación: no llama a la API ni escribe)")
     print()
@@ -228,7 +238,7 @@ def main(argv: list[str] | None = None) -> int:
         temperatura=args.temperatura,
         max_tokens=args.max_tokens,
         esfuerzo=args.esfuerzo,
-        salida=args.salida,
+        salida=salida,
         forzar=args.forzar,
         workers=args.workers,
         dry_run=args.dry_run,

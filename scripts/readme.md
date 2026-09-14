@@ -48,7 +48,7 @@ Herramientas para trabajar con las imágenes y las APIs **antes** de procesarlas
 
 Reduce las imágenes a un **lado mayor objetivo** (1024 px por defecto, sin
 agrandar nunca), las reencoda con calidad moderada y espeja el árbol de carpetas
-bajo una salida (`procesadas/`). Menos bytes en disco/red y **menos tokens de
+bajo una salida (`var/processed/`). Menos bytes en disco/red y **menos tokens de
 visión** cuando la imagen después viaja a un VLM.
 
 Porta el loop de shell con `ffmpeg` y le corrige cuatro defectos:
@@ -74,37 +74,37 @@ alineación local a múltiplos de 28 y lo **declara** en el resumen
 
 ```bash
 # Siempre conviene empezar midiendo (no escribe nada)
-python scripts/operacion/reducir-tokens.py ../files --solo-medir
+python scripts/operacion/reducir-tokens.py var/files --solo-medir
 
 # Elegir la carpeta de salida (default: procesadas)
-python scripts/operacion/reducir-tokens.py ../files -o salida
+python scripts/operacion/reducir-tokens.py var/files -o salida
 
 # Prueba con 20 imágenes, con una línea por archivo
-python scripts/operacion/reducir-tokens.py ../files --limite 20 --detalle
+python scripts/operacion/reducir-tokens.py var/files --limite 20 --detalle
 
 # Corpus completo: 4 workers y reporte JSON
-python scripts/operacion/reducir-tokens.py ../files -o salida --workers 4 \
+python scripts/operacion/reducir-tokens.py var/files -o salida --workers 4 \
   --reporte salida/reporte.json
 
 # Otra resolución (p. ej. antes de un OCR clásico)
-python scripts/operacion/reducir-tokens.py ../files --lado-mayor 1536 --workers 4
+python scripts/operacion/reducir-tokens.py var/files --lado-mayor 1536 --workers 4
 ```
 
 **Carpeta de salida (`-o` / `--salida`).** El árbol se espeja desde `--raiz` (o
 desde el nivel que no sea un mes), sin repetir el nombre de la carpeta de
-entrada. Con `../files/2025-08/2D2C9343/foto.jpg`:
+entrada. Con `var/var/files/2025-08/2D2C9343/foto.jpg`:
 
 | Invocación | Archivo resultante |
 |---|---|
-| `../files` | `procesadas/2025-08/2D2C9343/foto.jpg` |
-| `../files/2025-08` | `procesadas/2025-08/2D2C9343/foto.jpg` |
-| `../files/2025-08/2D2C9343` | `procesadas/2025-08/2D2C9343/foto.jpg` |
+| `var/files` | `var/processed/2025-08/2D2C9343/foto.jpg` |
+| `var/files/2025-08` | `var/processed/2025-08/2D2C9343/foto.jpg` |
+| `var/var/files/2025-08/2D2C9343` | `var/processed/2025-08/2D2C9343/foto.jpg` |
 | `-o /tmp/reducido` | `/tmp/reducido/2025-08/2D2C9343/foto.jpg` |
 
 ⚠️ **La misma imagen escribe siempre el mismo archivo**, sin importar con qué
 subcarpeta se invoque. La raíz **no** se deriva de la ruta pasada: se **sube**
 hasta el primer nivel que no sea un mes (`2025-08`) ni un hash de lote
-(`2D2C9343`). Sin esto, procesar `files` y después `files/2025-08` escribía dos
+(`2D2C9343`). Sin esto, procesar `var/files` y después `var/files/2025-08` escribía dos
 árboles distintos y **volvía a pagar** por lo ya procesado. Para corpus con otra
 forma, fijá `--raiz`.
 
@@ -113,7 +113,7 @@ forma, fijá `--raiz`.
 **excluye** del recorrido los archivos que ya están dentro de ella, para no
 reprocesar lo reducido.
 
-Salida (ejemplo real, 200 imágenes de `../files`):
+Salida (ejemplo real, 200 imágenes de `var/files`):
 
 ```text
 archivos                  : 200

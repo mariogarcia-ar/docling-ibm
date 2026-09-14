@@ -163,11 +163,11 @@ voucherflow case aggregate --dir salida/cases -o lote.json
 Con un comando típico:
 
 ```bash
-voucherflow batch files/2025-08 --cases salida/cases -o salida/lote.json
+voucherflow batch var/files/2025-08 --cases salida/cases -o salida/lote.json
 ```
 
 ```
-files/2025-08/
+var/files/2025-08/
   factura.pdf
   factura.md                        ← el texto (si se corrió process)
   factura.batch.json                ← checkpoint del lote (junto al documento)

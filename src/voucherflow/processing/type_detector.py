@@ -17,7 +17,7 @@ Por qué PyMuPDF y no una heurística de bytes: PDFs con fuentes ``Type0`` /
 codificación ``Identity-H`` y texto comprimido en streams **no** exponen
 ``/Font`` en los bytes crudos, y un logo junto a texto real hacía que la
 heurística los marcara erróneamente como escaneados (11 falsos positivos en
-``files/``, validado con datos reales 2026-09-06). PyMuPDF analiza el
+``var/files/``, validado con datos reales 2026-09-06). PyMuPDF analiza el
 contenido real por página.
 """
 

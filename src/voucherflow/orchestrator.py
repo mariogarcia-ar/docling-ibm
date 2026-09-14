@@ -134,7 +134,7 @@ def iterar_documentos(
 
     Se excluyen los artefactos **derivados** (``EXCLUIDAS_POR_NOMBRE``): los
     sidecars y checkpoints que escriben las corridas no son documentos de entrada.
-    Una carpeta de ``files/`` con salidas del sistema anterior dentro no debe reprocesar sus
+    Una carpeta de ``var/files/`` con salidas del sistema anterior dentro no debe reprocesar sus
     propios sidecars.
 
     Argumentos:

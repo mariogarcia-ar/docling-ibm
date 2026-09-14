@@ -31,7 +31,7 @@ La documentación técnica (arquitectura, decisiones, plan) vive en
 voucherflow run factura.pdf
 
 # Una carpeta entera, dejando la trazabilidad guardada.
-voucherflow batch files/2025-08 --cases salida/cases -o salida/lote.json
+voucherflow batch var/files/2025-08 --cases salida/cases -o salida/lote.json
 ```
 
 El primer comando imprime un JSON con el resultado: si el documento **es** un
@@ -82,7 +82,7 @@ show`.
 
 ```bash
 # 1. Procesar la carpeta del mes, guardando trazabilidad y el agregado.
-voucherflow batch files/2025-08 --workers 4 --cooling on \
+voucherflow batch var/files/2025-08 --workers 4 --cooling on \
   --cases salida/cases -o salida/2025-08.json
 
 # 2. Ver cómo salió el lote.

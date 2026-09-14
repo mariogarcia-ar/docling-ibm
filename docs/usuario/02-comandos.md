@@ -69,7 +69,7 @@ Convierte un documento (o una carpeta) a Markdown, ordenado por posición.
 ```bash
 voucherflow process factura.pdf                    # → factura.md
 voucherflow process factura.pdf -o salida/         # → salida/factura.md
-voucherflow process files/2025-08                  # toda la carpeta
+voucherflow process var/files/2025-08                  # toda la carpeta
 voucherflow process factura.pdf --raw              # → factura.raw.md (crudo de Docling)
 voucherflow process factura.pdf --orientation vertical
 ```
@@ -156,7 +156,7 @@ Extrae los campos del comprobante (CUIT, fecha, importes, número…) leyendo po
 ```bash
 voucherflow extract factura.pdf                    # archivo o carpeta
 voucherflow extract factura.pdf -M kvi -o extract.json
-voucherflow extract files/2025-08 -o extract.json
+voucherflow extract var/files/2025-08 -o extract.json
 ```
 
 | Bandera | Qué hace |
@@ -185,7 +185,7 @@ modo histórico `-M 11.1`), sin correr la cadena contable.
 
 ```bash
 voucherflow extract-detect factura.pdf
-voucherflow extract-detect files/2025-08 -o letras.json
+voucherflow extract-detect var/files/2025-08 -o letras.json
 ```
 
 | Bandera | Qué hace |
@@ -244,9 +244,9 @@ es concluir); `1` si el documento no se pudo procesar.
 workers, reanudación y enfriamiento.
 
 ```bash
-voucherflow batch files/2025-08 -o salida/lote.json
-voucherflow batch files/2025-08 --workers 4 --cooling on --cases salida/cases
-voucherflow batch files/2025-08 --force             # rehace todo
+voucherflow batch var/files/2025-08 -o salida/lote.json
+voucherflow batch var/files/2025-08 --workers 4 --cooling on --cases salida/cases
+voucherflow batch var/files/2025-08 --force             # rehace todo
 ```
 
 | Bandera | Qué hace |
@@ -425,14 +425,14 @@ muestreo de auditoría (un caso resuelto que se revisa por control de calidad).
 
 ```bash
 # Solo los rechazados de una carpeta
-voucherflow batch files/2025-08 --cases salida/cases -o /dev/null
+voucherflow batch var/files/2025-08 --cases salida/cases -o /dev/null
 voucherflow case list --dir salida/cases --filtro estado=rechazado
 
 # Los que necesitan un ojo humano, con prioridad obligatoria
 voucherflow hitl list --dir salida/cases --prioridad alta
 
 # Reprocesar solo lo que cambió (sin --force: el sistema compara el contenido)
-voucherflow batch files/2025-08 --cases salida/cases -o salida/lote.json
+voucherflow batch var/files/2025-08 --cases salida/cases -o salida/lote.json
 
 # El resultado de un documento puntual, en una línea de comando
 voucherflow run factura.pdf | python -c "import json,sys; d=json.load(sys.stdin); print(d['estado'], d['resumen']['tipo_comprobante'])"

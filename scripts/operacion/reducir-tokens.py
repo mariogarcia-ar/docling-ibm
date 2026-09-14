@@ -4,7 +4,7 @@
 Recorre las imágenes de las rutas indicadas, las reduce a un **lado mayor
 objetivo** (por defecto 1024 px, sin agrandar nunca) y las reencoda con calidad
 moderada, replicando el árbol de carpetas bajo una carpeta de salida
-(``procesadas/`` por defecto). El objetivo es **bajar el costo de
+(``var/processed`` por defecto). El objetivo es **bajar el costo de
 procesamiento**: menos bytes en disco/red y, sobre todo, **menos tokens de
 visión** si después se le pasan a un VLM (qwen2.5vl, docling VLM, etc.).
 
@@ -12,7 +12,7 @@ Porta y corrige el loop de shell original:
 
     find . -type f \\( -name "*.jpg" -o -name "*.png" -o -name "*.jpeg" \\) |
     while read -r img; do
-        destino="./procesadas/$(dirname "$img")"
+        destino="var/processed/$(dirname "$img")"
         mkdir -p "$destino"
         ffmpeg -i "$img" -vf "scale=1024:-1" -q:v 5 "$destino/$(basename "$img")" -y
     done
@@ -65,27 +65,27 @@ Uso:
 
 Ejemplos:
     # Medir sin escribir nada (siempre conviene empezar acá)
-    python scripts/operacion/reducir-tokens.py ../files --solo-medir
+    python scripts/operacion/reducir-tokens.py var/files --solo-medir
 
     # Elegir la carpeta de salida (default: procesadas)
-    # El árbol se espeja desde la raíz de la entrada, sin repetir «files/»:
-    #   ../files/2025-08/2D2C9343/foto.jpg  →  salida/2025-08/2D2C9343/foto.jpg
-    python scripts/operacion/reducir-tokens.py ../files -o salida
-    python scripts/operacion/reducir-tokens.py ../files --salida /tmp/corpus_reducido
+    # El árbol se espeja desde la raíz de la entrada, sin repetir «files»:
+    #   var/var/files/2025-08/2D2C9343/foto.jpg  →  salida/2025-08/2D2C9343/foto.jpg
+    python scripts/operacion/reducir-tokens.py var/files -o salida
+    python scripts/operacion/reducir-tokens.py var/files --salida /tmp/corpus_reducido
 
     # Probar con 20 imágenes y ver el detalle
-    python scripts/operacion/reducir-tokens.py ../files --limite 20 --detalle
+    python scripts/operacion/reducir-tokens.py var/files --limite 20 --detalle
 
     # Correr el corpus completo, 4 workers, reporte JSON
     # (el reporte es aparte de la salida; -o es solo las imágenes)
-    python scripts/operacion/reducir-tokens.py ../files -o salida --workers 4 \
+    python scripts/operacion/reducir-tokens.py var/files -o salida --workers 4 \
         --reporte salida/reporte.json
 
     # Backend ffmpeg (reproduce el loop base, ya corregido)
-    python scripts/operacion/reducir-tokens.py ../files/2025-08 --backend ffmpeg
+    python scripts/operacion/reducir-tokens.py var/files/2025-08 --backend ffmpeg
 
     # Correr de nuevo para reanudar (saltea destinos ya escritos)
-    python scripts/operacion/reducir-tokens.py ../files --workers 4
+    python scripts/operacion/reducir-tokens.py var/files --workers 4
 
 Códigos de salida: 0 = todo ok (o nada que hacer); 1 = hubo fallos;
 2 = error de uso; 130 = interrumpido (Ctrl-C).
@@ -630,8 +630,8 @@ def _raiz_espejado(
 
     ⚠️ **La raíz no puede depender de la ruta que se pasa**, o el nivel de
     carpetas de la salida cambia entre corridas: procesar ``files`` escribía
-    ``procesadas/2025-08/<hash>/img.jpg``, pero procesar ``files/2025-08``
-    escribía ``procesadas/<hash>/img.jpg``. Por eso, si no hay ``--raiz``, se
+    ``var/processed/2025-08/<hash>/img.jpg``, pero procesar ``var/files/2025-08``
+    escribía ``var/processed/<hash>/img.jpg``. Por eso, si no hay ``--raiz``, se
     **sube** desde las rutas hasta la primera carpeta que no tenga un nombre de
     mes (``AAAA-MM``) — un nivel que no depende de desde dónde se invoque.
     ``--raiz`` manda siempre.
@@ -859,15 +859,15 @@ def construir_parser() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
             "Ejemplos:\n"
-            "  python scripts/operacion/reducir-tokens.py ../files --solo-medir\n"
-            "  python scripts/operacion/reducir-tokens.py ../files -o salida\n"
-            "  python scripts/operacion/reducir-tokens.py ../files --limite 20 --detalle\n"
-            "  python scripts/operacion/reducir-tokens.py ../files -o salida --workers 4 "
+            "  python scripts/operacion/reducir-tokens.py var/files --solo-medir\n"
+            "  python scripts/operacion/reducir-tokens.py var/files -o salida\n"
+            "  python scripts/operacion/reducir-tokens.py var/files --limite 20 --detalle\n"
+            "  python scripts/operacion/reducir-tokens.py var/files -o salida --workers 4 "
             "--reporte salida/reporte.json\n"
             "\n"
             "La salida espeja el árbol desde la raíz de la entrada, sin repetir\n"
             "el nombre de la carpeta de entrada:\n"
-            "  ../files/2025-08/2D2C9343/foto.jpg  →  "
+            "  var/var/files/2025-08/2D2C9343/foto.jpg  →  "
             "salida/2025-08/2D2C9343/foto.jpg\n"
         ),
     )
@@ -879,7 +879,8 @@ def construir_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "-o",
         "--salida",
-        default="procesadas",
+        default=_CARPETA_POR_DEFECTO,
+
         help=(
             "Carpeta raíz de salida (default: %(default)s). El árbol se "
             "espeja desde --raiz (o desde el nivel que no sea un mes), sin "
@@ -891,7 +892,7 @@ def construir_parser() -> argparse.ArgumentParser:
         type=Path,
         help=(
             "Raíz desde la cual se espeja el árbol en la salida. Si se omite, se "
-            "sube hasta el nivel que no sea un mes (procesar «files/2025-08» "
+            "sube hasta el nivel que no sea un mes (procesar «var/files/2025-08» "
             "espeja desde «files»), así la MISMA imagen escribe siempre el MISMO "
             "archivo. Fijala cuando el corpus no tenga esa forma."
         ),
@@ -1003,6 +1004,33 @@ def construir_parser() -> argparse.ArgumentParser:
         help="Escribe el reporte completo (resumen + por archivo) en JSON.",
     )
     return parser
+
+
+
+def _carpeta_configurada(cual: str, alternativa: str | None) -> str:
+    """Carpeta de datos según la configuración de la librería.
+
+    Este script también se puede correr sin la librería instalada (es una
+    utilidad operativa), así que si no se puede leer la configuración se cae al
+    literal de siempre en vez de fallar.
+    """
+    try:
+        import sys
+        from pathlib import Path as _Path
+
+        raiz = _Path(__file__).resolve().parents[2]
+        if str(raiz / "src") not in sys.path:
+            sys.path.insert(0, str(raiz / "src"))
+        from voucherflow.settings.config import cargar_settings
+
+        return str(cargar_settings().paths.resolver(cual))
+    except Exception:  # noqa: BLE001 - script suelto: no hay config
+        return alternativa or f"var/{cual}"
+
+
+#: Carpeta de salida por defecto, según la configuración (`paths.processed`).
+#: Se calcula al importar para que `--help` muestre el valor real.
+_CARPETA_POR_DEFECTO = _carpeta_configurada("processed", "var/processed")
 
 
 def main(argv: Sequence[str] | None = None) -> int:

@@ -19,7 +19,7 @@ las pruebas de `tests/test_batch_t602.py` (12 escenarios + 6 fronteras) y la sui
 
 ```bash
 # Lote típico en una máquina que se calienta: 4 workers y enfriamiento activo.
-voucherflow batch files/2025-08 --workers 4 --cooling on \
+voucherflow batch var/files/2025-08 --workers 4 --cooling on \
   --work-window 600 --cool-down 120 --cases salida/cases -o lote.json
 ```
 
@@ -103,8 +103,8 @@ que no existió. Ese aviso es esperable en tests, no en producción.
 Cada documento que termina deja un archivo **junto a él**:
 
 ```
-files/2025-08/2D2C9347/factura.jpg
-files/2025-08/2D2C9347/factura.batch.json   ← checkpoint
+var/var/files/2025-08/2D2C9347/factura.jpg
+var/var/files/2025-08/2D2C9347/factura.batch.json   ← checkpoint
 ```
 
 Contiene el **hash del contenido** del documento, cuándo se procesó, si salió bien
@@ -117,7 +117,7 @@ peor que no tener checkpoint, porque haría saltear un documento con la marca de
 ### Cómo se reanuda
 
 ```bash
-voucherflow batch files/2025-08 --workers 4        # corre todo lo pendiente
+voucherflow batch var/files/2025-08 --workers 4        # corre todo lo pendiente
 ```
 
 Al volver a correr sobre la misma carpeta, **lo ya completado se saltea**. Eso es
@@ -126,7 +126,7 @@ el Gherkin de E-CLI-1: *"interrupción + reanudación no repite pasos completado
 Para **rehacer** todo desde cero, se pide explícitamente:
 
 ```bash
-voucherflow batch files/2025-08 --workers 4 --force
+voucherflow batch var/files/2025-08 --workers 4 --force
 ```
 
 ### Tres reglas que evitan saltear trabajo por error
@@ -144,7 +144,7 @@ mismo indefinidamente.
 ### Apagar los checkpoints
 
 ```bash
-voucherflow batch files/2025-08 --no-checkpoints
+voucherflow batch var/files/2025-08 --no-checkpoints
 ```
 
 Ignora y **no escribe** checkpoints: reprocesa todo. Notá que **no borra** los
@@ -252,7 +252,7 @@ VOUCHERFLOW__WORKERS=4 \
 VOUCHERFLOW__COOLING__ENABLED=1 \
 VOUCHERFLOW__COOLING__WORK_WINDOW_S=600 \
 VOUCHERFLOW__COOLING__COOL_DOWN_S=120 \
-  voucherflow batch files/2025-08
+  voucherflow batch var/files/2025-08
 ```
 
 ### Prioridad
@@ -286,7 +286,7 @@ documento, la síntesis y las métricas.
 ```json
 {
   "version": "agregado-lote@1",
-  "raiz": "files/2025-08",
+  "raiz": "var/files/2025-08",
   "resumen": {
     "documentos": 12,
     "ok": 9,
@@ -299,7 +299,7 @@ documento, la síntesis y las métricas.
   "documentos": [
     {
       "documento_id": "sha256:9f2c…",
-      "archivo": "files/2025-08/2D2C9347/factura.jpg",
+      "archivo": "var/var/var/files/2025-08/2D2C9347/factura.jpg",
       "ok": true,
       "estado": "aprobado",
       "tipo_comprobante": "A",

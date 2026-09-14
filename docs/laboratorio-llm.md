@@ -41,7 +41,7 @@ negocio** y sin volver a gastar. Sin él, "el prompt mejoró" es una impresión.
 
 ```bash
 # El lote completo, sin llamar a la API ni escribir nada
-voucherflow-lab ../procesados --dry-run --forzar
+voucherflow-lab var/processed --dry-run --forzar
 ```
 
 ```
@@ -61,7 +61,7 @@ pico y sin caché): la corrida real sale igual o menos.
 ### 2. Extraer el corpus
 
 ```bash
-voucherflow-lab ../procesados --operacion extraer --proveedor deepseek --workers 4
+voucherflow-lab var/processed --operacion extraer --proveedor deepseek --workers 4
 ```
 
 Un archivo JSON por documento, con la lectura y su **procedencia**: qué modelo,
@@ -71,7 +71,7 @@ saltea, y un documento con `error` **no** cuenta como hecho.
 ### 3. Evaluar sin gastar
 
 ```bash
-voucherflow-lab ../procesados --operacion diff --datos datos_mendel.json
+voucherflow-lab var/processed --operacion diff --datos datos_mendel.json
 ```
 
 Compara cada extracción contra los datos cargados, con las **15 reglas de
@@ -105,8 +105,8 @@ comparar los `diff`:
 
 ```bash
 for p in openai deepseek gemini; do
-  voucherflow-lab ../procesados -p $p -o medias/$p
-  voucherflow-lab ../procesados -p $p -o medias/$p -M validar --datos datos.json
+  voucherflow-lab var/processed -p $p -o var/validations/$p
+  voucherflow-lab var/processed -p $p -o var/validations/$p -M validar --datos datos.json
 done
 ```
 
@@ -145,10 +145,10 @@ la línea de comandos la pisa.
 
 ```bash
 # Precios por modelo
-voucherflow-lab ../procesados --precios "gpt-4o=2.5/10, *=1/3"
+voucherflow-lab var/processed --precios "gpt-4o=2.5/10, *=1/3"
 
 # Un precio para toda la corrida
-voucherflow-lab ../procesados --precio-entrada 2.5 --precio-salida 10
+voucherflow-lab var/processed --precio-entrada 2.5 --precio-salida 10
 ```
 
 Tres cosas que el reporte **declara** en vez de disimular:
@@ -163,8 +163,8 @@ Tres cosas que el reporte **declara** en vez de disimular:
 ### Reporte de gastos
 
 ```bash
-voucherflow-lab ../procesados --reporte-gastos gastos.json --tz -03:00
-voucherflow-lab ../procesados --reporte-gastos gastos.json \
+voucherflow-lab var/processed --reporte-gastos gastos.json --tz -03:00
+voucherflow-lab var/processed --reporte-gastos gastos.json \
     --csv-gastos gastos.csv --csv-delim ';' --csv-decimal ','
 ```
 
