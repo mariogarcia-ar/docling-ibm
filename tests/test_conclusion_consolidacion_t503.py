@@ -38,7 +38,6 @@ import pytest
 
 from voucherflow.conclusion import consolidar_caso
 from voucherflow.conclusion.consolidacion import (
-    MOTIVO_ALERTA_PENDIENTE,
     MOTIVO_AMBIGUO,
     MOTIVO_SIN_CLASIFICACION,
     MOTIVO_SIN_LETRA,

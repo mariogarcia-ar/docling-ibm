@@ -49,7 +49,8 @@ from ..rules.gaps import (
 from ..schemas.evidence import CombinedEvidence, SourceEvidence
 from ..schemas.result import ClasificacionContable, HitlDecision, VoucherResult
 from ..settings.config import Settings
-from .agent import Agente, DecisionAgente, escalar_a_agente as _escalar
+from .agent import Agente, DecisionAgente
+from .agent import escalar_a_agente as _escalar
 from .consolidacion import Consolidacion, consolidar
 from .hitl import ColaHitl
 
@@ -665,8 +666,8 @@ def _fusionar_evidencia(
     # El padrón puede aportar varios campos en una sola consulta: se agrupan por
     # fuente para reconstruir las SourceEvidence.
     por_fuente: dict[Fuente, dict[str, Any]] = {}
-    for campo, field in busqueda.campos.items():
-        por_fuente.setdefault(field.fuente, {})[campo] = field
+    for campo, dato in busqueda.campos.items():
+        por_fuente.setdefault(dato.fuente, {})[campo] = dato
 
     # 1. Reconstruir las fuentes que ya participaban, campo por campo.
     fuentes: dict[Fuente, dict[str, Any]] = {}

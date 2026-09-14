@@ -17,7 +17,6 @@ import pytest
 from voucherflow.models.docling import Box
 from voucherflow.processing.image_classifier import ClaseImagen, ClasificacionImagen
 from voucherflow.processing.markdown_exporter import (
-    TOLERANCIA_LINEA,
     exportar_documento,
     exportar_por_posicion,
 )
@@ -28,18 +27,19 @@ from voucherflow.processing.ocr import (
     transcribir_vlm,
 )
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
-def _box(texto: str, l: float, t: float, r: float, b: float, **kw) -> Box:
+def _box(
+    texto: str, izquierda: float, arriba: float, derecha: float, abajo: float, **kw
+) -> Box:
     """Box con bbox y centros derivados."""
     return Box(
         texto=texto,
-        center_x=(l + r) / 2,
-        center_y=(t + b) / 2,
-        bbox=(l, t, r, b),
+        center_x=(izquierda + derecha) / 2,
+        center_y=(arriba + abajo) / 2,
+        bbox=(izquierda, arriba, derecha, abajo),
         **kw,
     )
 

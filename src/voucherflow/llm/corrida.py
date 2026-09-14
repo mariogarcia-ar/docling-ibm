@@ -22,32 +22,12 @@ import csv
 import json
 import os
 import re
+import sys
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any, Sequence
-
-import sys
-
-from . import costos
-from .costos import costo_de_tokens, precio_cache_de, precio_de
-from .prompts import armar_prompt_efectivo, hash_prompt
-from .proveedores import proveedor_por_nombre
-from .config import (
-    CHARS_POR_TOKEN_ESTIMADO,
-    COMPLETION_TOKENS_TIPICO,
-    EXTENSIONES_IMAGEN,
-    LIMITE_BYTES_IMAGEN,
-    MIN_MUESTRAS_PARA_CALIBRAR,
-    VERSION_PROMPT,
-)
-from .datos import buscar_datos
-from .esquema import _validador_jsonschema
-from .esquemas import esquema_extraccion, esquema_validacion
-from .evaluador import diff_deterministico, verificar_aritmetica
-from .imagenes import codificar_imagen, info_imagen
-from .config import TOKENS_MAX_IMAGEN  # noqa: E402
-from .ejecucion import llamar_api  # noqa: E402
+from typing import Any
 
 # El recorrido del corpus y la regla de espejado son de `voucherflow.corpus`:
 # las comparte la reducción de imágenes. Tener una copia acá fue el bug que hizo
@@ -55,9 +35,32 @@ from .ejecucion import llamar_api  # noqa: E402
 # para no tocar los call sites) en vez de redefinirlas.
 from ..corpus.recorrido import (  # noqa: E402
     expandir as _expandir,
+)
+from ..corpus.recorrido import (
     raiz_espejado as _raiz_espejado,
+)
+from ..corpus.recorrido import (
     salida_de,
 )
+from . import costos
+from .config import (
+    CHARS_POR_TOKEN_ESTIMADO,
+    COMPLETION_TOKENS_TIPICO,
+    EXTENSIONES_IMAGEN,
+    LIMITE_BYTES_IMAGEN,
+    MIN_MUESTRAS_PARA_CALIBRAR,
+    TOKENS_MAX_IMAGEN,  # noqa: E402
+    VERSION_PROMPT,
+)
+from .costos import costo_de_tokens, precio_cache_de, precio_de
+from .datos import buscar_datos
+from .ejecucion import llamar_api  # noqa: E402
+from .esquema import _validador_jsonschema
+from .esquemas import esquema_extraccion, esquema_validacion
+from .evaluador import diff_deterministico, verificar_aritmetica
+from .imagenes import codificar_imagen, info_imagen
+from .prompts import armar_prompt_efectivo, hash_prompt
+from .proveedores import proveedor_por_nombre
 
 
 @dataclass

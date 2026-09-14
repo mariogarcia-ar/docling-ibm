@@ -12,7 +12,6 @@ import pytest
 from voucherflow.settings.config import (
     ENV_PREFIX,
     ModeloRol,
-    Settings,
     cargar_desde_dict,
     cargar_settings,
 )
@@ -63,9 +62,8 @@ class TestOverrideDict:
 class TestOverrideEnv:
     def test_env_anula_url(self, monkeypatch):
         monkeypatch.setenv(f"{ENV_PREFIX}__OLLAMA__URL", "http://ollama:11434")
-        s = cargar_desde_dict({})
+        # `cargar_settings` aplica el entorno sobre los defaults.
         s2 = cargar_settings(prefijo_env=ENV_PREFIX, buscar_default=False)
-        # cargar_settings aplica env sobre defaults
         assert s2.ollama.url == "http://ollama:11434"
 
     def test_env_anula_workers_int(self, monkeypatch):

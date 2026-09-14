@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import pytest
 
+from voucherflow.extraction.key_value import normalizar_monto
 from voucherflow.llm.evaluador import (
     CATEGORIAS_CON_COMENSALES,
     CATEGORIAS_CON_LITROS,
@@ -31,7 +32,6 @@ from voucherflow.llm.evaluador import (
     diff_deterministico,
     verificar_aritmetica,
 )
-from voucherflow.extraction.key_value import normalizar_monto
 
 
 def _diff(extraccion, datos):

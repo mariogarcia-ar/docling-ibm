@@ -205,6 +205,7 @@ def _resetear_cache_ffmpeg() -> None:
 def recortar(texto: str | None, limite: int = 240) -> str:
     """Primera línea no vacía de la salida de un proceso, recortada a ``limite``."""
     linea = next(
-        (l.strip() for l in (texto or "").splitlines() if l.strip()), "sin detalle"
+        (linea.strip() for linea in (texto or "").splitlines() if linea.strip()),
+        "sin detalle",
     )
     return f"{linea[:limite]}…" if len(linea) > limite else linea

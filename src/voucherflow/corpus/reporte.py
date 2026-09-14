@@ -9,7 +9,8 @@ el modo de solo medición no hay peso destino, y comparar contra un 0 daría un
 
 from __future__ import annotations
 
-from typing import Any, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 from .dimensiones import ORIGEN_DEFAULTS, tokens_estimados_vlm
 from .modelo import (

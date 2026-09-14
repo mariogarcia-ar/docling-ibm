@@ -15,16 +15,6 @@ deja de lanzar ``NotImplementedError`` (delega en la orquestación).
 
 from __future__ import annotations
 
-from .qween import (
-    CAMPO_GATE,
-    MAX_FRAGMENTO_TEXTO_CHARS,
-    ResultadoValidacion,
-    ValidationResult,
-    VeredictoGate,
-    decidir_es_comprobante,
-    validar_comprobante,
-    validar_y_procesar,
-)
 from .prompt_qween import (
     CALIDAD_JPEG_ENVIO,
     FACTOR_PATCH_QWEN2VL,
@@ -37,6 +27,16 @@ from .prompt_qween import (
     construir_messages_gate,
     dimensiones_objetivo_vlm,
     imagen_envio_base64,
+)
+from .qween import (
+    CAMPO_GATE,
+    MAX_FRAGMENTO_TEXTO_CHARS,
+    ResultadoValidacion,
+    ValidationResult,
+    VeredictoGate,
+    decidir_es_comprobante,
+    validar_comprobante,
+    validar_y_procesar,
 )
 from .vistas import (
     CALIDAD_POR_TIPO_VISTA,

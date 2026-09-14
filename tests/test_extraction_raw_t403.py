@@ -36,8 +36,6 @@ import json
 import tempfile
 from typing import Any
 
-import pytest
-
 from voucherflow.extraction import (
     CAMPO_FUENTE_LECTURA,
     CAMPOS_EXTRACCION,
@@ -421,7 +419,7 @@ class TestCoherenciaFuente:
             CampoLectura(campo="tipo_comprobante", valor="A", fragmento="'A'")
         )
         assert campo is not None
-        from voucherflow.rules.raw import CampoDeclarado, Gravedad  # noqa: PLC0415
+        from voucherflow.rules.raw import CampoDeclarado  # noqa: PLC0415
 
         solo_letra = CampoDeclarado(
             campo="tipo_comprobante",

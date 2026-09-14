@@ -30,8 +30,8 @@ from typing import Any
 
 from .config import MAX_REINTENTOS_ESQUEMA
 from .esquema import _errores_de_esquema, _validador_jsonschema, normalizar_por_esquema
-from .proveedores import AdaptadorDeepSeek, proveedor_por_nombre
 from .protocolo import Capacidades
+from .proveedores import AdaptadorDeepSeek, proveedor_por_nombre
 
 
 @dataclass

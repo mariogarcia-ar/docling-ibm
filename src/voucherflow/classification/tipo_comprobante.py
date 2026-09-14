@@ -16,8 +16,9 @@ negocio con la letra detectada en el documento, y resolver la cadena contable
 
 from __future__ import annotations
 
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
-from typing import Any, Iterable, Mapping
+from typing import Any
 
 from ..rules.contexto import ContextoTipoComprobante
 from ..rules.tipo_comprobante_rules import (

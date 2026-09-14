@@ -358,7 +358,6 @@ def clasificar(origen: str | Path) -> ClasificacionImagen:
     ``sospechar_manuscrito`` para que T-104 decida motor sin llamar a Ollama.
     """
     carac = leer_caracteristicas(origen)
-    ruta = Path(origen)
 
     # --- Señales fuertes de screenshot (independientes del ratio por si el
     #     display es vertical). PNG con alpha + dimensiones de pantalla.

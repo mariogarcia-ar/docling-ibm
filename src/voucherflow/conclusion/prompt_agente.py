@@ -58,7 +58,8 @@ sobrevivieron a las reglas de descarte").
 
 from __future__ import annotations
 
-from typing import Any, Mapping, Sequence
+from collections.abc import Mapping, Sequence
+from typing import Any
 
 #: Versión del prompt del agente (ADR-005: la trazabilidad guarda la versión).
 VERSION_PROMPT_AGENTE = "conclusion-agente@1"

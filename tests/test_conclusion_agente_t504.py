@@ -43,13 +43,11 @@ import pytest
 
 from voucherflow.conclusion import (
     AGENTE_ELECCION_INVALIDA,
+    AGENTE_ELIGIO,
     AGENTE_FALLO,
     AGENTE_NO_ESCALADO,
     AGENTE_SE_ABSTUVO,
-    AGENTE_ELIGIO,
     AgenteOllama,
-    DecisionAgente,
-    EleccionAgente,
     concluir_con_agente,
     escalar_a_agente,
     escalar_veredicto,

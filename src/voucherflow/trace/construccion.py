@@ -59,7 +59,7 @@ from collections.abc import Iterable, Mapping
 from typing import Any
 
 from ..schemas.evidence import CombinedEvidence, Fuente, SourceEvidence
-from ..schemas.result import CaseRecord, RegistroEtapa, SCHEMA_VERSION, VoucherResult
+from ..schemas.result import SCHEMA_VERSION, CaseRecord, RegistroEtapa, VoucherResult
 
 #: Etapa que representa la **conclusión** (donde vive la decisión del caso).
 ETAPA_CONCLUSION = "conclusion"

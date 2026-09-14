@@ -158,7 +158,6 @@ class TestFidelidadDePrompts:
         if not ruta.exists():  # pragma: no cover
             pytest.skip(f"no está el YAML de referencia: {ruta}")
         datos = yaml.safe_load(ruta.read_text(encoding="utf-8"))
-        system_referencia = datos["system_vlm"]
 
         # La guía del recuadro (el corazón de R4) sigue instruida.
         for fragmento in ("recuadro", "COD. 01", "encabezado"):

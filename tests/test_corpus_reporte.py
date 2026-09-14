@@ -21,7 +21,13 @@ from voucherflow.corpus.corrida import (
     planificar,
     validar,
 )
-from voucherflow.corpus.modelo import ESTADO_FALLO, ESTADO_OMITIDO, ESTADO_REDUCIDO, Opciones, Resultado
+from voucherflow.corpus.modelo import (
+    ESTADO_FALLO,
+    ESTADO_OMITIDO,
+    ESTADO_REDUCIDO,
+    Opciones,
+    Resultado,
+)
 from voucherflow.corpus.reporte import comparar, resumen
 
 

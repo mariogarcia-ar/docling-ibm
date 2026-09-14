@@ -35,7 +35,6 @@ from __future__ import annotations
 
 import json
 import tempfile
-from pathlib import Path
 from typing import Any
 
 import pytest
@@ -46,6 +45,7 @@ from voucherflow.extraction import (
     CAMPO_FUENTE_LECTURA,
     CAMPOS_DERIVADOS_COMPROBANTE,
     CAMPOS_EXTRACCION,
+    CAMPOS_GENERICOS_CON_REGLA,
     CLAVE_CAMPOS,
     NORM_COMPROBANTE,
     NORM_CUIT,
@@ -56,7 +56,6 @@ from voucherflow.extraction import (
     NORM_TEXTO,
     NORM_VOCABULARIO,
     REGLA_POR_CAMPO,
-    CAMPOS_GENERICOS_CON_REGLA,
     VERSION_NORMALIZACION,
     CampoLectura,
     ErrorNormalizacion,

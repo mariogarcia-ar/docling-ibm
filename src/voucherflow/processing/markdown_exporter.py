@@ -37,8 +37,8 @@ def _left_de_box(box: Box) -> float:
     ``left = min(bbox.l, bbox.r)``. Si no hay bbox, usa ``center_x``.
     """
     if box.bbox is not None:
-        l, _t, r, _b = box.bbox
-        return min(l, r)
+        izquierda, _arriba, derecha, _abajo = box.bbox
+        return min(izquierda, derecha)
     return box.center_x
 
 

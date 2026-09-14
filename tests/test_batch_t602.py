@@ -56,8 +56,6 @@ from voucherflow.batch import (
     EjecutorProcesos,
     EjecutorSerial,
     FuturoListo,
-    ResultadoLote,
-    TrazaLote,
     construir_trabajo,
     ejecutar_lote,
     resultado_a_payload,
@@ -70,7 +68,6 @@ from voucherflow.orchestrator import (
     PipelineResult,
     identificador_de_archivo,
 )
-from voucherflow.schemas.result import CaseRecord, VoucherResult
 from voucherflow.settings.config import CoolingSettings, cargar_desde_dict
 
 # ---------------------------------------------------------------------------

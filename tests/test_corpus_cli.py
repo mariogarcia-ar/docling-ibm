@@ -16,7 +16,8 @@ from pathlib import Path
 import pytest
 
 from voucherflow.cli.main import COMANDOS, DESPACHO, construir_parser, main
-from voucherflow.corpus.cli import EntornoCorpus, main as main_corpus
+from voucherflow.corpus.cli import EntornoCorpus
+from voucherflow.corpus.cli import main as main_corpus
 
 #: Lo que el contrato debe seguir diciendo: los 11 de siempre + ``corpus``.
 COMANDOS_ESPERADOS = {

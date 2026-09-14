@@ -13,10 +13,10 @@ from __future__ import annotations
 
 from .agent import (
     AGENTE_ELECCION_INVALIDA,
+    AGENTE_ELIGIO,
     AGENTE_FALLO,
     AGENTE_NO_ESCALADO,
     AGENTE_SE_ABSTUVO,
-    AGENTE_ELIGIO,
     VERSION_AGENTE,
     Agente,
     AgenteOllama,
@@ -29,6 +29,16 @@ from .consolidacion import (
     Consolidacion,
     consolidar,
     es_certeza_alta_por_programa,
+)
+from .engine import (
+    ConclusionConAgente,
+    ConclusionConBusqueda,
+    concluir,
+    concluir_caso,
+    concluir_con_agente,
+    concluir_con_busqueda,
+    consolidar_caso,
+    escalar_a_agente,
 )
 from .hitl import (
     ESTADO_PENDIENTE,
@@ -46,16 +56,6 @@ from .hitl import (
     encolar_hitl,
     encolar_lote,
     seleccionado_para_auditoria,
-)
-from .engine import (
-    ConclusionConAgente,
-    ConclusionConBusqueda,
-    concluir,
-    concluir_caso,
-    concluir_con_agente,
-    concluir_con_busqueda,
-    consolidar_caso,
-    escalar_a_agente,
 )
 
 __all__ = [

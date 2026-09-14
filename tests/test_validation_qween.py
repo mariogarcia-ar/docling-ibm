@@ -55,7 +55,6 @@ from voucherflow.validation import (
     decidir_es_comprobante,
     preparar_vista_fiel,
     preparar_vista_rapida,
-    preparar_vista_revision,
     validar_comprobante,
     validar_y_procesar,
 )
@@ -64,7 +63,6 @@ from voucherflow.validation.prompt_qween import (
     SYSTEM_PROMPT_QWEEN,
     VERSION_PROMPT_QWEEN,
 )
-
 
 # ---------------------------------------------------------------------------
 # Dobles del cliente (sin Ollama real; regla dura F2-subplan §4)

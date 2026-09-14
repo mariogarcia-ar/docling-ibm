@@ -57,7 +57,6 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from ..schemas.evidence import Decision, EstadoResultado
-from .contexto import ContextoTipoComprobante
 from .contexto_conclusion import (
     CRUZ_1_NEGOCIO,
     CRUZ_2_LETRA_SIN_SOSTEN,

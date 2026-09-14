@@ -38,7 +38,6 @@ import pytest
 from voucherflow.conclusion import concluir, concluir_caso
 from voucherflow.conclusion.agent import AGENTE_NO_ESCALADO
 from voucherflow.extraction.flows import combinar_evidencia
-from voucherflow.settings.config import HitlSettings, Settings
 from voucherflow.rules.contexto import ContextoTipoComprobante
 from voucherflow.rules.contexto_conclusion import (
     CAMPOS_CRITICOS,
@@ -73,6 +72,7 @@ from voucherflow.schemas.evidence import (
     Origen,
     SourceEvidence,
 )
+from voucherflow.settings.config import HitlSettings, Settings
 
 # ---------------------------------------------------------------------------
 # Utilidades (mismo patrón que los tests de F4)
@@ -889,7 +889,7 @@ class TestFronteras:
         # La pasada 2 publica la **expectativa** de HITL (informativa, ver
         # `cruzadas.construir_conclusion`) pero **no** encola: materializar la
         # cola es de T-505 (`encolar_hitl`), un paso explícito y aparte.
-        from voucherflow.conclusion import encolar_hitl, consolidar_caso
+        from voucherflow.conclusion import consolidar_caso, encolar_hitl
 
         # Caso ambiguo: la expectativa viaja marcada, pero nadie encoló todavía.
         consolidado = consolidar_caso(_evidencia(BASE), contexto_tipo=CTX_RI_RI)

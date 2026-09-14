@@ -41,8 +41,8 @@ from typing import Any
 import pytest
 
 from voucherflow.extraction import (
-    CAMPOS_EXTRACCION,
     CAMPO_FUENTE_LECTURA,
+    CAMPOS_EXTRACCION,
     CLAVE_CAMPOS,
     combinar_evidencia,
     construir_source_evidence,

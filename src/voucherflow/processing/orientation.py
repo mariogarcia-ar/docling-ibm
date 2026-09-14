@@ -35,9 +35,9 @@ def orientacion_por_box(box: Box) -> str | None:
     """
     if box.bbox is None:
         return None
-    l, t, r, b = box.bbox
-    ancho = abs(r - l)
-    alto = abs(b - t)  # coord. normalizadas; el signo del alto no importa
+    izquierda, arriba, derecha, abajo = box.bbox
+    ancho = abs(derecha - izquierda)
+    alto = abs(abajo - arriba)  # coord. normalizadas; el signo del alto no importa
     return ORIENTACION_HORIZONTAL if ancho >= alto else ORIENTACION_VERTICAL
 
 

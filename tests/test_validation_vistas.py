@@ -39,7 +39,6 @@ from voucherflow.validation import (
     validar_comprobante,
 )
 
-
 # ---------------------------------------------------------------------------
 # Helpers: documentos mínimos y selección de fixture de imagen real
 # ---------------------------------------------------------------------------

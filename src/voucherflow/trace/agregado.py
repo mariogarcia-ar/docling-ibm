@@ -76,12 +76,13 @@ from __future__ import annotations
 import json
 import os
 import tempfile
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
-from ..schemas.result import CaseRecord, SCHEMA_VERSION
+from ..schemas.result import SCHEMA_VERSION, CaseRecord
 from .metricas import VERSION_METRICAS, metricas_de
 from .recorder import VERSION_TRAZA, CaseRecorder, sidecar_para
 

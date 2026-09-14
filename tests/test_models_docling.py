@@ -22,9 +22,28 @@ from voucherflow.models.docling import (
 class FakeItem:
     """Ítem mínimo de Docling (texto + prov con bbox)."""
 
-    def __init__(self, texto: str, l=0.0, t=0.0, r=10.0, b=5.0) -> None:
+    def __init__(
+        self,
+        texto: str,
+        izquierda=0.0,
+        arriba=0.0,
+        derecha=10.0,
+        abajo=5.0,
+    ) -> None:
         self.text = texto
-        self.prov = [type("P", (), {"bbox": type("B", (), {"l": l, "t": t, "r": r, "b": b})()})()]
+        self.prov = [
+            type(
+                "P",
+                (),
+                {
+                    "bbox": type(
+                        "B",
+                        (),
+                        {"l": izquierda, "t": arriba, "r": derecha, "b": abajo},
+                    )()
+                },
+            )()
+        ]
 
 
 class FakeDoc:

@@ -293,7 +293,7 @@ class TestParidadPdfAptoTextoNativo:
             f"en '{caso['id']}' (se obtuvo {doc.calidad!r})."
         )
         assert doc.calidad.get("salida") == "markdown_crudo_docling", (
-            f"T-105: la calidad del modo raw debe indicar salida "
+            "T-105: la calidad del modo raw debe indicar salida "
             "'markdown_crudo_docling' en '{caso['id']}'."
         )
         # El crudo de Docling también conserva el campo clave del pasajero.

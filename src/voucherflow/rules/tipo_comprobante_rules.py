@@ -55,7 +55,8 @@ Qué **no** hace este módulo (alcance estricto T-301)
 from __future__ import annotations
 
 import re
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from .contexto import (
     CAMPOS_TOTALES_DISCRIMINADO,
@@ -63,7 +64,6 @@ from .contexto import (
     CONDICION_EXENTO,
     CONDICION_MONOTRIBUTO,
     CONDICION_RI,
-    LETRAS_COMPROBANTE,
     PAIS_ARGENTINA,
     ContextoTipoComprobante,
     letra_en_vocabulario,

@@ -25,13 +25,12 @@ import pymupdf as fitz
 import pytest
 
 from voucherflow.api import DocumentoNoProcesableError, process
-from voucherflow.models.docling import Box, DoclingConverter, ProcessedDocument
+from voucherflow.models.docling import DoclingConverter, ProcessedDocument
 from voucherflow.processing.orquestacion import (
     procesar_documento,
     procesar_imagen,
     render_pdf_a_jpg,
 )
-
 
 # ---------------------------------------------------------------------------
 # Dobles de Docling (patrón de test_models_docling.py; sin Docling real)
@@ -40,14 +39,34 @@ from voucherflow.processing.orquestacion import (
 class FakeItem:
     """Ítem mínimo de Docling (texto + prov con bbox)."""
 
-    def __init__(self, texto: str, l=0.0, t=0.0, r=10.0, b=5.0, tabla=False) -> None:
+    def __init__(
+        self,
+        texto: str,
+        izquierda=0.0,
+        arriba=0.0,
+        derecha=10.0,
+        abajo=5.0,
+        tabla=False,
+    ) -> None:
         self.text = texto
         if tabla:
             self.label = type("L", (), {"value": "table"})()
             self.markdown = f"| {texto} |"
         else:
             self.label = type("L", (), {"value": "text"})()
-        self.prov = [type("P", (), {"bbox": type("B", (), {"l": l, "t": t, "r": r, "b": b})()})()]
+        self.prov = [
+            type(
+                "P",
+                (),
+                {
+                    "bbox": type(
+                        "B",
+                        (),
+                        {"l": izquierda, "t": arriba, "r": derecha, "b": abajo},
+                    )()
+                },
+            )()
+        ]
 
     def export_to_markdown(self, doc=None) -> str:  # noqa: ARG002
         return getattr(self, "markdown", self.text)

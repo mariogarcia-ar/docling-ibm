@@ -75,9 +75,7 @@ from typing import Any
 from ..rules.contexto import ContextoTipoComprobante
 from ..rules.contexto_conclusion import ContextoConclusion
 from ..rules.cruzadas import (
-    ESTADO_APROBADO,
     ESTADO_RECHAZADO,
-    ESTADO_REVISION,
     ConclusionResult,
 )
 from ..schemas.evidence import (

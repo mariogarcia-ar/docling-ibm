@@ -42,7 +42,7 @@ from typing import Any
 
 import pytest
 
-from voucherflow.cli.main import VERSION_CLI, EntornoCLI, main
+from voucherflow.cli.main import EntornoCLI, main
 from voucherflow.orchestrator import PipelineOrchestrator, PipelineResult
 from voucherflow.trace.agregado import (
     NO_AGREGADOS,
@@ -57,8 +57,8 @@ from voucherflow.trace.agregado import (
     escribir_agregado,
     leer_agregado,
 )
-from voucherflow.trace.recorder import VERSION_TRAZA, CaseRecorder
 from voucherflow.trace.construccion import construir_case_record
+from voucherflow.trace.recorder import VERSION_TRAZA, CaseRecorder
 
 # ---------------------------------------------------------------------------
 # Dobles (mismo patrón que T-601/T-602: sin red, sin modelos)

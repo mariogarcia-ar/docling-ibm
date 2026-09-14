@@ -56,7 +56,7 @@ from voucherflow.schemas.evidence import (
     SourceEvidence,
     nueva_meta,
 )
-from voucherflow.schemas.result import CaseRecord, EstadoResultado, SCHEMA_VERSION
+from voucherflow.schemas.result import SCHEMA_VERSION, CaseRecord, EstadoResultado
 from voucherflow.settings.config import HitlSettings
 from voucherflow.trace import (
     CAMPOS_INDICE,

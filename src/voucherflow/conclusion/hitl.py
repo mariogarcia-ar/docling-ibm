@@ -69,9 +69,10 @@ Referencias: ADR-004, ADR-009, Gherkin E-CONC-4, doc 03 §4.5, `CONC.md` §1/§3
 from __future__ import annotations
 
 import hashlib
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Iterable, Mapping
+from typing import Any
 
 from ..schemas.evidence import Certeza, Origen
 from ..schemas.result import HitlDecision, VoucherResult

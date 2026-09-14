@@ -52,8 +52,9 @@ F4/T-404 con su tabla de precedencia (ADR-002), y T-302 no debe anticiparlo.
 from __future__ import annotations
 
 import json
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
-from typing import Any, Iterable, Mapping, Protocol, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
 from ..rules.contexto import (
     LETRAS_COMPROBANTE,

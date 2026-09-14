@@ -9,9 +9,10 @@ from __future__ import annotations
 
 import argparse
 import sys
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Sequence, TextIO
+from typing import TextIO
 
 from ..settings.config import cargar_settings
 from .corrida import (

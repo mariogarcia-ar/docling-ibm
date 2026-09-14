@@ -14,10 +14,6 @@ from __future__ import annotations
 
 from ..models.docling import ProcessedDocument  # contrato de salida (F1)
 
-# Detector de tipo de entrada (F1 / T-101, E-DOC-1): contrato ``TipoEntrada``
-# y función ``detectar`` expuestos por el módulo ``processing``.
-from .type_detector import TipoEntrada, detectar
-
 # Clasificador de imagen + gate de procesabilidad (F1 / T-102, E-DOC-2).
 from .image_classifier import (
     ClaseImagen,
@@ -28,6 +24,14 @@ from .image_classifier import (
     sospechar_manuscrito,
     verificar_procesabilidad,
 )
+from .markdown_exporter import (
+    TOLERANCIA_LINEA,
+    exportar_documento,
+    exportar_por_posicion,
+)
+
+# Motor OCR/VLM (F1 / T-104, E-DOC-2) + exportador ordenado (E-DOC-3).
+from .ocr import MODOS_VALIDOS, MotorOCR, elegir_motor, transcribir_vlm
 
 # Preprocesamiento + orientación (F1 / T-103, E-DOC-2).
 from .orientation import (
@@ -39,15 +43,11 @@ from .orientation import (
     orientacion_por_box,
     requiere_rotacion,
 )
-from .preprocessing import QualityReport, evaluar_calidad, preprocesar
 
-# Motor OCR/VLM (F1 / T-104, E-DOC-2) + exportador ordenado (E-DOC-3).
-from .ocr import MODOS_VALIDOS, MotorOCR, elegir_motor, transcribir_vlm
-from .markdown_exporter import (
-    TOLERANCIA_LINEA,
-    exportar_documento,
-    exportar_por_posicion,
-)
+# Orquestación de la Fase F1 (T-105/ORQ, E-DOC): ``procesar_documento`` es la
+# entrada de ``api.process``; ``procesar_imagen`` y ``render_pdf_a_jpg`` son la
+# subrutina de imagen y el helper de render (PROC.md §5).
+from .orquestacion import procesar_documento, procesar_imagen, render_pdf_a_jpg
 
 # Extracción de PDF apto con pdftotext --layout (poppler; complemento de la
 # ruta texto nativo, PROC.md §5.2; A1 revertida 2026-09-07).
@@ -56,6 +56,7 @@ from .pdftotext import (
     extraer_con_pdftotext_layout,
     pdftotext_disponible,
 )
+from .preprocessing import QualityReport, evaluar_calidad, preprocesar
 
 # Enrutado de PDF por página (apoyo a orquestación, E-DOC-1).
 from .routing import (
@@ -68,10 +69,9 @@ from .routing import (
     clasificar_pagina,
 )
 
-# Orquestación de la Fase F1 (T-105/ORQ, E-DOC): ``procesar_documento`` es la
-# entrada de ``api.process``; ``procesar_imagen`` y ``render_pdf_a_jpg`` son la
-# subrutina de imagen y el helper de render (PROC.md §5).
-from .orquestacion import procesar_documento, procesar_imagen, render_pdf_a_jpg
+# Detector de tipo de entrada (F1 / T-101, E-DOC-1): contrato ``TipoEntrada``
+# y función ``detectar`` expuestos por el módulo ``processing``.
+from .type_detector import TipoEntrada, detectar
 
 __all__ = [
     "ProcessedDocument",

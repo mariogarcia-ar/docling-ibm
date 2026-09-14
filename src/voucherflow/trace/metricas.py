@@ -71,7 +71,8 @@ Referencias: `06-estrategia-calidad.md` §5/§6, Gherkin E-LIB-5, doc 03 §11
 from __future__ import annotations
 
 from collections import Counter
-from typing import Any, Iterable
+from collections.abc import Iterable
+from typing import Any
 
 from .. import __version__
 from ..schemas.evidence import Certeza, Fuente, Origen

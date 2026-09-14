@@ -32,9 +32,10 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Callable, Sequence, TextIO
+from typing import Any, TextIO
 
 from ..orchestrator import (
     PipelineOrchestrator,
@@ -697,6 +698,11 @@ def _cmd_batch(args: argparse.Namespace, entorno: EntornoCLI) -> int:
         f"Lote: {ok}/{len(resultados)} documentos procesados"
         + (f", {len(traza.reanudados)} reanudados" if traza.reanudados else "")
         + f" ({traza.max_workers_aplicado} worker(s), {traza.enfriamientos} enfriamiento(s))"
+        + (
+            f" | {resumen['requieren_revision']} requieren revisión"
+            if resumen["requieren_revision"]
+            else ""
+        )
         + f" | agregado: {agregado.total} documento(s) en total"
     )
     if args.output:
@@ -773,8 +779,8 @@ def _cmd_arca(args: argparse.Namespace, entorno: EntornoCLI) -> int:
     búsqueda del pipeline, donde el hook apagado es un caso **normal**.
     """
     from ..models.arca import ArcaClient
-    from ..rules.gaps import Gap, PresupuestoBusqueda, detectar_gaps
     from ..rules.contexto_conclusion import ContextoConclusion
+    from ..rules.gaps import PresupuestoBusqueda, detectar_gaps
 
     ruta = entorno.ruta(args.origen)
     orch = entorno.orch()
@@ -955,7 +961,8 @@ def _cmd_corpus(args: argparse.Namespace, entorno: EntornoCLI) -> int:
     El adaptador solo conecta los flujos del entorno con el subcomando: la
     lógica (planificar, procesar, reportar) vive en ``voucherflow.corpus``.
     """
-    from ..corpus.cli import EntornoCorpus, main as main_corpus
+    from ..corpus.cli import EntornoCorpus
+    from ..corpus.cli import main as main_corpus
 
     return main_corpus(
         args,

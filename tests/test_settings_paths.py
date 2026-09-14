@@ -20,10 +20,10 @@ from pathlib import Path
 import pytest
 
 from voucherflow.settings.config import (
+    _DEFAULTS,
     ENV_PREFIX,
     PathsSettings,
     Settings,
-    _DEFAULTS,
     cargar_settings,
 )
 

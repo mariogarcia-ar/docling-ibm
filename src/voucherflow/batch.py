@@ -79,10 +79,11 @@ import json
 import os
 import tempfile
 import time
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Iterable, Protocol, Sequence
+from typing import Any, Protocol
 
 from .orchestrator import (
     PipelineResult,

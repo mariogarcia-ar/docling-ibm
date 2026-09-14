@@ -79,9 +79,10 @@ descartaba en silencio.
 from __future__ import annotations
 
 import re
+from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Iterable, Mapping, Sequence
+from typing import Any
 
 from .registry import Registry, Rule
 

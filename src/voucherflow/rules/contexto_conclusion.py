@@ -42,8 +42,9 @@ combinada — negocio + fast-fail + conflicto R7"), F5-subplan §2 y §3.1.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
-from typing import Any, Mapping
+from typing import Any
 
 from ..schemas.evidence import CombinedEvidence, Fuente
 from .contexto import ContextoTipoComprobante
@@ -528,7 +529,11 @@ def _campos_totales(valores: Mapping[str, Any]) -> str | None:
     "B/C: importe único"); ``desconocido``/``None`` cuando no alcanza la
     evidencia para afirmar la forma — y entonces R6 **no** infiere letra.
     """
-    from .contexto import CAMPOS_TOTALES_DESCONOCIDO, CAMPOS_TOTALES_DISCRIMINADO, CAMPOS_TOTALES_SUBTOTAL_UNICO
+    from .contexto import (
+        CAMPOS_TOTALES_DESCONOCIDO,
+        CAMPOS_TOTALES_DISCRIMINADO,
+        CAMPOS_TOTALES_SUBTOTAL_UNICO,
+    )
 
     if not valores.get(CAMPO_IVA) and CAMPO_IVA not in valores:
         return CAMPOS_TOTALES_DESCONOCIDO

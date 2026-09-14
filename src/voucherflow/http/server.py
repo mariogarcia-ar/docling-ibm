@@ -79,10 +79,11 @@ from __future__ import annotations
 
 import json
 import sys
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from typing import Any, Callable, Mapping
+from typing import Any
 from urllib.parse import parse_qs, urlparse
 
 VERSION_HTTP = "voucherflow-http@1"

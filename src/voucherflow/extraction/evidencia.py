@@ -102,9 +102,10 @@ from __future__ import annotations
 import json
 import re
 import time
+from collections.abc import Iterable, Mapping
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
-from typing import Any, Iterable, Mapping, Protocol, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
 from ..rules.raw import (
     CampoDeclarado,
@@ -125,6 +126,7 @@ from .prompt_extraccion import (
     VERSION_PROMPT_EXTRACCION,
     construir_messages_extraccion,
 )
+
 
 #: Import diferido de ``key_value`` (T-402).
 #:

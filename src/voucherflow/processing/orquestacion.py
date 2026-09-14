@@ -532,11 +532,11 @@ def _procesar_pdf_parcial(
     Devuelve:
         ``ProcessedDocument`` con el markdown concatenado/fusionado.
     """
+    import pymupdf as fitz  # PyMuPDF
+
     from ..models.docling import Box, ProcessedDocument
     from .markdown_exporter import exportar_por_posicion
     from .orientation import orientacion_de
-
-    import pymupdf as fitz  # PyMuPDF
 
     paginas_ocr = sorted(analisis.paginas_ocr)
 
@@ -722,7 +722,6 @@ def procesar_documento(
         ``voucherflow.api.DocumentoNoProcesableError`` si el formato no es
         soportado, el PDF no pudo analizarse o la imagen no superó el gate.
     """
-    from ..models.docling import DoclingConverter
     from .routing import VeredictoPdf, analizar_pdf
     from .type_detector import detectar
 

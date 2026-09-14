@@ -20,37 +20,9 @@ F0). Las reglas cruzadas de F5 y la detección de gaps se agregan en su fase.
 from __future__ import annotations
 
 from .contexto import ContextoTipoComprobante, normalizar_letra
-from .precedencia import (
-    ORDEN_CANONICO_FUENTES,
-    FUENTES_LECTURA,
-    FUENTES_NO_LECTURA,
-    PREC_DATO_COMPUTADO,
-    PREC_LECTURA_TEXTO,
-    PREC_LECTURA_VISUAL,
-    PREC_REGLA_DE_ORO,
-    TABLA_PRECEDENCIA,
-    CombinacionEvidencia,
-    PrecedenciaCampo,
-    ResolucionCampo,
-    combinar,
-    resolver_campo,
-    resumen_combinacion,
-    valor_de,
-)
-from .raw import (
-    GRAVEDAD_POR_REGLA,
-    REGISTRO_RAW,
-    CampoDeclarado,
-    Gravedad,
-    VeredictoRaw,
-    coincidencias_en_sustento,
-    construir_registro_raw,
-    evaluar_raw,
-)
-from .registry import Registry, Rule
 from .contexto_conclusion import (
-    CAMPOS_CRITICOS,
     CAMPO_IVA,
+    CAMPOS_CRITICOS,
     CRUZ_1_NEGOCIO,
     CRUZ_2_LETRA_SIN_SOSTEN,
     CRUZ_3_COHERENCIA_LETRA,
@@ -97,6 +69,34 @@ from .gaps import (
     buscar_evidencia_adicional,
     detectar_gaps,
 )
+from .precedencia import (
+    FUENTES_LECTURA,
+    FUENTES_NO_LECTURA,
+    ORDEN_CANONICO_FUENTES,
+    PREC_DATO_COMPUTADO,
+    PREC_LECTURA_TEXTO,
+    PREC_LECTURA_VISUAL,
+    PREC_REGLA_DE_ORO,
+    TABLA_PRECEDENCIA,
+    CombinacionEvidencia,
+    PrecedenciaCampo,
+    ResolucionCampo,
+    combinar,
+    resolver_campo,
+    resumen_combinacion,
+    valor_de,
+)
+from .raw import (
+    GRAVEDAD_POR_REGLA,
+    REGISTRO_RAW,
+    CampoDeclarado,
+    Gravedad,
+    VeredictoRaw,
+    coincidencias_en_sustento,
+    construir_registro_raw,
+    evaluar_raw,
+)
+from .registry import Registry, Rule
 from .tipo_comprobante_rules import (
     MENSAJE_R7,
     REGEX_LETRA_ENCABEZADO,

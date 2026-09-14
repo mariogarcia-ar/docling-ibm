@@ -31,8 +31,9 @@ F3-subplan §3.1 y §5, ética de evidencia ADR-001 (lo ausente no se asume).
 
 from __future__ import annotations
 
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field, replace
-from typing import Any, Iterable, Mapping
+from typing import Any
 
 # ---------------------------------------------------------------------------
 # Vocabulario del dominio (portado literal del prompt WIP

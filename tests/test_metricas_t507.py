@@ -42,8 +42,6 @@ import json
 from pathlib import Path
 from typing import Any
 
-import pytest
-
 from voucherflow import __version__
 from voucherflow.conclusion import (
     ColaHitl,
@@ -683,7 +681,10 @@ class TestFronteras:
     def test_no_duplica_el_diagnostico_del_cliente(self):
         # La otra mitad de E-LIB-5 (diagnóstico ante latencia/status inesperado)
         # vive en el cliente de modelos desde F0/T-005: acá no se reimplementa.
-        from voucherflow.models.ollama import UMBRAL_LATENCIA_DIAGNOSTICO_S, OllamaClient
+        from voucherflow.models.ollama import (
+            UMBRAL_LATENCIA_DIAGNOSTICO_S,
+            OllamaClient,
+        )
 
         assert UMBRAL_LATENCIA_DIAGNOSTICO_S > 0
         assert hasattr(OllamaClient, "_diagnostico")

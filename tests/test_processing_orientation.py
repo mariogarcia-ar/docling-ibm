@@ -8,18 +8,12 @@ preprocesamiento (QualityReport + evaluar_calidad), sin OpenCV/Pillow
 
 from __future__ import annotations
 
-import struct
-import zlib
-from pathlib import Path
-
-import pytest
-
 from voucherflow.models.docling import Box
 from voucherflow.processing.image_classifier import ClaseImagen, ClasificacionImagen
 from voucherflow.processing.orientation import (
-    ORIENTACIONES_VALIDAS,
     ORIENTACION_HORIZONTAL,
     ORIENTACION_VERTICAL,
+    ORIENTACIONES_VALIDAS,
     detectar_orientacion,
     orientacion_de,
     orientacion_por_box,
@@ -31,18 +25,19 @@ from voucherflow.processing.preprocessing import (
     preprocesar,
 )
 
-
 # ---------------------------------------------------------------------------
 # Helpers de boxes
 # ---------------------------------------------------------------------------
 
-def _box(texto: str, l: float, t: float, r: float, b: float) -> Box:
+def _box(
+    texto: str, izquierda: float, arriba: float, derecha: float, abajo: float
+) -> Box:
     """Box con bbox y centros derivados (coordenadas 0..1)."""
     return Box(
         texto=texto,
-        center_x=(l + r) / 2,
-        center_y=(t + b) / 2,
-        bbox=(l, t, r, b),
+        center_x=(izquierda + derecha) / 2,
+        center_y=(arriba + abajo) / 2,
+        bbox=(izquierda, arriba, derecha, abajo),
     )
 
 

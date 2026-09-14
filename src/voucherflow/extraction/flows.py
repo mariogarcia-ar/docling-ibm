@@ -39,10 +39,13 @@ dependa de ``processing``. El flujo real (con ``OllamaClient``) corre con el rol
 
 from __future__ import annotations
 
-from typing import Any, Iterable
+from collections.abc import Iterable
+from typing import Any
 
 from ..rules.precedencia import (
     combinar as rules_combinar,
+)
+from ..rules.precedencia import (
     resumen_combinacion,
 )
 from ..schemas.evidence import (

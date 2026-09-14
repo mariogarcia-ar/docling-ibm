@@ -53,10 +53,12 @@ _dimensiones_libreria = None
 try:  # pragma: no cover - depende del entorno de importación
     from voucherflow.validation.prompt_qween import (  # noqa: E402
         CALIDAD_JPEG_ENVIO,
-        FACTOR_PATCH_QWEN2VL as _FACTOR_LIB,
         LADO_MENOR_MINIMO_ENVIO_PX,
         RESOLUCION_VISTA_REVISION_PX,
         dimensiones_objetivo_vlm,
+    )
+    from voucherflow.validation.prompt_qween import (
+        FACTOR_PATCH_QWEN2VL as _FACTOR_LIB,
     )
 
     LADO_MENOR_MINIMO_PX = LADO_MENOR_MINIMO_ENVIO_PX

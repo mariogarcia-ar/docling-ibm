@@ -19,7 +19,10 @@ from __future__ import annotations
 
 import pytest
 
-from voucherflow.classification import TipoComprobanteResult, clasificar_tipo_comprobante
+from voucherflow.classification import (
+    TipoComprobanteResult,
+    clasificar_tipo_comprobante,
+)
 from voucherflow.rules import (
     MENSAJE_R7,
     REGEX_LETRA_ENCABEZADO,

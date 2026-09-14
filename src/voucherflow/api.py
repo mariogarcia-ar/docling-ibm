@@ -176,7 +176,7 @@ def classify(markdown: str, condicion_impositiva: str | None = None) -> VoucherR
         ``OllamaError`` si falla la comunicación con Ollama.
     """
     # Import diferido: evita el ciclo api -> classification -> (api).
-    from .classification.contable import ErrorCadenaContable, ejecutar_cadena
+    from .classification.contable import ejecutar_cadena
     from .classification.prompts_contable import CONDICION_IMPOSITIVA_DEFAULT
     from .classification.tipo_comprobante import clasificar_tipo_comprobante
     from .models.ollama import OllamaClient

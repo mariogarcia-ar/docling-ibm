@@ -21,8 +21,6 @@ from __future__ import annotations
 
 import json
 
-import pytest
-
 from voucherflow.llm.esquema import (
     _coincidencia_enum,
     _errores_de_esquema,

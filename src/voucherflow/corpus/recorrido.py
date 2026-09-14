@@ -18,8 +18,8 @@ from __future__ import annotations
 import os
 import re
 import sys
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Sequence
 
 #: Motivo que se declara cuando no hay rutas existentes de dónde derivar la raíz.
 MOTIVO_CWD = "cwd (las rutas no existen)"

@@ -18,14 +18,13 @@ import pytest
 
 from voucherflow.processing.type_detector import (
     EXTENSIONES_IMAGEN,
-    EXTENSIONES_OFFICE,
     EXTENSIONES_NO_SOPORTADAS,
+    EXTENSIONES_OFFICE,
     EXTENSIONES_TEXTO,
     TIPOS_VALIDOS,
     TipoEntrada,
     detectar,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers: archivos de prueba por tipo

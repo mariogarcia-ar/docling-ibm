@@ -33,8 +33,6 @@ dependencias nuevas.
 
 from __future__ import annotations
 
-import re
-
 import pytest
 
 from voucherflow.classification import (
@@ -510,7 +508,6 @@ class TestIntegracionClasificacion:
 
     def test_el_motor_no_cambia_la_letra_con_los_candidatos_raw(self):
         # El veredicto raw **califica**; la letra la decide R1-R7.
-        from voucherflow.rules.raw import VeredictoRaw as _Veredicto
 
         base = ContextoTipoComprobante(
             emisor_condicion_fiscal=CONDICION_RI,

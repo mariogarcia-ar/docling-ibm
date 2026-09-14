@@ -132,10 +132,10 @@ class TestEsqueletoPaquete:
     def test_modulos_de_los_5_refactors_importan(self):
         # T-002: el esqueleto expone los módulos de las 5 capacidades.
         import voucherflow.api  # noqa: F401
-        import voucherflow.orchestrator  # noqa: F401
-        import voucherflow.conclusion  # noqa: F401
         import voucherflow.classification  # noqa: F401
+        import voucherflow.conclusion  # noqa: F401
         import voucherflow.extraction  # noqa: F401
+        import voucherflow.orchestrator  # noqa: F401
         import voucherflow.processing  # noqa: F401
         import voucherflow.rules  # noqa: F401
         import voucherflow.trace  # noqa: F401
@@ -212,7 +212,6 @@ class TestEsqueletoPaquete:
 
     def test_sin_acoplamiento_a_scripts_externos(self):
         # El paquete no debe importar rutas de scripts sueltos (sys.path).
-        import sys
 
         import voucherflow
 

@@ -13,7 +13,6 @@ Los PDFs se generan con PyMuPDF (sin Docling real, subplan §4).
 from __future__ import annotations
 
 import pymupdf as fitz
-import pytest
 
 from voucherflow.processing.routing import (
     AnalisisPdf,
@@ -22,7 +21,6 @@ from voucherflow.processing.routing import (
     analizar_pdf,
     clasificar_pagina,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers: PDFs sintéticos

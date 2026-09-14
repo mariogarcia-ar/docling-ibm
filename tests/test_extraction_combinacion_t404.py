@@ -31,7 +31,6 @@ Reglas duras: suite default **sin** Ollama real ni Docling real.
 from __future__ import annotations
 
 import json
-import tempfile
 from typing import Any
 
 import pytest
@@ -41,7 +40,6 @@ from voucherflow.extraction import (
     CAMPOS_EXTRACCION,
     CLAVE_CAMPOS,
     VERSION_COMBINACION,
-    campo_declarado_de_campo,
     combinar_evidencia,
     construir_source_evidence,
     parsear_evidencia_extraccion,

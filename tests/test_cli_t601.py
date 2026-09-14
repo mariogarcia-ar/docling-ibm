@@ -38,7 +38,6 @@ como se congelaron.
 
 from __future__ import annotations
 
-import argparse
 import io
 import json
 from pathlib import Path
@@ -66,7 +65,6 @@ from voucherflow.orchestrator import (
     identificador_de_archivo,
     iterar_documentos,
 )
-from voucherflow.schemas.evidence import Fuente
 from voucherflow.schemas.result import VoucherResult
 from voucherflow.settings.config import cargar_desde_dict
 

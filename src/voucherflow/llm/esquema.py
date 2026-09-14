@@ -26,7 +26,8 @@ Dos cuidados que hacen a la diferencia entre reintentar bien y quemar tokens:
 
 from __future__ import annotations
 
-from typing import Any, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 from .evaluador import _norm
 

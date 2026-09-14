@@ -56,8 +56,9 @@ Referencias: doc 03 §4.5, `CONC.md` §1/§3, Gherkin E-CONC-2 ("no loop abierto
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
-from typing import Any, Mapping, Protocol, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
 from ..schemas.evidence import EvidenceField, Fuente
 from .contexto_conclusion import CAMPOS_CRITICOS, ContextoConclusion

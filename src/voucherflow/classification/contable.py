@@ -47,20 +47,18 @@ el sistema anterior, que volcaba ``load_document_text()``).
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Iterable, Mapping
+from typing import Any
 
 from ..models.ollama import OllamaClient
-from ..schemas.evidence import nueva_meta
 from ..settings.config import Settings, cargar_settings
 from .prompts_contable import (
     CONDICION_IMPOSITIVA_DEFAULT,
     PASOS_CONTABLES,
     VALOR_NO_INFORMADO,
     construir_messages_contable,
-    renderizar_user,
 )
 
 # ---------------------------------------------------------------------------

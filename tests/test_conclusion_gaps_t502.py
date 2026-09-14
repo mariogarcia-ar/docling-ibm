@@ -51,16 +51,13 @@ from voucherflow.rules.contexto_conclusion import ContextoConclusion
 from voucherflow.rules.cruzadas import ESTADO_APROBADO, ESTADO_REVISION
 from voucherflow.rules.gaps import (
     CATALOGO_GAPS,
-    CRITICIDAD_BLOQUEANTE,
     CRITICIDAD_INFORMATIVA,
-    INTENTO_CUBIERTO,
     INTENTO_NO_BUSCABLE,
     INTENTO_NO_DISPONIBLE,
     INTENTO_PRESUPUESTO_AGOTADO,
     INTENTO_SIN_DATO,
     VERSION_GAPS,
     BuscadorEvidencia,
-    DeteccionGaps,
     PresupuestoBusqueda,
     ResultadoBusqueda,
     buscar_evidencia_adicional,

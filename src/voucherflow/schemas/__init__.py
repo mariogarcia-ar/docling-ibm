@@ -9,7 +9,6 @@ from __future__ import annotations
 
 from .evidence import (
     CRITERIO_CAMBIO,
-    SCHEMA_VERSION as EVIDENCE_SCHEMA_VERSION,
     CampoCombinado,
     Certeza,
     CombinedEvidence,
@@ -23,10 +22,15 @@ from .evidence import (
     TipoComprobante,
     nueva_meta,
 )
+from .evidence import (
+    SCHEMA_VERSION as EVIDENCE_SCHEMA_VERSION,
+)
 from .result import (
     SCHEMA_VERSION as RESULT_SCHEMA_VERSION,
-    CaseRecord,
+)
+from .result import (
     CampoExtraido,
+    CaseRecord,
     ClasificacionContable,
     HitlDecision,
     RegistroEtapa,

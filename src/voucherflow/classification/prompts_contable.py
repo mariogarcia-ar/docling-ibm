@@ -43,7 +43,8 @@ llegaría al modelo como texto literal y contaminaría la clasificación).
 from __future__ import annotations
 
 import re
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 # ---------------------------------------------------------------------------
 # Versiones de los prompts (ADR-005: trazabilidad por versión)

@@ -17,11 +17,10 @@ from pathlib import Path
 import pytest
 
 from voucherflow.processing.image_classifier import (
-    ANCHO_SCREENSHOT_MIN,
     RESOLUCION_CRITICA_PX,
     RESOLUCION_MINIMA_PX,
-    ClaseImagen,
     CaracteristicasImagen,
+    ClaseImagen,
     ClasificacionImagen,
     VeredictoGate,
     clasificar,
@@ -30,7 +29,6 @@ from voucherflow.processing.image_classifier import (
     verificar_procesabilidad,
 )
 from voucherflow.processing.type_detector import EXTENSIONES_IMAGEN
-
 
 # ---------------------------------------------------------------------------
 # Helpers: PNG sintéticos con stdlib (sin Pillow/OpenCV)

@@ -9,9 +9,9 @@ y presenta el resultado. Así una corrida se puede testear sin pasar por
 from __future__ import annotations
 
 import json
+from collections.abc import Callable, Sequence
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from typing import Callable, Sequence
 
 from .imagen import extension_destino, ffmpeg_no_disponible
 from .modelo import ESTADO_FALLO, Opciones, Resultado

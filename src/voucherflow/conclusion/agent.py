@@ -60,8 +60,9 @@ from __future__ import annotations
 
 import json
 import re
+from collections.abc import Mapping
 from dataclasses import dataclass, field
-from typing import Any, Mapping, Protocol, Sequence, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
 from ..rules.cruzadas import ConclusionResult
 from ..schemas.result import Certeza, HitlDecision, Origen

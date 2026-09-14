@@ -8,6 +8,13 @@ ADR-003): aquí queda solo el esqueleto.
 
 from __future__ import annotations
 
+from .arca import ArcaClient, ArcaResultado
+from .docling import (
+    EXTENSIONES_SOPORTADAS,
+    Box,
+    DoclingConverter,
+    ProcessedDocument,
+)
 from .ollama import (
     STATUS_REINTENTABLES,
     OllamaClient,
@@ -16,13 +23,6 @@ from .ollama import (
     OllamaTimeoutError,
     RespuestaOllama,
 )
-from .docling import (
-    EXTENSIONES_SOPORTADAS,
-    Box,
-    DoclingConverter,
-    ProcessedDocument,
-)
-from .arca import ArcaClient, ArcaResultado
 
 __all__ = [
     # ollama
