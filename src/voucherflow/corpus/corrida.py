@@ -14,8 +14,21 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from .imagen import extension_destino, ffmpeg_no_disponible
+from .lectura import (
+    Clasificacion,
+    PdfExpandido,
+    clasificar,
+    directorio_temporal,
+    expandir_pdf,
+    limpiar_expansion,
+)
 from .modelo import ESTADO_FALLO, Opciones, Resultado
-from .recorrido import esta_dentro, expandir, raiz_espejado, salida_de
+from .recorrido import (
+    esta_dentro,
+    expandir_todo,
+    raiz_espejado,
+    salida_de,
+)
 from .reduccion import procesar
 
 #: Versión del contrato de la capacidad (para el reporte). Se sube a ``@2``
@@ -131,32 +144,83 @@ def planificar(
     extensiones: frozenset[str] = EXTENSIONES_POR_DEFECTO,
     raiz: Path | None = None,
     limite: int = 0,
-) -> tuple[Path, str, list[tuple[Path, Path]]]:
-    """Calcula ``(raiz, motivo, tareas)`` sin tocar ninguna imagen.
+) -> tuple[Path, str, list[tuple[Path, Path]], Clasificacion]:
+    """Calcula ``(raiz, motivo, tareas, clasificacion)`` sin tocar ninguna imagen.
 
     Separa la decisión de *qué hacer* de *hacerlo*: así el modo de solo medición
     y una corrida real usan exactamente el mismo plan (si divergieran, la
     simulación mentiría).
+
+    ⚠️ Devuelve además la :class:`~voucherflow.corpus.lectura.Clasificacion`, que
+    es lo que permite **declarar lo que queda afuera**. Antes, un archivo con una
+    extensión no pedida desaparecía del conteo sin dejar rastro: un corpus con
+    3.846 archivos informaba «3.582 imágenes» y nadie podía saber que faltaban 264
+    (190 de ellos comprobantes fiscales).
     """
     raiz_efectiva, motivo = raiz_espejado(rutas, raiz, opciones.salida)
-    imagenes = [
-        img
-        for img in expandir(rutas, extensiones)
-        if not esta_dentro(img, opciones.salida)
+    encontrados = [
+        f for f in expandir_todo(rutas) if not esta_dentro(f, opciones.salida)
     ]
+    clasificacion = clasificar(encontrados, extensiones)
+
+    imagenes = list(clasificacion.procesables)
+    # Los PDF entran solo si se pidió: renderizar 264 PDFs de 3 páginas es trabajo
+    # y disco, no algo que deba pasar por sorpresa.
+    if opciones.incluir_pdf and clasificacion.pdfs:
+        imagenes.extend(_expandir_pdfs(clasificacion, opciones, raiz_efectiva))
+
+    imagenes.sort()
     if limite > 0:
         imagenes = imagenes[:limite]
 
     tareas: list[tuple[Path, Path]] = []
     for img in imagenes:
-        # Se reusa ``salida_de`` (la función única de espejado) y encima se
-        # aplica la extensión pedida: con ``--formato jpg`` el nombre cambia,
-        # pero el NIVEL de carpetas no puede diferir del que usa la reanudación.
-        destino = salida_de(img, raiz_efectiva, opciones.salida, NINGUN_SUFIJO)
+        # ⚠️ Los renders de PDF viven en un temporal, así que su propia ruta NO
+        # sirve para calcular el destino (saldría plano, sin el nivel de carpeta).
+        # Se usa el PDF original: es el que define dónde va el resultado.
+        logico = _origen_logico(img, clasificacion)
+        destino = salida_de(logico, raiz_efectiva, opciones.salida, NINGUN_SUFIJO)
         tareas.append(
             (img, destino.with_suffix(extension_destino(img, opciones.formato)))
         )
-    return raiz_efectiva, motivo, tareas
+    return raiz_efectiva, motivo, tareas, clasificacion
+
+
+def _origen_logico(imagen: Path, clasificacion: Clasificacion) -> Path:
+    """El archivo del corpus que representa esta imagen (el PDF, si es un render).
+
+    Para una imagen normal es ella misma. Para un render de PDF es el PDF: el
+    render es un insumo temporal y no tiene por qué aparecer en la salida.
+    """
+    if clasificacion.expansion_pdf:
+        for render, pdf in clasificacion.expansion_pdf.pares:
+            if render == imagen:
+                return pdf
+    return imagen
+
+
+def _expandir_pdfs(
+    clasificacion: Clasificacion, opciones: Opciones, raiz: Path
+) -> list[Path]:
+    """Renderiza los PDF a imágenes temporales (una por página).
+
+    Los archivos van a un temporal del proceso: son insumos para el lote, no
+    salida del usuario. Se borran en :func:`limpiar_renders`. El árbol se espeja
+    desde ``raiz`` para que el destino conserve el nivel de carpeta del PDF.
+    """
+    temporal = directorio_temporal()
+    pares: list[tuple[Path, Path]] = []
+    for pdf in clasificacion.pdfs:
+        for render in expandir_pdf(pdf, temporal, raiz=raiz, dpi=opciones.dpi_pdf):
+            pares.append((render, pdf))
+    expansion = PdfExpandido(temporal=temporal, pares=pares)
+    clasificacion.expansion_pdf = expansion
+    return expansion.renders
+
+
+def limpiar_renders(clasificacion: Clasificacion) -> None:
+    """Borra el temporal de renders de PDF, si se creó."""
+    limpiar_expansion(clasificacion.expansion_pdf)
 
 
 def ejecutar(

@@ -26,6 +26,27 @@ from ..rutas import ancestro_comun
 MOTIVO_CWD = "cwd (las rutas no existen)"
 
 
+def expandir_todo(rutas: Sequence[Path]) -> list[Path]:
+    """Todos los archivos de las rutas, **sin filtrar por extensión**.
+
+    Es la contracara de :func:`expandir`: en vez de quedarse solo con lo que
+    matchea, devuelve todo para que :func:`~voucherflow.corpus.lectura.clasificar`
+    pueda decir qué se procesa y qué no. Sin esto, lo que no matchea desaparece
+    sin dejar rastro en el conteo.
+    """
+    encontrados: list[Path] = []
+    for ruta in rutas:
+        if ruta.is_dir():
+            encontrados.extend(
+                q for q in sorted(ruta.rglob("*")) if q.is_file()
+            )
+        elif ruta.is_file():
+            encontrados.append(ruta)
+        else:
+            print(f"⚠  Se ignora (no existe): {ruta}", file=sys.stderr)
+    return sorted(set(encontrados))
+
+
 def expandir(rutas: Sequence[Path], extensiones: frozenset[str]) -> list[Path]:
     """Expande archivos/carpetas a la lista de archivos, en orden determinista.
 

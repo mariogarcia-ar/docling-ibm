@@ -23,7 +23,7 @@ voucherflow corpus --help
 | El corpus se va a mandar a un VLM (qwen2.5vl, Docling VLM) | **Sí.** El costo se cobra por token de imagen. |
 | Se quiere bajar el espacio en disco o respaldar más rápido | **Sí.** |
 | El OCR va a ser clásico (RapidOCR/EasyOCR vía Docling) | **Medí antes.** El OCR lee píxeles: reducir puede degradar la letra chica. Ver [Cuidado con el OCR](#cuidado-con-el-ocr). |
-| Los documentos son PDF con texto nativo | No hace falta. |
+| Los documentos son PDF con texto nativo | Usá `--incluir-pdf` si querés procesarlos; ver [PDF](#pdf). |
 
 Lo que hace, en una frase: reduce el **lado mayor** a un objetivo (1024 px por
 defecto) sin agrandar nunca, reencoda con calidad moderada, y **espeja la
@@ -228,6 +228,8 @@ Usá `--sin-alinear` **solo** si el destino no es Qwen2.5-VL.
 | `--sin-alinear` | No alinear a múltiplos de 28 (solo si el destino no es Qwen2.5-VL). |
 | `--backend {pillow,ffmpeg}` | Motor de reencode (default: `pillow`). |
 | `--formato {mismo,jpg}` | `mismo` conserva la extensión; `jpg` fuerza JPEG y reescribe la extensión. || `--extensiones LISTA` | Extensiones a procesar (default: `.jpeg,.jpg,.png`). |
+| `--incluir-pdf` | Incluye los PDF, renderizando una imagen por página. |
+| `--dpi-pdf DPI` | Resolución del render de PDF (default: `300`). |
 | `--forzar` | Reescribe el destino aunque exista (sin esto, **reanuda**). |
 | `--copiar-no-reducidas` | Copia sin tocar las que ya entran en el objetivo (salida completa). |
 | `--solo-medir` | No escribe nada: solo mide y reporta. |
@@ -235,6 +237,54 @@ Usá `--sin-alinear` **solo** si el destino no es Qwen2.5-VL.
 | `--limite N` | Procesa solo las primeras N imágenes (`0` = todas). |
 | `--detalle` | Una línea por archivo (a stderr). |
 | `--reporte ARCHIVO.json` | Escribe el reporte completo (resumen + detalle por archivo) en JSON. |
+
+---
+
+## PDF
+
+Un PDF **no** entra al lote por defecto: el comando reduce imágenes, y un PDF no
+es una. Pero saltearlo en silencio era un problema real —en un corpus de 3.846
+archivos, 264 PDF (190 de ellos comprobantes fiscales) quedaban afuera sin
+aparecer en ningún conteo—, así que ahora **se declara**:
+
+```
+imágenes         : 3582
+PDF              : 264 no incluidos  ⚠ usá --incluir-pdf para procesarlos (uno por página)
+ignorados        : 12 (docx ×8, xlsx ×3, sin extensión ×1)
+```
+
+Si querés que entren, `--incluir-pdf` renderiza **una imagen por página**:
+
+```bash
+voucherflow corpus var/files --incluir-pdf -o var/processed
+```
+
+```
+PDF              : 264 renderizados a imagen (una por página)
+```
+
+Tres cosas que conviene saber:
+
+- **El nombre lleva la página**: `comprobante_p01.jpg`, `comprobante_p02.jpg`. Un
+  PDF de 3 páginas produce 3 imágenes, y cada una se reduce como cualquier otra.
+- **La salida conserva el nivel de carpeta del PDF**: un
+  `2025-08/2D2C9343/comprobante.pdf` escribe
+  `…/2025-08/2D2C9343/comprobante_p01.jpg`. Sin eso, dos PDF con el mismo nombre
+  en meses distintos colisionarían.
+- **El render es temporal**: los JPG se crean en un directorio del sistema y se
+  borran al terminar, también si la corrida se corta con Ctrl-C. La salida son
+  solo las imágenes reducidas.
+
+El render usa la misma pieza que el pipeline (`render_pdf_a_jpg`, validada en F1):
+recorta a la **imagen más grande de la página**, para que un ticket chico centrado
+en una hoja A4 no quede diminuto. Es el comportamiento correcto para un
+comprobante escaneado; si tu PDF es un documento de texto nativo con varias
+columnas, conviene que lo procese el pipeline (`voucherflow process`) en vez de
+este comando.
+
+⚠️ **Los PDF de texto nativo no ganan nada acá.** Reducir la imagen de un PDF
+cuyo texto ya es seleccionable solo agrega pasos: para esos, el camino es
+`voucherflow process`.
 
 ---
 

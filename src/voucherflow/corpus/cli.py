@@ -23,6 +23,7 @@ from .corrida import (
     describir_colisiones,
     detectar_colisiones,
     escribir_reporte,
+    limpiar_renders,
     normalizar_extensiones,
     planificar,
     validar,
@@ -33,6 +34,7 @@ from .dimensiones import (
     LADO_MAYOR_PX,
     LADO_MENOR_MINIMO_PX,
 )
+from .lectura import Clasificacion
 from .modelo import ESTADO_FALLO, Opciones, Resultado
 
 #: Códigos de salida (los mismos del resto del CLI).
@@ -170,6 +172,21 @@ def agregar_parser(sub: argparse._SubParsersAction) -> argparse.ArgumentParser:
         help="Extensiones a procesar, separadas por coma (default: %(default)s).",
     )
     p.add_argument(
+        "--incluir-pdf",
+        action="store_true",
+        help=(
+            "Incluye los PDF del corpus, renderizando una imagen por página "
+            "(default: se saltean, y se avisa cuántos quedaron afuera)."
+        ),
+    )
+    p.add_argument(
+        "--dpi-pdf",
+        type=int,
+        default=300,
+        metavar="DPI",
+        help="Resolución del render de PDF a imagen (default: %(default)s).",
+    )
+    p.add_argument(
         "--forzar",
         action="store_true",
         help="Reescribe el destino aunque ya exista (sin esto, reanuda).",
@@ -233,6 +250,8 @@ def _opciones_desde(args: argparse.Namespace) -> Opciones:
         copiar_no_reducidas=args.copiar_no_reducidas,
         workers=args.workers,
         detalle=args.detalle,
+        incluir_pdf=args.incluir_pdf,
+        dpi_pdf=args.dpi_pdf,
     )
 
 
@@ -249,15 +268,37 @@ def main(
         opciones = _opciones_desde(args)
         validar(opciones)
         rutas = [Path(r) for r in args.rutas]
-        raiz, motivo_raiz, tareas = planificar(
+        raiz, motivo_raiz, tareas, clasificacion = planificar(
             rutas, opciones, extensiones=extensiones, raiz=args.raiz, limite=args.limite
         )
     except ErrorCorpus as exc:
         entorno.log(f"error: {exc}")
         return EXIT_USO
 
+    # ⚠️ Los PDF se expanden a imágenes temporales: si el lote termina sin
+    # tocarlas (no hay tareas, colisión, Ctrl-C), el temporal tiene que irse
+    # igual. Sin esto, cada corrida dejaría cientos de JPG en /tmp.
+    try:
+        return _correr(
+            tareas, opciones, raiz, motivo_raiz, clasificacion, args, entorno
+        )
+    finally:
+        limpiar_renders(clasificacion)
+
+
+def _correr(
+    tareas: list[tuple[Path, Path]],
+    opciones: Opciones,
+    raiz: Path,
+    motivo_raiz: str,
+    clasificacion: Clasificacion,
+    args: argparse.Namespace,
+    entorno: EntornoCorpus,
+) -> int:
+    """El cuerpo de la corrida, con el temporal ya abierto y garantizado cerrado."""
     if not tareas:
         entorno.log("No hay imágenes que procesar.")
+        _avisar_ignorados(clasificacion, opciones, entorno)
         return EXIT_OK
 
     entorno.log(
@@ -267,6 +308,7 @@ def main(
         f"objetivo         : lado mayor <= {opciones.lado_mayor}px, "
         f"calidad {opciones.calidad}, backend {opciones.backend}"
     )
+    _avisar_ignorados(clasificacion, opciones, entorno)
 
     def on_resultado(resultado: Resultado, i: int) -> None:
         if opciones.detalle:
@@ -306,6 +348,41 @@ def _ejecutar_tareas(tareas, opciones: Opciones, on_resultado) -> list[Resultado
     from .corrida import ejecutar
 
     return ejecutar(tareas, opciones, on_resultado=on_resultado)
+
+
+def _avisar_ignorados(
+    clasificacion: Clasificacion, opciones: Opciones, entorno: EntornoCorpus
+) -> None:
+    """Declara lo que quedó afuera del lote, con el motivo y cómo incluirlo.
+
+    ⚠️ Esto es la mitad del arreglo del silencio: el recorrido por carpeta
+    descartaba cualquier extensión no pedida sin dejar rastro, así que un corpus
+    con 3.846 archivos informaba «3.582 imágenes» y los 264 restantes —190 de
+    ellos comprobantes fiscales— no aparecían en ningún lado. Un conteo que no
+    cierra tiene que decirlo.
+    """
+    if not clasificacion.total_ignorados and not clasificacion.pdfs:
+        return
+
+    if clasificacion.pdfs:
+        n = len(clasificacion.pdfs)
+        if opciones.incluir_pdf:
+            entorno.log(
+                f"PDF              : {n} renderizados a imagen (una por página)"
+            )
+        else:
+            entorno.log(
+                f"PDF              : {n} no incluidos  "
+                "⚠ usá --incluir-pdf para procesarlos (uno por página)"
+            )
+
+    if clasificacion.total_ignorados:
+        entorno.log(
+            f"ignorados        : {clasificacion.total_ignorados} "
+            "(ni imagen ni PDF: quedan afuera)"
+        )
+        for linea in clasificacion.describir_ignorados():
+            entorno.log(linea)
 
 
 # ---------------------------------------------------------------------------

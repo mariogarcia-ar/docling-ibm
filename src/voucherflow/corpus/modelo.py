@@ -50,6 +50,10 @@ class Opciones:
     copiar_no_reducidas: bool
     workers: int
     detalle: bool
+    #: Incluir los PDF del corpus, renderizando una imagen por página.
+    incluir_pdf: bool = False
+    #: DPI del render de PDF a imagen (solo si ``incluir_pdf``).
+    dpi_pdf: int = 300
 
     @property
     def solo_medir(self) -> bool:
@@ -70,6 +74,8 @@ class Opciones:
             "copiar_no_reducidas": self.copiar_no_reducidas,
             "workers": self.workers,
             "detalle": self.detalle,
+            "incluir_pdf": self.incluir_pdf,
+            "dpi_pdf": self.dpi_pdf if self.incluir_pdf else None,
         }
 
 

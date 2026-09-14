@@ -224,7 +224,7 @@ class TestPlanificar:
         return raiz
 
     def test_espeja_la_estructura(self, corpus, tmp_path):
-        raiz, _, tareas = planificar([corpus], _opciones(tmp_path))
+        raiz, _, tareas, _ = planificar([corpus], _opciones(tmp_path))
         assert raiz == corpus
         destinos = {str(d.relative_to(tmp_path / "out")) for _, d in tareas}
         assert destinos == {
@@ -236,25 +236,25 @@ class TestPlanificar:
     def test_la_misma_imagen_planea_el_mismo_destino(self, corpus, tmp_path):
         """La propiedad que evita pagar dos veces, a nivel de plan."""
         op = _opciones(tmp_path)
-        _, _, desde_raiz = planificar([corpus], op)
-        _, _, desde_mes = planificar([corpus / "2025-08"], op)
+        _, _, desde_raiz, _ = planificar([corpus], op)
+        _, _, desde_mes, _ = planificar([corpus / "2025-08"], op)
         destino_a = dict(desde_raiz)[_ruta(desde_raiz, "a.jpg")]
         destino_b = dict(desde_mes)[_ruta(desde_mes, "a.jpg")]
         assert destino_a == destino_b
 
     def test_el_limite_recorta(self, corpus, tmp_path):
-        _, _, tareas = planificar([corpus], _opciones(tmp_path), limite=2)
+        _, _, tareas, _ = planificar([corpus], _opciones(tmp_path), limite=2)
         assert len(tareas) == 2
 
     def test_no_incluye_lo_que_esta_en_la_salida(self, corpus, tmp_path):
         """Reprocesar la propia salida sería un bucle."""
         salida = corpus / "2025-08"
         op = _opciones(tmp_path, salida=salida)
-        _, _, tareas = planificar([corpus], op)
+        _, _, tareas, _ = planificar([corpus], op)
         assert all(not str(o).startswith(str(salida)) for o, _ in tareas)
 
     def test_respeta_la_extension_pedida(self, corpus, tmp_path):
-        _, _, tareas = planificar(
+        _, _, tareas, _ = planificar(
             [corpus], _opciones(tmp_path, formato="jpg"), extensiones=frozenset({".jpg"})
         )
         assert all(d.suffix == ".jpg" for _, d in tareas)
@@ -355,7 +355,7 @@ class TestColisionesDeDestino:
         corpus.mkdir()
         Image.new("RGB", (3000, 4000)).save(corpus / "factura.jpg", "JPEG")
         Image.new("RGB", (3000, 4000)).save(corpus / "factura.png", "PNG")
-        _, _, tareas = planificar([corpus], _opciones(tmp_path, formato="jpg"))
+        _, _, tareas, _ = planificar([corpus], _opciones(tmp_path, formato="jpg"))
         assert len(tareas) == 2
         assert len(detectar_colisiones(tareas)) == 1
 
