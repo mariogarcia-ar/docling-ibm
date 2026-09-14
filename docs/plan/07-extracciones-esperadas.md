@@ -2,17 +2,23 @@
 
 > **Documento**: especificación del artefacto `tests/expected-extraction/`
 > **Rol**: BA (qué y por qué) + SA (cómo) + QA (cómo se verifica)
-> **Fecha**: 2026-09-14 · **Estado**: 🟡 **Propuesta para revisión — NO implementado**
+> **Fecha**: 2026-09-14 · **Estado**: 🟡 **Especificación cerrada — pendiente de implementación**
 > **Complementa**: [`06-estrategia-calidad.md`](06-estrategia-calidad.md) §3 (golden set)
-> **Versión**: v0.2 — revisada tras medir que **5 de 28 CUIT de la referencia
-> tienen el dígito verificador inválido** (§2.3). Ese hallazgo obligó a pasar de
-> "2 tiers de verdad" a **3** (§1.1) y de 5 a **7** estados en el reporte (§8).
+> **Versión**: v0.3 — **las 6 decisiones están resueltas** (§11). Alcance: ~3,0 dh.
+>
+> ### Historial de versiones
+>
+> | v | Cambio |
+> |---|---|
+> | v0.1 | Borrador. |
+> | v0.2 | **5 de 28 CUIT de la referencia tienen el DV inválido** (§2.3) → pasó de 2 a 3 tiers y de 5 a 7 estados. Medido: **la referencia no es reproducible** (§2.4). |
+> | v0.3 | **Decisiones cerradas** (§11) · **D-6 = no implementar el auto-chequeo** → vuelve a 5 estados, sin partición y sin marca (⛔ deuda declarada) · estructura `<id>/<modelo>/<corrida>` justificada por §2.4 |
 
 > ## ⚠️ Estado
 >
-> Esto es un **plan**. No hay código ni carpetas creadas. Las decisiones abiertas
-> están en §11 (ahora **6**, D-6 es nueva) y necesitan respuesta antes de empezar.
->
+> **Especificación lista para implementar. No hay código ni carpetas creadas.**
+> Las 6 decisiones están cerradas (§11); falta ejecutar §10.
+
 > ## ⚠️ Leer antes que nada
 >
 > **El nombre "valores esperados" es engañoso y este plan lo corrige (§1).** El
@@ -54,46 +60,43 @@ ellos medido (§2.3). Hay que decirla para matarla, porque el nombre
 | 2 | **La referencia no es confiable, y hay prueba.** 5 de los 28 CUIT del dataset tienen el dígito verificador inválido (§2.3): son lecturas incorrectas, declaradas por el propio modelo. |
 | 3 | **Castiga la mejora.** Si el pipeline local lee **bien** uno de esos CUIT, la comparación lo marca `difiere` — o sea, un acierto se cuenta como error. |
 
-**Lo que sí se puede afirmar:** el dataset mide **acuerdo**, **divergencia** y
-—cuando un auto-chequeo de código lo decide— **cuál de los dos está mal** (§1.2).
+**Lo que sí se puede afirmar:** el dataset mide **acuerdo** y **divergencia**.
 Nunca "el pipeline es correcto".
 
-### 1.1 Tres tiers de referencia, no dos
+### 1.1 Cómo se usa el artefacto (el flujo completo)
 
-⚠️ **Corrección de diseño respecto de la versión anterior de este plan.** Decía
-"golden = verdad, esto = lectura de modelo". Faltaba el tier intermedio, que es
-el único objetivable **sin modelo y sin humano** y que ya existe en el repo.
+```mermaid
+flowchart TD
+    subgraph GEN["1. GENERAR (script, una vez)"]
+        A["var/validations + var/piloto/out<br/>(30 extracciones pagadas)"] --> B["generar-extracciones-esperadas.py"]
+        B --> C["tests/expected-extraction/<br/>&lt;id&gt;/&lt;modelo&gt;/&lt;corrida&gt;/extraccion.json"]
+        C --> D["manifiesto.json<br/>+ mapa_de_campos.json"]
+    end
 
-| Tier | Quién lo emite | Qué permite | Costo | Estado |
-|---|---|---|---|---|
-| **Auto-chequeos de código** | El **programa** (DV del CUIT, aritmética) | **Objetivo**: "esto está mal" | **$0** | ✅ ya existe en las dos puntas |
-| **Acuerdo entre modelos** | Lab ↔ pipeline | **Relativo**: divergencia | el lab ya se pagó | ← esto es este plan |
-| **Etiqueta humana** | Un contador | **Absoluto**: exactitud | caro | golden, otro tier |
+    subgraph COMP["2. COMPARAR"]
+        E["IMAGEN<br/>tests/fixtures/..."] --> F["pipeline local<br/>Docling + qwen2.5vl + qwen2.5"]
+        F --> G["CombinedEvidence<br/>(campos normalizados)"]
+        D --> H{"motor de<br/>comparación"}
+        G --> H
+        H --> I["coincide / coincide_normalizado<br/>difiere / ausente / no_comparable"]
+    end
 
-El tier 1 es el hallazgo de esta revisión: **no hay que pagar ni esperar un
-contador para tener verdad objetiva sobre una parte del dataset**. Y ya está
-implementado de los dos lados — el lab calcula el dígito verificador, y el
-evaluador **no le cree el `cierra_aritmetica` al modelo**: lo recalcula en Python
-(`corrida.py:281`, `llm/evaluador.py::verificar_aritmetica`). El plan explota
-justamente eso.
+    subgraph USE["3. USAR"]
+        I --> J["reporte de acuerdo<br/>(5 categorías, nunca un % único)"]
+        I --> K["hallazgos:<br/>¿dónde diverge el pipeline?"]
+    end
 
-### 1.2 La regla que ordena todo
+    style D fill:#e8f4e8
+    style I fill:#fff4e6
+    style K fill:#ffe6e6
+```
 
-> Cuando un **auto-chequeo de código** puede decidir quién tiene razón, se le cree
-> al código y se reporta **quién está mal**. Cuando no puede, sólo se reporta que
-> **los dos difieren**, y no se declara un ganador.
+⚠️ **El paso 1 corre una vez y se versiona; el paso 3 es el que tiene valor.** El
+bucle de ajuste es: comparar → leer dónde diverge → cambiar el prompt o el
+preprocesamiento → volver a comparar **sin volver a pagar el lab** (el artefacto
+ya es local).
 
-| Situación | Qué reporta el artefacto |
-|---|---|
-| El lab falla el auto-chequeo (DV inválido, aritmética abierta) | `referencia_dudosa` en ese campo: **no cuenta** como acierto ni como error |
-| El lab pasa el auto-chequeo y el pipeline no | `pipeline_dudoso` (el auto-chequeo señala al local) |
-| Los dos fallan el auto-chequeo | `ambos_dudosos` (ninguno sirve: el documento o el preprocesamiento) |
-| Sin auto-chequeo disponible | `coincide` / `difiere`, **sin veredicto** |
-
-Esto evita los dos errores simétricos: **canonizar una lectura mala** como
-estándar, y **reprocharle al pipeline** haber leído mejor que la referencia.
-
-### 1.3 Lo que este artefacto **no** es
+### 1.2 Lo que este artefacto **no** es
 
 | | Golden set (`tests/golden/`) | **Extracciones esperadas** (esto) |
 |---|---|---|
@@ -108,6 +111,68 @@ contra una lectura de modelo **no mide si el pipeline acierta**; mide si
 Esto va escrito en el README del artefacto, no en una nota al pie — mismo criterio
 que el `campos_fuera_de_paridad` de T-305/T-405: **"no comparable" no puede
 leerse como "correcto"**.
+
+### 1.3 Tres tiers de referencia (y el tier 1 quedó fuera de alcance)
+
+Hay **tres** formas de saber si una lectura está bien, y el repo ya tenía el
+concepto aplicado sin nombrarlo así:
+
+| Tier | Quién lo emite | Qué permite | Costo | Estado |
+|---|---|---|---|---|
+| **1 · Auto-chequeos de código** | El **programa** (DV del CUIT, aritmética) | **Objetivo**: "esto está mal" | **$0** | ⛔ **no se implementa** (D-6) |
+| **2 · Acuerdo entre modelos** | Lab ↔ pipeline | **Relativo**: divergencia | el lab ya se pagó | ✅ **este plan** |
+| **3 · Etiqueta humana** | Un contador | **Absoluto**: exactitud | caro | golden, otro tier |
+
+El tier 1 **ya existe en las dos puntas** y por eso era tentador: el lab calcula
+el dígito verificador, y el evaluador **no le cree el `cierra_aritmetica` al
+modelo** — lo recalcula en Python (`corrida.py:281`,
+`llm/evaluador.py::verificar_aritmetica`). Ese es el precedente exacto de lo que
+el tier 1 haría con el CUIT.
+
+> ### ⛔ ALCANCE ACORDADO: el tier 1 **no se implementa ahora** (decisión D-6)
+>
+> **Decisión del usuario (2026-09-14)**: no se implementa el auto-chequeo por
+> ahora. Queda documentado, no construido.
+>
+> | | |
+> |---|---|
+> | ✅ | El **hallazgo** de §2.3 (5 de 28 CUIT con DV inválido) sigue vigente: es una **medición con un script de una línea**, no una feature. |
+> | ✅ | El aviso de §1 (medir acuerdo, no exactitud) **no depende** del auto-chequeo. |
+> | ⛔ | **No** hay marca `referencia_dudosa`: los 5 CUIT malos viajan **sin marcar**. |
+> | ⛔ | **No** hay estados `pipeline_dudoso` / `ambos_dudosos` (§8). |
+> | ⛔ | **No** hay partición `limpio` / `ruidoso` (§8.2). |
+>
+> ⚠️ **Riesgo aceptado, y hay que declararlo**: si el pipeline local lee **bien**
+> uno de los 5 CUIT, el reporte lo marca `difiere` y parece un error del pipeline
+> cuando es una mejora. Sin auto-chequeo que lo desambigüe, la única defensa es la
+> **lista concreta de los 5 casos en el README** (§2.3): quien lea un `difiere` en
+> `cuit_emisor` de esos documentos consulta la lista. Es más débil que marcarlo en
+> el dato, pero es honesto y cuesta cero.
+>
+> **Reabrir D-6 cuesta 0,3 dh** y no obliga a rehacer el artefacto: se agrega la
+> marca y los estados.
+
+### 1.4 La regla que ordenaría todo (si el tier 1 se implementara)
+
+> Cuando un **auto-chequeo de código** puede decidir quién tiene razón, se le cree
+> al código y se reporta **quién está mal**. Cuando no puede, sólo se reporta que
+> **los dos difieren**, y no se declara un ganador.
+
+⚠️ **Hoy el artefacto opera siempre en la segunda rama.** La tabla queda como
+**diseño de referencia**, no como comportamiento actual: la columna "Hoy" es la
+que aplica.
+
+| Situación | Qué reportaría el diseño | **Hoy** |
+|---|---|---|
+| El lab falla el auto-chequeo | `referencia_dudosa`: no cuenta como acierto ni error | `difiere` (sin desambiguar) |
+| El lab pasa y el pipeline no | `pipeline_dudoso` | `difiere` |
+| Los dos fallan | `ambos_dudosos` | `difiere` |
+| Sin auto-chequeo | `coincide` / `difiere`, sin veredicto | **igual** |
+
+Esto evita los dos errores simétricos: **canonizar una lectura mala** como
+estándar, y **reprocharle al pipeline** haber leído mejor que la referencia.
+⚠️ **Los dos siguen ocurriendo hoy** (los 5 CUIT viajan sin marca). Es la deuda
+que D-6 acepta conscientemente.
 
 ---
 
@@ -144,6 +209,7 @@ Otro detalle medido: en el registro, `resultado` y `extraccion` son **byte a byt
 idénticos**. Un test que lea el bloque equivocado no falla — lee lo mismo. Hay
 que fijar cuál es el canónico (propuesta: `extraccion`) con un test que verifique
 que exista, para que un cambio de forma futura no pase en silencio.
+
 ### 2.3 🔴 HALLAZGO: 5 de 28 CUIT del dataset son lectura incorrecta
 
 **Esta es la medición que cambia el diseño del plan.** El CUIT lleva **dígito
@@ -191,6 +257,71 @@ un error oculto: es un error declarado que el plan anterior iba a canonizar.
 
 ⇒ Es exactamente el escenario del motivo 3 de §1: la comparación **castiga la
 mejora**. De ahí las tres capas de §1.1 y la regla de §1.2.
+
+#### ⛔ Y con D-6 = no implementar el auto-chequeo, estos 5 viajan **sin marcar**
+
+Decisión del usuario (2026-09-14). Consecuencia concreta y aceptada:
+
+| | |
+|---|---|
+| El dato | Los 5 CUIT inválidos quedan en `extraccion.json` **igual que los 23 válidos**: nada en el artefacto los distingue. |
+| El reporte | Un `difiere` en `cuit_emisor` de esos 5 documentos **no se desambigua**. |
+| La mitigación | La **lista concreta de arriba** va al README del artefacto. Es más débil que marcarlo en el dato (exige que el lector la consulte), pero cuesta cero y es honesta. |
+
+⚠️ **El script de generación NO los marca** (sería implementar el auto-chequeo por
+la puerta de atrás). Puede, como máximo, **contarlos** y declararlos en su salida
+— misma distinción que el repo ya hace entre *declarar* y *decidir*.
+
+### 2.4 🔴 La referencia no es reproducible: dos corridas del mismo modelo difieren
+
+**Medido con el único caso que permite medirlo.** `9fa45f1d-f6ad-4cea-b585-432aa3b39dad`
+es el único documento extraído **dos veces por el MISMO modelo** (`deepseek-flash`),
+y está en los dos lotes por casualidad. Comparando las dos corridas:
+
+| | Corrida 1 (`piloto`, 15:41) | Corrida 2 (`validations`, 17:05) |
+|---|---|---|
+| `completion_tokens` | 2.241 | **4.179** (1,9x) |
+| `costo_usd` | US$ 0,002766 | **US$ 0,005092** (**1,8x**) |
+| Campos del contrato que difieren | **0** | — |
+| `observaciones` (prosa) | difiere | difiere |
+| `rubro_emisor` (texto libre) | `"…(gas oil INFINIA DIESEL, factur…"` | `"…(YPF - INFINIA DIESEL)"` |
+| `cantidad_comensales_personas` | `0` | `None` |
+
+**Lectura del resultado, y es tranquilizadora donde importa:**
+
+- ✅ **Los 23 campos estructurados del esquema coinciden exactamente** (mismo
+  `cuit_emisor`, mismo `importe_total: 100000.01`, mismo `tipo_comprobante: A`,
+  misma aritmética: cierra con diferencia `-0.0`). **La conclusión del documento
+  no se mueve.**
+- ⚠️ **Lo que cambia es la prosa** (`observaciones`, `rubro_emisor`) y **cuánto
+  razona el modelo** (2.241 vs 4.179 tokens de completion).
+
+⚠️ **Esto ya estaba documentado en el repo, y con más amplitud**: cuatro corridas
+de la misma imagen dieron completion **528 / 3.346 / 8.999 / 12.632** — **10x de
+dispersión** (memoria del repo, 2026-09-14). Causa: el *thinking mode* de DeepSeek
+emite tokens de razonamiento invisibles que se facturan como `completion_tokens`.
+
+#### Por qué esto importa para este plan
+
+| Consecuencia | Detalle |
+|---|---|
+| **1. El acuerdo se mide sobre los campos estructurados, no sobre la prosa.** | `observaciones` y `rubro_emisor` **no pueden** entrar en el cálculo de acuerdo: el mismo modelo consigo mismo no coincide en ellos. Si entraran, el ruido del modelo se leería como desacuerdo de lectura. |
+| **2. El costo de una corrida no es predecible** (§2, tabla de costo). | Dos corridas idénticas costaron 1,8x distinto. Proyectar "US$ 0,006/documento" es un orden de magnitud, no un presupuesto. |
+| **3. Refuerza la decisión D-3.** | Ver §6.3: guardar **una** lectura por documento sería frágil, porque otra corrida del mismo modelo habría dado otro número. |
+
+### 2.5 Los dos lotes: un solapamiento, y es el que se puede medir
+
+| | |
+|---|---|
+| Documentos únicos | **29** (30 archivos) |
+| Documentos en **ambos** lotes | **1** → `9fa45f1d…`, mismo modelo (§2.4) |
+| Documentos con una sola corrida | 28 |
+
+⚠️ **Con D-3 = `id/modelo/corrida`, la carpeta está preparada para n corridas, pero
+hoy el dataset tiene n=1 en 28 de 29 documentos.** No conviene presentarlo como si
+hubiera réplicas: la variabilidad de §2.4 se midió con **un** caso, y ese caso se
+midió porque estuvo en los dos lotes **por casualidad**, no por diseño.
+
 
 ---
 
@@ -318,16 +449,21 @@ están en la prosa. **No se extraen con regex**: parsear prosa para fabricar un
 La mayoría son **decisiones** que el pipeline resuelve en otra etapa a propósito
 (ADR-001: `categoria_gasto` y `centro_de_costo` son de F3/F5, no de extracción).
 
-⚠️ **Pero tres de estos NO se declaran "fuera de alcance": son los auto-chequeos
-del tier 1 (§1.1), y son lo más valioso del artefacto.** No se comparan *contra*
-el pipeline (el pipeline no emite esos campos): se usan para **juzgar la
-referencia** y para validar los campos que sí se comparan.
+⚠️ **Pero tres de estos son los auto-chequeos del tier 1 (§1.1), y son lo más
+valioso del artefacto — aunque D-6 decidió NO implementarlos ahora.** No se
+comparan *contra* el pipeline (el pipeline no emite esos campos): se usarían para
+**juzgar la referencia** y para validar los campos que sí se comparan.
 
-| Campo del lab | Cómo se usa |
+| Campo del lab | Cómo se usaría (⛔ no implementado, D-6) |
 |---|---|
-| `digito_verificador_cuit_valido` | **Auto-chequeo del tier 1.** Juzga si el `cuit_emisor` de la referencia es creíble (§2.3). Es la entrada del estado `referencia_dudosa`. |
-| `cierra_aritmetica` | Auto-chequeo de los importes. ⚠️ Comparar el del lab contra `verificar_aritmetica()` del pipeline; **nunca** contra el `cierra_aritmetica` que el pipeline le devuelve al modelo (a ese no se le cree, por diseño). |
-| `exento` / `no_gravado` | Contra los componentes de `COMPONENTES_DEL_TOTAL`. ⚠️ `exento` **no tiene contraparte** en `CAMPOS_EXTRACCION` (la extracción no lo pide), así que sólo entra en el auto-chequeo aritmético, no en la comparación campo a campo. |
+| `digito_verificador_cuit_valido` | Auto-chequeo del tier 1. Juzgaría si el `cuit_emisor` de la referencia es creíble (§2.3). Sería la entrada del estado `referencia_dudosa`. |
+| `cierra_aritmetica` | Auto-chequeo de los importes. ⚠️ Se compararía contra `verificar_aritmetica()` del pipeline; **nunca** contra el `cierra_aritmetica` que el pipeline le devuelve al modelo (a ese no se le cree, por diseño). |
+| `exento` / `no_gravado` | Contra los componentes de `COMPONENTES_DEL_TOTAL`. ⚠️ `exento` **no tiene contraparte** en `CAMPOS_EXTRACCION` (la extracción no lo pide), así que sólo entraría en el auto-chequeo aritmético, no en la comparación campo a campo. |
+
+⚠️ **Lo que sí queda en vigor hoy**: los valores de esos campos se **versionan
+igual** dentro de `extraccion.json` (son parte de la lectura del lab, y borrarlos
+perdería información recuperable). Simplemente **no se interpretan**: se guardan
+como dato crudo, no como veredicto.
 
 ⚠️ `campo_no_legible` merece trato especial: ver §5.3.
 
@@ -335,18 +471,18 @@ referencia** y para validar los campos que sí se comparan.
 
 **Cada** campo de las dos puntas tiene que estar en exactamente una lista:
 `comparables` / `comparables_por_mapa` / `sin_contraparte` / `fuera_del_contrato`
-/ `auto_chequeo` (los tres de §4.4, que **no** se comparan pero se usan).
+/ `auto_chequeo` (los tres de §4.4, **versionados pero no interpretados** con
+D-6 = no implementar).
 
 Un test lo exige. Sin ese guard, un campo nuevo desaparece de la medición **en
 silencio** y el reporte parece cubrir todo el contrato sin cubrirlo. Es el mismo
 guard que F4/T-405 ya tiene y que valió la pena: ahí destapó que
 `razon_social_receptor` no tenía contraparte en los prompts de referencia.
 
-⚠️ El guard tiene **dos direcciones**, y la segunda es la que importa acá: además
-de "todo campo está en una lista", exige que **la lista `auto_chequeo` sea
-suficiente** para juzgar la referencia (§2.3). Si un campo comparable puede estar
-mal y ningún auto-chequeo lo detecta, se declara `sin_auto_chequeo` — así "no
-puedo juzgarlo" no se lee como "está bien".
+⚠️ **La dirección que D-6 debilita**: el guard ya no exige que un campo
+comparable tenga auto-chequeo disponible. Es coherente con no implementarlo, pero
+significa que el guard **no protege** contra "un campo puede estar mal y nadie lo
+detecta". Cuando se implemente D-6, agregar esa segunda dirección.
 
 ---
 
@@ -410,53 +546,50 @@ mide **honestidad al declarar**, no capacidad de lectura.
 
 ---
 
-## 6. Estructura propuesta del artefacto
+## 6. Estructura del artefacto (decidida)
 
-> ⚠️ El nombre de la carpeta está en discusión (§11, D-2). Se escribe acá el que
-> propongo, no el que pidió el usuario, para que la diferencia se vea.
+> ✅ **Decisiones cerradas**: D-2 = `tests/expected-extraction/` · D-3 =
+> `<id>/<modelo>/<corrida>/` · D-5 = regenerable con script versionado.
 
 ```text
 tests/expected-extraction/
-  README.md                       # qué es, qué mide, qué NO mide (§1, §8)
-  manifiesto.json                 # índice + procedencia + cobertura + auto-chequeos
+  README.md                       # qué es, qué mide, qué NO mide (§1, §8) + los 5 CUIT
+  manifiesto.json                 # índice + procedencia + cobertura declarada
   mapa_de_campos.json             # el mapa de §4 (única fuente de verdad)
-  <id-documento>/                 # ej. 2991f57d-c143-4b23-9f87-4dfb1214ef53/
-    extraccion.json               # la lectura, tal cual salió del lab
+  <documento-id>/                 # = sha256 del archivo (identificador_de_archivo)
+    <modelo>/                     # ej. deepseek-flash · gemini-2.5-flash · qwen2.5vl
+      <corrida>/                  # ej. 20260914T170509Z
+        extraccion.json           # la lectura, tal cual salió del lab
 ```
 
 ### 6.1 `manifiesto.json` — qué declara
 
-Por documento y por lote de origen:
+Una entrada **por corrida** (no por documento), que es lo que la estructura de
+§6.3 permite:
 
 | Clave | Para qué |
 |---|---|
-| `documento_id` | El id (mismo criterio que `identificador_de_archivo`) |
+| `documento_id` | El id (= sha256 del archivo, mismo criterio que `identificador_de_archivo`) |
 | `archivo` | Nombre del archivo, para aparearlo con la fixture |
-| `imagen_en_fixtures` | **`tests/fixtures/golden/…`** o `null` si no está (el blocker §3.1, declarado en el dato y no en un comentario) |
+| `imagen_en_fixtures` | Ruta relativa o `null` si no está (el bloqueante §3.1, **en el dato**, no en un comentario) |
 | `dimensiones` | Para la verificación de identidad de §3.2 |
-| `fuente_lote` | `validations` o `piloto` (los dos lotes no son homogéneos, §2.2) |
-| `modelo` · `version_prompt` · `modo` | Procedencia |
-| `costo_usd` · `uso` | Trazabilidad del gasto |
+| **`modelo`** | `deepseek-flash` (hoy); nivel 2 de la ruta |
+| **`corrida`** | Timestamp UTC normalizado; nivel 3 de la ruta |
+| `fuente_lote` | `validations` o `piloto` (los lotes no son homogéneos, §2.2) |
+| `version_prompt` · `modo` | Procedencia |
+| `costo_usd` · `uso` | Trazabilidad del gasto ⚠️ ver aviso abajo |
 | `extraido_utc` | Cuándo |
-| **`auto_chequeos`** | **Nuevo (§2.3, §4.4)**: por campo, el resultado del DV y la aritmética. Es lo que sostiene la partición `limpio`/`ruidoso` de §8.1 |
-| **`referencia_dudosa`** | **Nuevo**: la lista de campos que **no** se deben usar como estándar, con el motivo (`dv_invalido` / `aritmetica_abierta`) |
 
-⚠️ `auto_chequeos` se **calcula en la generación** (§10 paso 4), no se escribe a
-mano: mismo criterio que `_json_ejemplo` en `prompt_extraccion` ("se genera, no
-se escribe a mano, para que el ejemplo impreso y el contrato validado no puedan
-divergir"). Un valor escrito a mano en un manifiesto que se declara verificado es
-una promesa que nadie controla.
-
-⚠️ Se **excluyen a propósito** `precios_usd_1m` y el `costo_usd` como dato
-versionado del gasto (cambian con la tabla de precios): si se versionan, un
-cambio de tarifa hace que el artefacto "mienta" sobre lo que costó. Se guardan
-como **cita histórica**, marcados como tal.
+⚠️ **`precios_usd_1m` y `costo_usd` se guardan como cita histórica**, marcados
+como tal: si se versionan como dato vivo, un cambio de tarifa hace que el
+artefacto "mienta" sobre lo que costó. Y por §2.4 el costo **no es proyectable**:
+dos corridas idénticas difirieron 1,8x.
 
 ### 6.2 Qué se guarda: ¿crudo o normalizado?
 
-**Propuesta: crudo, y se normaliza en el test.**
+**Decidido: crudo, y se normaliza en el test.**
 
-| | Guardar normalizado | **Guardar crudo** (propuesto) |
+| | Guardar normalizado | **Guardar crudo** (decidido) |
 |---|---|---|
 | Fidelidad para entrenamiento | ❌ se pierde la forma original | ✅ es lo que el modelo escribió |
 | Riesgo de segunda verdad | 🔴 alto: dos copias que pueden divergir | ✅ ninguna |
@@ -469,6 +602,57 @@ normalizadores en vez de entre dos modelos. Es el mismo razonamiento que el
 `_json_ejemplo` de `prompt_extraccion` (se genera, no se escribe a mano, "para
 que el ejemplo impreso y el contrato validado no puedan divergir").
 
+### 6.3 Por qué `<modelo>/<corrida>` (y no la carpeta plana que había antes)
+
+⚠️ **Esta decisión dejó de ser una comodidad y pasó a estar justificada por lo
+medido en §2.4.**
+
+| Razón | Detalle |
+|---|---|
+| **El dataset está ampliando el eje `modelo`** (D-1 = copiar y, si se quiere cobertura fiscal, correr otros modelos). Con carpeta plana, agregar Gemini daría un nombre como `9fa45f1d…-gemini.json` y el mapeo pasaría a vivir en el nombre del archivo. | El nombre del archivo no es un contrato: nadie lo valida. La ruta sí (un test puede exigir `id/modelo/corrida`). |
+| **La corrida tiene que ser distinguible, y es el hallazgo de §2.4.** | El mismo modelo, sobre el mismo documento, produce lecturas distintas (prosa) y cuesta 1,8x distinto. Sin el nivel `corrida`, dos lecturas del mismo modelo **se pisan** silenciosamente. |
+| **El costo del nivel extra es cero.** | Son 30 archivos; el nivel de anidado no agrega peso ni complejidad de código. |
+| **Habilita medir el ruido del propio modelo.** | Con ≥2 corridas del mismo modelo se puede separar *"el pipeline difiere de la referencia"* de *"la referencia no coincide consigo misma"*. Hoy hay 1 caso (§2.4); la estructura lo permite sin migrar nada. |
+
+⚠️ **El nombre de la corrida**: usar un timestamp **normalizado y ordenable**
+(`20260914T170509Z`, del `procesado_utc` del registro) y no la hora local. Un
+nombre con `:` o con espacio rompe en Windows y en algunas herramientas; y la
+hora local cambia con la máquina. `procesado_utc` ya es UTC.
+
+⚠️ **Qué NO se puede deducir de la ruta**: el `prompt_hash`. Dos corridas del
+mismo modelo pueden haber usado **prompts distintos** (el prompt es editable, y
+el lab guarda `prompt_hash`). Por eso `version_prompt` y `prompt_hash` van en el
+manifiesto, y un test debe exigir que **todo** lo que el reporte necesita para
+interpretar una lectura esté declarado ahí — la ruta no es el único lugar donde
+vive el contexto.
+
+### 6.4 El script de generación (D-5 = regenerable)
+
+**Decidido: se versiona un script que regenera el artefacto.**
+
+⚠️ **"Regenerable" tiene un límite que hay que escribir en el README**, porque
+no es obvio: el script puede **re-extraer** desde `var/` lo que ya está ahí, pero
+**no puede recuperar** una lectura que `var/` ya no tenga. Y `var/` está en
+`.gitignore` y se puede borrar. Consecuencia: si alguien borra `var/`, el
+artefacto versionado sigue siendo la única copia de esas 30 lecturas — que es
+justamente el motivo por el que se gradúa al repo.
+
+| El script hace | El script **no** hace |
+|---|---|
+| Leer `var/` y copiar las lecturas al artefacto | Volver a llamar a la API (eso es correr el lab, y se paga) |
+| Calcular el manifiesto (incluida la cobertura: qué quedó sin imagen) | Decidir qué modelos o qué corpus |
+| Normalizar el timestamp de la corrida | Reescribir una lectura ya versionada |
+
+⚠️ **No puede ser a mano**: copiar 30 JSON a mano garantiza que el manifiesto y
+la carpeta diverjan. Y el script **declara en su salida** los documentos que
+quedaron sin imagen — el mismo patrón que `corpus/lectura.py` cuando destapó que
+264 PDF desaparecían en silencio (memoria del repo: *"en un barrido de carpeta lo
+que no matchea desaparece"*).
+
+⚠️ **Re-ejecutarlo no debe ser destructivo**: si una corrida ya está en el
+artefacto, el script la respeta (no la pisa). Un regenerado que sobreescribe
+borraría la única copia de una lectura cuyo original ya no está en `var/`.
+
 ---
 
 ## 7. Cómo se compara (dos niveles, como el resto del repo)
@@ -478,12 +662,12 @@ que el ejemplo impreso y el contrato validado no puedan divergir").
 Compara **lógica pura**, igual que `scripts/verificacion/etapa-extraccion.py`:
 
 1. **Integridad del artefacto**: manifiesto ↔ carpeta ↔ documento; cada campo de
-   cada punta en una lista de §4.5; el mapa de nombres existe en las dos puntas.
-2. **Autoevaluación de la referencia** (tier 1, §1.1): corre los auto-chequeos
-   sobre el artefacto y **fija por test** que los 5 CUIT con DV inválido sigan
-   marcados como `referencia_dudosa`. ⚠️ Este test es el que impide que un
-   regenerado del artefacto **pierda** la marca y vuelva a canonizar las 5
-   lecturas malas.
+   cada punta en una lista de §4.5; el mapa de nombres existe en las dos puntas;
+   **toda entrada del manifiesto tiene su `extraccion.json` y viceversa** (que una
+   corrida no quede huérfana en disco sin declarar).
+2. **Estructura de la ruta** (§6.3): cada lectura vive en `<id>/<modelo>/<corrida>/`
+   y los tres niveles coinciden con lo declarado en el manifiesto. Es el test que
+   hace que la ruta sea un contrato y no una convención.
 3. **Normalización**: los valores canónicos del lab coinciden con el canónico del
    pipeline (el caso de la fecha, §5.1).
 4. **Comparación** contra una `CombinedEvidence` **sintética** (construida en el
@@ -493,9 +677,14 @@ Compara **lógica pura**, igual que `scripts/verificacion/etapa-extraccion.py`:
 6. **Cobertura declarada**: todo documento sin fixture está listado como
    `sin_imagen` (que el silencio no se lea como cobertura).
 
-⚠️ **El punto 2 no necesita imágenes ni Ollama**: el DV del CUIT y la aritmética
-son funciones puras sobre el JSON. Es el control de calidad más barato del
-proyecto y es el que sostiene la credibilidad del artefacto.
+⛔ **El test de auto-chequeo NO va** (D-6 = no implementar). Cuando se implemente,
+es un paso más acá: fijar por test que los 5 CUIT de §2.3 sigan marcados, para que
+un regenerado del artefacto no **pierda** la marca y vuelva a canonizarlos.
+
+⚠️ **El punto 2 reemplaza a un test que no existe en ningún otro lugar del
+repo**: hoy nada verifica que la ruta de un artefacto de datos sea coherente con
+su índice. Es barato y es exactamente donde un regenerado manual introduciría el
+error.
 
 ### Nivel B — verificación manual / `@pytest.mark.integration` (con Ollama)
 
@@ -516,194 +705,196 @@ modelo. Se declara en el reporte, no se disimula.
 
 ## 8. El reporte de acuerdo: cómo se lee un resultado
 
-Campo por campo, con **siete** estados — no dos:
+Campo por campo, con **cinco** estados (⛔ con D-6 = no implementar el
+auto-chequeo, no hay estados de "dudoso": ver el diseño completo en §1.2):
 
 | Estado | Significa |
 |---|---|
 | `coincide` | Los dos leyeron lo mismo. |
 | `coincide_normalizado` | Lo mismo tras normalizar (ej. la fecha). **Se cuenta aparte**: dice que los dos leyeron, con otra forma. |
-| `difiere` | Valores distintos, y **ningún auto-chequeo puede decidir** quién tiene razón. |
+| `difiere` | Valores distintos. **El hallazgo.** ⚠️ Sin auto-chequeo, el reporte **no sabe** si la diferencia es un error del pipeline o de la referencia (§1.2). |
 | `ausente` | Una o las dos puntas no lo leyeron (`null` / `campos_ausentes`). |
-| `referencia_dudosa` | **El lab falla el auto-chequeo** (DV inválido, aritmética abierta): no cuenta como acierto **ni** como error. §1.2 |
-| `pipeline_dudoso` | El lab pasa el auto-chequeo y el pipeline no: el auto-chequeo **señala al local**. |
-| `ambos_dudosos` | Los dos fallan: el problema puede ser el documento o el preprocesamiento, no el modelo. |
 | `no_comparable` | Sin contraparte, fuera del contrato, o sin sostén (§3.3). |
 
-⚠️ **Los tres estados `*_dudoso*` son los que evitan el error grave del plan
-anterior.** Sin ellos, los 5 CUIT de §2.3 se reportarían como `difiere` y el
-pipeline quedaría **castigado por leer bien**. Y un `difiere` con auto-chequeo
-disponible es información mucho más débil de lo que parece: hay que decir quién
-tiene razón, o decir que no se sabe.
+⚠️ **Lo que cambia por no tener auto-chequeo**: `difiere` vuelve a ser un estado
+**ciego**. Antes de D-6, un `difiere` en `cuit_emisor` de uno de los 5 documentos
+de §2.3 se reportaba como `referencia_dudosa` (o sea: "casi seguro el error es de
+la referencia"). Ahora se reporta `difiere`, y la única forma de saber quién tiene
+razón es mirar la lista de §2.3 a mano. **Es deuda aceptada, y va declarada en el
+reporte** — no escondida.
 
-### 8.1 Las dos particiones del dataset
+### 8.1 Qué campos entran en el acuerdo (el ruido del modelo, §2.4)
 
-El artefacto se parte por **la calidad de su propia referencia**, cosa que se sabe
-en código (no es una opinión):
+⚠️ **No todos los campos pueden medir acuerdo.** Medido: el mismo modelo, sobre el
+mismo documento, produce `observaciones` y `rubro_emisor` **distintos** entre dos
+corridas idénticas. Si entraran en el cálculo, el ruido del modelo se leería como
+desacuerdo de lectura.
 
-| Partición | Criterio | Documentos | Uso |
-|---|---|---|---|
-| `limpio` | Pasa **todos** los auto-chequeos | **23** | Medir **acuerdo**: una divergencia es material útil. |
-| `ruidoso` | Falla ≥1 auto-chequeo | **7** (5 con DV inválido + 2 con aritmética abierta) | Estudiar **dónde fallan los dos**, no medir acuerdo. |
+| Grupo de campos | ¿Entra en el acuerdo? | Por qué |
+|---|---|---|
+| Los 13 **estructurados** del contrato (`cuit_emisor`, `importe_total_facturado`, `fecha_emision`, …) | ✅ **Sí** | Coincidieron **exactamente** en las dos corridas del mismo modelo (§2.4): son estables. |
+| `observaciones` (prosa del lab) | ❌ **No** | Diferente entre dos corridas idénticas. |
+| `rubro_emisor` (texto libre) | ❌ **No** | Ídem. |
+| `descripcion` | ⚠️ **Con reserva** | Es texto libre en las dos puntas: puede diferir por forma. Se cuenta aparte, como `coincide_normalizado` o `no_comparable`. |
 
-⚠️ **Un documento puede estar en las dos particiones parcialmente**: el `cuit_emisor`
-de un documento puede ser dudoso y sus montos ser sólidos. La partición se aplica
-**por campo**, no por documento — empeorar la granularidad a documento tiraría
-información buena (los importes de los 5 casos con DV malo no tienen por qué
-estar mal). La tabla de arriba es la vista por documento, para dimensionar.
+⚠️ **El costo de dejar la prosa afuera**: se pierde la comparación más rica (el
+lab explica *qué* leyó en `observaciones`, y ahí está el detalle que el contrato
+no captura: ítems, pagos, comprobantes asociados). Es el precio de no medir ruido.
+Se preserva igual en el artefacto para revisión humana, pero **no puntúa**.
+
+### 8.2 Por qué NO hay partición `limpio` / `ruidoso`
+
+El diseño anterior partía el dataset por el resultado de los auto-chequeos. Con
+D-6 = no implementar, **esa partición no existe** (no hay con qué calcularla).
+
+⚠️ Lo que se pierde: no se puede decir "sobre los 23 documentos limpios, el
+acuerdo fue X". Cualquier número de acuerdo que se reporte se calcula sobre los
+**30**, incluidos los 5 de §2.3 — y por eso el reporte **nunca** publica un único
+"% de acuerdo" (§8.3). Si se implementa D-6, la partición se agrega sin migrar
+nada.
+
+### 8.3 Lo que el reporte publica (y lo que no)
+
+| ✅ Publica | ⛔ No publica |
+|---|---|
+| Las cinco categorías, campo por campo y por documento | Un único "% de acuerdo" |
+| La lista de los 5 documentos con CUIT sospechoso (§2.3) | Un veredicto de quién tiene razón |
+| El número de casos sin fixture (`sin_imagen`) | Proyecciones al corpus completo |
+| La dispersión de costo, si hay ≥2 corridas del mismo modelo (§2.4) | Un costo promedio por documento |
+
+⚠️ **"Nunca un único % de acuerdo" no es una preferencia estética**: con 5 de 28
+CUIT malos en la referencia y 23 de 30 documentos siendo facturas A, ese número
+sería simultáneamente **optimista** (la referencia comparte errores con cualquier
+modelo que lea parecido) y **opaco** (no dice qué campo falla). Es el mismo
+criterio que el README de `tests/golden/F4/`: una diferencia se **explica** o se
+**declara**, nunca se promedia.
 
 ### Lo que explica una diferencia (y no es una regresión)
-
-Mismo criterio que el README de `tests/golden/F4/`: una diferencia se **explica**
-o se **declara**, nunca se promedia en un "94 % de acuerdo" que esconde el motivo.
 
 | Diferencia | Por qué **no** es una regresión |
 |---|---|
 | `tipo_comprobante` A vs `090` | Son vocabularios distintos a propósito: el lab acepta los códigos de tique; el motor R1-R7 de F3 los deja fuera por D-13. Comparar contra la **letra final** mezcla lectura con decisión. |
 | `moneda` `null` vs `"ARS"` | El pipeline **no asume** `ARS` sin indicio explícito: inventar la moneda sería peor que no leerla. |
-| `descripcion` | El lab la pone en prosa; el pipeline la lee estructurada. §4.3. |
-| `observaciones` | No es un campo del contrato: es prosa. |
+| `descripcion` | Texto libre en las dos puntas; §8.1. |
+| `observaciones` · `rubro_emisor` | **No entran en el acuerdo**: el mismo modelo no coincide consigo mismo (§2.4). |
 | Campos de decisión | Fuera por ADR-001. No es un desacuerdo. |
+| `cuit_emisor` en los 5 de §2.3 | ⚠️ **Puede ser un acierto del pipeline**, no un error. La referencia tiene esas 5 lecturas malas. |
 
 ### Honestidad de alcance (va en el reporte, arriba)
 
 1. **No mide exactitud.** Mide acuerdo entre dos modelos (§1).
 2. **La referencia tiene errores medidos**: 5 de 28 CUIT con DV inválido (§2.3).
-   Por eso el reporte publica las siete categorías y **nunca** un único "% de
-   acuerdo": ese número, con la referencia sucia, no significa nada.
-3. **El corpus está sesgado**: 23 de 30 son facturas A, todas `legibilidad: buena`,
+   Y **no están marcados en el dato** (D-6): el reporte los lista aparte para que
+   quien lea un `difiere` en `cuit_emisor` sepa dónde mirar.
+3. **La referencia no es reproducible**: dos corridas del mismo modelo difieren en
+   prosa y costaron 1,8x distinto (§2.4). Los campos que sí se comparan son
+   estables, pero el resto no.
+4. **El corpus está sesgado**: 23 de 30 son facturas A, todas `legibilidad: buena`,
    ninguna rotada ni borrosa (§2.1). **No se puede extrapolar** a "el pipeline
    lee el corpus".
-4. **La referencia es DeepSeek, y tiene errores conocidos de comportamiento**: en
+5. **Un solo caso tiene réplica** (§2.5): la variabilidad de §2.4 se midió con n=1,
+   no como estudio.
+6. **La referencia es DeepSeek, y tiene errores conocidos de comportamiento**: en
    el caso medido declaró `cuit_emisor: null` correctamente (tapado por cinta) pero
-   en otra corrida de la misma imagen **confundió emisor con receptor** (memoria:
-   `--esfuerzo none`). Un desacuerdo puede ser un error **de la referencia**.
+   en otra corrida de la misma imagen **confundió emisor con receptor** (memoria
+   del repo: `--esfuerzo none`). Un desacuerdo puede ser un error **de la
+   referencia**.
 
 ---
 
 ## 9. Qué se toca si esto avanza
 
+> ✅ Alcance cerrado por las decisiones de §11. **Ninguna línea de `src/` se toca.**
+
 | Archivo | Cambio |
 |---|---|
-| `tests/expected-extraction/**` | **Nuevo**: el artefacto (§6). |
+| `tests/expected-extraction/**` | **Nuevo**: el artefacto, con la estructura `<id>/<modelo>/<corrida>/` de §6. |
+| `scripts/operacion/generar-extracciones-esperadas.py` | **Nuevo**: el generador + regenerador (D-5). Va en `operacion/` porque **prepara datos**, no verifica una etapa (mismo criterio que `generar-fixtures-negativos.py`). |
 | `tests/test_expected_extraction.py` | **Nuevo**: nivel A (§7). |
-| `src/voucherflow/extraction/key_value.py` | ⚠️ **Posible**: hoy `cuit_completo()` cuenta los 11 dígitos pero **no valida el DV** ("eso es del padrón/ARCA, no de la extracción", y es correcto para la *extracción*). El DV que necesita el artefacto es un **auto-chequeo de la medición**, no una regla del pipeline: la propuesta es una función nueva y explícita (p. ej. `digito_verificador_valido` en el módulo de la herramienta, **no** cambiar el contrato de extracción). Decidir en D-6. |
+| `tests/fixtures/**` | **Nuevo**: las **26 imágenes** faltantes (D-1 = copiarlas). ⚠️ Conservar el subdirectorio de procedencia (`grandes/`, `otros/`, `golden/`) para no romper `manifest.json` ni `casos.csv`. |
+| `tests/fixtures/manifest.json` | ⚠️ **Decidir**: las 26 nuevas ¿entran al manifiesto de fixtures o se declaran solo en el de `expected-extraction`? Recomiendo lo segundo (son dos artefactos distintos), con un test que verifique que las dos listas no se contradicen. |
 | `scripts/verificacion/acuerdo-extraccion.py` | **Nuevo**: nivel B (§7). |
-| `tests/fixtures/` | **Según D-1**: las 26 imágenes faltantes. |
-| `README.md` (§ Documentación) | Mencionar el dataset y su límite. |
-| `docs/plan/06-estrategia-calidad.md` §3 | Nota: el golden (contador) y esto son **dos tiers distintos**. |
-| `scripts/readme.md` | Fila de la herramienta nueva. |
-| `.gitignore` | ⚠️ Verificar que `tests/expected-extraction/**/*.json` **no** caiga en una regla existente. |
+| `README.md` (§ Documentación) | Mencionar el dataset y **su límite** (no mide exactitud). |
+| `docs/plan/06-estrategia-calidad.md` §3 | Nota: el golden (contador, tier 3) y esto (tier 2) son **tiers distintos**. |
+| `scripts/readme.md` | Fila del generador nuevo. |
+| `.gitignore` | ⚠️ Verificar que `tests/expected-extraction/**/*.json` **no** caiga en una regla existente (⚠️ ya existe `tests/fixtures/**/*.md`, línea 61: **no** poner el artefacto bajo `fixtures/`). |
 
-**No se toca**: `var/`, el lab, el pipeline. Esto es un artefacto de **medición**:
-el día que se implemente, el único cambio en `src/` sería el que pida un hallazgo.
+**No se toca**: `var/`, el lab, el pipeline, ni `extraction/key_value.py` (D-6: el
+DV no se implementa, así que `cuit_completo()` queda **exactamente** como está).
 
 ---
 
-## 10. Plan de ejecución propuesto (si se aprueba)
+## 10. Plan de ejecución (alcance acordado)
 
 | # | Paso | Salida | Est. |
 |---|---|---|---|
-| 1 | Cerrar §11 (D-1 a D-6) | decisiones | — |
-| 2 | Copiar las 26 imágenes faltantes a `tests/fixtures/` (si D-1 = A) | fixtures | 0,2 dh |
-| 3 | Generar el artefacto desde `var/` con un script **operativo** (no a mano) | `expected-extraction/` | 0,5 dh |
-| 4 | **Auto-chequeos (DV + aritmética) y marca `referencia_dudosa`** | campo declarado | 0,3 dh |
-| 5 | `manifiesto.json` + `mapa_de_campos.json` + `README.md` | artefacto | 0,3 dh |
-| 6 | Motor de comparación + nivel A | tests | 0,5 dh |
-| 7 | Nivel B + reporte (7 categorías) | script | 0,5 dh |
-| 8 | Correr nivel B y **leer los hallazgos** | reporte | 0,3 dh |
-| 9 | Docs (§9) | docs | 0,2 dh |
+| 1 | ~~Cerrar §11~~ ✅ **hecho** (2026-09-14) | decisiones | — |
+| 2 | Copiar las **26 imágenes** faltantes a `tests/fixtures/` (D-1) | fixtures | 0,3 dh |
+| 3 | Generador: leer `var/`, armar `id/modelo/corrida`, escribir manifiesto | script + artefacto | 0,8 dh |
+| 4 | `mapa_de_campos.json` + `README.md` (con los 5 CUIT y los límites) | artefacto | 0,3 dh |
+| 5 | Motor de comparación + nivel A | tests | 0,6 dh |
+| 6 | Nivel B + reporte (5 categorías, §8.3) | script | 0,5 dh |
+| 7 | Correr nivel B y **leer los hallazgos** | reporte | 0,3 dh |
+| 8 | Docs (§9) | docs | 0,2 dh |
 
-**Total ≈ 2,8 dh** (0,3 dh más que antes: el paso 4 es nuevo).
+**Total ≈ 3,0 dh** (el generador subió de 0,5 a 0,8: ahora hace el anidado de §6.3
+y la normalización del timestamp de corrida, no solo copiar).
 
-⚠️ El paso 3 **no puede ser a mano**: copiar 30 JSON a mano garantiza que el
-manifiesto y la carpeta diverjan. Se genera con un script que lee `var/`, y ese
-script **declara en su salida** los documentos que quedaron sin imagen — el mismo
-patrón que `corpus/lectura.py` cuando destapó que 264 PDF desaparecían en
-silencio (memoria: *"en un barrido de carpeta lo que no matchea desaparece"*).
+⛔ **Sin el paso de auto-chequeos** (D-6): la estimación original era 2,8 dh con él.
 
-⚠️ **El paso 4 es el que no se puede saltear.** Los auto-chequeos tienen que
-correr **en la generación**, no en el test: así el artefacto nace marcado y el
-test sólo verifica que la marca siga ahí. Si se dejan para después, queda un
-período en el que el dataset canoniza 5 CUIT inválidos.
+### 10.1 Qué NO hay que hacer (para que no se cuele por la puerta de atrás)
 
-### 10.1 La regla para las extracciones nuevas (si D-1 = C)
-
-Si se amplía el dataset con corridas nuevas, **exigir el auto-chequeo antes de
-aceptar la muestra**:
-
-| Chequeo | Qué descarta |
+| ⛔ | Por qué |
 |---|---|
-| DV del `cuit_emisor` inválido | La lectura se sospecha mala: no entra como referencia (o entra marcada). |
-| Aritmética abierta | Falta un importe o un dígito: **sí entra** (es material valioso), marcado `referencia_dudosa`. |
+| **No** marcar los 5 CUIT en el manifiesto | Sería implementar el auto-chequeo, que D-6 dejó fuera. El generador puede **contarlos** y declararlos en su salida, nada más. |
+| **No** tocar `extraction/key_value.py` | `cuit_completo()` documenta que **no** valida el DV a propósito, y hay un test que lo fija (`test_no_valida_el_digito_verificador`). Es correcto: la extracción no rechaza lecturas (el padrón es la autoridad). |
+| **No** publicar un "% de acuerdo" único | §8.3: con 5 de 28 CUIT malos en la referencia, ese número sería optimista y opaco a la vez. |
+| **No** hacer la copia de JSON a mano | El manifiesto y la carpeta divergirían. Es lo que el script existe para evitar. |
 
-En el dataset actual esto significa que **5 de 30 no se habrían aceptado**. Es la
-diferencia entre un dataset que se puede citar y uno que hay que aclarar cada vez.
+### 10.2 Si se amplía el dataset con corridas nuevas (D-1, opción abierta)
+
+⚠️ **D-1 quedó resuelto como "copiarlas", pero eso cubre el dataset actual.** Si en
+el futuro se corre el lab sobre documentos nuevos, la regla de aceptación
+sugerida (ℹ️ **propuesta, no decidida**) es mirar el DV **antes** de aceptar:
+
+| Chequeo | Qué haría |
+|---|---|
+| DV del `cuit_emisor` inválido | La lectura se sospecha mala: revisar la imagen antes de aceptarla como referencia. |
+| Aritmética abierta | **Sí se acepta**: una aritmética que no cierra es material valioso (señala un importe mal leído). |
+
+En el dataset actual esto significa que **5 de 30 no se habrían aceptado** sin
+revisión. ⚠️ **Es un chequeo manual en el momento de generar, no código** (D-6).
 
 ---
 
-## 11. Decisiones abiertas (necesito respuesta)
+## 11. Decisiones (✅ resueltas 2026-09-14)
 
-### D-1 · Las 26 imágenes que faltan (§3.1)
-- **A** · Copiarlas a `tests/fixtures/` (~2,5 MB) → 29/29 comparables, corre en CI.
-- **B** · No copiarlas, declarar `sin_imagen` → 3/29 comparables.
-- **C** · Correr el lab sobre documentos que **ya** están en `fixtures/` y ampliar
-  el dataset con eso (cuesta plata, ~US$ 0,006/documento).
+| # | Decisión | Resuelto |
+|---|---|---|
+| **D-1** | Las 26 imágenes que faltan (§3.1) | ✅ **Copiarlas** a `tests/fixtures/` (~2,5 MB) → 29/29 comparables y la suite puede correr el nivel B. |
+| **D-2** | Nombre de la carpeta | ✅ **`tests/expected-extraction/`** (no `test/expected-extration/`: `tests/` es el directorio real y `extration` un typo). |
+| **D-3** | Un documento o un lote por archivo | ✅ **`<id>/<modelo>/<corrida>/`** — justificado por §2.4 y desarrollado en §6.3. |
+| **D-4** | ¿Comparar también el markdown / OCR? | ✅ **No por ahora.** El lab no produce markdown: lee la imagen directo. Sería otro artefacto y otro plan. |
+| **D-5** | ¿Congelado o regenerable? | ✅ **Regenerable con script versionado** (§6.4). ⚠️ Con el límite escrito: no recupera lo que `var/` ya no tenga. |
+| **D-6** | Auto-chequeo del dígito verificador | ✅ **No se implementa por ahora** (§1.1). ⚠️ Deuda aceptada: los 5 CUIT viajan **sin marcar** (§2.3) y `difiere` queda ciego. |
 
-> Mi recomendación: **A + C**. A da el dataset completo hoy con lo ya pagado; C
-> agrega cobertura fiscal (B, C, E, M) que hoy **no existe** (§2.1) usando
-> documentos que ya son fixtures y por lo tanto quedan comparables para siempre.
->
-> ⚠️ **Refuerzo por §2.3**: hoy el 18 % de los CUIT del dataset es lectura
-> incorrecta. C es además la forma de conseguir un dataset **aceptable bajo el
-> criterio de §10.1**, en vez de heredar los errores del lote viejo.
+### Consecuencias que hay que tener presentes
 
-### D-2 · El nombre de la carpeta
-El pedido fue `test/expected-extration/`. Propongo **`tests/expected-extraction/`**:
-`tests/` es el directorio real (plural) y `extration` es un typo de `extraction`.
-Alternativas: `tests/extracciones-esperadas/` (el repo nombra en español los
-conceptos, en inglés las carpetas de tests), o dejarlo adentro de `fixtures/`.
+| ⚠️ | Detalle |
+|---|---|
+| **D-6 deja un hueco real** | Un `difiere` en `cuit_emisor` puede ser un **acierto** del pipeline. Mitigado solo por la lista del README. |
+| **Reabrir D-6 es barato** | 0,3 dh (paso 4 original). No obliga a rehacer el artefacto: se agrega la marca y los estados. |
+| **D-3 pide contexto en el manifiesto** | La ruta guarda `id`/`modelo`/`corrida`, pero **no** el `prompt_hash`. Dos corridas del mismo modelo pueden haber usado prompts distintos (§6.3). |
+| **D-5 no es un respaldo** | El script regenera desde `var/`; si `var/` se borra, el artefacto versionado es la **única** copia (§6.4). |
+| **D-1 suma ~2,5 MB** | Sobre los 66 MB de `tests/fixtures/`: irrelevante. |
 
-⚠️ **Con el hallazgo de §2.3, "esperadas" es un nombre riesgoso**: "valor esperado"
-se lee como "valor correcto", y 5 no lo son. Alternativas más honestas:
-`tests/expected-extraction/` con el README explicando el límite, o
-`tests/lecturas-de-referencia/` (que no promete que la referencia sea la verdad).
+### Nota sobre el nombre (D-2)
 
-### D-3 · ¿Un documento o un lote por archivo?
-Hoy los 30 archivos son **30 documentos** (1 por documento). Si en el futuro el
-mismo documento tiene varias lecturas (otro modelo, otra corrida), ¿la carpeta es
-`<id>/<fuente>.json` o se agrega un nivel `<id>/<modelo>/<corrida>.json`?
-Decide si el manifiesto apunta a un archivo o a una lista.
-
-### D-4 · ¿Comparamos también el markdown / OCR?
-El pipeline produce `<doc>.md` (Docling). El lab **no** lo produce — lee la imagen
-directo. Si el objetivo incluye "comparar el procesamiento" en el sentido amplio,
-eso es otro artefacto (markdown esperado) y otro plan.
-
-### D-5 · ¿El artefacto se congela o se regenera?
-- **Congelado**: se versiona una vez y es un `golden_version` (como F4 `0.1-f4`).
-- **Regenerable**: el script se puede volver a correr y actualizar.
-
-> Mi recomendación: **congelado con versión declarada** (`por qué sirve comparar
-> métricas entre versiones del dataset`, §3.4 del doc 06), y el script de
-> generación queda versionado para auditar cómo se armó.
-
-### D-6 · ¿Dónde vive el auto-chequeo del dígito verificador?
-- **A** · Función nueva en el **script de la herramienta** (no toca `src/`): el DV
-  es un chequeo de la **medición**, no una regla de extracción.
-- **B** · Función en la librería, junto a `cuit_completo()`
-  (`extraction/key_value.py`), para que la use el pipeline **y** la herramienta.
-- **C** · Las dos: la función vive en la librería y la herramienta la importa.
-
-> ⚠️ **Ojo con el contrato**: `cuit_completo()` documenta explícitamente *"no se
-> completa ni se valida el dígito verificador (eso es del padrón/ARCA, no de la
-> extracción)"*, y hay un test que lo fija
-> (`test_extraction_key_value.py::test_no_valida_el_digito_verificador`). **Eso es
-> correcto y no hay que cambiarlo**: la extracción no debe rechazar una lectura por
-> su DV (el padrón es la autoridad). Lo que hace falta es un chequeo **para la
-> medición**, que puede vivir perfectamente fuera del camino de producción.
->
-> Mi recomendación: **A**, y si más adelante el padrón de F5 necesita el mismo
-> cálculo, se promueve a **C** con el ADR correspondiente.
+⚠️ **"esperadas" se lee como "correctas", y 5 de los 28 CUIT no lo son** (§2.3).
+Se conserva `expected-extraction` por ser el nombre pedido, **a condición** de que
+el README del artefacto abra con el aviso de §1 y la lista concreta de los 5 casos.
+Si más adelante el nombre genera confusión en la práctica, la alternativa es
+`tests/lecturas-de-referencia/`, que no promete que la referencia sea la verdad.
 
 ---
 
@@ -716,7 +907,8 @@ eso es otro artefacto (markdown esperado) y otro plan.
 - [`manual/user/llm.md`](../../manual/user/llm.md) — la guía del lab.
 - `src/voucherflow/extraction/prompt_extraccion.py` — `CAMPOS_EXTRACCION` (el contrato).
 - `src/voucherflow/extraction/key_value.py` — los normalizadores (§5.1) y
-  `cuit_completo()` (⚠️ **cuenta 11 dígitos, no valida el DV**: ver D-6).
+  `cuit_completo()` (⚠️ **cuenta 11 dígitos, no valida el DV**: es correcto, no
+  cambiarlo — ver §10.1).
 - `src/voucherflow/llm/evaluador.py` — `COMPONENTES_DEL_TOTAL` y
   `verificar_aritmetica` (el precedente del tier 1: **al modelo no se le cree el
   `cierra_aritmetica`, se recalcula en código**).
