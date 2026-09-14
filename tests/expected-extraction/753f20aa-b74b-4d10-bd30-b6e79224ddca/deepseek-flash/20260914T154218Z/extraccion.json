@@ -1,0 +1,105 @@
+{
+  "origen": "var/piloto/lote/2026-05/FF37276C/753f20aa-b74b-4d10-bd30-b6e79224ddca.jpg",
+  "archivo_relativo": "2026-05/FF37276C/753f20aa-b74b-4d10-bd30-b6e79224ddca.jpg",
+  "procesado_utc": "2026-09-14T15:42:18+00:00",
+  "modelo": "deepseek-flash",
+  "modo": "extraer",
+  "version_prompt": "mendel-validacion@1",
+  "fuente": "api",
+  "imagen": {
+    "bytes": 84515,
+    "mime": "image/jpeg",
+    "detalle": "high",
+    "dimensiones": [
+      840,
+      1036
+    ],
+    "tokens_estimados": 1024
+  },
+  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "uso": {
+    "prompt_tokens": 3017,
+    "completion_tokens": 5312,
+    "total_tokens": 8329,
+    "prompt_cache_hit_tokens": 2304,
+    "prompt_cache_miss_tokens": 713
+  },
+  "esquema_validado": true,
+  "precios_usd_1m": {
+    "entrada": 0.3,
+    "salida": 1.2,
+    "entrada_cache": 0.006,
+    "origen": "referencia"
+  },
+  "costo_usd": 0.006602,
+  "resultado": {
+    "legibilidad": "buena",
+    "tipo_comprobante": "A",
+    "codigo_afip": "001",
+    "razon_social_emisor": "PILAR WILO CLUB SRL",
+    "cuit_emisor": "30-71544083-7",
+    "digito_verificador_cuit_valido": true,
+    "fecha_emision": "04/05/2026",
+    "nro_factura": "0006-00001232",
+    "moneda": "ARS",
+    "subtotal": 32314.05,
+    "no_gravado": 0,
+    "exento": 0,
+    "discrimina_impuestos": true,
+    "iva": 6785.95,
+    "impuestos_internos": 0,
+    "percepciones_iibb": 0,
+    "otros_impuestos": 0,
+    "importe_total": 39100.0,
+    "cierra_aritmetica": true,
+    "rubro_emisor": "Gastronómico (restaurante/parrilla en shopping)",
+    "categoria_gasto_sugerida": "Restaurante",
+    "cantidad_comensales_personas": 2,
+    "cantidad_litros": null,
+    "centro_de_costo": null,
+    "campos_no_legibles": [
+      "importes unitarios y parciales del detalle de ítems (columna Monto/Total de cada línea, parcialmente borrosos)",
+      "leyenda de CAEA / talón (texto impreso ilegible)"
+    ],
+    "observaciones": "Factura Electrónica A, COD. 001, Punto de Venta 0006, Nro 00001232, fecha de emisión 04/05/2026. Emisor: PILAR WILO CLUB SRL, Soba Shopping Torres del Sol, Buenos Aires, CUIT 30-71544083-7 (dígito verificador válido), IIBB 30715440837, inicio de actividades 12-2016, Responsable Inscripto. Receptor: CUC SA, CUIT 30592215703, Av. Circunvalación 1245 (CUIT de 11 dígitos). Detalle: 2 cubiertos (Monares y común), Tern MED Carpa, Puré de papas CH y Limonada x 1000cc, todos al 21,00%. Importes: SUBTOTAL (neto gravado) 32.314,05; DESCUENTO 0,00; IVA 6.785,95; TOTAL 39.100,00. La aritmética cierra: 32.314,05 + 6.785,95 = 39.100,00, y el IVA equivale al 21% del neto. No se imprimen líneas de no gravado, exento, percepciones, retenciones ni otros tributos. Dos cubiertos impresos, compatibles con 2 comensales (dato inferido, no rotulado como 'comensales'). Sin litros (no es combustible) y sin centro de costo informado. Al pie: Mesa #26 - GERALDINE, CAE 86104178054027, VTO 14/05/2026. Las columnas de importes por ítem quedan parcialmente ilegibles, por lo que no se transcribió el detalle ítem por ítem, aunque la sumatoria de los parciales de los dos ítems principales es consistente con el subtotal y el total impresos."
+  },
+  "extraccion": {
+    "legibilidad": "buena",
+    "tipo_comprobante": "A",
+    "codigo_afip": "001",
+    "razon_social_emisor": "PILAR WILO CLUB SRL",
+    "cuit_emisor": "30-71544083-7",
+    "digito_verificador_cuit_valido": true,
+    "fecha_emision": "04/05/2026",
+    "nro_factura": "0006-00001232",
+    "moneda": "ARS",
+    "subtotal": 32314.05,
+    "no_gravado": 0,
+    "exento": 0,
+    "discrimina_impuestos": true,
+    "iva": 6785.95,
+    "impuestos_internos": 0,
+    "percepciones_iibb": 0,
+    "otros_impuestos": 0,
+    "importe_total": 39100.0,
+    "cierra_aritmetica": true,
+    "rubro_emisor": "Gastronómico (restaurante/parrilla en shopping)",
+    "categoria_gasto_sugerida": "Restaurante",
+    "cantidad_comensales_personas": 2,
+    "cantidad_litros": null,
+    "centro_de_costo": null,
+    "campos_no_legibles": [
+      "importes unitarios y parciales del detalle de ítems (columna Monto/Total de cada línea, parcialmente borrosos)",
+      "leyenda de CAEA / talón (texto impreso ilegible)"
+    ],
+    "observaciones": "Factura Electrónica A, COD. 001, Punto de Venta 0006, Nro 00001232, fecha de emisión 04/05/2026. Emisor: PILAR WILO CLUB SRL, Soba Shopping Torres del Sol, Buenos Aires, CUIT 30-71544083-7 (dígito verificador válido), IIBB 30715440837, inicio de actividades 12-2016, Responsable Inscripto. Receptor: CUC SA, CUIT 30592215703, Av. Circunvalación 1245 (CUIT de 11 dígitos). Detalle: 2 cubiertos (Monares y común), Tern MED Carpa, Puré de papas CH y Limonada x 1000cc, todos al 21,00%. Importes: SUBTOTAL (neto gravado) 32.314,05; DESCUENTO 0,00; IVA 6.785,95; TOTAL 39.100,00. La aritmética cierra: 32.314,05 + 6.785,95 = 39.100,00, y el IVA equivale al 21% del neto. No se imprimen líneas de no gravado, exento, percepciones, retenciones ni otros tributos. Dos cubiertos impresos, compatibles con 2 comensales (dato inferido, no rotulado como 'comensales'). Sin litros (no es combustible) y sin centro de costo informado. Al pie: Mesa #26 - GERALDINE, CAE 86104178054027, VTO 14/05/2026. Las columnas de importes por ítem quedan parcialmente ilegibles, por lo que no se transcribió el detalle ítem por ítem, aunque la sumatoria de los parciales de los dos ítems principales es consistente con el subtotal y el total impresos."
+  },
+  "aritmetica": {
+    "calculable": true,
+    "suma": 39100.0,
+    "total": 39100.0,
+    "diferencia": 0.0,
+    "cierra": true,
+    "faltantes": []
+  }
+}

@@ -2,9 +2,9 @@
 
 > **Documento**: especificación del artefacto `tests/expected-extraction/`
 > **Rol**: BA (qué y por qué) + SA (cómo) + QA (cómo se verifica)
-> **Fecha**: 2026-09-14 · **Estado**: 🟡 **Especificación cerrada — pendiente de implementación**
+> **Fecha**: 2026-09-14 · **Estado**: � **Nivel A implementado** — el nivel B (correr el pipeline con Ollama) está pendiente
 > **Complementa**: [`06-estrategia-calidad.md`](06-estrategia-calidad.md) §3 (golden set)
-> **Versión**: v0.3 — **las 6 decisiones están resueltas** (§11). Alcance: ~3,0 dh.
+> **Versión**: v0.4 — implementado según §10. Ver el historial abajo.
 >
 > ### Historial de versiones
 >
@@ -12,12 +12,25 @@
 > |---|---|
 > | v0.1 | Borrador. |
 > | v0.2 | **5 de 28 CUIT de la referencia tienen el DV inválido** (§2.3) → pasó de 2 a 3 tiers y de 5 a 7 estados. Medido: **la referencia no es reproducible** (§2.4). |
-> | v0.3 | **Decisiones cerradas** (§11) · **D-6 = no implementar el auto-chequeo** → vuelve a 5 estados, sin partición y sin marca (⛔ deuda declarada) · estructura `<id>/<modelo>/<corrida>` justificada por §2.4 |
+> | v0.3 | **Decisiones cerradas** (§11) · **D-6 = no implementar el auto-chequeo** → vuelve a 5 estados, sin partición y sin marca (⛔ deuda declarada) · estructura `<id>/<modelo>/<corrida>` justificada por §2.4. |
+> | v0.4 | **Implementado** (§12). §2.2 corregido: la presencia de `reintentos_esquema` es **por registro**, no por lote. |
 
-> ## ⚠️ Estado
+> ## ✅ Estado de implementación (v0.4)
 >
-> **Especificación lista para implementar. No hay código ni carpetas creadas.**
-> Las 6 decisiones están cerradas (§11); falta ejecutar §10.
+> | Paso (§10) | Estado |
+> |---|---|
+> | 2 · Copiar las 26 imágenes | ✅ hecho (`tests/fixtures/expected-extraction/`, 2,4 MB) |
+> | 3 · Generador | ✅ `scripts/operacion/generar-extracciones-esperadas.py` |
+> | 4 · Manifiesto + mapa + README | ✅ hecho (30 corridas, 29 documentos, 30/30 con imagen) |
+> | 5 · Motor de comparación + nivel A | ✅ `src/voucherflow/llm/comparacion.py` + `tests/test_expected_extraction.py` (**35 tests**) |
+> | 6 · Nivel B + reporte | ⬜ **pendiente** (requiere Ollama y los modelos) |
+> | 7 · Correr y leer hallazgos | ⬜ pendiente (depende del 6) |
+> | 8 · Docs | ✅ README raíz, `scripts/readme.md`, `06-estrategia-calidad.md` §3.5 |
+>
+> ⚠️ **Sin el nivel B no hay medición de acuerdo**: lo implementado verifica la
+> **integridad** del artefacto y la **lógica** de la comparación, no la lectura del
+> pipeline local. Y el nivel B tiene el bloqueante ya declarado: `qwen2.5:7b` (el
+> rol `llm`) **no está instalado**.
 
 > ## ⚠️ Leer antes que nada
 >
@@ -201,14 +214,29 @@ No es una estimación: es el conteo de `var/validations/` (10) + `var/piloto/out
 
 ### 2.2 Los dos lotes no son homogéneos
 
-`var/piloto/out/` es de un esquema **anterior**: le faltan `reintentos_esquema` y
-`avisos_esquema`. Cualquier cargador tiene que aceptar las dos formas o declarar
-que ignora una.
+⚠️ **Corregido al implementar (2026-09-14)**: la primera versión de este documento
+decía que `var/piloto/out/` "es de un esquema anterior" y le faltaban
+`reintentos_esquema` / `avisos_esquema`. **La versión por lote era inexacta.** Lo
+que se midió:
+
+| Campo | `validations` | `piloto` |
+|---|---|---|
+| `reintentos_esquema` | con 2 · sin 8 | **con 4 · sin 16** |
+| `avisos_esquema` | con 2 · sin 8 | **con 4 · sin 16** |
+| `esquema_validado` | con 10 · sin 0 | con 20 · sin 0 |
+
+La presencia es **por registro, no por lote**: el campo se incorporó **a mitad del
+lote piloto**, así que dentro del mismo lote hay registros con y sin él.
+
+⚠️ **Consecuencia práctica (y es la lección)**: un cargador o un test que asuma
+"el lote X no tiene el campo Y" **falla**, y la falla es del test, no del
+artefacto. Ocurrió al implementar: el test escrito con ese supuesto falló contra
+datos reales. Lo correcto es verificar **campo por campo contra el registro**.
 
 Otro detalle medido: en el registro, `resultado` y `extraccion` son **byte a byte
-idénticos**. Un test que lea el bloque equivocado no falla — lee lo mismo. Hay
-que fijar cuál es el canónico (propuesta: `extraccion`) con un test que verifique
-que exista, para que un cambio de forma futura no pase en silencio.
+idénticos**. Un test que lee el bloque equivocado no falla — lee lo mismo. El
+generador fija `extraccion` como canónico (`clave_extraccion` en el manifiesto) y un
+test exige que exista, para que un cambio de forma futuro no pase en silencio.
 
 ### 2.3 🔴 HALLAZGO: 5 de 28 CUIT del dataset son lectura incorrecta
 

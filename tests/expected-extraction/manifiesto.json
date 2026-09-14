@@ -1,0 +1,1418 @@
+{
+  "version": "1.0",
+  "descripcion": "Lecturas de referencia (DeepSeek) para comparar contra el pipeline local. NO es un golden: mide ACUERDO, no exactitud. Ver README.md.",
+  "generado_utc": "2026-09-14T18:08:18+00:00",
+  "generador": "scripts/operacion/generar-extracciones-esperadas.py",
+  "clave_extraccion": "extraccion",
+  "fuentes": [
+    "var/validations",
+    "var/piloto/out"
+  ],
+  "cobertura": {
+    "corridas": 30,
+    "documentos": 29,
+    "con_imagen": 30,
+    "sin_imagen": 0,
+    "por_modelo": {
+      "deepseek-flash": 30
+    },
+    "por_lote": {
+      "piloto": 20,
+      "validations": 10
+    }
+  },
+  "entradas": [
+    {
+      "documento_id": "0fc44015-8d00-4bf0-bdac-ce41f695d8c6",
+      "archivo": "0fc44015-8d00-4bf0-bdac-ce41f695d8c6.jpg",
+      "modelo": "deepseek-flash",
+      "corrida": "20260914T154230Z",
+      "fuente_lote": "piloto",
+      "origen_var": "var/piloto/out/2026-08/F479D0E1/0fc44015-8d00-4bf0-bdac-ce41f695d8c6.extraccion.json",
+      "imagen_en_fixtures": "expected-extraction/0fc44015-8d00-4bf0-bdac-ce41f695d8c6.jpg",
+      "imagen_accion": "copiada",
+      "dimensiones": [
+        476,
+        1036
+      ],
+      "extraido_utc": "2026-09-14T15:42:30+00:00",
+      "archivo_relativo": "2026-08/F479D0E1/0fc44015-8d00-4bf0-bdac-ce41f695d8c6.jpg",
+      "procesado_utc": "2026-09-14T15:42:30+00:00",
+      "modo": "extraer",
+      "version_prompt": "mendel-validacion@1",
+      "prompt_hash": "sha256:a0cd908fe067fb3c",
+      "fuente": "api",
+      "uso": {
+        "prompt_tokens": 2817,
+        "completion_tokens": 3682,
+        "total_tokens": 6499,
+        "prompt_cache_hit_tokens": 2683,
+        "prompt_cache_miss_tokens": 134
+      },
+      "costo_usd": 0.004475,
+      "precios_usd_1m": {
+        "entrada": 0.3,
+        "salida": 1.2,
+        "entrada_cache": 0.006,
+        "origen": "referencia"
+      },
+      "esquema_validado": true,
+      "aritmetica": {
+        "calculable": true,
+        "suma": 9000.0,
+        "total": 9000.0,
+        "diferencia": 0.0,
+        "cierra": true,
+        "faltantes": []
+      },
+      "ruta": "0fc44015-8d00-4bf0-bdac-ce41f695d8c6/deepseek-flash/20260914T154230Z/extraccion.json",
+      "accion": "escrita"
+    },
+    {
+      "documento_id": "14f76410-658d-4f86-bfb2-c8084be5ba25",
+      "archivo": "14f76410-658d-4f86-bfb2-c8084be5ba25.jpg",
+      "modelo": "deepseek-flash",
+      "corrida": "20260914T154109Z",
+      "fuente_lote": "piloto",
+      "origen_var": "var/piloto/out/2025-10/54A2A039/14f76410-658d-4f86-bfb2-c8084be5ba25.extraccion.json",
+      "imagen_en_fixtures": "expected-extraction/14f76410-658d-4f86-bfb2-c8084be5ba25.jpg",
+      "imagen_accion": "copiada",
+      "dimensiones": [
+        840,
+        1036
+      ],
+      "extraido_utc": "2026-09-14T15:41:09+00:00",
+      "archivo_relativo": "2025-10/54A2A039/14f76410-658d-4f86-bfb2-c8084be5ba25.jpg",
+      "procesado_utc": "2026-09-14T15:41:09+00:00",
+      "modo": "extraer",
+      "version_prompt": "mendel-validacion@1",
+      "prompt_hash": "sha256:a0cd908fe067fb3c",
+      "fuente": "api",
+      "uso": {
+        "prompt_tokens": 6639,
+        "completion_tokens": 3386,
+        "total_tokens": 10025,
+        "prompt_cache_hit_tokens": 5248,
+        "prompt_cache_miss_tokens": 1391
+      },
+      "costo_usd": 0.004512,
+      "precios_usd_1m": {
+        "entrada": 0.3,
+        "salida": 1.2,
+        "entrada_cache": 0.006,
+        "origen": "referencia"
+      },
+      "esquema_validado": true,
+      "reintentos_esquema": 1,
+      "aritmetica": {
+        "calculable": true,
+        "suma": 10948.21,
+        "total": 10948.21,
+        "diferencia": -0.0,
+        "cierra": true,
+        "faltantes": []
+      },
+      "ruta": "14f76410-658d-4f86-bfb2-c8084be5ba25/deepseek-flash/20260914T154109Z/extraccion.json",
+      "accion": "escrita"
+    },
+    {
+      "documento_id": "18e55c62-4a1d-4cb3-a3e4-15a73e28b4de",
+      "archivo": "18e55c62-4a1d-4cb3-a3e4-15a73e28b4de.jpg",
+      "modelo": "deepseek-flash",
+      "corrida": "20260914T154116Z",
+      "fuente_lote": "piloto",
+      "origen_var": "var/piloto/out/2025-11/FD95DCA0/18e55c62-4a1d-4cb3-a3e4-15a73e28b4de.extraccion.json",
+      "imagen_en_fixtures": "expected-extraction/18e55c62-4a1d-4cb3-a3e4-15a73e28b4de.jpg",
+      "imagen_accion": "copiada",
+      "dimensiones": [
+        840,
+        1036
+      ],
+      "extraido_utc": "2026-09-14T15:41:16+00:00",
+      "archivo_relativo": "2025-11/FD95DCA0/18e55c62-4a1d-4cb3-a3e4-15a73e28b4de.jpg",
+      "procesado_utc": "2026-09-14T15:41:16+00:00",
+      "modo": "extraer",
+      "version_prompt": "mendel-validacion@1",
+      "prompt_hash": "sha256:a0cd908fe067fb3c",
+      "fuente": "api",
+      "uso": {
+        "prompt_tokens": 3017,
+        "completion_tokens": 1792,
+        "total_tokens": 4809,
+        "prompt_cache_hit_tokens": 2304,
+        "prompt_cache_miss_tokens": 713
+      },
+      "costo_usd": 0.002378,
+      "precios_usd_1m": {
+        "entrada": 0.3,
+        "salida": 1.2,
+        "entrada_cache": 0.006,
+        "origen": "referencia"
+      },
+      "esquema_validado": true,
+      "aritmetica": {
+        "calculable": true,
+        "suma": 0.0,
+        "total": 8933.33,
+        "diferencia": 8933.33,
+        "cierra": false,
+        "faltantes": [],
+        "aviso": "Los importes leídos suman 0.00 y el total impreso es 8,933.33 (diferencia 8,933.33)."
+      },
+      "ruta": "18e55c62-4a1d-4cb3-a3e4-15a73e28b4de/deepseek-flash/20260914T154116Z/extraccion.json",
+      "accion": "escrita"
+    },
+    {
+      "documento_id": "2991f57d-c143-4b23-9f87-4dfb1214ef53",
+      "archivo": "2991f57d-c143-4b23-9f87-4dfb1214ef53.jpg",
+      "modelo": "deepseek-flash",
+      "corrida": "20260914T170509Z",
+      "fuente_lote": "validations",
+      "origen_var": "var/validations/deepseek/2025-08/2D2C9343/2991f57d-c143-4b23-9f87-4dfb1214ef53.extraccion.json",
+      "imagen_en_fixtures": "golden/2991f57d-c143-4b23-9f87-4dfb1214ef53.jpg",
+      "imagen_accion": "ya_versionada",
+      "dimensiones": [
+        840,
+        1036
+      ],
+      "extraido_utc": "2026-09-14T17:05:09+00:00",
+      "archivo_relativo": "2025-08/2D2C9343/2991f57d-c143-4b23-9f87-4dfb1214ef53.jpg",
+      "procesado_utc": "2026-09-14T17:05:09+00:00",
+      "modo": "extraer",
+      "version_prompt": "mendel-validacion@1",
+      "prompt_hash": "sha256:a0cd908fe067fb3c",
+      "fuente": "api",
+      "uso": {
+        "prompt_tokens": 6925,
+        "completion_tokens": 2828,
+        "total_tokens": 9753,
+        "prompt_cache_hit_tokens": 5760,
+        "prompt_cache_miss_tokens": 1165
+      },
+      "costo_usd": 0.003778,
+      "precios_usd_1m": {
+        "entrada": 0.3,
+        "salida": 1.2,
+        "entrada_cache": 0.006,
+        "origen": "referencia"
+      },
+      "esquema_validado": true,
+      "reintentos_esquema": 1,
+      "aritmetica": {
+        "calculable": true,
+        "suma": 73122.64,
+        "total": 73122.64,
+        "diferencia": 0.0,
+        "cierra": true,
+        "faltantes": []
+      },
+      "ruta": "2991f57d-c143-4b23-9f87-4dfb1214ef53/deepseek-flash/20260914T170509Z/extraccion.json",
+      "accion": "escrita"
+    },
+    {
+      "documento_id": "312cc3c2-42b7-4bdf-85d1-1857a01402e5",
+      "archivo": "312cc3c2-42b7-4bdf-85d1-1857a01402e5.jpg",
+      "modelo": "deepseek-flash",
+      "corrida": "20260914T154125Z",
+      "fuente_lote": "piloto",
+      "origen_var": "var/piloto/out/2025-12/FE88932D/312cc3c2-42b7-4bdf-85d1-1857a01402e5.extraccion.json",
+      "imagen_en_fixtures": "expected-extraction/312cc3c2-42b7-4bdf-85d1-1857a01402e5.jpg",
+      "imagen_accion": "copiada",
+      "dimensiones": [
+        840,
+        1036
+      ],
+      "extraido_utc": "2026-09-14T15:41:25+00:00",
+      "archivo_relativo": "2025-12/FE88932D/312cc3c2-42b7-4bdf-85d1-1857a01402e5.jpg",
+      "procesado_utc": "2026-09-14T15:41:25+00:00",
+      "modo": "extraer",
+      "version_prompt": "mendel-validacion@1",
+      "prompt_hash": "sha256:a0cd908fe067fb3c",
+      "fuente": "api",
+      "uso": {
+        "prompt_tokens": 3017,
+        "completion_tokens": 26825,
+        "total_tokens": 29842,
+        "prompt_cache_hit_tokens": 2304,
+        "prompt_cache_miss_tokens": 713
+      },
+      "costo_usd": 0.032418,
+      "precios_usd_1m": {
+        "entrada": 0.3,
+        "salida": 1.2,
+        "entrada_cache": 0.006,
+        "origen": "referencia"
+      },
+      "esquema_validado": true,
+      "aritmetica": {
+        "calculable": true,
+        "suma": 24600.0,
+        "total": 24600.0,
+        "diferencia": 0.0,
+        "cierra": true,
+        "faltantes": []
+      },
+      "ruta": "312cc3c2-42b7-4bdf-85d1-1857a01402e5/deepseek-flash/20260914T154125Z/extraccion.json",
+      "accion": "escrita"
+    },
+    {
+      "documento_id": "34266aa0-c7d1-46e4-9ee4-6a69dabd59fd",
+      "archivo": "34266aa0-c7d1-46e4-9ee4-6a69dabd59fd.jpg",
+      "modelo": "deepseek-flash",
+      "corrida": "20260914T154127Z",
+      "fuente_lote": "piloto",
+      "origen_var": "var/piloto/out/2026-01/F9881178/34266aa0-c7d1-46e4-9ee4-6a69dabd59fd.extraccion.json",
+      "imagen_en_fixtures": "expected-extraction/34266aa0-c7d1-46e4-9ee4-6a69dabd59fd.jpg",
+      "imagen_accion": "copiada",
+      "dimensiones": [
+        840,
+        1036
+      ],
+      "extraido_utc": "2026-09-14T15:41:27+00:00",
+      "archivo_relativo": "2026-01/F9881178/34266aa0-c7d1-46e4-9ee4-6a69dabd59fd.jpg",
+      "procesado_utc": "2026-09-14T15:41:27+00:00",
+      "modo": "extraer",
+      "version_prompt": "mendel-validacion@1",
+      "prompt_hash": "sha256:a0cd908fe067fb3c",
+      "fuente": "api",
+      "uso": {
+        "prompt_tokens": 3017,
+        "completion_tokens": 3723,
+        "total_tokens": 6740,
+        "prompt_cache_hit_tokens": 2304,
+        "prompt_cache_miss_tokens": 713
+      },
+      "costo_usd": 0.004695,
+      "precios_usd_1m": {
+        "entrada": 0.3,
+        "salida": 1.2,
+        "entrada_cache": 0.006,
+        "origen": "referencia"
+      },
+      "esquema_validado": true,
+      "aritmetica": {
+        "calculable": true,
+        "suma": 12300.0,
+        "total": 12300.0,
+        "diferencia": 0.0,
+        "cierra": true,
+        "faltantes": []
+      },
+      "ruta": "34266aa0-c7d1-46e4-9ee4-6a69dabd59fd/deepseek-flash/20260914T154127Z/extraccion.json",
+      "accion": "escrita"
+    },
+    {
+      "documento_id": "36aa4a1e-0d78-43a3-8a72-5765d6ff294d",
+      "archivo": "36aa4a1e-0d78-43a3-8a72-5765d6ff294d.jpg",
+      "modelo": "deepseek-flash",
+      "corrida": "20260914T170526Z",
+      "fuente_lote": "validations",
+      "origen_var": "var/validations/deepseek/2025-08/9273BC6C/36aa4a1e-0d78-43a3-8a72-5765d6ff294d.extraccion.json",
+      "imagen_en_fixtures": "expected-extraction/36aa4a1e-0d78-43a3-8a72-5765d6ff294d.jpg",
+      "imagen_accion": "copiada",
+      "dimensiones": [
+        840,
+        1036
+      ],
+      "extraido_utc": "2026-09-14T17:05:26+00:00",
+      "archivo_relativo": "2025-08/9273BC6C/36aa4a1e-0d78-43a3-8a72-5765d6ff294d.jpg",
+      "procesado_utc": "2026-09-14T17:05:26+00:00",
+      "modo": "extraer",
+      "version_prompt": "mendel-validacion@1",
+      "prompt_hash": "sha256:a0cd908fe067fb3c",
+      "fuente": "api",
+      "uso": {
+        "prompt_tokens": 3017,
+        "completion_tokens": 1450,
+        "total_tokens": 4467,
+        "prompt_cache_hit_tokens": 2816,
+        "prompt_cache_miss_tokens": 201
+      },
+      "costo_usd": 0.001817,
+      "precios_usd_1m": {
+        "entrada": 0.3,
+        "salida": 1.2,
+        "entrada_cache": 0.006,
+        "origen": "referencia"
+      },
+      "esquema_validado": true,
+      "aritmetica": {
+        "calculable": true,
+        "suma": 229000.0,
+        "total": 229000.0,
+        "diferencia": 0.0,
+        "cierra": true,
+        "faltantes": []
+      },
+      "ruta": "36aa4a1e-0d78-43a3-8a72-5765d6ff294d/deepseek-flash/20260914T170526Z/extraccion.json",
+      "accion": "escrita"
+    },
+    {
+      "documento_id": "37f06866-280a-45ed-88a4-52220611d6c2",
+      "archivo": "37f06866-280a-45ed-88a4-52220611d6c2.jpg",
+      "modelo": "deepseek-flash",
+      "corrida": "20260914T154222Z",
+      "fuente_lote": "piloto",
+      "origen_var": "var/piloto/out/2026-07/F9F8EB99/37f06866-280a-45ed-88a4-52220611d6c2.extraccion.json",
+      "imagen_en_fixtures": "expected-extraction/37f06866-280a-45ed-88a4-52220611d6c2.jpg",
+      "imagen_accion": "copiada",
+      "dimensiones": [
+        1036,
+        896
+      ],
+      "extraido_utc": "2026-09-14T15:42:22+00:00",
+      "archivo_relativo": "2026-07/F9F8EB99/37f06866-280a-45ed-88a4-52220611d6c2.jpg",
+      "procesado_utc": "2026-09-14T15:42:22+00:00",
+      "modo": "extraer",
+      "version_prompt": "mendel-validacion@1",
+      "prompt_hash": "sha256:a0cd908fe067fb3c",
+      "fuente": "api",
+      "uso": {
+        "prompt_tokens": 3064,
+        "completion_tokens": 1562,
+        "total_tokens": 4626,
+        "prompt_cache_hit_tokens": 2304,
+        "prompt_cache_miss_tokens": 760
+      },
+      "costo_usd": 0.002116,
+      "precios_usd_1m": {
+        "entrada": 0.3,
+        "salida": 1.2,
+        "entrada_cache": 0.006,
+        "origen": "referencia"
+      },
+      "esquema_validado": true,
+      "aritmetica": {
+        "calculable": true,
+        "suma": 28800.0,
+        "total": 28800.0,
+        "diferencia": 0.0,
+        "cierra": true,
+        "faltantes": []
+      },
+      "ruta": "37f06866-280a-45ed-88a4-52220611d6c2/deepseek-flash/20260914T154222Z/extraccion.json",
+      "accion": "escrita"
+    },
+    {
+      "documento_id": "4293c2ff-7025-42c0-975d-55c8e2ca5e91",
+      "archivo": "4293c2ff-7025-42c0-975d-55c8e2ca5e91.jpg",
+      "modelo": "deepseek-flash",
+      "corrida": "20260914T154230Z",
+      "fuente_lote": "piloto",
+      "origen_var": "var/piloto/out/2026-07/FFD488FF/4293c2ff-7025-42c0-975d-55c8e2ca5e91.extraccion.json",
+      "imagen_en_fixtures": "expected-extraction/4293c2ff-7025-42c0-975d-55c8e2ca5e91.jpg",
+      "imagen_accion": "copiada",
+      "dimensiones": [
+        840,
+        1036
+      ],
+      "extraido_utc": "2026-09-14T15:42:30+00:00",
+      "archivo_relativo": "2026-07/FFD488FF/4293c2ff-7025-42c0-975d-55c8e2ca5e91.jpg",
+      "procesado_utc": "2026-09-14T15:42:30+00:00",
+      "modo": "extraer",
+      "version_prompt": "mendel-validacion@1",
+      "prompt_hash": "sha256:a0cd908fe067fb3c",
+      "fuente": "api",
+      "uso": {
+        "prompt_tokens": 3017,
+        "completion_tokens": 2331,
+        "total_tokens": 5348,
+        "prompt_cache_hit_tokens": 2304,
+        "prompt_cache_miss_tokens": 713
+      },
+      "costo_usd": 0.003025,
+      "precios_usd_1m": {
+        "entrada": 0.3,
+        "salida": 1.2,
+        "entrada_cache": 0.006,
+        "origen": "referencia"
+      },
+      "esquema_validado": true,
+      "aritmetica": {
+        "calculable": true,
+        "suma": 44000.0,
+        "total": 44000.0,
+        "diferencia": 0.0,
+        "cierra": true,
+        "faltantes": []
+      },
+      "ruta": "4293c2ff-7025-42c0-975d-55c8e2ca5e91/deepseek-flash/20260914T154230Z/extraccion.json",
+      "accion": "escrita"
+    },
+    {
+      "documento_id": "523cf19f-ccd8-44a6-b4a4-73e431fb1048",
+      "archivo": "523cf19f-ccd8-44a6-b4a4-73e431fb1048.jpg",
+      "modelo": "deepseek-flash",
+      "corrida": "20260914T170546Z",
+      "fuente_lote": "validations",
+      "origen_var": "var/validations/deepseek/2025-08/C643628F/523cf19f-ccd8-44a6-b4a4-73e431fb1048.extraccion.json",
+      "imagen_en_fixtures": "expected-extraction/523cf19f-ccd8-44a6-b4a4-73e431fb1048.jpg",
+      "imagen_accion": "copiada",
+      "dimensiones": [
+        840,
+        1036
+      ],
+      "extraido_utc": "2026-09-14T17:05:46+00:00",
+      "archivo_relativo": "2025-08/C643628F/523cf19f-ccd8-44a6-b4a4-73e431fb1048.jpg",
+      "procesado_utc": "2026-09-14T17:05:46+00:00",
+      "modo": "extraer",
+      "version_prompt": "mendel-validacion@1",
+      "prompt_hash": "sha256:a0cd908fe067fb3c",
+      "fuente": "api",
+      "uso": {
+        "prompt_tokens": 3017,
+        "completion_tokens": 1985,
+        "total_tokens": 5002,
+        "prompt_cache_hit_tokens": 2816,
+        "prompt_cache_miss_tokens": 201
+      },
+      "costo_usd": 0.002459,
+      "precios_usd_1m": {
+        "entrada": 0.3,
+        "salida": 1.2,
+        "entrada_cache": 0.006,
+        "origen": "referencia"
+      },
+      "esquema_validado": true,
+      "aritmetica": {
+        "calculable": true,
+        "suma": 30400.0,
+        "total": 30400.0,
+        "diferencia": 0.0,
+        "cierra": true,
+        "faltantes": []
+      },
+      "ruta": "523cf19f-ccd8-44a6-b4a4-73e431fb1048/deepseek-flash/20260914T170546Z/extraccion.json",
+      "accion": "escrita"
+    },
+    {
+      "documento_id": "5263d096-3060-4d75-a6ba-89273dc776a2",
+      "archivo": "5263d096-3060-4d75-a6ba-89273dc776a2.jpg",
+      "modelo": "deepseek-flash",
+      "corrida": "20260914T154140Z",
+      "fuente_lote": "piloto",
+      "origen_var": "var/piloto/out/2026-04/F96BEFCA/5263d096-3060-4d75-a6ba-89273dc776a2.extraccion.json",
+      "imagen_en_fixtures": "expected-extraction/5263d096-3060-4d75-a6ba-89273dc776a2.jpg",
+      "imagen_accion": "copiada",
+      "dimensiones": [
+        840,
+        1036
+      ],
+      "extraido_utc": "2026-09-14T15:41:40+00:00",
+      "archivo_relativo": "2026-04/F96BEFCA/5263d096-3060-4d75-a6ba-89273dc776a2.jpg",
+      "procesado_utc": "2026-09-14T15:41:40+00:00",
+      "modo": "extraer",
+      "version_prompt": "mendel-validacion@1",
+      "prompt_hash": "sha256:a0cd908fe067fb3c",
+      "fuente": "api",
+      "uso": {
+        "prompt_tokens": 3017,
+        "completion_tokens": 3063,
+        "total_tokens": 6080,
+        "prompt_cache_hit_tokens": 2304,
+        "prompt_cache_miss_tokens": 713
+      },
+      "costo_usd": 0.003903,
+      "precios_usd_1m": {
+        "entrada": 0.3,
+        "salida": 1.2,
+        "entrada_cache": 0.006,
+        "origen": "referencia"
+      },
+      "esquema_validado": true,
+      "aritmetica": {
+        "calculable": true,
+        "suma": 38309.91,
+        "total": 38309.91,
+        "diferencia": 0.0,
+        "cierra": true,
+        "faltantes": []
+      },
+      "ruta": "5263d096-3060-4d75-a6ba-89273dc776a2/deepseek-flash/20260914T154140Z/extraccion.json",
+      "accion": "escrita"
+    },
+    {
+      "documento_id": "55b39d02-60d6-47b6-8c13-cc74b295107c",
+      "archivo": "55b39d02-60d6-47b6-8c13-cc74b295107c.jpg",
+      "modelo": "deepseek-flash",
+      "corrida": "20260914T154115Z",
+      "fuente_lote": "piloto",
+      "origen_var": "var/piloto/out/2025-11/FD184EE9/55b39d02-60d6-47b6-8c13-cc74b295107c.extraccion.json",
+      "imagen_en_fixtures": "expected-extraction/55b39d02-60d6-47b6-8c13-cc74b295107c.jpg",
+      "imagen_accion": "copiada",
+      "dimensiones": [
+        840,
+        1036
+      ],
+      "extraido_utc": "2026-09-14T15:41:15+00:00",
+      "archivo_relativo": "2025-11/FD184EE9/55b39d02-60d6-47b6-8c13-cc74b295107c.jpg",
+      "procesado_utc": "2026-09-14T15:41:15+00:00",
+      "modo": "extraer",
+      "version_prompt": "mendel-validacion@1",
+      "prompt_hash": "sha256:a0cd908fe067fb3c",
+      "fuente": "api",
+      "uso": {
+        "prompt_tokens": 3017,
+        "completion_tokens": 2901,
+        "total_tokens": 5918,
+        "prompt_cache_hit_tokens": 2304,
+        "prompt_cache_miss_tokens": 713
+      },
+      "costo_usd": 0.003709,
+      "precios_usd_1m": {
+        "entrada": 0.3,
+        "salida": 1.2,
+        "entrada_cache": 0.006,
+        "origen": "referencia"
+      },
+      "esquema_validado": true,
+      "aritmetica": {
+        "calculable": true,
+        "suma": 34999.92,
+        "total": 34999.92,
+        "diferencia": 0.0,
+        "cierra": true,
+        "faltantes": []
+      },
+      "ruta": "55b39d02-60d6-47b6-8c13-cc74b295107c/deepseek-flash/20260914T154115Z/extraccion.json",
+      "accion": "escrita"
+    },
+    {
+      "documento_id": "7259b2ac-8e14-48ff-b20d-6cf538f4e7c6",
+      "archivo": "7259b2ac-8e14-48ff-b20d-6cf538f4e7c6.jpg",
+      "modelo": "deepseek-flash",
+      "corrida": "20260914T154131Z",
+      "fuente_lote": "piloto",
+      "origen_var": "var/piloto/out/2026-03/FFDA7680/7259b2ac-8e14-48ff-b20d-6cf538f4e7c6.extraccion.json",
+      "imagen_en_fixtures": "expected-extraction/7259b2ac-8e14-48ff-b20d-6cf538f4e7c6.jpg",
+      "imagen_accion": "copiada",
+      "dimensiones": [
+        840,
+        1036
+      ],
+      "extraido_utc": "2026-09-14T15:41:31+00:00",
+      "archivo_relativo": "2026-03/FFDA7680/7259b2ac-8e14-48ff-b20d-6cf538f4e7c6.jpg",
+      "procesado_utc": "2026-09-14T15:41:31+00:00",
+      "modo": "extraer",
+      "version_prompt": "mendel-validacion@1",
+      "prompt_hash": "sha256:a0cd908fe067fb3c",
+      "fuente": "api",
+      "uso": {
+        "prompt_tokens": 11226,
+        "completion_tokens": 13450,
+        "total_tokens": 24676,
+        "prompt_cache_hit_tokens": 8960,
+        "prompt_cache_miss_tokens": 2266
+      },
+      "costo_usd": 0.016874,
+      "precios_usd_1m": {
+        "entrada": 0.3,
+        "salida": 1.2,
+        "entrada_cache": 0.006,
+        "origen": "referencia"
+      },
+      "esquema_validado": true,
+      "reintentos_esquema": 2,
+      "aritmetica": {
+        "calculable": true,
+        "suma": 7250.0,
+        "total": 7250.0,
+        "diferencia": 0.0,
+        "cierra": true,
+        "faltantes": []
+      },
+      "ruta": "7259b2ac-8e14-48ff-b20d-6cf538f4e7c6/deepseek-flash/20260914T154131Z/extraccion.json",
+      "accion": "escrita"
+    },
+    {
+      "documento_id": "753f20aa-b74b-4d10-bd30-b6e79224ddca",
+      "archivo": "753f20aa-b74b-4d10-bd30-b6e79224ddca.jpg",
+      "modelo": "deepseek-flash",
+      "corrida": "20260914T154218Z",
+      "fuente_lote": "piloto",
+      "origen_var": "var/piloto/out/2026-05/FF37276C/753f20aa-b74b-4d10-bd30-b6e79224ddca.extraccion.json",
+      "imagen_en_fixtures": "expected-extraction/753f20aa-b74b-4d10-bd30-b6e79224ddca.jpg",
+      "imagen_accion": "copiada",
+      "dimensiones": [
+        840,
+        1036
+      ],
+      "extraido_utc": "2026-09-14T15:42:18+00:00",
+      "archivo_relativo": "2026-05/FF37276C/753f20aa-b74b-4d10-bd30-b6e79224ddca.jpg",
+      "procesado_utc": "2026-09-14T15:42:18+00:00",
+      "modo": "extraer",
+      "version_prompt": "mendel-validacion@1",
+      "prompt_hash": "sha256:a0cd908fe067fb3c",
+      "fuente": "api",
+      "uso": {
+        "prompt_tokens": 3017,
+        "completion_tokens": 5312,
+        "total_tokens": 8329,
+        "prompt_cache_hit_tokens": 2304,
+        "prompt_cache_miss_tokens": 713
+      },
+      "costo_usd": 0.006602,
+      "precios_usd_1m": {
+        "entrada": 0.3,
+        "salida": 1.2,
+        "entrada_cache": 0.006,
+        "origen": "referencia"
+      },
+      "esquema_validado": true,
+      "aritmetica": {
+        "calculable": true,
+        "suma": 39100.0,
+        "total": 39100.0,
+        "diferencia": 0.0,
+        "cierra": true,
+        "faltantes": []
+      },
+      "ruta": "753f20aa-b74b-4d10-bd30-b6e79224ddca/deepseek-flash/20260914T154218Z/extraccion.json",
+      "accion": "escrita"
+    },
+    {
+      "documento_id": "757f0acc-59c9-4830-932e-a4db7b2376fb",
+      "archivo": "757f0acc-59c9-4830-932e-a4db7b2376fb.jpg",
+      "modelo": "deepseek-flash",
+      "corrida": "20260914T154109Z",
+      "fuente_lote": "piloto",
+      "origen_var": "var/piloto/out/2025-09/F99F9C30/757f0acc-59c9-4830-932e-a4db7b2376fb.extraccion.json",
+      "imagen_en_fixtures": "expected-extraction/757f0acc-59c9-4830-932e-a4db7b2376fb.jpg",
+      "imagen_accion": "copiada",
+      "dimensiones": [
+        840,
+        1036
+      ],
+      "extraido_utc": "2026-09-14T15:41:09+00:00",
+      "archivo_relativo": "2025-09/F99F9C30/757f0acc-59c9-4830-932e-a4db7b2376fb.jpg",
+      "procesado_utc": "2026-09-14T15:41:09+00:00",
+      "modo": "extraer",
+      "version_prompt": "mendel-validacion@1",
+      "prompt_hash": "sha256:a0cd908fe067fb3c",
+      "fuente": "api",
+      "uso": {
+        "prompt_tokens": 3017,
+        "completion_tokens": 1190,
+        "total_tokens": 4207,
+        "prompt_cache_hit_tokens": 2304,
+        "prompt_cache_miss_tokens": 713
+      },
+      "costo_usd": 0.001656,
+      "precios_usd_1m": {
+        "entrada": 0.3,
+        "salida": 1.2,
+        "entrada_cache": 0.006,
+        "origen": "referencia"
+      },
+      "esquema_validado": true,
+      "aritmetica": {
+        "calculable": true,
+        "suma": 66550.0,
+        "total": 66550.0,
+        "diferencia": 0.0,
+        "cierra": true,
+        "faltantes": []
+      },
+      "ruta": "757f0acc-59c9-4830-932e-a4db7b2376fb/deepseek-flash/20260914T154109Z/extraccion.json",
+      "accion": "escrita"
+    },
+    {
+      "documento_id": "8fc6425d-b3fb-4b05-ab74-93f957389283",
+      "archivo": "8fc6425d-b3fb-4b05-ab74-93f957389283.jpg",
+      "modelo": "deepseek-flash",
+      "corrida": "20260914T170509Z",
+      "fuente_lote": "validations",
+      "origen_var": "var/validations/deepseek/2025-08/5CC4A590/8fc6425d-b3fb-4b05-ab74-93f957389283.extraccion.json",
+      "imagen_en_fixtures": "expected-extraction/8fc6425d-b3fb-4b05-ab74-93f957389283.jpg",
+      "imagen_accion": "copiada",
+      "dimensiones": [
+        840,
+        1036
+      ],
+      "extraido_utc": "2026-09-14T17:05:09+00:00",
+      "archivo_relativo": "2025-08/5CC4A590/8fc6425d-b3fb-4b05-ab74-93f957389283.jpg",
+      "procesado_utc": "2026-09-14T17:05:09+00:00",
+      "modo": "extraer",
+      "version_prompt": "mendel-validacion@1",
+      "prompt_hash": "sha256:a0cd908fe067fb3c",
+      "fuente": "api",
+      "uso": {
+        "prompt_tokens": 3017,
+        "completion_tokens": 6529,
+        "total_tokens": 9546,
+        "prompt_cache_hit_tokens": 2816,
+        "prompt_cache_miss_tokens": 201
+      },
+      "costo_usd": 0.007912,
+      "precios_usd_1m": {
+        "entrada": 0.3,
+        "salida": 1.2,
+        "entrada_cache": 0.006,
+        "origen": "referencia"
+      },
+      "esquema_validado": true,
+      "aritmetica": {
+        "calculable": true,
+        "suma": 67024.91,
+        "total": 67024.93,
+        "diferencia": 0.02,
+        "cierra": true,
+        "faltantes": []
+      },
+      "ruta": "8fc6425d-b3fb-4b05-ab74-93f957389283/deepseek-flash/20260914T170509Z/extraccion.json",
+      "accion": "escrita"
+    },
+    {
+      "documento_id": "9e0fd65b-7db2-40a1-9959-ab13e7b030cd",
+      "archivo": "9e0fd65b-7db2-40a1-9959-ab13e7b030cd.jpg",
+      "modelo": "deepseek-flash",
+      "corrida": "20260914T154128Z",
+      "fuente_lote": "piloto",
+      "origen_var": "var/piloto/out/2026-02/FC8F11EA/9e0fd65b-7db2-40a1-9959-ab13e7b030cd.extraccion.json",
+      "imagen_en_fixtures": "expected-extraction/9e0fd65b-7db2-40a1-9959-ab13e7b030cd.jpg",
+      "imagen_accion": "copiada",
+      "dimensiones": [
+        840,
+        1036
+      ],
+      "extraido_utc": "2026-09-14T15:41:28+00:00",
+      "archivo_relativo": "2026-02/FC8F11EA/9e0fd65b-7db2-40a1-9959-ab13e7b030cd.jpg",
+      "procesado_utc": "2026-09-14T15:41:28+00:00",
+      "modo": "extraer",
+      "version_prompt": "mendel-validacion@1",
+      "prompt_hash": "sha256:a0cd908fe067fb3c",
+      "fuente": "api",
+      "uso": {
+        "prompt_tokens": 3017,
+        "completion_tokens": 2778,
+        "total_tokens": 5795,
+        "prompt_cache_hit_tokens": 2304,
+        "prompt_cache_miss_tokens": 713
+      },
+      "costo_usd": 0.003561,
+      "precios_usd_1m": {
+        "entrada": 0.3,
+        "salida": 1.2,
+        "entrada_cache": 0.006,
+        "origen": "referencia"
+      },
+      "esquema_validado": true,
+      "aritmetica": {
+        "calculable": true,
+        "suma": 17050.0,
+        "total": 17050.0,
+        "diferencia": 0.0,
+        "cierra": true,
+        "faltantes": []
+      },
+      "ruta": "9e0fd65b-7db2-40a1-9959-ab13e7b030cd/deepseek-flash/20260914T154128Z/extraccion.json",
+      "accion": "escrita"
+    },
+    {
+      "documento_id": "9e461da9-8f9b-44f8-a7e8-8da98c11abf4",
+      "archivo": "9e461da9-8f9b-44f8-a7e8-8da98c11abf4.jpg",
+      "modelo": "deepseek-flash",
+      "corrida": "20260914T170534Z",
+      "fuente_lote": "validations",
+      "origen_var": "var/validations/deepseek/2025-08/A527FC11/9e461da9-8f9b-44f8-a7e8-8da98c11abf4.extraccion.json",
+      "imagen_en_fixtures": "grandes/9e461da9-8f9b-44f8-a7e8-8da98c11abf4.jpg",
+      "imagen_accion": "ya_versionada",
+      "dimensiones": [
+        840,
+        1036
+      ],
+      "extraido_utc": "2026-09-14T17:05:34+00:00",
+      "archivo_relativo": "2025-08/A527FC11/9e461da9-8f9b-44f8-a7e8-8da98c11abf4.jpg",
+      "procesado_utc": "2026-09-14T17:05:34+00:00",
+      "modo": "extraer",
+      "version_prompt": "mendel-validacion@1",
+      "prompt_hash": "sha256:a0cd908fe067fb3c",
+      "fuente": "api",
+      "uso": {
+        "prompt_tokens": 3017,
+        "completion_tokens": 6692,
+        "total_tokens": 9709,
+        "prompt_cache_hit_tokens": 2816,
+        "prompt_cache_miss_tokens": 201
+      },
+      "costo_usd": 0.008108,
+      "precios_usd_1m": {
+        "entrada": 0.3,
+        "salida": 1.2,
+        "entrada_cache": 0.006,
+        "origen": "referencia"
+      },
+      "esquema_validado": true,
+      "aritmetica": {
+        "calculable": true,
+        "suma": 66354.05,
+        "total": 66354.04,
+        "diferencia": -0.01,
+        "cierra": true,
+        "faltantes": []
+      },
+      "ruta": "9e461da9-8f9b-44f8-a7e8-8da98c11abf4/deepseek-flash/20260914T170534Z/extraccion.json",
+      "accion": "escrita"
+    },
+    {
+      "documento_id": "9fa45f1d-f6ad-4cea-b585-432aa3b39dad",
+      "archivo": "9fa45f1d-f6ad-4cea-b585-432aa3b39dad.jpg",
+      "modelo": "deepseek-flash",
+      "corrida": "20260914T154109Z",
+      "fuente_lote": "piloto",
+      "origen_var": "var/piloto/out/2025-08/F3D45CEC/9fa45f1d-f6ad-4cea-b585-432aa3b39dad.extraccion.json",
+      "imagen_en_fixtures": "otros/9fa45f1d-f6ad-4cea-b585-432aa3b39dad.jpg",
+      "imagen_accion": "ya_versionada",
+      "dimensiones": [
+        840,
+        1036
+      ],
+      "extraido_utc": "2026-09-14T15:41:09+00:00",
+      "archivo_relativo": "2025-08/F3D45CEC/9fa45f1d-f6ad-4cea-b585-432aa3b39dad.jpg",
+      "procesado_utc": "2026-09-14T15:41:09+00:00",
+      "modo": "extraer",
+      "version_prompt": "mendel-validacion@1",
+      "prompt_hash": "sha256:a0cd908fe067fb3c",
+      "fuente": "api",
+      "uso": {
+        "prompt_tokens": 3017,
+        "completion_tokens": 2241,
+        "total_tokens": 5258,
+        "prompt_cache_hit_tokens": 2816,
+        "prompt_cache_miss_tokens": 201
+      },
+      "costo_usd": 0.002766,
+      "precios_usd_1m": {
+        "entrada": 0.3,
+        "salida": 1.2,
+        "entrada_cache": 0.006,
+        "origen": "referencia"
+      },
+      "esquema_validado": true,
+      "aritmetica": {
+        "calculable": true,
+        "suma": 100000.01,
+        "total": 100000.01,
+        "diferencia": -0.0,
+        "cierra": true,
+        "faltantes": []
+      },
+      "ruta": "9fa45f1d-f6ad-4cea-b585-432aa3b39dad/deepseek-flash/20260914T154109Z/extraccion.json",
+      "accion": "escrita"
+    },
+    {
+      "documento_id": "9fa45f1d-f6ad-4cea-b585-432aa3b39dad",
+      "archivo": "9fa45f1d-f6ad-4cea-b585-432aa3b39dad.jpg",
+      "modelo": "deepseek-flash",
+      "corrida": "20260914T170556Z",
+      "fuente_lote": "validations",
+      "origen_var": "var/validations/deepseek/2025-08/F3D45CEC/9fa45f1d-f6ad-4cea-b585-432aa3b39dad.extraccion.json",
+      "imagen_en_fixtures": "otros/9fa45f1d-f6ad-4cea-b585-432aa3b39dad.jpg",
+      "imagen_accion": "ya_versionada",
+      "dimensiones": [
+        840,
+        1036
+      ],
+      "extraido_utc": "2026-09-14T17:05:56+00:00",
+      "archivo_relativo": "2025-08/F3D45CEC/9fa45f1d-f6ad-4cea-b585-432aa3b39dad.jpg",
+      "procesado_utc": "2026-09-14T17:05:56+00:00",
+      "modo": "extraer",
+      "version_prompt": "mendel-validacion@1",
+      "prompt_hash": "sha256:a0cd908fe067fb3c",
+      "fuente": "api",
+      "uso": {
+        "prompt_tokens": 3017,
+        "completion_tokens": 4179,
+        "total_tokens": 7196,
+        "prompt_cache_hit_tokens": 2816,
+        "prompt_cache_miss_tokens": 201
+      },
+      "costo_usd": 0.005092,
+      "precios_usd_1m": {
+        "entrada": 0.3,
+        "salida": 1.2,
+        "entrada_cache": 0.006,
+        "origen": "referencia"
+      },
+      "esquema_validado": true,
+      "aritmetica": {
+        "calculable": true,
+        "suma": 100000.01,
+        "total": 100000.01,
+        "diferencia": -0.0,
+        "cierra": true,
+        "faltantes": []
+      },
+      "ruta": "9fa45f1d-f6ad-4cea-b585-432aa3b39dad/deepseek-flash/20260914T170556Z/extraccion.json",
+      "accion": "escrita"
+    },
+    {
+      "documento_id": "bacd76fe-7264-4bc5-9171-1ace6e125287",
+      "archivo": "bacd76fe-7264-4bc5-9171-1ace6e125287.jpg",
+      "modelo": "deepseek-flash",
+      "corrida": "20260914T154145Z",
+      "fuente_lote": "piloto",
+      "origen_var": "var/piloto/out/2026-04/FBA7EBE2/bacd76fe-7264-4bc5-9171-1ace6e125287.extraccion.json",
+      "imagen_en_fixtures": "expected-extraction/bacd76fe-7264-4bc5-9171-1ace6e125287.jpg",
+      "imagen_accion": "copiada",
+      "dimensiones": [
+        840,
+        1036
+      ],
+      "extraido_utc": "2026-09-14T15:41:45+00:00",
+      "archivo_relativo": "2026-04/FBA7EBE2/bacd76fe-7264-4bc5-9171-1ace6e125287.jpg",
+      "procesado_utc": "2026-09-14T15:41:45+00:00",
+      "modo": "extraer",
+      "version_prompt": "mendel-validacion@1",
+      "prompt_hash": "sha256:a0cd908fe067fb3c",
+      "fuente": "api",
+      "uso": {
+        "prompt_tokens": 6720,
+        "completion_tokens": 8158,
+        "total_tokens": 14878,
+        "prompt_cache_hit_tokens": 5248,
+        "prompt_cache_miss_tokens": 1472
+      },
+      "costo_usd": 0.010263,
+      "precios_usd_1m": {
+        "entrada": 0.3,
+        "salida": 1.2,
+        "entrada_cache": 0.006,
+        "origen": "referencia"
+      },
+      "esquema_validado": true,
+      "reintentos_esquema": 1,
+      "aritmetica": {
+        "calculable": true,
+        "suma": 63760.0,
+        "total": 63760.0,
+        "diferencia": 0.0,
+        "cierra": true,
+        "faltantes": []
+      },
+      "ruta": "bacd76fe-7264-4bc5-9171-1ace6e125287/deepseek-flash/20260914T154145Z/extraccion.json",
+      "accion": "escrita"
+    },
+    {
+      "documento_id": "bb19250b-5b38-4655-b746-7ee85e672334",
+      "archivo": "bb19250b-5b38-4655-b746-7ee85e672334.jpg",
+      "modelo": "deepseek-flash",
+      "corrida": "20260914T170542Z",
+      "fuente_lote": "validations",
+      "origen_var": "var/validations/deepseek/2025-08/BE4FD027/bb19250b-5b38-4655-b746-7ee85e672334.extraccion.json",
+      "imagen_en_fixtures": "expected-extraction/bb19250b-5b38-4655-b746-7ee85e672334.jpg",
+      "imagen_accion": "copiada",
+      "dimensiones": [
+        840,
+        1036
+      ],
+      "extraido_utc": "2026-09-14T17:05:42+00:00",
+      "archivo_relativo": "2025-08/BE4FD027/bb19250b-5b38-4655-b746-7ee85e672334.jpg",
+      "procesado_utc": "2026-09-14T17:05:42+00:00",
+      "modo": "extraer",
+      "version_prompt": "mendel-validacion@1",
+      "prompt_hash": "sha256:a0cd908fe067fb3c",
+      "fuente": "api",
+      "uso": {
+        "prompt_tokens": 3017,
+        "completion_tokens": 3643,
+        "total_tokens": 6660,
+        "prompt_cache_hit_tokens": 2816,
+        "prompt_cache_miss_tokens": 201
+      },
+      "costo_usd": 0.004449,
+      "precios_usd_1m": {
+        "entrada": 0.3,
+        "salida": 1.2,
+        "entrada_cache": 0.006,
+        "origen": "referencia"
+      },
+      "esquema_validado": true,
+      "aritmetica": {
+        "calculable": true,
+        "suma": 30600.0,
+        "total": 30600.0,
+        "diferencia": 0.0,
+        "cierra": true,
+        "faltantes": []
+      },
+      "ruta": "bb19250b-5b38-4655-b746-7ee85e672334/deepseek-flash/20260914T170542Z/extraccion.json",
+      "accion": "escrita"
+    },
+    {
+      "documento_id": "cfde829a-153b-43f5-a2ac-ed58ae307dfd",
+      "archivo": "cfde829a-153b-43f5-a2ac-ed58ae307dfd.jpg",
+      "modelo": "deepseek-flash",
+      "corrida": "20260914T154124Z",
+      "fuente_lote": "piloto",
+      "origen_var": "var/piloto/out/2025-12/F3D900C5/cfde829a-153b-43f5-a2ac-ed58ae307dfd.extraccion.json",
+      "imagen_en_fixtures": "expected-extraction/cfde829a-153b-43f5-a2ac-ed58ae307dfd.jpg",
+      "imagen_accion": "copiada",
+      "dimensiones": [
+        840,
+        1036
+      ],
+      "extraido_utc": "2026-09-14T15:41:24+00:00",
+      "archivo_relativo": "2025-12/F3D900C5/cfde829a-153b-43f5-a2ac-ed58ae307dfd.jpg",
+      "procesado_utc": "2026-09-14T15:41:24+00:00",
+      "modo": "extraer",
+      "version_prompt": "mendel-validacion@1",
+      "prompt_hash": "sha256:a0cd908fe067fb3c",
+      "fuente": "api",
+      "uso": {
+        "prompt_tokens": 3017,
+        "completion_tokens": 1598,
+        "total_tokens": 4615,
+        "prompt_cache_hit_tokens": 2304,
+        "prompt_cache_miss_tokens": 713
+      },
+      "costo_usd": 0.002145,
+      "precios_usd_1m": {
+        "entrada": 0.3,
+        "salida": 1.2,
+        "entrada_cache": 0.006,
+        "origen": "referencia"
+      },
+      "esquema_validado": true,
+      "aritmetica": {
+        "calculable": true,
+        "suma": 99999.34,
+        "total": 99999.34,
+        "diferencia": -0.0,
+        "cierra": true,
+        "faltantes": []
+      },
+      "ruta": "cfde829a-153b-43f5-a2ac-ed58ae307dfd/deepseek-flash/20260914T154124Z/extraccion.json",
+      "accion": "escrita"
+    },
+    {
+      "documento_id": "d0c64864-987c-4821-be2a-a3985992c11b",
+      "archivo": "d0c64864-987c-4821-be2a-a3985992c11b.jpg",
+      "modelo": "deepseek-flash",
+      "corrida": "20260914T154153Z",
+      "fuente_lote": "piloto",
+      "origen_var": "var/piloto/out/2026-04/FFB990C6/d0c64864-987c-4821-be2a-a3985992c11b.extraccion.json",
+      "imagen_en_fixtures": "expected-extraction/d0c64864-987c-4821-be2a-a3985992c11b.jpg",
+      "imagen_accion": "copiada",
+      "dimensiones": [
+        476,
+        1036
+      ],
+      "extraido_utc": "2026-09-14T15:41:53+00:00",
+      "archivo_relativo": "2026-04/FFB990C6/d0c64864-987c-4821-be2a-a3985992c11b.jpg",
+      "procesado_utc": "2026-09-14T15:41:53+00:00",
+      "modo": "extraer",
+      "version_prompt": "mendel-validacion@1",
+      "prompt_hash": "sha256:a0cd908fe067fb3c",
+      "fuente": "api",
+      "uso": {
+        "prompt_tokens": 2817,
+        "completion_tokens": 2505,
+        "total_tokens": 5322,
+        "prompt_cache_hit_tokens": 2304,
+        "prompt_cache_miss_tokens": 513
+      },
+      "costo_usd": 0.003174,
+      "precios_usd_1m": {
+        "entrada": 0.3,
+        "salida": 1.2,
+        "entrada_cache": 0.006,
+        "origen": "referencia"
+      },
+      "esquema_validado": true,
+      "aritmetica": {
+        "calculable": true,
+        "suma": 125023.99,
+        "total": 125023.99,
+        "diferencia": 0.0,
+        "cierra": true,
+        "faltantes": []
+      },
+      "ruta": "d0c64864-987c-4821-be2a-a3985992c11b/deepseek-flash/20260914T154153Z/extraccion.json",
+      "accion": "escrita"
+    },
+    {
+      "documento_id": "d44551e5-fc66-4897-a51d-a0a182d2cf91",
+      "archivo": "d44551e5-fc66-4897-a51d-a0a182d2cf91.jpg",
+      "modelo": "deepseek-flash",
+      "corrida": "20260914T170509Z",
+      "fuente_lote": "validations",
+      "origen_var": "var/validations/deepseek/2025-08/4B8FF938/d44551e5-fc66-4897-a51d-a0a182d2cf91.extraccion.json",
+      "imagen_en_fixtures": "expected-extraction/d44551e5-fc66-4897-a51d-a0a182d2cf91.jpg",
+      "imagen_accion": "copiada",
+      "dimensiones": [
+        840,
+        1036
+      ],
+      "extraido_utc": "2026-09-14T17:05:09+00:00",
+      "archivo_relativo": "2025-08/4B8FF938/d44551e5-fc66-4897-a51d-a0a182d2cf91.jpg",
+      "procesado_utc": "2026-09-14T17:05:09+00:00",
+      "modo": "extraer",
+      "version_prompt": "mendel-validacion@1",
+      "prompt_hash": "sha256:a0cd908fe067fb3c",
+      "fuente": "api",
+      "uso": {
+        "prompt_tokens": 3017,
+        "completion_tokens": 4552,
+        "total_tokens": 7569,
+        "prompt_cache_hit_tokens": 2816,
+        "prompt_cache_miss_tokens": 201
+      },
+      "costo_usd": 0.00554,
+      "precios_usd_1m": {
+        "entrada": 0.3,
+        "salida": 1.2,
+        "entrada_cache": 0.006,
+        "origen": "referencia"
+      },
+      "esquema_validado": true,
+      "aritmetica": {
+        "calculable": true,
+        "suma": 21000.97,
+        "total": 21000.97,
+        "diferencia": 0.0,
+        "cierra": true,
+        "faltantes": []
+      },
+      "ruta": "d44551e5-fc66-4897-a51d-a0a182d2cf91/deepseek-flash/20260914T170509Z/extraccion.json",
+      "accion": "escrita"
+    },
+    {
+      "documento_id": "da93d57e-cea2-4b59-b7b9-3c10e4809008",
+      "archivo": "da93d57e-cea2-4b59-b7b9-3c10e4809008.jpg",
+      "modelo": "deepseek-flash",
+      "corrida": "20260914T154204Z",
+      "fuente_lote": "piloto",
+      "origen_var": "var/piloto/out/2026-05/EEC9EBFE/da93d57e-cea2-4b59-b7b9-3c10e4809008.extraccion.json",
+      "imagen_en_fixtures": "expected-extraction/da93d57e-cea2-4b59-b7b9-3c10e4809008.jpg",
+      "imagen_accion": "copiada",
+      "dimensiones": [
+        840,
+        1036
+      ],
+      "extraido_utc": "2026-09-14T15:42:04+00:00",
+      "archivo_relativo": "2026-05/EEC9EBFE/da93d57e-cea2-4b59-b7b9-3c10e4809008.jpg",
+      "procesado_utc": "2026-09-14T15:42:04+00:00",
+      "modo": "extraer",
+      "version_prompt": "mendel-validacion@1",
+      "prompt_hash": "sha256:a0cd908fe067fb3c",
+      "fuente": "api",
+      "uso": {
+        "prompt_tokens": 6633,
+        "completion_tokens": 2732,
+        "total_tokens": 9365,
+        "prompt_cache_hit_tokens": 5248,
+        "prompt_cache_miss_tokens": 1385
+      },
+      "costo_usd": 0.003725,
+      "precios_usd_1m": {
+        "entrada": 0.3,
+        "salida": 1.2,
+        "entrada_cache": 0.006,
+        "origen": "referencia"
+      },
+      "esquema_validado": true,
+      "reintentos_esquema": 1,
+      "aritmetica": {
+        "calculable": true,
+        "suma": 20700.0,
+        "total": 20700.0,
+        "diferencia": 0.0,
+        "cierra": true,
+        "faltantes": []
+      },
+      "ruta": "da93d57e-cea2-4b59-b7b9-3c10e4809008/deepseek-flash/20260914T154204Z/extraccion.json",
+      "accion": "escrita"
+    },
+    {
+      "documento_id": "dbc07b17-2538-4611-9e51-7e161aaf7ba5",
+      "archivo": "dbc07b17-2538-4611-9e51-7e161aaf7ba5.jpg",
+      "modelo": "deepseek-flash",
+      "corrida": "20260914T170534Z",
+      "fuente_lote": "validations",
+      "origen_var": "var/validations/deepseek/2025-08/BBF8F335/dbc07b17-2538-4611-9e51-7e161aaf7ba5.extraccion.json",
+      "imagen_en_fixtures": "expected-extraction/dbc07b17-2538-4611-9e51-7e161aaf7ba5.jpg",
+      "imagen_accion": "copiada",
+      "dimensiones": [
+        840,
+        1036
+      ],
+      "extraido_utc": "2026-09-14T17:05:34+00:00",
+      "archivo_relativo": "2025-08/BBF8F335/dbc07b17-2538-4611-9e51-7e161aaf7ba5.jpg",
+      "procesado_utc": "2026-09-14T17:05:34+00:00",
+      "modo": "extraer",
+      "version_prompt": "mendel-validacion@1",
+      "prompt_hash": "sha256:a0cd908fe067fb3c",
+      "fuente": "api",
+      "uso": {
+        "prompt_tokens": 3017,
+        "completion_tokens": 2224,
+        "total_tokens": 5241,
+        "prompt_cache_hit_tokens": 2816,
+        "prompt_cache_miss_tokens": 201
+      },
+      "costo_usd": 0.002746,
+      "precios_usd_1m": {
+        "entrada": 0.3,
+        "salida": 1.2,
+        "entrada_cache": 0.006,
+        "origen": "referencia"
+      },
+      "esquema_validado": true,
+      "aritmetica": {
+        "calculable": true,
+        "suma": 50211.29,
+        "total": 50211.29,
+        "diferencia": 0.0,
+        "cierra": true,
+        "faltantes": []
+      },
+      "ruta": "dbc07b17-2538-4611-9e51-7e161aaf7ba5/deepseek-flash/20260914T170534Z/extraccion.json",
+      "accion": "escrita"
+    },
+    {
+      "documento_id": "deddaca4-049e-4a9e-be19-9da7ddde3ec6",
+      "archivo": "deddaca4-049e-4a9e-be19-9da7ddde3ec6.jpg",
+      "modelo": "deepseek-flash",
+      "corrida": "20260914T170509Z",
+      "fuente_lote": "validations",
+      "origen_var": "var/validations/deepseek/2025-08/2E1F7D6C/deddaca4-049e-4a9e-be19-9da7ddde3ec6.extraccion.json",
+      "imagen_en_fixtures": "expected-extraction/deddaca4-049e-4a9e-be19-9da7ddde3ec6.jpg",
+      "imagen_accion": "copiada",
+      "dimensiones": [
+        840,
+        1036
+      ],
+      "extraido_utc": "2026-09-14T17:05:09+00:00",
+      "archivo_relativo": "2025-08/2E1F7D6C/deddaca4-049e-4a9e-be19-9da7ddde3ec6.jpg",
+      "procesado_utc": "2026-09-14T17:05:09+00:00",
+      "modo": "extraer",
+      "version_prompt": "mendel-validacion@1",
+      "prompt_hash": "sha256:a0cd908fe067fb3c",
+      "fuente": "api",
+      "uso": {
+        "prompt_tokens": 6827,
+        "completion_tokens": 20484,
+        "total_tokens": 27311,
+        "prompt_cache_hit_tokens": 5760,
+        "prompt_cache_miss_tokens": 1067
+      },
+      "costo_usd": 0.024935,
+      "precios_usd_1m": {
+        "entrada": 0.3,
+        "salida": 1.2,
+        "entrada_cache": 0.006,
+        "origen": "referencia"
+      },
+      "esquema_validado": true,
+      "reintentos_esquema": 1,
+      "aritmetica": {
+        "calculable": true,
+        "suma": 127700.24,
+        "total": 127911.89,
+        "diferencia": 211.65,
+        "cierra": false,
+        "faltantes": [
+          "no_gravado",
+          "exento",
+          "impuestos_internos"
+        ],
+        "aviso": "Los importes leídos suman 127,700.24 y el total impreso es 127,911.89 (diferencia 211.65). Puede faltar alguno de: no_gravado, exento, impuestos_internos."
+      },
+      "ruta": "deddaca4-049e-4a9e-be19-9da7ddde3ec6/deepseek-flash/20260914T170509Z/extraccion.json",
+      "accion": "escrita"
+    },
+    {
+      "documento_id": "e8bc1484-c223-4650-9227-333a7c20e166",
+      "archivo": "e8bc1484-c223-4650-9227-333a7c20e166.jpg",
+      "modelo": "deepseek-flash",
+      "corrida": "20260914T154119Z",
+      "fuente_lote": "piloto",
+      "origen_var": "var/piloto/out/2025-12/EDB874F2/e8bc1484-c223-4650-9227-333a7c20e166.extraccion.json",
+      "imagen_en_fixtures": "expected-extraction/e8bc1484-c223-4650-9227-333a7c20e166.jpg",
+      "imagen_accion": "copiada",
+      "dimensiones": [
+        840,
+        1036
+      ],
+      "extraido_utc": "2026-09-14T15:41:19+00:00",
+      "archivo_relativo": "2025-12/EDB874F2/e8bc1484-c223-4650-9227-333a7c20e166.jpg",
+      "procesado_utc": "2026-09-14T15:41:19+00:00",
+      "modo": "extraer",
+      "version_prompt": "mendel-validacion@1",
+      "prompt_hash": "sha256:a0cd908fe067fb3c",
+      "fuente": "api",
+      "uso": {
+        "prompt_tokens": 3017,
+        "completion_tokens": 1857,
+        "total_tokens": 4874,
+        "prompt_cache_hit_tokens": 2304,
+        "prompt_cache_miss_tokens": 713
+      },
+      "costo_usd": 0.002456,
+      "precios_usd_1m": {
+        "entrada": 0.3,
+        "salida": 1.2,
+        "entrada_cache": 0.006,
+        "origen": "referencia"
+      },
+      "esquema_validado": true,
+      "aritmetica": {
+        "calculable": true,
+        "suma": 12018.57,
+        "total": 12018.57,
+        "diferencia": 0.0,
+        "cierra": true,
+        "faltantes": []
+      },
+      "ruta": "e8bc1484-c223-4650-9227-333a7c20e166/deepseek-flash/20260914T154119Z/extraccion.json",
+      "accion": "escrita"
+    },
+    {
+      "documento_id": "f69d1898-40f7-4424-9c94-77a961677595",
+      "archivo": "f69d1898-40f7-4424-9c94-77a961677595.jpg",
+      "modelo": "deepseek-flash",
+      "corrida": "20260914T154109Z",
+      "fuente_lote": "piloto",
+      "origen_var": "var/piloto/out/2025-09/FB653D2A/f69d1898-40f7-4424-9c94-77a961677595.extraccion.json",
+      "imagen_en_fixtures": "expected-extraction/f69d1898-40f7-4424-9c94-77a961677595.jpg",
+      "imagen_accion": "copiada",
+      "dimensiones": [
+        840,
+        1036
+      ],
+      "extraido_utc": "2026-09-14T15:41:09+00:00",
+      "archivo_relativo": "2025-09/FB653D2A/f69d1898-40f7-4424-9c94-77a961677595.jpg",
+      "procesado_utc": "2026-09-14T15:41:09+00:00",
+      "modo": "extraer",
+      "version_prompt": "mendel-validacion@1",
+      "prompt_hash": "sha256:a0cd908fe067fb3c",
+      "fuente": "api",
+      "uso": {
+        "prompt_tokens": 3017,
+        "completion_tokens": 1484,
+        "total_tokens": 4501,
+        "prompt_cache_hit_tokens": 2304,
+        "prompt_cache_miss_tokens": 713
+      },
+      "costo_usd": 0.002009,
+      "precios_usd_1m": {
+        "entrada": 0.3,
+        "salida": 1.2,
+        "entrada_cache": 0.006,
+        "origen": "referencia"
+      },
+      "esquema_validado": true,
+      "aritmetica": {
+        "calculable": true,
+        "suma": 42350.0,
+        "total": 42350.0,
+        "diferencia": 0.0,
+        "cierra": true,
+        "faltantes": []
+      },
+      "ruta": "f69d1898-40f7-4424-9c94-77a961677595/deepseek-flash/20260914T154109Z/extraccion.json",
+      "accion": "escrita"
+    }
+  ]
+}

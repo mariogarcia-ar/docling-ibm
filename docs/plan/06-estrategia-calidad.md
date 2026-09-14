@@ -98,6 +98,27 @@ tests/golden/
 - Versionado: cada versión del golden set se referencia en los resultados para
   poder comparar métricas entre versiones de la librería.
 
+### 3.5 Los **tres tiers** de referencia (no confundir con el golden)
+
+Hay tres formas de saber si una lectura está bien, y **solo la tercera mide
+exactitud**. Mezclarlas hace que "coincide" se lea como "correcto".
+
+| Tier | Quién lo emite | Qué permite | Costo | Dónde |
+|---|---|---|---|---|
+| **1 · Auto-chequeos de código** | El **programa** (dígito verificador del CUIT, aritmética) | **Objetivo**: "esto está mal" | $0 | ⛔ **no implementado** (D-6 del doc 07) |
+| **2 · Acuerdo entre modelos** | Un modelo externo ↔ el pipeline local | **Relativo**: divergencia | el lab | [`tests/expected-extraction/`](../../tests/expected-extraction/README.md) |
+| **3 · Etiqueta humana** | Un contador | **Absoluto**: exactitud | caro | **el golden** (este §3) |
+
+⚠️ **El tier 2 NO es el golden y no lo reemplaza.** Contiene la lectura de *otro
+modelo*, con errores medidos (5 de 28 CUIT con el dígito verificador inválido):
+sirve para medir **acuerdo** y detectar divergencias, no para declarar que el
+pipeline es correcto. Ver el plan [`07-extracciones-esperadas.md`](07-extracciones-esperadas.md).
+
+**Precedente del tier 1 en el repo** (por qué el concepto no es nuevo): el
+evaluador **no le cree el `cierra_aritmetica` al modelo** — lo recalcula en Python
+(`llm/evaluador.py::verificar_aritmetica`, aplicado en `llm/corrida.py:281`). Es la
+misma idea: lo que se puede calcular, se calcula en código y se audita.
+
 ---
 
 ## 4. Estrategia de pruebas por fase

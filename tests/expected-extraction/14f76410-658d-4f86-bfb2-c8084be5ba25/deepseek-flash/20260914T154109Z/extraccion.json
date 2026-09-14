@@ -1,0 +1,113 @@
+{
+  "origen": "var/piloto/lote/2025-10/54A2A039/14f76410-658d-4f86-bfb2-c8084be5ba25.jpg",
+  "archivo_relativo": "2025-10/54A2A039/14f76410-658d-4f86-bfb2-c8084be5ba25.jpg",
+  "procesado_utc": "2026-09-14T15:41:09+00:00",
+  "modelo": "deepseek-flash",
+  "modo": "extraer",
+  "version_prompt": "mendel-validacion@1",
+  "fuente": "api",
+  "imagen": {
+    "bytes": 38517,
+    "mime": "image/jpeg",
+    "detalle": "high",
+    "dimensiones": [
+      840,
+      1036
+    ],
+    "tokens_estimados": 1024
+  },
+  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "uso": {
+    "prompt_tokens": 6639,
+    "completion_tokens": 3386,
+    "total_tokens": 10025,
+    "prompt_cache_hit_tokens": 5248,
+    "prompt_cache_miss_tokens": 1391
+  },
+  "esquema_validado": true,
+  "reintentos_esquema": 1,
+  "avisos_esquema": [],
+  "precios_usd_1m": {
+    "entrada": 0.3,
+    "salida": 1.2,
+    "entrada_cache": 0.006,
+    "origen": "referencia"
+  },
+  "costo_usd": 0.004512,
+  "resultado": {
+    "legibilidad": "buena",
+    "tipo_comprobante": "A",
+    "codigo_afip": "001",
+    "razon_social_emisor": "José Genna Repuestos S.R.L.",
+    "cuit_emisor": "30-71144495-3",
+    "digito_verificador_cuit_valido": false,
+    "fecha_emision": "24/10/2025",
+    "nro_factura": "0005-00013948",
+    "moneda": "ARS",
+    "subtotal": 9048.11,
+    "no_gravado": 0,
+    "exento": 0,
+    "discrimina_impuestos": true,
+    "iva": 1900.1,
+    "impuestos_internos": 0,
+    "percepciones_iibb": 0,
+    "otros_impuestos": 0,
+    "importe_total": 10948.21,
+    "cierra_aritmetica": true,
+    "rubro_emisor": "Repuestos de maquinaria agrícola / autopartes (logo con tractor)",
+    "categoria_gasto_sugerida": "Repuestos",
+    "cantidad_comensales_personas": 0,
+    "cantidad_litros": 0,
+    "centro_de_costo": null,
+    "campos_no_legibles": [
+      "cuit_emisor (últimos dígitos parcialmente legibles)",
+      "importe_total (posible 10.948,21 vs 10.948,79 — borroso)",
+      "detalle del ítem",
+      "domicilio del emisor",
+      "fecha de inicio de actividades"
+    ],
+    "observaciones": "Factura A, COD. 001, N° 0005-00013948, emitida por José Genna Repuestos S.R.L. el 24/10/2025. Cliente: (1708)-C.V.C S.A., C.U.I.T. 30-56221767-3, Responsable Inscripto, condición de venta CONTADO. Ítem: 'MANDO PAL DE SUCCION HOOKE EIM 0800', cantidad 0,25, precio $36.192,43, IVA 21%, subtotal $9.048,11. Se discrimina NETO 21% $9.048,11 e I.V.A. 21% $1.900,10; total $10.948,21, con lo que la aritmética cierra (subtotal + IVA). C.A.E. 75433160566829, vto. 03/11/2025, ORIGINAL. El dígito verificador del CUIT del emisor no valida (correspondería 1, no 3), probablemente por ilegibilidad del último dígito; verificar con imagen de mejor calidad."
+  },
+  "extraccion": {
+    "legibilidad": "buena",
+    "tipo_comprobante": "A",
+    "codigo_afip": "001",
+    "razon_social_emisor": "José Genna Repuestos S.R.L.",
+    "cuit_emisor": "30-71144495-3",
+    "digito_verificador_cuit_valido": false,
+    "fecha_emision": "24/10/2025",
+    "nro_factura": "0005-00013948",
+    "moneda": "ARS",
+    "subtotal": 9048.11,
+    "no_gravado": 0,
+    "exento": 0,
+    "discrimina_impuestos": true,
+    "iva": 1900.1,
+    "impuestos_internos": 0,
+    "percepciones_iibb": 0,
+    "otros_impuestos": 0,
+    "importe_total": 10948.21,
+    "cierra_aritmetica": true,
+    "rubro_emisor": "Repuestos de maquinaria agrícola / autopartes (logo con tractor)",
+    "categoria_gasto_sugerida": "Repuestos",
+    "cantidad_comensales_personas": 0,
+    "cantidad_litros": 0,
+    "centro_de_costo": null,
+    "campos_no_legibles": [
+      "cuit_emisor (últimos dígitos parcialmente legibles)",
+      "importe_total (posible 10.948,21 vs 10.948,79 — borroso)",
+      "detalle del ítem",
+      "domicilio del emisor",
+      "fecha de inicio de actividades"
+    ],
+    "observaciones": "Factura A, COD. 001, N° 0005-00013948, emitida por José Genna Repuestos S.R.L. el 24/10/2025. Cliente: (1708)-C.V.C S.A., C.U.I.T. 30-56221767-3, Responsable Inscripto, condición de venta CONTADO. Ítem: 'MANDO PAL DE SUCCION HOOKE EIM 0800', cantidad 0,25, precio $36.192,43, IVA 21%, subtotal $9.048,11. Se discrimina NETO 21% $9.048,11 e I.V.A. 21% $1.900,10; total $10.948,21, con lo que la aritmética cierra (subtotal + IVA). C.A.E. 75433160566829, vto. 03/11/2025, ORIGINAL. El dígito verificador del CUIT del emisor no valida (correspondería 1, no 3), probablemente por ilegibilidad del último dígito; verificar con imagen de mejor calidad."
+  },
+  "aritmetica": {
+    "calculable": true,
+    "suma": 10948.21,
+    "total": 10948.21,
+    "diferencia": -0.0,
+    "cierra": true,
+    "faltantes": []
+  }
+}

@@ -36,6 +36,7 @@ Herramientas para trabajar con las imágenes y las APIs **antes** de procesarlas
 | Script | Para qué |
 |---|---|
 | `operacion/generar-fixtures-negativos.py` | Genera los negativos sintéticos del golden (documentos que **no** son comprobantes), sin PII. |
+| `operacion/generar-extracciones-esperadas.py` | Gradúa las extracciones pagadas del lab (`var/`) al artefacto versionado `tests/expected-extraction/`. Copia las imágenes faltantes a `tests/fixtures/expected-extraction/`. Es **regenerable y no destructivo** (una corrida ya versionada se respeta). |
 
 > La **reducción de imágenes** (pre-reducir peso y tokens del corpus) se mudó a la
 > librería: es el subcomando `voucherflow corpus`. Ver más abajo.

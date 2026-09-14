@@ -358,6 +358,23 @@ El **laboratorio de LLM externos** —ajustar y evaluar el prompt con OpenAI,
 DeepSeek o Gemini— es un binario aparte: `voucherflow-lab`. Guía en
 [`docs/laboratorio-llm.md`](docs/laboratorio-llm.md).
 
+### Lecturas de referencia: medir **acuerdo**, no exactitud
+
+[`tests/expected-extraction/`](tests/expected-extraction/README.md) versiona 30
+extracciones de DeepSeek sobre comprobantes reales, para poder comparar contra
+ellas lo que lee el pipeline local **sin volver a pagar la API**.
+
+⚠️ **No es un golden.** Contiene la lectura de *otro modelo*, no la verdad: sirve
+para medir **acuerdo** y **divergencia**. Y esa referencia **tiene errores
+medidos** —5 de 28 CUIT con el dígito verificador inválido—, así que un `difiere`
+puede ser un **acierto** del pipeline. El
+[README del artefacto](tests/expected-extraction/README.md) lista los casos y
+explica los cinco estados del reporte.
+
+```bash
+python -m pytest tests/test_expected_extraction.py    # integridad y lógica (sin red)
+```
+
 ## Documentación
 
 - **[Guía del operador](docs/usuario/README.md)** — instalación, comandos,

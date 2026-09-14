@@ -1,0 +1,109 @@
+{
+  "origen": "var/processed/2025-08/2D2C9343/2991f57d-c143-4b23-9f87-4dfb1214ef53.jpg",
+  "archivo_relativo": "2025-08/2D2C9343/2991f57d-c143-4b23-9f87-4dfb1214ef53.jpg",
+  "procesado_utc": "2026-09-14T17:05:09+00:00",
+  "modelo": "deepseek-flash",
+  "modo": "extraer",
+  "version_prompt": "mendel-validacion@1",
+  "fuente": "api",
+  "imagen": {
+    "bytes": 84324,
+    "mime": "image/jpeg",
+    "detalle": "high",
+    "dimensiones": [
+      840,
+      1036
+    ],
+    "tokens_estimados": 1024
+  },
+  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "uso": {
+    "prompt_tokens": 6925,
+    "completion_tokens": 2828,
+    "total_tokens": 9753,
+    "prompt_cache_hit_tokens": 5760,
+    "prompt_cache_miss_tokens": 1165
+  },
+  "esquema_validado": true,
+  "reintentos_esquema": 1,
+  "avisos_esquema": [],
+  "precios_usd_1m": {
+    "entrada": 0.3,
+    "salida": 1.2,
+    "entrada_cache": 0.006,
+    "origen": "referencia"
+  },
+  "costo_usd": 0.003778,
+  "resultado": {
+    "legibilidad": "buena",
+    "tipo_comprobante": "A",
+    "codigo_afip": "001",
+    "razon_social_emisor": "SILVA GERMAN DANIEL",
+    "cuit_emisor": null,
+    "digito_verificador_cuit_valido": false,
+    "fecha_emision": "29/08/2025",
+    "nro_factura": "00010-00000025",
+    "moneda": "ARS",
+    "subtotal": 52069.85,
+    "no_gravado": 0,
+    "exento": 10118.12,
+    "discrimina_impuestos": true,
+    "iva": 10934.67,
+    "impuestos_internos": 0,
+    "percepciones_iibb": 0,
+    "otros_impuestos": 0,
+    "importe_total": 73122.64,
+    "cierra_aritmetica": true,
+    "rubro_emisor": "Farmacia / perfumería y productos de tocador",
+    "categoria_gasto_sugerida": "Farmacia",
+    "cantidad_comensales_personas": 0,
+    "cantidad_litros": 0,
+    "centro_de_costo": null,
+    "campos_no_legibles": [
+      "cuit_emisor",
+      "domicilio_emisor",
+      "inicio_actividades_emisor"
+    ],
+    "observaciones": "Tique Factura \"A\" (Cód. 001) N° 00010-00000025, Fecha 29/08/2025 Hora 09:53:00, emisor SILVA GERMAN DANIEL (nombre de fantasía impreso: FARMACIA SILVA), IVA Responsable Inscripto, Ing. Brutos 201641. El CUIT del emisor (20-1...) queda parcialmente tapado por el brillo/cinta de la foto, por lo que no se puede completar ni validar el dígito verificador. Receptor: CUC S.A., CUIT 30-58221570-3, Ruta 7 Km 262, Junín, Buenos Aires; COMPROBANTES ASOCIADOS: Cód. 081 - Tique Factura A 00010-00000025. Importes: SUBTOT. IMP. EXENTO $10.118,12; SUBTOT. IMP. NETO GRAVADO $52.069,85; ALICUOTA 21,00% $10.934,67; ALICUOTA 0,00% $0,00; TOTAL $73.122,64. Detalle: VASELINA SOLIDA 100GR - DRO $44.991,15; POIVRAC SOL.X 60 ML $8.218,12; BAND-AID VARIADOS X 30 $4.190,79; CURITAS TELA ELASTICA PARA DE $2.887,91; GASAS $1.900,00. Verificación aritmética: 52.069,85 (neto) + 10.118,12 (exento) + 10.934,67 (IVA 21%) = 73.122,64, coincide con el TOTAL impreso; el IVA informado equivale al 21% del neto gravado. Pago: RECIBI/MOS EFECTIVO $73.122,63; Efectivo $73.122,63; Efectivo $0,01; Suma de sus pagos $73.122,64; Su Vuelto $0,00. Pie: REGISTRO EPEPHA0000036552, V: 1.03 Neptuno. No hay campo de comensales, litros ni centro de costo en el comprobante (rubro farmacia, no aplica combustible ni gastronomía)."
+  },
+  "extraccion": {
+    "legibilidad": "buena",
+    "tipo_comprobante": "A",
+    "codigo_afip": "001",
+    "razon_social_emisor": "SILVA GERMAN DANIEL",
+    "cuit_emisor": null,
+    "digito_verificador_cuit_valido": false,
+    "fecha_emision": "29/08/2025",
+    "nro_factura": "00010-00000025",
+    "moneda": "ARS",
+    "subtotal": 52069.85,
+    "no_gravado": 0,
+    "exento": 10118.12,
+    "discrimina_impuestos": true,
+    "iva": 10934.67,
+    "impuestos_internos": 0,
+    "percepciones_iibb": 0,
+    "otros_impuestos": 0,
+    "importe_total": 73122.64,
+    "cierra_aritmetica": true,
+    "rubro_emisor": "Farmacia / perfumería y productos de tocador",
+    "categoria_gasto_sugerida": "Farmacia",
+    "cantidad_comensales_personas": 0,
+    "cantidad_litros": 0,
+    "centro_de_costo": null,
+    "campos_no_legibles": [
+      "cuit_emisor",
+      "domicilio_emisor",
+      "inicio_actividades_emisor"
+    ],
+    "observaciones": "Tique Factura \"A\" (Cód. 001) N° 00010-00000025, Fecha 29/08/2025 Hora 09:53:00, emisor SILVA GERMAN DANIEL (nombre de fantasía impreso: FARMACIA SILVA), IVA Responsable Inscripto, Ing. Brutos 201641. El CUIT del emisor (20-1...) queda parcialmente tapado por el brillo/cinta de la foto, por lo que no se puede completar ni validar el dígito verificador. Receptor: CUC S.A., CUIT 30-58221570-3, Ruta 7 Km 262, Junín, Buenos Aires; COMPROBANTES ASOCIADOS: Cód. 081 - Tique Factura A 00010-00000025. Importes: SUBTOT. IMP. EXENTO $10.118,12; SUBTOT. IMP. NETO GRAVADO $52.069,85; ALICUOTA 21,00% $10.934,67; ALICUOTA 0,00% $0,00; TOTAL $73.122,64. Detalle: VASELINA SOLIDA 100GR - DRO $44.991,15; POIVRAC SOL.X 60 ML $8.218,12; BAND-AID VARIADOS X 30 $4.190,79; CURITAS TELA ELASTICA PARA DE $2.887,91; GASAS $1.900,00. Verificación aritmética: 52.069,85 (neto) + 10.118,12 (exento) + 10.934,67 (IVA 21%) = 73.122,64, coincide con el TOTAL impreso; el IVA informado equivale al 21% del neto gravado. Pago: RECIBI/MOS EFECTIVO $73.122,63; Efectivo $73.122,63; Efectivo $0,01; Suma de sus pagos $73.122,64; Su Vuelto $0,00. Pie: REGISTRO EPEPHA0000036552, V: 1.03 Neptuno. No hay campo de comensales, litros ni centro de costo en el comprobante (rubro farmacia, no aplica combustible ni gastronomía)."
+  },
+  "aritmetica": {
+    "calculable": true,
+    "suma": 73122.64,
+    "total": 73122.64,
+    "diferencia": 0.0,
+    "cierra": true,
+    "faltantes": []
+  }
+}

@@ -1,0 +1,103 @@
+{
+  "origen": "var/piloto/lote/2026-07/F9F8EB99/37f06866-280a-45ed-88a4-52220611d6c2.jpg",
+  "archivo_relativo": "2026-07/F9F8EB99/37f06866-280a-45ed-88a4-52220611d6c2.jpg",
+  "procesado_utc": "2026-09-14T15:42:22+00:00",
+  "modelo": "deepseek-flash",
+  "modo": "extraer",
+  "version_prompt": "mendel-validacion@1",
+  "fuente": "api",
+  "imagen": {
+    "bytes": 166468,
+    "mime": "image/jpeg",
+    "detalle": "high",
+    "dimensiones": [
+      1036,
+      896
+    ],
+    "tokens_estimados": 1024
+  },
+  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "uso": {
+    "prompt_tokens": 3064,
+    "completion_tokens": 1562,
+    "total_tokens": 4626,
+    "prompt_cache_hit_tokens": 2304,
+    "prompt_cache_miss_tokens": 760
+  },
+  "esquema_validado": true,
+  "precios_usd_1m": {
+    "entrada": 0.3,
+    "salida": 1.2,
+    "entrada_cache": 0.006,
+    "origen": "referencia"
+  },
+  "costo_usd": 0.002116,
+  "resultado": {
+    "legibilidad": "buena",
+    "tipo_comprobante": "090",
+    "codigo_afip": "090",
+    "razon_social_emisor": "EMPRESA DEL SUR Y MEDIA AGUA S.A.",
+    "cuit_emisor": null,
+    "digito_verificador_cuit_valido": false,
+    "fecha_emision": "21/07/26 17:42:50",
+    "nro_factura": "039-20080",
+    "moneda": "ARS",
+    "subtotal": 28800,
+    "no_gravado": 0,
+    "exento": 0,
+    "discrimina_impuestos": false,
+    "iva": 0,
+    "impuestos_internos": 0,
+    "percepciones_iibb": 0,
+    "otros_impuestos": 0,
+    "importe_total": 28800,
+    "cierra_aritmetica": true,
+    "rubro_emisor": "Transporte de pasajeros larga distancia (ómnibus/micro)",
+    "categoria_gasto_sugerida": "Pasajes / Transporte",
+    "cantidad_comensales_personas": 0,
+    "cantidad_litros": 0,
+    "centro_de_costo": null,
+    "campos_no_legibles": [
+      "cuit_emisor"
+    ],
+    "observaciones": "Boleto de micro (Otros Comprobantes, código 090 en círculo) de Empresa del Sur y Media Agua S.A. Origen VENADO TUERTO (TERM) - Destino ROSARIO (TERM), servicio Cod. 18, asiento 54, CAMA EJECUTIVO. Pasajero: Zvicer Marcelo (DNI 20358219). Fecha de viaje 22/07/26 3:10; emisión/impresión 21/07/26 17:42:50. Líneas de importe: tarifa $ 36.000,00 menos descuento 20% (-7.200,00) = total $ 28.800,00; también figura 'transporte 0,00' (Normativa 684) sin incidencia en el total. No discrimina IVA ni otros impuestos (en el encabezado solo se menciona la leyenda informativa del 10,5% para zonas rurales/autopistas). No se observa CUIT del emisor en la imagen. No aplica cantidad de litros ni comensales."
+  },
+  "extraccion": {
+    "legibilidad": "buena",
+    "tipo_comprobante": "090",
+    "codigo_afip": "090",
+    "razon_social_emisor": "EMPRESA DEL SUR Y MEDIA AGUA S.A.",
+    "cuit_emisor": null,
+    "digito_verificador_cuit_valido": false,
+    "fecha_emision": "21/07/26 17:42:50",
+    "nro_factura": "039-20080",
+    "moneda": "ARS",
+    "subtotal": 28800,
+    "no_gravado": 0,
+    "exento": 0,
+    "discrimina_impuestos": false,
+    "iva": 0,
+    "impuestos_internos": 0,
+    "percepciones_iibb": 0,
+    "otros_impuestos": 0,
+    "importe_total": 28800,
+    "cierra_aritmetica": true,
+    "rubro_emisor": "Transporte de pasajeros larga distancia (ómnibus/micro)",
+    "categoria_gasto_sugerida": "Pasajes / Transporte",
+    "cantidad_comensales_personas": 0,
+    "cantidad_litros": 0,
+    "centro_de_costo": null,
+    "campos_no_legibles": [
+      "cuit_emisor"
+    ],
+    "observaciones": "Boleto de micro (Otros Comprobantes, código 090 en círculo) de Empresa del Sur y Media Agua S.A. Origen VENADO TUERTO (TERM) - Destino ROSARIO (TERM), servicio Cod. 18, asiento 54, CAMA EJECUTIVO. Pasajero: Zvicer Marcelo (DNI 20358219). Fecha de viaje 22/07/26 3:10; emisión/impresión 21/07/26 17:42:50. Líneas de importe: tarifa $ 36.000,00 menos descuento 20% (-7.200,00) = total $ 28.800,00; también figura 'transporte 0,00' (Normativa 684) sin incidencia en el total. No discrimina IVA ni otros impuestos (en el encabezado solo se menciona la leyenda informativa del 10,5% para zonas rurales/autopistas). No se observa CUIT del emisor en la imagen. No aplica cantidad de litros ni comensales."
+  },
+  "aritmetica": {
+    "calculable": true,
+    "suma": 28800.0,
+    "total": 28800.0,
+    "diferencia": 0.0,
+    "cierra": true,
+    "faltantes": []
+  }
+}

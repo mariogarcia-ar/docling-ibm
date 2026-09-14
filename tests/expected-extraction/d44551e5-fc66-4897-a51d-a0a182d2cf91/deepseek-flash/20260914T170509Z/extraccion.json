@@ -1,0 +1,103 @@
+{
+  "origen": "var/processed/2025-08/4B8FF938/d44551e5-fc66-4897-a51d-a0a182d2cf91.jpg",
+  "archivo_relativo": "2025-08/4B8FF938/d44551e5-fc66-4897-a51d-a0a182d2cf91.jpg",
+  "procesado_utc": "2026-09-14T17:05:09+00:00",
+  "modelo": "deepseek-flash",
+  "modo": "extraer",
+  "version_prompt": "mendel-validacion@1",
+  "fuente": "api",
+  "imagen": {
+    "bytes": 80341,
+    "mime": "image/jpeg",
+    "detalle": "high",
+    "dimensiones": [
+      840,
+      1036
+    ],
+    "tokens_estimados": 1024
+  },
+  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "uso": {
+    "prompt_tokens": 3017,
+    "completion_tokens": 4552,
+    "total_tokens": 7569,
+    "prompt_cache_hit_tokens": 2816,
+    "prompt_cache_miss_tokens": 201
+  },
+  "esquema_validado": true,
+  "precios_usd_1m": {
+    "entrada": 0.3,
+    "salida": 1.2,
+    "entrada_cache": 0.006,
+    "origen": "referencia"
+  },
+  "costo_usd": 0.00554,
+  "resultado": {
+    "legibilidad": "buena",
+    "tipo_comprobante": "A",
+    "codigo_afip": "001",
+    "razon_social_emisor": "SHELL EL PASO - MALADAGNADA ROBERTO",
+    "cuit_emisor": "20-06044320-4",
+    "digito_verificador_cuit_valido": true,
+    "fecha_emision": "14/06/2025",
+    "nro_factura": "00049-000035274",
+    "moneda": "ARS",
+    "subtotal": 14848.32,
+    "no_gravado": 0,
+    "exento": 0,
+    "discrimina_impuestos": true,
+    "iva": 3118.07,
+    "impuestos_internos": 2633.57,
+    "percepciones_iibb": 0,
+    "otros_impuestos": 401.01,
+    "importe_total": 21000.97,
+    "cierra_aritmetica": true,
+    "rubro_emisor": "Estación de servicio / expendio de combustible (nafta V-Power)",
+    "categoria_gasto_sugerida": "Combustible",
+    "cantidad_comensales_personas": 0,
+    "cantidad_litros": null,
+    "centro_de_costo": null,
+    "campos_no_legibles": [
+      "cantidad_litros"
+    ],
+    "observaciones": "TIQUE FACTURA \"A\" - COD. 001, Nº 00049-000035274, emitido el 14/06/2025 17:55:46 por SHELL EL PASO (titular MALADAGNADA ROBERTO), CUIT 20-06044320-4 con dígito verificador válido. Detalle: 11U-POWER NAFTA (alícuota 21,00% - precio unitario 84,94) por 14847,98 más un AJUSTE por redondeo de 0,34. Líneas transcriptas: SUBTOTAL IMPORTE NETO NO GRAVADO 0,00 / SUBTOTAL IMPORTE EXENTO 0,00 / SUBTOTAL IMPORTE NETO GRAVADO 14848,32 (éste último cargado como subtotal, NO es el total). Base imponible 14848,32 con IVA 21% = 3118,07. Otros tributos: IMPUESTOS INTERNOS ITEMS 2633,57 (base 14847,98) + IDC 161,32 + TAS. VIAL 239,69 = IMPUESTE TOTAL OTROS TRIBUTOS 3034,58; los dos últimos se agruparon en otros_impuestos (401,01). Verificación aritmética: 14848,32 + 0 + 0 + 3118,07 + 3034,58 = 21000,97 = TOTAL impreso -> cierra. Pago en efectivo 21000,97, cambio 0,00. En el cuerpo figura un CUIT de cliente 30588251570 (AU. CIRCUNVALACION 1245 B1 ROSARIO, contado) que NO corresponde al emisor. Observaciones de auditoría: (a) el pie indica 'IVA cont: 3118,13' e 'ICL: 2633,61', levemente distintos de los importes del cuerpo (3118,07 y 2633,57); (b) el pie muestra '[14/08/2025 18:10:18]' mientras la fecha de emisión impresa es 14/06/2025 (posible error de impresión del surtidor, a chequear); (c) se listan 'IDC' e 'ICL' con nomenclatura cambiada entre cuerpo y pie. La cantidad de litros no está impresa de forma inequívoca: sólo aparece 'TIC Unit.x Lt: 215,3193' junto al código del producto; con el precio unitario impreso (84,94) los litros implícitos serían ~174,8, por lo que no se transcribe el valor sin certeza. Comprobante sin campos de restaurante/hospedaje, por lo que cantidad de comensales no aplica (0)."
+  },
+  "extraccion": {
+    "legibilidad": "buena",
+    "tipo_comprobante": "A",
+    "codigo_afip": "001",
+    "razon_social_emisor": "SHELL EL PASO - MALADAGNADA ROBERTO",
+    "cuit_emisor": "20-06044320-4",
+    "digito_verificador_cuit_valido": true,
+    "fecha_emision": "14/06/2025",
+    "nro_factura": "00049-000035274",
+    "moneda": "ARS",
+    "subtotal": 14848.32,
+    "no_gravado": 0,
+    "exento": 0,
+    "discrimina_impuestos": true,
+    "iva": 3118.07,
+    "impuestos_internos": 2633.57,
+    "percepciones_iibb": 0,
+    "otros_impuestos": 401.01,
+    "importe_total": 21000.97,
+    "cierra_aritmetica": true,
+    "rubro_emisor": "Estación de servicio / expendio de combustible (nafta V-Power)",
+    "categoria_gasto_sugerida": "Combustible",
+    "cantidad_comensales_personas": 0,
+    "cantidad_litros": null,
+    "centro_de_costo": null,
+    "campos_no_legibles": [
+      "cantidad_litros"
+    ],
+    "observaciones": "TIQUE FACTURA \"A\" - COD. 001, Nº 00049-000035274, emitido el 14/06/2025 17:55:46 por SHELL EL PASO (titular MALADAGNADA ROBERTO), CUIT 20-06044320-4 con dígito verificador válido. Detalle: 11U-POWER NAFTA (alícuota 21,00% - precio unitario 84,94) por 14847,98 más un AJUSTE por redondeo de 0,34. Líneas transcriptas: SUBTOTAL IMPORTE NETO NO GRAVADO 0,00 / SUBTOTAL IMPORTE EXENTO 0,00 / SUBTOTAL IMPORTE NETO GRAVADO 14848,32 (éste último cargado como subtotal, NO es el total). Base imponible 14848,32 con IVA 21% = 3118,07. Otros tributos: IMPUESTOS INTERNOS ITEMS 2633,57 (base 14847,98) + IDC 161,32 + TAS. VIAL 239,69 = IMPUESTE TOTAL OTROS TRIBUTOS 3034,58; los dos últimos se agruparon en otros_impuestos (401,01). Verificación aritmética: 14848,32 + 0 + 0 + 3118,07 + 3034,58 = 21000,97 = TOTAL impreso -> cierra. Pago en efectivo 21000,97, cambio 0,00. En el cuerpo figura un CUIT de cliente 30588251570 (AU. CIRCUNVALACION 1245 B1 ROSARIO, contado) que NO corresponde al emisor. Observaciones de auditoría: (a) el pie indica 'IVA cont: 3118,13' e 'ICL: 2633,61', levemente distintos de los importes del cuerpo (3118,07 y 2633,57); (b) el pie muestra '[14/08/2025 18:10:18]' mientras la fecha de emisión impresa es 14/06/2025 (posible error de impresión del surtidor, a chequear); (c) se listan 'IDC' e 'ICL' con nomenclatura cambiada entre cuerpo y pie. La cantidad de litros no está impresa de forma inequívoca: sólo aparece 'TIC Unit.x Lt: 215,3193' junto al código del producto; con el precio unitario impreso (84,94) los litros implícitos serían ~174,8, por lo que no se transcribe el valor sin certeza. Comprobante sin campos de restaurante/hospedaje, por lo que cantidad de comensales no aplica (0)."
+  },
+  "aritmetica": {
+    "calculable": true,
+    "suma": 21000.97,
+    "total": 21000.97,
+    "diferencia": 0.0,
+    "cierra": true,
+    "faltantes": []
+  }
+}

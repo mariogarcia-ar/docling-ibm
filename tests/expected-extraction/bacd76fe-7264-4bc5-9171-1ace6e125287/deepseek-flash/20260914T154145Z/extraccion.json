@@ -1,0 +1,107 @@
+{
+  "origen": "var/piloto/lote/2026-04/FBA7EBE2/bacd76fe-7264-4bc5-9171-1ace6e125287.jpg",
+  "archivo_relativo": "2026-04/FBA7EBE2/bacd76fe-7264-4bc5-9171-1ace6e125287.jpg",
+  "procesado_utc": "2026-09-14T15:41:45+00:00",
+  "modelo": "deepseek-flash",
+  "modo": "extraer",
+  "version_prompt": "mendel-validacion@1",
+  "fuente": "api",
+  "imagen": {
+    "bytes": 136355,
+    "mime": "image/jpeg",
+    "detalle": "high",
+    "dimensiones": [
+      840,
+      1036
+    ],
+    "tokens_estimados": 1024
+  },
+  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "uso": {
+    "prompt_tokens": 6720,
+    "completion_tokens": 8158,
+    "total_tokens": 14878,
+    "prompt_cache_hit_tokens": 5248,
+    "prompt_cache_miss_tokens": 1472
+  },
+  "esquema_validado": true,
+  "reintentos_esquema": 1,
+  "avisos_esquema": [],
+  "precios_usd_1m": {
+    "entrada": 0.3,
+    "salida": 1.2,
+    "entrada_cache": 0.006,
+    "origen": "referencia"
+  },
+  "costo_usd": 0.010263,
+  "resultado": {
+    "legibilidad": "buena",
+    "tipo_comprobante": "A",
+    "codigo_afip": "001",
+    "razon_social_emisor": null,
+    "cuit_emisor": "30-63700712-9",
+    "digito_verificador_cuit_valido": true,
+    "fecha_emision": "01/04/2026",
+    "nro_factura": "00005-00661847",
+    "moneda": "ARS",
+    "subtotal": 52694.22,
+    "no_gravado": 0,
+    "exento": 0,
+    "discrimina_impuestos": true,
+    "iva": 11065.78,
+    "impuestos_internos": 0,
+    "percepciones_iibb": 0,
+    "otros_impuestos": 0,
+    "importe_total": 63760.0,
+    "cierra_aritmetica": true,
+    "rubro_emisor": "Indumentaria / Textil",
+    "categoria_gasto_sugerida": "Indumentaria",
+    "cantidad_comensales_personas": 0,
+    "cantidad_litros": 0,
+    "centro_de_costo": null,
+    "campos_no_legibles": [
+      "razon_social_emisor",
+      "cuit_emisor_del_bloque_nombre_domicilio"
+    ],
+    "observaciones": "Tique Factura A (COD. 001), Nro 00005-00661847, emitido por sistema de punto de venta. Aparecen dos CUIT: en el encabezado fiscal se lee 30-63700712-9 (Ing. Brutos 901-755434, Inicio de Actividades 01/07/2006, IVA Responsable Inscripto) y en el bloque de Nombre/Domicilio (… 1945 BIS ROSARIO) se lee 30-68217575-9; se tomó el del encabezado fiscal como emisor, se recomienda confirmar. La razón social del emisor no se lee con claridad (encabezado borroso). Detalle de importes: SUBTOTAL IMPORTE NETO NO GRAVADO 0,00; SUBTOTAL IMPORTE EXENTO 0,00; SUBTOTAL IMPORTE NETO GRAVADO 52.694,22; IVA 21% (Base 52.694,22) 11.065,78; IMPORTE TOTAL 63.760,00. La aritmética cierra: 52.694,22 + 11.065,78 = 63.760,00. El comprobante corresponde a venta de indumentaria (artículos con TALLE/COLOR y descuentos por línea 'DESCUENTO SOBRE ULTIMA VENTA'). Las líneas TOTAL/PAGOS 63.760,00 y CAMBIO 0,00 corresponden a medios de pago, no a impuestos. No hay percepciones ni impuestos internos. No se observan litros ni comensales. No figura centro de costo."
+  },
+  "extraccion": {
+    "legibilidad": "buena",
+    "tipo_comprobante": "A",
+    "codigo_afip": "001",
+    "razon_social_emisor": null,
+    "cuit_emisor": "30-63700712-9",
+    "digito_verificador_cuit_valido": true,
+    "fecha_emision": "01/04/2026",
+    "nro_factura": "00005-00661847",
+    "moneda": "ARS",
+    "subtotal": 52694.22,
+    "no_gravado": 0,
+    "exento": 0,
+    "discrimina_impuestos": true,
+    "iva": 11065.78,
+    "impuestos_internos": 0,
+    "percepciones_iibb": 0,
+    "otros_impuestos": 0,
+    "importe_total": 63760.0,
+    "cierra_aritmetica": true,
+    "rubro_emisor": "Indumentaria / Textil",
+    "categoria_gasto_sugerida": "Indumentaria",
+    "cantidad_comensales_personas": 0,
+    "cantidad_litros": 0,
+    "centro_de_costo": null,
+    "campos_no_legibles": [
+      "razon_social_emisor",
+      "cuit_emisor_del_bloque_nombre_domicilio"
+    ],
+    "observaciones": "Tique Factura A (COD. 001), Nro 00005-00661847, emitido por sistema de punto de venta. Aparecen dos CUIT: en el encabezado fiscal se lee 30-63700712-9 (Ing. Brutos 901-755434, Inicio de Actividades 01/07/2006, IVA Responsable Inscripto) y en el bloque de Nombre/Domicilio (… 1945 BIS ROSARIO) se lee 30-68217575-9; se tomó el del encabezado fiscal como emisor, se recomienda confirmar. La razón social del emisor no se lee con claridad (encabezado borroso). Detalle de importes: SUBTOTAL IMPORTE NETO NO GRAVADO 0,00; SUBTOTAL IMPORTE EXENTO 0,00; SUBTOTAL IMPORTE NETO GRAVADO 52.694,22; IVA 21% (Base 52.694,22) 11.065,78; IMPORTE TOTAL 63.760,00. La aritmética cierra: 52.694,22 + 11.065,78 = 63.760,00. El comprobante corresponde a venta de indumentaria (artículos con TALLE/COLOR y descuentos por línea 'DESCUENTO SOBRE ULTIMA VENTA'). Las líneas TOTAL/PAGOS 63.760,00 y CAMBIO 0,00 corresponden a medios de pago, no a impuestos. No hay percepciones ni impuestos internos. No se observan litros ni comensales. No figura centro de costo."
+  },
+  "aritmetica": {
+    "calculable": true,
+    "suma": 63760.0,
+    "total": 63760.0,
+    "diferencia": 0.0,
+    "cierra": true,
+    "faltantes": []
+  }
+}
