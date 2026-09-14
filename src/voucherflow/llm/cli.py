@@ -399,8 +399,19 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def entrypoint() -> None:
-    """Entry point del binario: `main` devuelve el código, acá se propaga."""
-    raise SystemExit(main())
+    """Entry point del binario: `main` devuelve el código, acá se propaga.
+
+    ⚠️ ``KeyboardInterrupt`` se atrapa **acá** además de en la corrida: un Ctrl-C
+    durante la carga del prompt, la resolución de la credencial o la escritura
+    del reporte salía como traceback con código 1. El resto del CLI (`corpus`)
+    devuelve 130, y con eso el operador distingue «lo interrumpí» de «falló».
+    """
+    try:
+        codigo = main()
+    except KeyboardInterrupt:
+        print("\nInterrumpido por el usuario.", file=sys.stderr)
+        codigo = corrida.EXIT_INTERRUMPIDO
+    raise SystemExit(codigo)
 
 
 if __name__ == "__main__":

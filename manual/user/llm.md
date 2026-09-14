@@ -113,6 +113,12 @@ modo / modelo     : extraer / deepseek-flash
 como hecho** — se reintenta en la corrida siguiente. (Si contara, una corrida que
 falló por red quedaría «completa» y nadie volvería a procesarla.)
 
+El registro del fallo **sí se guarda**, con su uso de tokens. No es contradictorio
+con lo anterior: se guarda para poder auditarlo —y para que el gasto de los
+reintentos no se pierda— pero la reanudación lo ignora porque no es un resultado.
+Sin ese archivo, un fallo de la API que consumió tokens no aparecería nunca en el
+reporte de gastos.
+
 ---
 
 ## Evaluar sin gastar
@@ -311,6 +317,7 @@ un arranque editable, y lo que entra por la línea de comandos la pisa.
 | `0` | Todo bien (o no había nada que hacer). |
 | `1` | Hubo **algún fallo** (una imagen ilegible o un error de la API alcanza). |
 | `2` | Error de uso: falta la credencial, `--datos` faltante, bandera inválida. |
+| `130` | Interrumpido con Ctrl-C. |
 
 Detalle de los casos que más se ven:
 
@@ -321,6 +328,9 @@ Detalle de los casos que más se ven:
   sin precio o con precio a medias). No es un error de ejecución: es que el número
   que muestra no es confiable.
 - **Sin imágenes que procesar**: `0`, con un aviso por `stderr`.
+- **Ctrl-C** (`130`): los documentos ya procesados **quedan guardados**, así que
+  la corrida siguiente reanuda desde ahí. Se imprime el resumen parcial para que
+  se sepa dónde quedó.
 
 ---
 
@@ -497,9 +507,10 @@ corrupto sin que nadie lo note.
 
 ## Notas técnicas
 
-**Un error no es un paso completado.** El registro con `error` se descarta al
-reanudar, así que la corrida siguiente lo reintenta. Es la misma regla que los
-checkpoints del pipeline.
+**Un error no es un paso completado.** El registro con `error` no cuenta como
+hecho al reanudar, así que la corrida siguiente lo reintenta. Es la misma regla
+que los checkpoints del pipeline. Pero **el archivo sí se escribe**: es la única
+evidencia del gasto que ese fallo pudo haber consumido.
 
 **Un parámetro ignorado se declara, no se calla.** Si pedís `--temperatura` a
 DeepSeek, el registro lleva `nota_temperatura` diciendo que no tuvo efecto: creer

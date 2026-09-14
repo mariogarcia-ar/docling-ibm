@@ -652,6 +652,171 @@ class TestYaProcesado:
         assert corrida.ya_procesado(tmp_path / "no-existe.json") is False
 
 
+class TestEjecutarPersisteLosFallos:
+    """⚠️ Regresión: el port perdía el gasto de un fallo pagado.
+
+    El script original (`scripts/operacion/validar-*.py`, retirado) guardaba el
+    registro **siempre** —«también los fallidos, para auditarlos», decía su
+    docstring—. El port puso `_guardar` en el `else` de la rama de error: el
+    registro quedaba solo en memoria, así que el gasto de un fallo de la API
+    (que sí consumió tokens) desaparecía al terminar el proceso y el reporte de
+    gastos —que lee la carpeta— no lo veía nunca.
+    """
+
+    def _ejecutar_con_cliente(self, tmp_path, monkeypatch, contenido: str):
+        """Corre `ejecutar` con un cliente doble, sin red.
+
+        Se parchea el constructor del cliente: es el único punto por donde
+        `ejecutar` obtiene el cliente, así que el resto del camino (recorrido,
+        reanudación, guardado, resumen) es el de producción.
+        """
+        from PIL import Image
+
+        from voucherflow.llm import corrida as mod
+
+        entrada = tmp_path / "in"
+        salida = tmp_path / "out"
+        entrada.mkdir(parents=True, exist_ok=True)
+        Image.new("RGB", (800, 600), "white").save(entrada / "a.jpg")
+
+        class _Uso:
+            prompt_tokens = 3017
+            completion_tokens = 0
+            total_tokens = 3017
+            prompt_cache_hit_tokens = 2816
+            prompt_cache_miss_tokens = 201
+
+        class _Eleccion:
+            finish_reason = "stop"
+
+            class message:
+                content = contenido
+
+        class _Respuesta:
+            choices = [_Eleccion()]
+            usage = _Uso()
+
+        class ClienteDoble:
+            class _C:
+                def create(self, **kw):
+                    return _Respuesta()
+
+            def __init__(self):
+                self.chat = type("Chat", (), {"completions": self._C()})()
+
+        monkeypatch.setattr(
+            mod, "_cliente_del_proveedor", lambda *a, **k: ClienteDoble()
+        )
+        codigo = mod.ejecutar(
+            rutas=[entrada],
+            opciones=_opciones(salida),
+            sistema="S",
+            user_template="U [IMAGEN] {}",
+            proveedor="deepseek",
+            api_key="x",
+        )
+        return codigo, salida
+
+    def test_un_documento_que_falla_igual_queda_en_disco(self, tmp_path, monkeypatch):
+        """El registro con error se escribe: es la evidencia del fallo."""
+        # JSON roto: se agotan los reintentos y el registro sale con `error`.
+        codigo, salida = self._ejecutar_con_cliente(tmp_path, monkeypatch, '{"x": ')
+        assert codigo == corrida.EXIT_FALLOS
+
+        escritos = list(salida.rglob("*.extraccion.json"))
+        assert len(escritos) == 1, "el registro del fallo tiene que persistirse"
+        datos = json.loads(escritos[0].read_text(encoding="utf-8"))
+        assert datos.get("error")
+        # Y trae el uso: es el gasto real de los 4 intentos (1 + 3 reintentos),
+        # que es justo lo que se perdía. Se suman, no se pisan.
+        assert datos["uso"]["prompt_tokens"] == 3017 * 4
+
+    def test_el_gasto_del_fallo_llega_al_reporte(self, tmp_path, monkeypatch):
+        """⚠️ El motivo del fix: ese gasto era invisible para el reporte."""
+        _, salida = self._ejecutar_con_cliente(tmp_path, monkeypatch, '{"x": ')
+
+        rep, apuntes = corrida.reporte_de_gastos(
+            salida, _opciones(salida), escribir=False
+        )
+        assert len(apuntes) == 1
+        assert rep["fallos_pagados"] == 1
+        assert rep["total"]["costo_usd"] > 0
+
+    def test_un_documento_exitoso_tambien_se_persiste(self, tmp_path, monkeypatch):
+        """El camino feliz no cambió."""
+        from voucherflow.llm.esquemas import esquema_extraccion
+
+        payload = json.dumps(_payload_valido(esquema_extraccion()))
+        codigo, salida = self._ejecutar_con_cliente(tmp_path, monkeypatch, payload)
+        assert codigo == corrida.EXIT_OK
+
+        escritos = list(salida.rglob("*.extraccion.json"))
+        assert len(escritos) == 1
+        datos = json.loads(escritos[0].read_text(encoding="utf-8"))
+        assert not datos.get("error")
+        assert datos.get("costo_usd") is not None
+
+    def test_el_fallo_no_cuenta_como_hecho_al_reanudar(self, tmp_path, monkeypatch):
+        """Se persiste para auditar, pero la corrida siguiente lo reintenta."""
+        _, salida = self._ejecutar_con_cliente(tmp_path, monkeypatch, '{"x": ')
+        escrito = next(salida.rglob("*.extraccion.json"))
+        assert corrida.ya_procesado(escrito) is False
+
+
+class TestInterrupcion:
+    """Ctrl-C tiene que salir con 130, no con un traceback."""
+
+    def test_la_constante_es_la_del_resto_del_cli(self):
+        from voucherflow.corpus.cli import EXIT_INTERRUMPIDO
+
+        assert corrida.EXIT_INTERRUMPIDO == EXIT_INTERRUMPIDO == 130
+
+    def test_el_entrypoint_atrapa_ctrl_c(self, monkeypatch, capsys):
+        """⚠️ Sin esto, un Ctrl-C salía con traceback y código 1.
+
+        El resto del CLI (`corpus`) devuelve 130, y con eso el operador distingue
+        «lo interrumpí» de «falló».
+        """
+        from voucherflow.llm import cli
+
+        def _interrumpir(*a, **k):
+            raise KeyboardInterrupt
+
+        monkeypatch.setattr(cli, "main", _interrumpir)
+        with pytest.raises(SystemExit) as excinfo:
+            cli.entrypoint()
+        assert excinfo.value.code == 130
+        assert "Interrumpido" in capsys.readouterr().err
+
+    def test_una_interrupcion_durante_la_corrida_devuelve_130(
+        self, tmp_path, monkeypatch
+    ):
+        """Los documentos ya guardados quedan en disco: la próxima corrida reanuda."""
+        from PIL import Image
+
+        from voucherflow.llm import corrida as mod
+
+        entrada = tmp_path / "in"
+        entrada.mkdir(parents=True)
+        Image.new("RGB", (800, 600), "white").save(entrada / "a.jpg")
+
+        def _boom(*a, **k):
+            raise KeyboardInterrupt
+
+        monkeypatch.setattr(mod, "procesar", _boom)
+        codigo = mod.ejecutar(
+            rutas=[entrada],
+            opciones=_opciones(tmp_path / "out"),
+            sistema="S",
+            user_template="U [IMAGEN] {}",
+            proveedor="deepseek",
+            api_key="x",
+        )
+        assert codigo == corrida.EXIT_INTERRUMPIDO
+        # Y no se escribió nada a medias.
+        assert not list((tmp_path / "out").rglob("*.json"))
+
+
 class TestProtocoloProveedorLLM:
     def test_los_tres_adaptadores_cumplen_el_protocolo(self):
         """`ProveedorLLM` es documental: sin este test, nadie lo verifica.

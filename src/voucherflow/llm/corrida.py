@@ -71,6 +71,13 @@ from .prompts import armar_prompt_efectivo, hash_prompt
 from .protocolo import CLAVE_CACHE_HIT, CLAVE_CACHE_MISS
 from .proveedores import proveedor_por_nombre
 
+#: Códigos de salida (los mismos del resto del CLI: `corpus.cli` los declara
+#: igual). Viven acá porque `ejecutar` es quien los devuelve.
+EXIT_OK = 0
+EXIT_FALLOS = 1
+EXIT_USO = 2
+EXIT_INTERRUMPIDO = 130
+
 
 @dataclass
 class Opciones:
@@ -1268,7 +1275,7 @@ def ejecutar(
         imagenes_rutas = imagenes_rutas[:limite]
     if not imagenes_rutas:
         print("No hay imágenes que procesar.", file=sys.stderr)
-        return 0
+        return EXIT_OK
 
     datos = datos or {}
     cliente = None
@@ -1279,7 +1286,7 @@ def ejecutar(
             # Falta la credencial o el SDK: es un error de uso, no una falla de
             # la corrida. Se reporta limpio, sin traceback.
             print(f"error: {exc}", file=sys.stderr)
-            return 2
+            return EXIT_USO
 
     # --dry-run: estima y sale sin llamar a la API ni escribir nada.
     if opciones.dry_run:
@@ -1289,7 +1296,7 @@ def ejecutar(
         imprimir_estimacion(estimacion, detalle=detalle_log)
         if json_salida:
             _guardar(json_salida, {"estimacion": estimacion})
-        return 0
+        return EXIT_OK
 
     # El modo `diff` reutiliza las extracciones previas: no vuelve a pagar.
     extracciones = (
@@ -1338,26 +1345,56 @@ def ejecutar(
             opciones, proveedor,
         )
 
-    with ThreadPoolExecutor(max_workers=max(1, opciones.workers)) as pool:
-        for registro in pool.map(_una, pendientes):
-            registros.append(registro)
-            destino = salida_de(Path(registro["origen"]), raiz, opciones.salida, sufijo)
-            if registro.get("error"):
-                print(
-                    f"  ✗ {Path(registro['origen']).name}: "
-                    f"{str(registro['error'])[:80]}",
-                    file=sys.stderr,
+    try:
+        with ThreadPoolExecutor(max_workers=max(1, opciones.workers)) as pool:
+            for registro in pool.map(_una, pendientes):
+                registros.append(registro)
+                # ⚠️ Se guarda SIEMPRE, también el fallido. El registro con
+                # `error` no cuenta como hecho al reanudar (`ya_procesado` lo
+                # rechaza), pero tiene que llegar al disco por dos motivos:
+                #   1. **Es el único lugar donde sobrevive el gasto de un fallo
+                #      pagado.** Un error de la API después de reintentar
+                #      consumió tokens; si solo viviera en el resumen del
+                #      proceso, el reporte de gastos no lo vería nunca (lee la
+                #      carpeta, no la corrida).
+                #   2. Se puede diagnosticar qué pasó sin re-correr (y re-pagar).
+                # El script original del que se portó esto lo hacía así; el port
+                # guardaba solo los éxitos y con eso perdía el gasto del fallo.
+                _guardar(
+                    salida_de(
+                        Path(registro["origen"]), raiz, opciones.salida, sufijo
+                    ),
+                    registro,
                 )
-            else:
-                _guardar(destino, registro)
-                if detalle_log:
+                if registro.get("error"):
+                    print(
+                        f"  ✗ {Path(registro['origen']).name}: "
+                        f"{str(registro['error'])[:80]}",
+                        file=sys.stderr,
+                    )
+                elif detalle_log:
                     print(f"  ✓ {Path(registro['origen']).name}")
+    except KeyboardInterrupt:
+        # ⚠️ El original devolvía 130; el port dejaba escapar el traceback. Los
+        # documentos ya procesados quedaron guardados (el guardado va dentro del
+        # bucle), así que la corrida siguiente reanuda desde acá.
+        print("\nInterrumpido por el usuario.", file=sys.stderr)
+        if registros:
+            rep_parcial = resumen(registros, opciones)
+            _imprimir_resumen(rep_parcial)
+            print(
+                f"\nSe procesaron {len(registros)} documento(s) antes de "
+                "interrumpir: ya están guardados y la próxima corrida reanuda "
+                "desde acá.",
+                file=sys.stderr,
+            )
+        return EXIT_INTERRUMPIDO
 
     rep = resumen(registros, opciones)
     _imprimir_resumen(rep)
     if json_salida:
         _guardar(json_salida, rep)
-    return 1 if rep.get("errores") else 0
+    return EXIT_FALLOS if rep.get("errores") else EXIT_OK
 
 
 # ---------------------------------------------------------------------------
