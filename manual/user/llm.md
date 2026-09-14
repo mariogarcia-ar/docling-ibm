@@ -11,6 +11,34 @@ Es un **laboratorio**, no el pipeline: `voucherflow run` procesa con Ollama
 local; acá se prueba el prompt con modelos más potentes, se mide su calidad y se
 decide qué vale la pena llevar al pipeline.
 
+> ### Nota de uso previsto
+>
+> **Este utilitario es la vara con la que vamos a medir la calidad del run que
+> estamos trabajando.** El procedimiento es: correr el lote, comparar las lecturas
+> contra la verdad de negocio con `-M diff --datos`, y leer los números del
+> resumen (estados, aritmética que cierra y cuántos fallaron).
+>
+> Dos propiedades hacen que sirva como vara:
+>
+> - **Mide en código, no con la opinión del modelo.** Las 15 reglas del evaluador
+>   están implementadas en Python: la comparación de importes, CUIT y fechas no se
+>   le pregunta al LLM. Es determinístico y repetible sobre el mismo lote.
+> - **Medir no gasta.** El `diff` es local: se puede correr cuantas veces haga
+>   falta sobre una extracción ya pagada, sin volver a llamar a la API.
+>
+> ⚠️ **Dos límites que conviene tener presentes al usarlo como vara:**
+>
+> - **Sin datos cargados no hay calidad que medir.** `-M extraer` solo transcribe;
+>   para juzgar si una lectura está bien hace falta contra qué compararla
+>   (`--datos`). Sin eso, el único control automático es la aritmética del
+>   comprobante y la legibilidad declarada.
+> - **La vara es tan buena como los datos.** Si la carga de Mendel tiene un error,
+>   el informe va a marcar una discrepancia que es de la carga, no de la lectura.
+>   Ante una discrepancia, la primera duda es cuál de las dos puntas está mal.
+>
+> Para el detalle de qué mide cada operación, ver [Evaluar sin gastar](#evaluar-sin-gastar)
+> y [La aritmética no la hace el modelo](#la-aritmetica-no-la-hace-el-modelo).
+
 La ayuda de la terminal es la fuente más actualizada:
 
 ```bash

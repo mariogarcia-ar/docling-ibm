@@ -7,6 +7,7 @@ inexistente es peor que no documentarla.
 from __future__ import annotations
 
 import re
+import unicodedata
 from pathlib import Path
 
 from voucherflow.llm import cli
@@ -120,8 +121,54 @@ def test_los_enlaces_markdown_resuelven():
         assert ruta.exists(), f"enlace roto en el manual: {destino}"
 
 
+def _ancla(titulo: str) -> str:
+    """Ancla que GitHub genera para un título: minúsculas, sin tildes, con guiones.
+
+    Es la misma normalización que usa el render de Markdown (y la que rompió el
+    único enlace interno que escribí a mano: `#la-aritmética-…` con tilde).
+    """
+    sin_tildes = "".join(
+        c
+        for c in unicodedata.normalize("NFD", titulo.lower())
+        if unicodedata.category(c) != "Mn"
+    )
+    limpio = re.sub(r"[^\w\s-]", "", sin_tildes)
+    return re.sub(r"\s+", "-", limpio.strip())
+
+
+def test_los_anclajes_internos_existen():
+    """⚠️ Un `#ancla` mal escrito no falla el render: lleva a la nada.
+
+    `test_los_enlaces_markdown_resuelven` no los cubre —su regex excluye los que
+    empiezan con `#`—, así que un anclaje con la tilde puesta (`#la-aritmética-…`
+    en vez de `#la-aritmetica-…`) pasaba desapercibido.
+    """
+    texto = _texto()
+    anclas = {_ancla(t) for t in re.findall(r"^#{2,3} (.+)$", texto, re.M)}
+    for destino in re.findall(r"\]\(#([^)]+)\)", texto):
+        assert destino in anclas, (
+            f"anclaje interno roto: #{destino}. "
+            f"Anclas disponibles: {sorted(anclas)}"
+        )
+
+
 def test_menciona_que_gasta_dinero():
     """Es lo primero que hay que saber de una herramienta que llama a una API paga."""
     texto = _texto()
     assert "--dry-run" in texto
     assert "gasta" in texto.lower() or "paga" in texto.lower()
+
+
+def test_declara_que_es_la_vara_de_calidad_del_run():
+    """El uso previsto del utilitario tiene que estar al principio, no escondido.
+
+    Va al inicio porque es la razón por la que se corre: si esto se muda a una
+    nota al pie, el operador no sabe que el `diff` es lo que mide calidad.
+    """
+    texto = _texto()
+    cabecera = texto[:2000]
+    assert "Nota de uso previsto" in cabecera, "la nota de uso previsto se movió"
+    assert "calidad del run" in texto
+    # Y tiene que decir cómo se mide, no solo que se mide.
+    assert "-M diff" in texto or "--operacion diff" in texto
+    assert "--datos" in texto
