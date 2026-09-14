@@ -195,6 +195,13 @@ def _mostrar_proveedores() -> int:
                 f"    costo de la imagen  : fijo, {ficha['tokens_por_imagen']} por imagen "
                 "(no mira el tamaño)"
             )
+        # El límite es sobre el payload (base64 infla un 33 %), así que el archivo
+        # máximo real es un 25 % menor. Se muestran los dos para no confundirlos.
+        limite_mb = ficha["limite_bytes_payload"] / 1024 / 1024
+        print(
+            f"    límite por imagen   : {limite_mb:.0f} MB de payload "
+            f"(archivo de hasta ~{limite_mb / (4 / 3):.0f} MB)"
+        )
         print(f"    caché de entrada    : {'expone' if ficha['expone_cache'] else 'no expone'}")
         for nota in ficha["notas"]:
             print(f"    · {nota}")

@@ -189,11 +189,35 @@ def test_documenta_que_el_costo_de_imagen_depende_del_proveedor():
 
 
 def test_documenta_el_limite_de_peso_real():
-    """El corte práctico es ~24 MB por el inflado de base64, no 32."""
+    """El límite es por proveedor y sobre el payload, no sobre el archivo.
+
+    ⚠️ El manual decía un número fijo («~24 MB crudos») cuando el código aplicaba
+    esa constante a todos: Gemini limita menos (20 MB de request total) y OpenAI
+    mucho más (512 MB).
+    """
+    from voucherflow.llm.proveedores import PROVEEDORES
+
     texto = _texto()
     assert "base64" in texto
-    assert "24 MB" in texto or "24 MB" in texto
     assert "corpus" in texto  # a dónde mandarlo a reducir
+    # Los tres límites, con su número, para que no se lea como uno solo.
+    for clase in PROVEEDORES.values():
+        mb = clase().capacidades.limite_bytes_payload / 1024 / 1024
+        legible = f"{mb:.0f} MB"
+        assert legible in texto, f"el límite de {legible} no está documentado"
+
+
+def test_el_limite_documentado_coincide_con_el_declarado():
+    """⚠️ El manual no puede prometer un corte que el código no aplica."""
+    from voucherflow.llm.config import FACTOR_BASE64
+    from voucherflow.llm.proveedores import AdaptadorDeepSeek
+
+    # DeepSeek: 32 MiB de payload → ~24 MB de archivo. El manual muestra las dos.
+    payload_mb = AdaptadorDeepSeek().capacidades.limite_bytes_payload / 1024 / 1024
+    archivo_mb = payload_mb / FACTOR_BASE64
+    texto = _texto()
+    assert f"{payload_mb:.0f} MiB" in texto or f"{payload_mb:.0f} MB" in texto
+    assert f"~{archivo_mb:.0f} MB" in texto
 
 
 def test_las_estrategias_documentadas_son_las_reales():

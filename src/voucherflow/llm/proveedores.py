@@ -172,6 +172,11 @@ class AdaptadorOpenAI(_AdaptadorOpenAI):
         # OpenAI cobra por mosaicos de 512: la resolución SÍ cambia el costo
         # (de 255 a 1105+ tokens), y `detail=low` baja a 85 planos.
         estrategia_imagen=ESTRATEGIA_MOSAICOS,
+        # OpenAI acepta hasta 512 MB de payload por request: no limita en la
+        # práctica para una imagen suelta (el archivo máximo razonable es de
+        # decenas de MB). Se declara igual, para no comparar contra un número
+        # que no es suyo.
+        limite_bytes_payload=512 * 1024 * 1024,
         expone_cache=False,
         acepta_detalle=True,
         acepta_max_tokens=True,
@@ -209,6 +214,10 @@ class AdaptadorDeepSeek(_AdaptadorOpenAI):
         # las chicas, así que el costo no depende del tamaño original.
         estrategia_imagen=ESTRATEGIA_TOPE_FIJO,
         tokens_por_imagen=1024,
+        # «Max single image size (base64)» = 32 MiB, medido sobre el payload y no
+        # sobre el archivo: ~24 MB de archivo. Es el default de `Capacidades`,
+        # pero se declara explícito porque es **su** número.
+        limite_bytes_payload=32 * 1024 * 1024,
         expone_cache=True,  # prompt_cache_hit_tokens
         acepta_detalle=False,  # `detail` no cambia el costo
         acepta_max_tokens=True,
@@ -252,6 +261,10 @@ class AdaptadorGemini(_AdaptadorOpenAI):
         # una fórmula que podría no aplicar. Si se mide lo contrario, se cambia acá.
         estrategia_imagen=ESTRATEGIA_TOPE_FIJO,
         tokens_por_imagen=1024,
+        # 20 MB de **request total** (prompt + instrucciones + bytes inline), el
+        # más restrictivo de los tres: el prompt ya come unos KB, así que el
+        # archivo tiene que quedar cómodamente por debajo.
+        limite_bytes_payload=20 * 1024 * 1024,
         expone_cache=False,
         acepta_detalle=False,
         acepta_max_tokens=True,

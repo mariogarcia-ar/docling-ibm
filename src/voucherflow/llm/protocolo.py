@@ -32,6 +32,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Protocol, runtime_checkable
 
+from .config import LIMITE_BYTES_IMAGEN
+
 #: Clave del uso normalizado con los tokens de entrada servidos desde el caché
 #: del proveedor. Es el **nombre del campo del SDK** (``usage.prompt_cache_hit_tokens``)
 #: a propósito: el uso viaja de ``leer_respuesta`` al registro, al costo y al
@@ -111,6 +113,23 @@ class Capacidades:
     #: Tokens de una imagen cuando la estrategia es :data:`ESTRATEGIA_TOPE_FIJO`.
     tokens_por_imagen: int = 1024
 
+    #: Máximo del **payload** que el proveedor acepta por una imagen enviada
+    #: inline (base64), en bytes. Se compara contra el tamaño del *data URL*, no
+    #: contra el del archivo: base64 infla un 33 %, así que un archivo de 32 MB
+    #: produce un payload de 42,7 MB.
+    #:
+    #: ⚠️ Los límites difieren mucho entre proveedores (el default es el más
+    #: restrictivo de los tres) y el del archivo **no** es el del payload:
+    #:
+    #: * DeepSeek: 32 MiB por imagen inline → ~24 MB de archivo.
+    #: * Gemini: 20 MB de *request total* (prompt + imagen) → menos todavía.
+    #: * OpenAI: 512 MB de payload por request — en la práctica no limita acá.
+    #:
+    #: Comparar contra el archivo (lo que se hacía) dejaba pasar ~10 MB de más en
+    #: el peor caso: la petición viajaba, gastaba una llamada y volvía con un
+    #: error del servidor que hablaba del payload, no del archivo.
+    limite_bytes_payload: int = LIMITE_BYTES_IMAGEN
+
     #: ¿El proveedor expone cuántos tokens de entrada salieron de su caché?
     expone_cache: bool = False
 
@@ -148,6 +167,7 @@ class Capacidades:
             "esfuerzos": list(self.esfuerzos),
             "estrategia_imagen": self.estrategia_imagen,
             "tokens_por_imagen": self.tokens_por_imagen,
+            "limite_bytes_payload": self.limite_bytes_payload,
             "expone_cache": self.expone_cache,
             "notas": list(self.notas),
         }

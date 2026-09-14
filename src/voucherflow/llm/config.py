@@ -33,7 +33,16 @@ MAX_REINTENTOS_ESQUEMA = 3
 
 TOKENS_MAX_IMAGEN = 1024
 
+#: ⚠️ Default del límite de payload inline. Es una **capacidad del proveedor** y
+#: cada uno lo pisa en `proveedores.py` (DeepSeek 32 MiB, Gemini 20 MB, OpenAI
+#: 512 MB); acá queda el valor más restrictivo de los tres, para que un proveedor
+#: nuevo herede el criterio conservador en vez de ninguno.
 LIMITE_BYTES_IMAGEN = 32 * 1024 * 1024
+
+#: Cuánto crece un archivo al codificarlo en base64 (4 caracteres por cada 3
+#: bytes). Se usa para comparar el **payload** contra el límite del proveedor: el
+#: límite es sobre lo que viaja, no sobre el archivo en disco.
+FACTOR_BASE64 = 4 / 3
 
 VERSION_PROMPT = "mendel-validacion@1"
 

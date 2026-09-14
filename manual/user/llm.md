@@ -477,9 +477,10 @@ Gemini se estima a tope fijo: su capa compatible no documenta la fórmula de
 mosaicos ni acepta `--detalle`. Si se mide lo contrario, se cambia en
 `proveedores.py` (una línea).
 
-⚠️ **El peso sí importa para otro límite**: una imagen de más de ~24 MB **crudos**
-no se puede mandar (el proveedor limita el payload en base64, que infla un 33 %).
-Ver [Notas técnicas](#notas-tecnicas).
+⚠️ **El peso sí importa para otro límite**: cada proveedor limita el *payload* en
+base64 (que infla un 33 %), y el tope **no es el mismo para todos** — Gemini
+~15 MB de archivo, DeepSeek ~24 MB, OpenAI no limita en la práctica. Ver
+[El límite de peso](#el-limite-de-peso).
 
 ---
 
@@ -595,12 +596,32 @@ DeepSeek, el registro lleva `nota_temperatura` diciendo que no tuvo efecto: cree
 que un ajuste influyó cuando no cambió nada hace inauditable la comparación de
 prompts.
 
-**El límite de peso.** Una imagen se manda como *data URL* en base64, y el base64
-infla un 33 %. Los proveedores limitan ese payload, así que el corte práctico es
-de **~24 MB de archivo** (24 MB × 4/3 = 32 MB). El comando rechaza la imagen
-**antes** de mandarla y avisa con qué reducida quedó: una petición condenada a
-fallar igual gasta una llamada. Para eso está `voucherflow corpus`, que además es
-lo que baja el peso sin cambiar la resolución.
+### El límite de peso
+
+⚠️ Una imagen se manda como *data URL* en base64, y el base64 infla un 33 % (4
+caracteres por cada 3 bytes). El proveedor limita ese **payload**, no el archivo,
+así que el corte es un 25 % menor que el número que publica:
+
+| Proveedor | Límite de payload | Archivo máximo |
+|---|---|---|
+| Gemini | 20 MB (request total: prompt + imagen) | **~15 MB** |
+| DeepSeek | 32 MiB | **~24 MB** |
+| OpenAI | 512 MB | no limita en la práctica |
+
+El comando rechaza la imagen **antes** de mandarla, con un aviso que distingue las
+dos cifras:
+
+```
+la imagen pesa 30.8 MB y en base64 ocupa 41.0 MB, y el proveedor acepta hasta
+32 MB de payload (archivo de hasta ~24 MB): reducíla con `voucherflow corpus`
+```
+
+Sin ese chequeo la petición viajaría para volver con un error del servidor por un
+límite que se podía verificar gratis. Para reducirlas está `voucherflow corpus`,
+que baja el peso sin cambiar la resolución (ver [Qué se paga por una imagen](#que-se-paga-por-una-imagen)).
+
+Cada proveedor declara el suyo y `--listar-proveedores` lo muestra, junto con el
+archivo máximo equivalente.
 
 **Si el proveedor no impone el esquema, la validación es local y se paga.** OpenAI
 con `strict` garantiza la forma en el servidor; DeepSeek no. Ahí el núcleo valida

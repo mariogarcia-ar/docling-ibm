@@ -47,7 +47,7 @@ from .config import (
     CHARS_POR_TOKEN_ESTIMADO,
     COMPLETION_TOKENS_TIPICO,
     EXTENSIONES_IMAGEN,
-    LIMITE_BYTES_IMAGEN,
+    FACTOR_BASE64,
     MIN_MUESTRAS_PARA_CALIBRAR,
     VERSION_PROMPT,
 )
@@ -174,20 +174,29 @@ def procesar(
 
     # El dry-run no llega hasta acá: `main` estima el costo y sale antes de
     # llamar a la API (así no se codifica base64 ni se gasta memoria al pedo).
+    capacidades = proveedor_por_nombre(proveedor).capacidades
     try:
-        data_url, info = codificar_imagen(
-            img, opciones.detalle, proveedor_por_nombre(proveedor).capacidades
-        )
+        data_url, info = codificar_imagen(img, opciones.detalle, capacidades)
     except OSError as exc:
         registro["error"] = f"no se pudo leer la imagen: {exc}"
         return registro
     registro["imagen"] = info
 
-    if info["bytes"] > LIMITE_BYTES_IMAGEN:
+    # ⚠️ El límite del proveedor es sobre el **payload** que viaja (el data URL
+    # en base64), no sobre el archivo en disco: base64 infla un 33 %. Comparar
+    # contra los bytes crudos dejaba pasar ~10 MB de más, así que la petición
+    # gastaba una llamada para recibir un error del servidor que hablaba del
+    # payload y no del archivo. Ver `Capacidades.limite_bytes_payload`.
+    limite = capacidades.limite_bytes_payload
+    bytes_payload = len(data_url)
+    if bytes_payload > limite:
+        archivo_maximo_mb = limite / FACTOR_BASE64 / 1024 / 1024
         registro["error"] = (
-            f"la imagen pesa {info['bytes'] / 1e6:.1f} MB y la API acepta hasta "
-            f"{LIMITE_BYTES_IMAGEN / 1024 / 1024:.0f} MB por imagen "
-            "(base64): reducíla con `voucherflow corpus`"
+            f"la imagen pesa {info['bytes'] / 1e6:.1f} MB y en base64 ocupa "
+            f"{bytes_payload / 1e6:.1f} MB, y el proveedor acepta hasta "
+            f"{limite / 1024 / 1024:.0f} MB de payload "
+            f"(archivo de hasta ~{archivo_maximo_mb:.0f} MB): "
+            "reducíla con `voucherflow corpus`"
         )
         return registro
 

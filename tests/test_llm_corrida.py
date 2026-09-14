@@ -18,12 +18,14 @@ No hay red: los registros son archivos JSON escritos en un ``tmp_path``.
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
 
 from voucherflow.llm import corrida
 from voucherflow.llm.protocolo import CLAVE_CACHE_HIT, CLAVE_CACHE_MISS
+from voucherflow.llm.proveedores import AdaptadorDeepSeek
 
 
 def _opciones(salida: Path, **over) -> corrida.Opciones:
@@ -604,21 +606,57 @@ class TestProcesar:
         assert "sin extracción previa" in registro["error"]
 
     def test_una_imagen_demasiado_grande_se_avisa_antes_de_mandarla(self, tmp_path):
-        """Una imagen que la API rechaza gasta una llamada por nada."""
+        """⚠️ El límite es por **proveedor** y se mide sobre el payload base64.
+
+        Antes se comparaba el tamaño del archivo contra una constante global:
+        una imagen de 28 MB (payload 37 MB) pasaba el control, viajaba, y volvía
+        con un error del servidor por un límite que se podía chequear gratis.
+        """
         from tests.test_llm_ejecucion import Cliente
 
         img = self._imagen(tmp_path)
-        # Se simula el exceso sin escribir 32 MB.
-        monkey = corrida.LIMITE_BYTES_IMAGEN
-        corrida.LIMITE_BYTES_IMAGEN = 10
+        # Se baja el límite del proveedor en vez de escribir un archivo enorme.
+        monkey = corrida.proveedor_por_nombre
+        cap = AdaptadorDeepSeek().capacidades
+        corrida.proveedor_por_nombre = lambda _n: type(
+            "A", (), {"capacidades": replace(cap, limite_bytes_payload=10)}
+        )()
         try:
             registro = corrida.procesar(
                 img, tmp_path / "in", Cliente(), "S", "U [IMAGEN] {}",
                 {}, {}, _opciones(tmp_path / "out"), "deepseek",
             )
         finally:
-            corrida.LIMITE_BYTES_IMAGEN = monkey
+            corrida.proveedor_por_nombre = monkey
         assert "reducíla con `voucherflow corpus`" in registro["error"]
+        # El aviso distingue el archivo del payload: es lo que confunde al operador.
+        assert "en base64 ocupa" in registro["error"]
+
+    def test_el_limite_no_depende_del_proveedor_por_defecto(self, tmp_path):
+        """El límite que rige es el del proveedor elegido, no el de DeepSeek.
+
+        Con la constante global, un proveedor más restrictivo (Gemini, 20 MB) o
+        más permisivo (OpenAI, 512 MB) se validaba con el número ajeno.
+        """
+        from tests.test_llm_ejecucion import Cliente
+        from voucherflow.llm.proveedores import AdaptadorOpenAI
+
+        img = self._imagen(tmp_path)
+        monkey = corrida.proveedor_por_nombre
+        cap = AdaptadorOpenAI().capacidades
+        corrida.proveedor_por_nombre = lambda _n: type(
+            "A", (), {"capacidades": replace(cap, limite_bytes_payload=10)}
+        )()
+        try:
+            registro = corrida.procesar(
+                img, tmp_path / "in", Cliente(), "S", "U [IMAGEN] {}",
+                {}, {}, _opciones(tmp_path / "out"), "openai",
+            )
+        finally:
+            corrida.proveedor_por_nombre = monkey
+        # El error salió del límite de ESTE proveedor (10 bytes), no del global.
+        assert "en base64 ocupa" in registro["error"]
+        assert "0 MB de payload" in registro["error"]
 
     def test_una_imagen_no_se_puede_leer(self, tmp_path):
         """Una ruta que no existe es un error del registro, no un crash."""

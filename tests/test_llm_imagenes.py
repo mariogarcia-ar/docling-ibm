@@ -21,6 +21,7 @@ from pathlib import Path
 import pytest
 from PIL import Image
 
+from voucherflow.llm.config import FACTOR_BASE64
 from voucherflow.llm.corrida import Opciones, estimar_costo_corrida
 from voucherflow.llm.imagenes import (
     MOSAICO_TOKENS_BASE,
@@ -132,6 +133,60 @@ class TestSinCapacidades:
     def test_sin_capacidades_se_asume_el_default_historico(self):
         """El parámetro es opcional: sin él se mantiene el comportamiento previo."""
         assert tokens_imagen(4000, 3000, "high") == 1024
+
+
+class TestLimiteDePayload:
+    """⚠️ El límite se mide sobre el **payload** (base64), no sobre el archivo.
+
+    El código comparaba los bytes crudos contra una constante global de 32 MiB.
+    Dos errores en uno:
+
+    1. **La unidad.** El límite del proveedor es sobre lo que viaja, y base64
+       infla un 33 %: un archivo de 28 MB produce 37 MB de payload. Pasaba el
+       control, viajaba, y volvía con un error del servidor por un límite que se
+       podía chequear gratis.
+    2. **El valor.** No es el mismo para todos: DeepSeek 32 MiB, Gemini 20 MB de
+       request total, OpenAI 512 MB. Con la constante fija, Gemini dejaba pasar
+       de más y OpenAI rechazaba de menos.
+    """
+
+    def test_el_factor_de_base64_es_el_real(self):
+        """4 caracteres por cada 3 bytes: el 33 % que decide el corte."""
+        import base64
+
+        muestra = b"x" * 3000
+        codificado = base64.b64encode(muestra)
+        assert len(codificado) == pytest.approx(len(muestra) * FACTOR_BASE64, rel=1e-6)
+
+    def test_la_frontera_util_del_los_limites(self):
+        """El archivo máximo real es el payload dividido por 4/3."""
+        deepseek = _cap(AdaptadorDeepSeek).limite_bytes_payload
+        gemini = _cap(AdaptadorGemini).limite_bytes_payload
+        openai_ = _cap(AdaptadorOpenAI).limite_bytes_payload
+
+        assert deepseek / FACTOR_BASE64 / 1024 / 1024 == pytest.approx(24.0)
+        assert gemini / FACTOR_BASE64 / 1024 / 1024 == pytest.approx(15.0)
+        assert openai_ == 512 * 1024 * 1024
+
+    def test_un_archivo_de_28mb_no_pasa_el_limite_de_deepseek(self):
+        """El caso exacto que se colaba: 28 MB de archivo = 37 MB de payload."""
+        limite = _cap(AdaptadorDeepSeek).limite_bytes_payload
+        archivo = 28 * 1024 * 1024
+        payload = archivo * FACTOR_BASE64
+        assert archivo < limite, "el archivo entra si se compara contra sí mismo"
+        assert payload > limite, "pero el payload NO entra: es el bug"
+
+    def test_gemini_es_mas_restrictivo_que_deepseek(self):
+        """Orden de los límites, para que un cambio accidental salte."""
+        assert (
+            _cap(AdaptadorGemini).limite_bytes_payload
+            < _cap(AdaptadorDeepSeek).limite_bytes_payload
+            < _cap(AdaptadorOpenAI).limite_bytes_payload
+        )
+
+    def test_el_limite_se_declara_en_los_tres_proveedores(self):
+        for nombre, clase in PROVEEDORES.items():
+            assert clase().capacidades.limite_bytes_payload > 0, nombre
 
 
 class TestCosturaConLaEstimacion:
