@@ -35,6 +35,9 @@ métricas) y `settings/` (configuración centralizada).
 
 ```bash
 python -m pip install -e .
+
+# python -m pip uninstall voucherflow
+
 ```
 
 Requiere Python >= 3.11. Docling, pymupdf y requests son dependencias del
