@@ -65,6 +65,57 @@ Homepage = "https://github.com/example/voucherflow"  # placeholder: lo define el
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.ruff]
+# Piso de versiones de sintaxis. De acá sale `UP017` (`datetime.UTC` en vez de
+# `datetime.timezone.utc`), que es la única regla que depende del proyecto.
+target-version = "py311"
+# El repo ya escribe a ~88 (percentil 99 del código real: 89 chars), así que
+# esto documenta lo que se practica en vez de imponer un cambio de estilo.
+line-length = 88
+
+[tool.ruff.lint]
+# Selección deliberada y CHICA, no el default de la versión instalada.
+#
+# Ruff cambió su default con el tiempo (en 0.16 son ~250 reglas: RUF/UP/S/PL/
+# TRY/DTZ/…), y eso no da un criterio estable para el repo. El conjunto de abajo
+# es el que el proyecto puede sostener: errores reales, no preferencias.
+#
+#   E4, E7, E9  errores de pycodestyle (imports, sentencias, sintaxis)
+#   F           pyflakes: imports y variables sin usar, nombres indefinidos
+#   I           orden de imports (isort)
+#   UP035       imports deprecados (`typing.Sequence` → `collections.abc`)
+#
+# Lo que NO se activa, a propósito:
+#
+#   RUF022  Ordenar `__all__`: en `models/` y `validation/` los nombres están
+#           agrupados POR MÓDULO con comentarios que explican cada bloque. El
+#           orden es información; alfabetizarlo la destruiría.
+#   UP037   Quitar comillas de anotaciones: con `from __future__ import
+#           annotations` son redundantes, pero **no** son la causa de los F821
+#           (probado: aplicarla y los F821 siguen igual). Es cosmético.
+#   BLE001  `except Exception` ciego: es la política del pipeline (un archivo
+#           ilegible no puede cortar el lote) y hay ~17 con su comentario.
+#   S110    `try/except/pass`: igual, con el motivo escrito al lado.
+#   PLW1510 `subprocess.run` sin `check`: se lee `returncode` a mano a
+#           propósito (ffmpeg/ffprobe devuelven diagnóstico, no solo un código).
+select = ["E4", "E7", "E9", "F", "I", "UP035"]
+
+ignore = [
+    # ⚠️ F821 acá es un FALSO POSITIVO, no una regla relajada. Las anotaciones
+    # como `-> "ProcessedDocument"` (string, en un módulo que no importa el
+    # nombre) no las resuelve ni Ruff ni el intérprete. Verificado con
+    # `typing.get_type_hints()`: lanza NameError. O sea que el chequeo no pierde
+    # nada que hoy funcione — el nombre ya era irresoluble.
+    #
+    # Deuda anotada: son ~18 casos y lo correcto es un bloque
+    # `if TYPE_CHECKING:` con los imports. Cuando se haga, esta línea se saca.
+    "F821",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# (Vacío a propósito: todavía no hizo falta ninguna excepción por archivo. Si
+# aparece una, va acá CON el motivo escrito, no con un `noqa` suelto.)
+
 [tool.pytest.ini_options]
 # La raíz de tests vive en tests/. Los tests de HTTP usan unittest.mock;
 # respx/httpx quedan como extras opcionales (no requeridos para la suite).
