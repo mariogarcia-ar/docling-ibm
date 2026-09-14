@@ -105,8 +105,23 @@ import time
 from collections.abc import Iterable, Mapping
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
-from typing import Any, Protocol, runtime_checkable
+from typing import Any
 
+from ..evidencia import (
+    MOTIVO_FUENTE_DECLARADA_DISTINTA,
+    ErrorEvidencia,
+    Lector,
+    fuente_declarada_del_modelo,
+)
+from ..evidencia import (
+    fuentes_con_insumo as _fuentes_con_insumo,
+)
+from ..evidencia import (
+    parsear_json_de_respuesta as _parsear_json,
+)
+from ..evidencia import (
+    resolver_modelo as _resolver_modelo,
+)
 from ..rules.raw import (
     CampoDeclarado,
     ImplicacionCoherencia,
@@ -323,15 +338,6 @@ MOTIVO_CAMPO_AUSENTE = (
     "(ADR-001). Se registra como ausente para el gate de conclusión (F5)."
 )
 
-#: Motivo con el que se marca una lectura cuando el ``fuente_lectura`` que
-#: declaró el modelo no coincide con la fuente del system prompt usado (dato
-#: informativo: la fuente autoritativa la fija el orquestador, no el modelo).
-MOTIVO_FUENTE_DECLARADA_DISTINTA = (
-    "El modelo declaró fuente_lectura='{declarada}' pero la extracción se pidió "
-    "con el system prompt de '{real}'; se conserva la fuente real (el modelo no "
-    "decide la trazabilidad)."
-)
-
 #: Motivo con el que se registra un campo declarado con un valor fuera del
 #: vocabulario cerrado del campo. **No** lo emite el intérprete: la violación de
 #: vocabulario es responsabilidad de la regla raw ``RAW_VOCABULARIO`` (T-303),
@@ -344,19 +350,6 @@ MOTIVO_VALOR_FUERA_VOCABULARIO = (
 )
 
 
-class ErrorEvidencia(ValueError):
-    """La respuesta del modelo no cumple el contrato de evidencia (E-LIB-2).
-
-    Se lanza cuando el contenido **no es JSON** o no es un objeto JSON. Un JSON
-    válido con campos faltantes o valores inesperados **no** es un error: es
-    evidencia pobre y se reporta por ``campos_ausentes``/``problemas`` (el modelo
-    no decide; una lectura pobre no debe romper el flujo).
-
-    Hereda de ``ValueError`` —no de :class:`~voucherflow.api.ContratoError`, que
-    es un ``RuntimeError``— a propósito: importar ``api`` desde ``extraction``
-    cerraría un ciclo de import (mismo criterio que
-    ``classification.evidencia.ErrorEvidencia`` de F3/T-302).
-    """
 
 
 class ErrorExtraccion(RuntimeError):
@@ -379,32 +372,6 @@ class ErrorExtraccion(RuntimeError):
 # ---------------------------------------------------------------------------
 
 
-@runtime_checkable
-class Lector(Protocol):
-    """Protocolo del lector de extracción: un objeto con ``ask``.
-
-    Es el **mismo** contrato estructural que ya usan
-    :class:`~voucherflow.validation.qween` (gate) y
-    :class:`~voucherflow.classification.evidencia.Lector` (tipo/letra), así que
-    :class:`~voucherflow.models.ollama.OllamaClient` lo satisface sin cambios y
-    la suite default puede inyectar un doble (sin Ollama real).
-
-    Argumentos de ``ask`` que usa T-401: ``messages`` (del prompt versionado),
-    ``model`` (rol ``vlm``/``llm`` de ``Settings``), ``json_format=True`` (el
-    prompt pide JSON y se fuerza en la API) y ``num_ctx`` (ventana del modelo).
-
-    Devuelve un objeto con ``.contenido`` (str): es lo único que se consume.
-    """
-
-    def ask(
-        self,
-        messages: list[dict[str, Any]],
-        model: str,
-        json_format: bool = False,
-        options: dict[str, Any] | None = None,
-        num_ctx: int | None = None,
-    ) -> Any:  # pragma: no cover - contrato estructural
-        ...
 
 
 # ---------------------------------------------------------------------------
@@ -537,63 +504,6 @@ class EvidenciaExtraccion:
 # ---------------------------------------------------------------------------
 
 
-def _parsear_json(contenido: str) -> Any:
-    """Extrae el objeto JSON de la respuesta del modelo (T-401).
-
-    Tolerante con las formas reales de los modelos locales (mismo problema que
-    resolvía ``extract_json`` del sistema anterior y ``_parsear_json`` de F3/T-302): JSON puro,
-    JSON dentro de un bloque markdown ```` ```json ````, o JSON con prosa
-    alrededor. Se intenta, en orden: ``json.loads`` directo → sin cercas de
-    código → primer objeto JSON completo con ``raw_decode``.
-
-    Nota de honestidad: la reparación del token aislado que hacía el sistema anterior no se
-    porta. Al reproducir el incidente del sistema anterior se comprobó que sustituciones
-    razonables de ese patrón (``"v"`` → ``"``, borrado del token) **no**
-    convierten esas respuestas en JSON válido: el texto del sistema anterior solo dejaba
-    constancia de la observación. Portar una reparación que no repara sería
-    ruido; ``ErrorEvidencia`` conserva la respuesta cruda (``evidencia.crudo``)
-    para poder diagnosticar el caso real si vuelve a aparecer.
-
-    Lanza:
-        :class:`ErrorEvidencia` si no hay ningún objeto JSON parseable. El
-        mensaje incluye el inicio de la respuesta para poder diagnosticar.
-    """
-    texto = contenido.strip()
-    if not texto:
-        raise ErrorEvidencia(
-            "El modelo devolvió una respuesta vacía donde se esperaba el JSON de "
-            "evidencia de extracción (T-401)."
-        )
-
-    intentos: list[str] = [texto]
-
-    # Quitar cercas de código markdown (```json ... ``` o ``` ... ```).
-    if "```" in texto:
-        partes = texto.split("```")
-        for indice, parte in enumerate(partes):
-            if indice % 2 == 1:  # el contenido entre cercas
-                intentos.append(parte.removeprefix("json").strip())
-
-    for candidato in intentos:
-        try:
-            return json.loads(candidato)
-        except (ValueError, TypeError):
-            continue
-
-    # Último recurso: el primer objeto JSON completo dentro del texto.
-    inicio = texto.find("{")
-    if inicio >= 0:
-        try:
-            objeto, _ = json.JSONDecoder().raw_decode(texto[inicio:])
-            return objeto
-        except ValueError:
-            pass
-
-    raise ErrorEvidencia(
-        "La respuesta del modelo no contiene un objeto JSON válido de evidencia "
-        f"de extracción (T-401). Respuesta recibida (primeros 200 caracteres): "
-        f"{texto[:200]!r}"
-    )
 
 
 def _normalizar_fragmento(valor: Any) -> str:
@@ -920,16 +830,11 @@ def parsear_evidencia_extraccion(contenido: str, *, fuente: str) -> EvidenciaExt
     campos_ausentes = [c for c in CAMPOS_EXTRACCION if c not in declarados]
     campos_extra = [c for c in campos if c not in CAMPOS_EXTRACCION]
 
-    fuente_declarada = datos.get(CAMPO_FUENTE_LECTURA)
-    fuente_declarada = (
-        fuente_declarada.strip().lower() if isinstance(fuente_declarada, str) else None
+    fuente_declarada, problema_fuente = fuente_declarada_del_modelo(
+        datos, fuente=fuente
     )
-    if fuente_declarada and fuente_declarada != fuente:
-        problemas.append(
-            MOTIVO_FUENTE_DECLARADA_DISTINTA.format(
-                declarada=fuente_declarada, real=fuente
-            )
-        )
+    if problema_fuente:
+        problemas.append(problema_fuente)
 
     return EvidenciaExtraccion(
         fuente=fuente,
@@ -1325,53 +1230,8 @@ class ExtraccionEvidencia:
         return dict(self.detalle.get("fallos") or {})
 
 
-def _fuentes_con_insumo(
-    fuentes: Iterable[str], *, markdown: str | None, vista: Any
-) -> tuple[list[str], list[str]]:
-    """Separa las fuentes pedidas entre las que tienen insumo y las que no (T-401).
-
-    Evita llamar al modelo sin material: la fuente ``llm`` necesita markdown y la
-    ``vlm`` una vista con ``ruta_imagen_original``. Las que no tienen insumo se
-    informan en el ``detalle`` (no se silencian: la ausencia de una fuente es una
-    limitación de la evidencia, no un detalle cosmético — E-EXT-1: "corren
-    ambos", y si uno no puede correr hay que decirlo).
-    """
-    con_insumo: list[str] = []
-    sin_insumo: list[str] = []
-    for fuente in fuentes:
-        if fuente not in FUENTES_EXTRACCION:
-            raise ValueError(
-                f"fuente inválida: {fuente!r}. Válidas: {FUENTES_EXTRACCION} (T-401)."
-            )
-        tiene = (
-            bool((markdown or "").strip())
-            if fuente == "llm"
-            else getattr(vista, "ruta_imagen_original", None)
-        )
-        (con_insumo if tiene else sin_insumo).append(fuente)
-    return con_insumo, sin_insumo
 
 
-def _resolver_modelo(
-    fuente: str, modelo: str | None, settings: Settings
-) -> tuple[str, int | None]:
-    """Resuelve modelo y ``num_ctx`` de la fuente desde ``Settings`` (T-401).
-
-    La extracción visual usa el rol ``vlm`` (``qwen2.5vl:3b``) y la textual el
-    rol ``llm`` (``qwen2.5:7b``), con el ``num_ctx`` declarado para cada rol
-    (E-LIB-3). Si el llamador fija ``modelo``, se usa tal cual y sin ``num_ctx``
-    (el llamador es responsable), igual que en F3/T-302.
-    """
-    if modelo:
-        return modelo, None
-    rol = settings.modelo_para(fuente)
-    if rol is None or not rol.modelo:
-        raise ValueError(
-            f"No hay modelo configurado para la fuente {fuente!r} "
-            "(rol 'vlm'/'llm' de Settings, E-LIB-3); T-401 necesita un modelo "
-            "para construir la llamada."
-        )
-    return rol.modelo, rol.num_ctx
 
 
 def ejecutar_flujo(
@@ -1503,7 +1363,7 @@ def extraer_evidencia(
     settings_usado = settings or cargar_settings()
     pedidas = list(fuentes)
     con_insumo, sin_insumo = _fuentes_con_insumo(
-        pedidas, markdown=markdown, vista=vista
+        pedidas, markdown=markdown, vista=vista, validas=FUENTES_EXTRACCION
     )
     # Resolver el modelo **antes** de paralelizar: un error de configuración debe
     # fallar rápido y no dentro de un hilo (donde se perdería como fallo de

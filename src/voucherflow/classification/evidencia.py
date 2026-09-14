@@ -51,11 +51,25 @@ F4/T-404 con su tabla de precedencia (ADR-002), y T-302 no debe anticiparlo.
 
 from __future__ import annotations
 
-import json
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
-from typing import Any, Protocol, runtime_checkable
+from typing import Any
 
+from ..evidencia import (
+    MOTIVO_FUENTE_DECLARADA_DISTINTA,
+    ErrorEvidencia,
+    Lector,
+    fuente_declarada_del_modelo,
+)
+from ..evidencia import (
+    fuentes_con_insumo as _fuentes_con_insumo,
+)
+from ..evidencia import (
+    parsear_json_de_respuesta as _parsear_json,
+)
+from ..evidencia import (
+    resolver_modelo as _resolver_modelo,
+)
 from ..rules.contexto import (
     LETRAS_COMPROBANTE,
     ContextoTipoComprobante,
@@ -104,15 +118,6 @@ CAMPOS_TRAZABLES: tuple[str, ...] = (
 #: el enum ``Fuente``: la evidencia conserva de dónde salió la lectura.
 _FUENTE_SCHEMA: dict[str, Fuente] = {"vlm": Fuente.vlm, "llm": Fuente.llm}
 
-#: Motivo con el que se marca una lectura cuando el ``fuente_lectura`` que
-#: declaró el modelo no coincide con la fuente del system prompt usado (dato
-#: menor: la fuente autoritativa la fija el orquestador, no el modelo).
-MOTIVO_FUENTE_DECLARADA_DISTINTA = (
-    "El modelo declaró fuente_lectura='{declarada}' pero la lectura se pidió "
-    "con el system prompt de '{real}'; se conserva la fuente real (el modelo "
-    "no decide la trazabilidad)."
-)
-
 #: Motivo con el que se marca una letra fuera del vocabulario (D-13).
 MOTIVO_LETRA_FUERA_VOCABULARIO = (
     "El modelo devolvió la letra {crudo!r}, fuera del vocabulario del motor "
@@ -135,21 +140,6 @@ MOTIVO_SIN_SUSTENTO = (
 )
 
 
-class ErrorEvidencia(ValueError):
-    """La respuesta del modelo no cumple el contrato de evidencia (E-LIB-2).
-
-    Se lanza cuando el contenido **no es JSON** o no es un objeto JSON. Un JSON
-    válido con campos faltantes o valores fuera del vocabulario **no** es un
-    error: es evidencia débil y se reporta por
-    :attr:`EvidenciaLectura.campos_desconocidos` / ``debilidades`` (el modelo no
-    decide; una lectura pobre no debe romper el flujo, T-302).
-
-    Hereda de ``ValueError`` a propósito (no de
-    :class:`~voucherflow.api.ContratoError`, que es un ``RuntimeError``):
-    importar ``api`` desde ``classification`` cerraría un ciclo de import
-    (``api.classify`` importa este módulo de forma diferida en T-304). El punto
-    de contacto con la fachada (T-304) traduce este error al error público.
-    """
 
 
 # ---------------------------------------------------------------------------
@@ -157,37 +147,6 @@ class ErrorEvidencia(ValueError):
 # ---------------------------------------------------------------------------
 
 
-@runtime_checkable
-class Lector(Protocol):
-    """Protocolo del lector de evidencia (F3-subplan §2.6).
-
-    Es el **mismo** contrato que ya usa F2 para el gate: un objeto con ``ask``.
-    Por eso :class:`~voucherflow.models.ollama.OllamaClient` lo satisface
-    estructuralmente y, en la suite default, se inyecta un doble
-    (``FakeOllamaClient``) — sin Ollama real.
-
-    Argumentos de ``ask`` (subconjunto que usa T-302):
-
-    - ``messages``: ``[system, user]`` de
-      :func:`~voucherflow.classification.prompt_tipo_comprobante.construir_messages_tipo_comprobante`.
-    - ``model``: modelo a usar (se resuelve del rol ``vlm``/``llm`` de
-      ``Settings`` si el llamador no lo fija).
-    - ``num_ctx``: ventana de contexto del modelo (viene de ``Settings``).
-    - ``json_format``: ``True`` — el prompt pide JSON y el formato se fuerza en
-      la API (``format="json"``), reduciendo el riesgo de prosa alrededor.
-
-    Devuelve un objeto con ``.contenido`` (str). Es lo único que T-302 consume.
-    """
-
-    def ask(
-        self,
-        messages: list[dict[str, Any]],
-        model: str,
-        json_format: bool = False,
-        options: dict[str, Any] | None = None,
-        num_ctx: int | None = None,
-    ) -> Any:  # pragma: no cover - contrato estructural
-        ...
 
 
 # ---------------------------------------------------------------------------
@@ -256,54 +215,6 @@ class EvidenciaLectura:
 # ---------------------------------------------------------------------------
 
 
-def _parsear_json(contenido: str) -> Any:
-    """Extrae el objeto JSON de la respuesta del modelo (T-302).
-
-    Tolerante con las formas reales que devuelven los modelos locales (mismo
-    problema que resolvía ``extract_json`` del sistema anterior): JSON puro, JSON dentro de un
-    bloque markdown ```` ```json ````, o JSON con prosa alrededor. Se intenta,
-    en orden: ``json.loads`` directo → sin cercas de código → primer objeto JSON
-    completo con ``raw_decode``.
-
-    Lanza:
-        :class:`ErrorEvidencia` si no hay ningún objeto JSON parseable. El
-        mensaje incluye el inicio de la respuesta para poder diagnosticar.
-    """
-    texto = contenido.strip()
-    if not texto:
-        raise ErrorEvidencia(
-            "El modelo devolvió una respuesta vacía donde se esperaba el JSON de "
-            "evidencia (T-302)."
-        )
-
-    intentos: list[str] = [texto]
-
-    # Quitar cercas de código markdown (```json ... ``` o ``` ... ```).
-    if "```" in texto:
-        partes = texto.split("```")
-        for indice, parte in enumerate(partes):
-            if indice % 2 == 1:  # el contenido entre cercas
-                intentos.append(parte.removeprefix("json").strip())
-
-    for candidato in intentos:
-        try:
-            return json.loads(candidato)
-        except (ValueError, TypeError):
-            continue
-
-    # Último recurso: el primer objeto JSON completo dentro del texto.
-    inicio = texto.find("{")
-    if inicio >= 0:
-        try:
-            objeto, _fin = json.JSONDecoder().raw_decode(texto[inicio:])
-            return objeto
-        except ValueError:
-            pass
-
-    raise ErrorEvidencia(
-        "La respuesta del modelo no contiene un objeto JSON válido de evidencia "
-        f"(T-302). Respuesta recibida (primeros 200 caracteres): {texto[:200]!r}"
-    )
 
 
 def _normalizar_letra_cruda(valor: Any) -> str | None:
@@ -475,16 +386,11 @@ def parsear_evidencia_lectura(
             campos_desconocidos.append(campo)
 
     # --- Fuente declarada por el modelo (informativa) ---------------------
-    fuente_declarada = datos.get("fuente_lectura")
-    fuente_declarada = (
-        fuente_declarada.strip().lower() if isinstance(fuente_declarada, str) else None
+    fuente_declarada, problema_fuente = fuente_declarada_del_modelo(
+        datos, fuente=fuente
     )
-    if fuente_declarada and fuente_declarada != fuente:
-        problemas.append(
-            MOTIVO_FUENTE_DECLARADA_DISTINTA.format(
-                declarada=fuente_declarada, real=fuente
-            )
-        )
+    if problema_fuente:
+        problemas.append(problema_fuente)
 
     return EvidenciaLectura(
         fuente=fuente,
@@ -811,52 +717,8 @@ class LecturaTipoComprobante:
         ]
 
 
-def _fuentes_con_insumo(
-    fuentes: Iterable[str], *, markdown: str | None, vista: Any
-) -> tuple[list[str], list[str]]:
-    """Separa las fuentes pedidas entre las que tienen insumo y las que no (T-302).
-
-    Evita llamar al modelo sin material: la fuente ``llm`` necesita markdown y
-    la ``vlm`` una vista con ``ruta_imagen_original``. Las que no tienen insumo
-    se informan en el ``detalle`` (no se silencian: la ausencia de una fuente es
-    una debilidad de la lectura, no un detalle cosmético).
-    """
-    con_insumo: list[str] = []
-    sin_insumo: list[str] = []
-    for fuente in fuentes:
-        if fuente not in FUENTES_LECTURA:
-            raise ValueError(
-                f"fuente inválida: {fuente!r}. Válidas: {FUENTES_LECTURA} (T-302)."
-            )
-        tiene = (
-            (markdown or "").strip()
-            if fuente == "llm"
-            else getattr(vista, "ruta_imagen_original", None)
-        )
-        (con_insumo if tiene else sin_insumo).append(fuente)
-    return con_insumo, sin_insumo
 
 
-def _resolver_modelo(
-    fuente: str, modelo: str | None, settings: Settings
-) -> tuple[str, int | None]:
-    """Resuelve modelo y ``num_ctx`` de la fuente desde ``Settings`` (T-302).
-
-    La lectura visual usa el rol ``vlm`` (``qwen2.5vl:3b``) y la textual el rol
-    ``llm`` (``qwen2.5:7b``), con el ``num_ctx`` declarado para cada rol
-    (E-LIB-3). Si el llamador fija ``modelo``, se usa tal cual (sin ``num_ctx``:
-    el llamador es responsable), igual que en F2/T-202.
-    """
-    if modelo:
-        return modelo, None
-    rol = settings.modelo_para(fuente)
-    if rol is None or not rol.modelo:
-        raise ValueError(
-            f"No hay modelo configurado para la fuente {fuente!r} "
-            "(rol 'vlm'/'llm' de Settings, E-LIB-3); T-302 necesita un modelo "
-            "para construir la llamada."
-        )
-    return rol.modelo, rol.num_ctx
 
 
 def leer_evidencia(
@@ -914,7 +776,9 @@ def leer_evidencia(
     """
     settings_usado = settings or cargar_settings()
     pedidas = list(fuentes)
-    con_insumo, sin_insumo = _fuentes_con_insumo(pedidas, markdown=markdown, vista=vista)
+    con_insumo, sin_insumo = _fuentes_con_insumo(
+        pedidas, markdown=markdown, vista=vista, validas=FUENTES_LECTURA
+    )
 
     lecturas: list[EvidenciaLectura] = []
     evidencias: list[SourceEvidence] = []
