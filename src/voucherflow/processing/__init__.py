@@ -47,7 +47,14 @@ from .orientation import (
 # Orquestación de la Fase F1 (T-105/ORQ, E-DOC): ``procesar_documento`` es la
 # entrada de ``api.process``; ``procesar_imagen`` y ``render_pdf_a_jpg`` son la
 # subrutina de imagen y el helper de render (PROC.md §5).
-from .orquestacion import procesar_documento, procesar_imagen, render_pdf_a_jpg
+# ``UMBRAL_IMAGEN_DOMINA`` viaja con el render: es la regla que decide si se
+# recorta a la imagen o se renderiza la página completa (calibrado 2026-09-14).
+from .orquestacion import (
+    UMBRAL_IMAGEN_DOMINA,
+    procesar_documento,
+    procesar_imagen,
+    render_pdf_a_jpg,
+)
 
 # Extracción de PDF apto con pdftotext --layout (poppler; complemento de la
 # ruta texto nativo, PROC.md §5.2; A1 revertida 2026-09-07).
@@ -115,4 +122,5 @@ __all__ = [
     "procesar_documento",
     "procesar_imagen",
     "render_pdf_a_jpg",
+    "UMBRAL_IMAGEN_DOMINA",
 ]

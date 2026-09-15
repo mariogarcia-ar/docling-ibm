@@ -16,7 +16,7 @@ La documentación técnica (arquitectura, decisiones, plan) vive en
 | Documento | Para qué |
 |---|---|
 | **[Instalación y requisitos](01-instalacion.md)** | Dejar el sistema funcionando: dependencias, modelos, configuración |
-| **[Referencia de comandos](02-comandos.md)** | Los once subcomandos, con sus banderas, salidas y códigos de salida |
+| **[Referencia de comandos](02-comandos.md)** | Los trece subcomandos, con sus banderas, salidas y códigos de salida |
 | **[Qué archivos genera](04-salidas.md)** | Markdown, checkpoints, agregado del lote y sidecar de trazabilidad |
 | **[Trabajo con lotes largos](../../BATCH.md)** | Workers, checkpoints y enfriamiento (guía dedicada) |
 | **[Flujo de revisión humana](03-revision-humana.md)** | Qué hacer con los casos que el sistema manda a revisar |

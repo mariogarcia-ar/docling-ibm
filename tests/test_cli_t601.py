@@ -330,7 +330,9 @@ class TestContratoCLI:
         # E-CLI-1 / F6.md T-601: los diez subcomandos + extract-detect y arca.
         # ``corpus`` se sumó después (viene de scripts/operacion/reducir-tokens.py,
         # que se refactorizó a src/voucherflow/corpus/): es una decisión explícita,
-        # no un comando accidental. Si alguien agrega un 13.º, este test falla.
+        # no un comando accidental. ``pdf`` es el 13.º, por el mismo motivo (viene
+        # de scripts/operacion/pdf-a-imagen.py → src/voucherflow/pdf/). Si alguien
+        # agrega un 14.º, este test falla.
         esperados = {
             "process",
             "validate",
@@ -344,6 +346,7 @@ class TestContratoCLI:
             "case",
             "hitl",
             "corpus",
+            "pdf",
         }
         assert set(COMANDOS) == esperados
         # El despacho cubre exactamente los comandos del contrato (sin huérfanos).

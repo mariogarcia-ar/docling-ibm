@@ -54,7 +54,12 @@ Herramientas para trabajar con las imágenes y las APIs **antes** de procesarlas
 |---|---|
 | `operacion/generar-fixtures-negativos.py` | Genera los negativos sintéticos del golden (documentos que **no** son comprobantes), sin PII. |
 | `operacion/generar-extracciones-esperadas.py` | Gradúa las extracciones pagadas del lab (`var/`) al artefacto versionado `tests/expected-extraction/`. Copia las imágenes faltantes a `tests/fixtures/expected-extraction/`. Es **regenerable y no destructivo** (una corrida ya versionada se respeta). |
-| `operacion/pdf-a-imagen.py` | Convierte PDF a JPG (una imagen por página) con `pdf2image`/poppler, para **mirar** un PDF antes o después de procesarlo. No reemplaza al pipeline: la librería renderiza con `render_pdf_a_jpg` (PyMuPDF, recortando el área de la imagen) cuando se corre con `--incluir-pdf`. |
+
+> La **conversión de PDF a imágenes** (``pdf-a-imagen.py``) se retiró de acá: es el
+> subcomando `voucherflow pdf`. El script usaba `pdf2image`/poppler (una
+> dependencia de facto que nadie declaraba) y era una segunda implementación del
+> render, del espejado y del recorte que ya estaban en el paquete. Ver
+> [`docs/usuario/02-comandos.md`](../docs/usuario/02-comandos.md#pdf--convertir-pdf-a-imágenes).
 
 > La **reducción de imágenes** (pre-reducir peso y tokens del corpus) se mudó a la
 > librería: es el subcomando `voucherflow corpus`. Ver más abajo.

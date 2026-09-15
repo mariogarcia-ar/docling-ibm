@@ -87,19 +87,27 @@ def test_documenta_las_operaciones_reales():
 
 
 def test_los_sufijos_documentados_son_los_reales():
-    """La tabla de sufijos del manual tiene que coincidir con `ejecutar`."""
-    import inspect
+    """La tabla de sufijos del manual tiene que coincidir con el código.
 
-    from voucherflow.llm import corrida
+    ⚠️ Se compara contra ``SUFIJO_POR_MODO`` (los **datos** que usa la corrida) y
+    no contra un fragmento del fuente de ``ejecutar``: la versión anterior hacía
+    ``inspect.getsource(ejecutar)`` y buscaba el literal del diccionario, así que
+    se rompía al mover el mapa sin cambiar **nada** del comportamiento — y no
+    habría detectado un cambio de valor si el mapa se hubiera mudado junto al
+    literal. El dato es el contrato; dónde esté escrito, no.
+    """
+    from voucherflow.llm.corrida import SUFIJO_POR_MODO
 
-    fuente = inspect.getsource(corrida.ejecutar)
-    for operacion, sufijo in (
-        ("extraer", "extraccion"),
-        ("validar", "validacion"),
-        ("diff", "validacion"),
-    ):
-        assert f'"{operacion}": "{sufijo}"' in fuente, (
-            f"el manual dice {operacion} → {sufijo}: verificá `corrida.ejecutar`"
+    assert SUFIJO_POR_MODO == {
+        "extraer": "extraccion",
+        "validar": "validacion",
+        "diff": "validacion",
+    }, "el manual documenta esta tabla: si cambia, actualizá `manual/user/llm.md`"
+    # Y cada sufijo documentado tiene que estar en el manual.
+    texto = _texto()
+    for sufijo in set(SUFIJO_POR_MODO.values()):
+        assert f".{sufijo}.json" in texto, (
+            f"el sufijo «.{sufijo}.json» no está documentado en el manual"
         )
 
 

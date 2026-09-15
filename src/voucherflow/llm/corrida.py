@@ -32,9 +32,6 @@ from typing import Any
 # las comparte la reducción de imágenes. Tener una copia acá fue el bug que hizo
 # pagar dos veces el mismo documento, así que se importan (con alias privado,
 # para no tocar los call sites) en vez de redefinirlas.
-from ..corpus.recorrido import (  # noqa: E402
-    expandir as _expandir,
-)
 from ..corpus.recorrido import (
     raiz_espejado as _raiz_espejado,
 )
@@ -46,7 +43,6 @@ from . import costos
 from .config import (
     CHARS_POR_TOKEN_ESTIMADO,
     COMPLETION_TOKENS_TIPICO,
-    EXTENSIONES_IMAGEN,
     FACTOR_BASE64,
     MIN_MUESTRAS_PARA_CALIBRAR,
     VERSION_PROMPT,
@@ -62,6 +58,9 @@ from .costos import (
 )
 from .datos import buscar_datos
 from .ejecucion import llamar_api  # noqa: E402
+from .entradas import Lote
+from .entradas import armar as _armar_lote
+from .entradas import limpiar as _limpiar_lote
 from .esquema import _validador_jsonschema
 from .esquemas import esquema_extraccion, esquema_validacion
 from .evaluador import diff_deterministico, verificar_aritmetica
@@ -121,6 +120,43 @@ class Opciones:
     sufijo: str = ".json"
 
 
+def _avisar_ignorados(lote: Lote) -> None:
+    """Declara los archivos que quedaron fuera del lote, por extensión.
+
+    Misma regla que ``corpus``: un barrido que se come archivos en silencio es el
+    patrón que ya costó caro (264 PDF de un corpus de 3.846 desaparecían del
+    conteo sin que nada lo dijera).
+    """
+    for linea in lote.describir_ignorados():
+        print(f"⚠  {linea}", file=sys.stderr)
+
+
+def _numero_de_pagina(render: Path) -> int | None:
+    """Número de página del render (``<stem>_pNN.jpg``), o ``None`` si no matchea.
+
+    El nombre lo define ``corpus/lectura.expandir_pdf``; leerlo acá es mejor que
+    pasarlo por separado porque el render es la única fuente de ese dato.
+    """
+    coincidencia = re.search(r"_p(\d+)$", render.stem)
+    return int(coincidencia.group(1)) if coincidencia else None
+
+
+#: Sufijo del archivo de salida por modo. La reanudación lo usa para saber si un
+#: documento ya está procesado: si cambia, los anteriores **no** cuentan como
+#: hechos —y es a propósito—: son de otra corrida. Una corrida de ``validar`` no
+#: pisa lo que dejó ``extraer``.
+#:
+#: ⚠️ Es una **constante de módulo** y no un literal dentro de ``ejecutar``: el
+#: manual del operador documenta esta tabla y un test la compara con el fuente
+#: (``test_manual_llm.py::test_los_sufijos_documentados_son_los_reales``), así que
+#: moverla a una función la volvería invisible para esa verificación.
+SUFIJO_POR_MODO = {
+    "validar": "validacion",
+    "extraer": "extraccion",
+    "diff": "validacion",
+}
+
+
 def procesar(
     img: Path,
     raiz: Path,
@@ -131,15 +167,24 @@ def procesar(
     extracciones: dict[str, dict],
     opciones: Opciones,
     proveedor: str = "deepseek",
+    *,
+    logico: Path | None = None,
 ) -> dict[str, Any]:
-    """Procesa una imagen y devuelve el registro (con procedencia) para guardar."""
+    """Procesa una imagen y devuelve el registro (con procedencia) para guardar.
+
+    ``logico`` es el documento del corpus que representa la imagen, cuando no son
+    lo mismo: la página renderizada de un PDF vive en un temporal, y su ruta no
+    dice nada del corpus (perdería el nivel de carpeta en la salida). Es lo que
+    se usa para el nombre relativo, la búsqueda de datos y el sufijo de página.
+    """
+    documento = logico if logico is not None else img
     try:
-        relativo = img.resolve().relative_to(raiz.resolve())
+        relativo = documento.resolve().relative_to(raiz.resolve())
     except (ValueError, OSError):
-        relativo = Path(img.name)
+        relativo = Path(documento.name)
 
     registro: dict[str, Any] = {
-        "origen": str(img),
+        "origen": str(documento),
         "archivo_relativo": str(relativo),
         "procesado_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "modelo": opciones.modelo,
@@ -147,15 +192,20 @@ def procesar(
         "version_prompt": VERSION_PROMPT,
         "fuente": "api",
     }
+    # La procedencia del render: sin esto, una página de PDF es indistinguible de
+    # una imagen suelta en el registro.
+    if img != documento:
+        registro["imagen_origen"] = str(img)
+        registro.setdefault("pagina", _numero_de_pagina(img))
 
     clave_datos, datos_doc = (None, None)
     if opciones.modo in {"validar", "diff"}:
-        clave_datos, datos_doc = buscar_datos(img, datos)
+        clave_datos, datos_doc = buscar_datos(documento, datos)
         registro["datos_clave"] = clave_datos
         if datos_doc is None:
             registro["error"] = (
                 "no hay datos cargados para esta imagen "
-                f"(claves probadas: {img.stem}, {img.parent.name})"
+                f"(claves probadas: {documento.stem}, {documento.parent.name})"
             )
             return registro
 
@@ -1294,18 +1344,52 @@ def ejecutar(
     registrado como error: una corrida con documentos fallidos no es exitosa,
     aunque el resto haya salido bien.
     """
-    from concurrent.futures import ThreadPoolExecutor
-
     # La raíz del espejado es explícita (y viene con su motivo para declararlo):
     # derivarla de la ruta pasada hacía que el mismo documento escribiera en dos
     # lugares distintos según cómo se invocara el comando.
     raiz, motivo_raiz = _raiz_espejado(rutas, None, opciones.salida)
-    imagenes_rutas = _expandir(rutas, EXTENSIONES_IMAGEN)
+    # ⚠️ Los PDF entran al lote renderizados (una imagen por página). El temporal
+    # de los renders se borra en el `finally`, pase lo que pase: si la corrida
+    # corta antes (sin credencial, sin imágenes), igual hay que limpiarlo.
+    lote = _armar_lote(rutas, raiz)
+    try:
+        return _correr_lote(
+            lote, raiz, motivo_raiz, opciones, sistema, user_template,
+            datos, proveedor, api_key, limite, detalle_log, json_salida,
+        )
+    finally:
+        _limpiar_lote(lote)
+
+
+def _correr_lote(
+    lote: Lote,
+    raiz: Path,
+    motivo_raiz: str,
+    opciones: Opciones,
+    sistema: str,
+    user_template: str,
+    datos: dict[str, dict] | None,
+    proveedor: str,
+    api_key: str | None,
+    limite: int,
+    detalle_log: bool,
+    json_salida: Path | None,
+) -> int:
+    """El cuerpo de la corrida, con el temporal de los renders ya garantizado."""
+    from concurrent.futures import ThreadPoolExecutor
+
+    imagenes_rutas = lote.imagenes
     if limite:
         imagenes_rutas = imagenes_rutas[:limite]
     if not imagenes_rutas:
         print("No hay imágenes que procesar.", file=sys.stderr)
+        _avisar_ignorados(lote)
         return EXIT_OK
+
+    # Composite del lote: se declara ANTES de gastar (si hay PDF, el operador
+    # tiene que ver que se van a pagar sus páginas).
+    print(f"lote: {lote.resumen()}  (raíz: {motivo_raiz})")
+    _avisar_ignorados(lote)
 
     datos = datos or {}
     cliente = None
@@ -1333,14 +1417,23 @@ def ejecutar(
         leer_extracciones_previas(opciones.salida) if opciones.modo == "diff" else {}
     )
     # El sufijo distingue una extracción de una validación: una corrida de
-    # `validar` no pisa lo que dejó `extraer`.
-    sufijo = {"validar": "validacion", "extraer": "extraccion", "diff": "validacion"}[
-        opciones.modo
-    ]
+    # `validar` no pisa lo que dejó `extraer`. La tabla vive en el módulo (ver
+    # `SUFIJO_POR_MODO`): el manual la documenta y un test la compara con ella.
+    sufijo = SUFIJO_POR_MODO[opciones.modo]
+
+    # ⚠️ El destino se calcula SIEMPRE con la clave del lote, nunca con la ruta
+    # del render: el render vive en un temporal fuera de la raíz, así que
+    # `salida_de` caería al nombre suelto y la salida perdería el nivel de
+    # carpeta; y dos páginas del mismo PDF escribirían el MISMO archivo (el corpus
+    # tiene 100 PDF de 2 y 3 páginas). Es la misma función que usa la escritura
+    # (abajo) y el diccionario de deduplicación de gastos: si divergieran, la
+    # reanudación no encontraría lo hecho y se volvería a pagar.
+    def destino_de(img: Path) -> Path:
+        return salida_de(lote.clave_de(img), raiz, opciones.salida, sufijo)
 
     pendientes: list[Path] = []
     for img in imagenes_rutas:
-        if not opciones.forzar and ya_procesado(salida_de(img, raiz, opciones.salida, sufijo)):
+        if not opciones.forzar and ya_procesado(destino_de(img)):
             continue
         pendientes.append(img)
 
@@ -1350,7 +1443,7 @@ def ejecutar(
     # puede ser intencional (otra raíz pedida a propósito), pero se declara.
     if pendientes:
         repetidas = _salidas_en_otras_raices(
-            opciones.salida, raiz, pendientes, sufijo
+            opciones.salida, raiz, [lote.clave_de(i) for i in pendientes], sufijo
         )
         if repetidas:
             print(
@@ -1372,7 +1465,7 @@ def ejecutar(
     def _una(img: Path) -> dict[str, Any]:
         return procesar(
             img, raiz, cliente, sistema, user_template, datos, extracciones,
-            opciones, proveedor,
+            opciones, proveedor, logico=lote.clave_de(img),
         )
 
     try:
@@ -1396,14 +1489,17 @@ def ejecutar(
                     ),
                     registro,
                 )
+                # El `origen` del registro ya es el documento lógico (y en un
+                # render incluye el `_pNN`), así que el nombre que se imprime
+                # identifica la página que falló o salió bien.
+                etiqueta = Path(registro["origen"]).name
                 if registro.get("error"):
                     print(
-                        f"  ✗ {Path(registro['origen']).name}: "
-                        f"{str(registro['error'])[:80]}",
+                        f"  ✗ {etiqueta}: {str(registro['error'])[:80]}",
                         file=sys.stderr,
                     )
                 elif detalle_log:
-                    print(f"  ✓ {Path(registro['origen']).name}")
+                    print(f"  ✓ {etiqueta}")
     except KeyboardInterrupt:
         # ⚠️ El original devolvía 130; el port dejaba escapar el traceback. Los
         # documentos ya procesados quedaron guardados (el guardado va dentro del

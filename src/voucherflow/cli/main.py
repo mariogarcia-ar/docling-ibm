@@ -44,7 +44,7 @@ from ..orchestrator import (
 )
 
 #: Subcomandos que expone el CLI (el contrato de E-CLI-1 + ``extract-detect`` y
-#: los de auditoría de `ORCH-CLI.md` §3).
+#: los de auditoría de `ORCH-CLI.md` §3, + ``corpus`` y ``pdf``).
 COMANDOS: tuple[str, ...] = (
     "process",
     "validate",
@@ -58,6 +58,7 @@ COMANDOS: tuple[str, ...] = (
     "case",
     "hitl",
     "corpus",
+    "pdf",
 )
 
 #: Condición impositiva por defecto de la cadena contable (F3/T-304).
@@ -303,6 +304,8 @@ def construir_parser() -> argparse.ArgumentParser:
     p.add_argument("--prioridad", choices=["alta", "baja"], default=None, help="Filtra por prioridad de la revisión.")
 
     _cmd_corpus_parser(sub)
+
+    _cmd_pdf_parser(sub)
 
     return parser
 
@@ -966,6 +969,28 @@ def _cmd_corpus(args: argparse.Namespace, entorno: EntornoCLI) -> int:
     )
 
 
+def _cmd_pdf_parser(sub: argparse._SubParsersAction) -> None:
+    """Registra el subcomando ``pdf`` (la CLI vive en ``voucherflow.pdf.cli``)."""
+    from ..pdf.cli import agregar_parser
+
+    agregar_parser(sub)
+
+
+def _cmd_pdf(args: argparse.Namespace, entorno: EntornoCLI) -> int:
+    """``pdf``: convierte PDF a imágenes JPG (una por página) con PyMuPDF.
+
+    El adaptador solo conecta los flujos del entorno con el subcomando: la
+    lógica (planificar, renderizar, reportar) vive en ``voucherflow.pdf``.
+    """
+    from ..pdf.cli import EntornoPdf
+    from ..pdf.cli import main as main_pdf
+
+    return main_pdf(
+        args,
+        entorno=EntornoPdf(stdout=entorno.stdout, stderr=entorno.stderr),
+    )
+
+
 DESPACHO: dict[str, Callable[[argparse.Namespace, EntornoCLI], int]] = {
     "process": _cmd_process,
 
@@ -980,6 +1005,7 @@ DESPACHO: dict[str, Callable[[argparse.Namespace, EntornoCLI], int]] = {
     "case": _cmd_case,
     "hitl": _cmd_hitl,
     "corpus": _cmd_corpus,
+    "pdf": _cmd_pdf,
 }
 
 

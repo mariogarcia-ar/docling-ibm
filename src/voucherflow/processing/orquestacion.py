@@ -30,7 +30,8 @@ Contrato público (congelado para F2/F3/F4):
 
     ``procesar_documento(origen, *, converter=None, modo_motor="auto", docling_raw=False) -> ProcessedDocument``
     ``procesar_imagen(origen, *, converter=None, modo_motor="auto", tipo_entrada="imagen", docling_raw=False, ...) -> ProcessedDocument``
-    ``render_pdf_a_jpg(pdf, pagina=0, dpi=300) -> Path``
+    ``render_pdf_a_jpg(pdf, pagina=0, dpi=300, *, recortar=None) -> Path``
+    ``UMBRAL_IMAGEN_DOMINA`` (calibrado; ver ``render_pdf_a_jpg``)
 
 Opción A (decisión de alcance, subplan F1 §2.5): el keyword ``docling_raw``
 expone en ``ProcessedDocument.markdown`` el **raw de Docling** (el markdown
@@ -85,25 +86,85 @@ def _error_no_procesable(mensaje: str) -> "Exception":
 # Helper de render de PDF a imagen (portado del prototipo de la tarea T-104)
 # ---------------------------------------------------------------------------
 
-def render_pdf_a_jpg(pdf: str | Path, pagina: int = 0, dpi: int = 300) -> Path:
-    """Renderiza una página de un PDF a un archivo JPG temporal (RGB sin alfa).
+#: Fracción de la hoja que la imagen más grande tiene que cubrir para que se la
+#: considere **el documento** y se renderice recortada.
+#:
+#: ⚠️ Calibrado (2026-09-14) sobre los 264 PDF del corpus real. La distribución
+#: de la cobertura de la imagen mayor es **bimodal con un hueco limpio**: 227 PDF
+#: por debajo de 0,10 (born-digital: la imagen mayor es el logo) y 29 por encima
+#: de 0,83 (escaneados: la imagen mayor es la página). Entre 0,36 y 0,83 no hay
+#: ningún caso, así que cualquier umbral ahí adentro da el mismo resultado; 0,5
+#: queda en el medio del hueco.
+UMBRAL_IMAGEN_DOMINA = 0.5
+
+
+def _fraccion_imagen_mayor(hoja: "fitz.Page") -> float:
+    """Fracción (0–1+) del área de la página que cubre su imagen más grande.
+
+    Puede pasar de 1 si la imagen está rotada o sobresale de la hoja (medido:
+    hasta 1,09 en el corpus), y es 0.0 si la página no tiene imágenes.
+    """
+    infos = hoja.get_image_info()
+    if not infos:
+        return 0.0
+    mayor = max(
+        infos,
+        key=lambda i: (i["bbox"][2] - i["bbox"][0]) * (i["bbox"][3] - i["bbox"][1]),
+    )
+    area_imagen = (mayor["bbox"][2] - mayor["bbox"][0]) * (
+        mayor["bbox"][3] - mayor["bbox"][1]
+    )
+    area_pagina = hoja.rect.width * hoja.rect.height
+    return (area_imagen / area_pagina) if area_pagina else 0.0
+
+
+def render_pdf_a_jpg(
+    pdf: str | Path,
+    pagina: int = 0,
+    dpi: int = 300,
+    *,
+    recortar: bool | None = None,
+    destino: str | Path | None = None,
+) -> Path:
+    """Renderiza una página de un PDF a un archivo JPG (RGB sin alfa).
 
     Porta ``_render_pdf_a_jpg`` del prototipo de la tarea T-104 (validado en
-    PROC.md §5): si la página tiene imagen(es), renderiza el **área de la
-    imagen más grande** (clip) con zoom — evita el caso de un ticket/recibo
-    chico centrado en una hoja A4 escaneada, que a página completa queda
-    diminuto y Docling no lo lee (ej. fixture ``3ac5a2ec``). Si no hay
-    imágenes, renderiza la página completa.
+    PROC.md §5), con una corrección posterior sobre **cuándo** recortar.
 
-    El JPG se crea en un directorio temporal (``tempfile.mkdtemp``). El
-    llamador es responsable de borrarlo tras convertir
-    (``Path.unlink(missing_ok=True)``); las funciones de orquestación lo hacen
-    en un ``finally``.
+    **Recorte (``recortar``).** El prototipo recortaba siempre al área de la
+    imagen más grande, para que un ticket chico centrado en una hoja A4 escaneada
+    no quedara diminuto (el fixture ``3ac5a2ec``). Eso es correcto cuando la
+    imagen mayor **es** el documento (un escaneado), pero en un PDF *born-digital*
+    —generado por sistema, con texto nativo— la imagen mayor suele ser el **logo**
+    del emisor: recortar ahí devolvía el logo en vez del comprobante. Medido sobre
+    el corpus real: 225 de los 232 PDF nacidos digitales con imágenes caían en ese
+    caso, y esos JPG son justamente lo que se le manda al VLM.
+
+    * ``None`` (default) → **automático**: recorta solo si la imagen mayor cubre
+      al menos :data:`UMBRAL_IMAGEN_DOMINA` de la hoja (los escaneados: 0,83–1,09
+      en el corpus) y renderiza la página completa si no (los born-digital:
+      ≤0,10). Es lo correcto para los dos universos sin que el llamador tenga que
+      saber cuál tiene enfrente.
+    * ``True`` → recorta siempre (comportamiento del prototipo, explícito).
+    * ``False`` → página completa siempre.
+
+    **Dónde escribe (``destino``).**
+
+    * ``None`` (default) → un directorio temporal nuevo (``tempfile.mkdtemp``).
+      El llamador es responsable de borrarlo tras convertir
+      (``Path.unlink(missing_ok=True)``); las funciones de orquestación lo hacen
+      en un ``finally``. Es el modo que usa el pipeline, que consume la imagen y
+      la descarta.
+    * una ruta → escribe **ahí** (creando las carpetas), con el mismo patrón
+      atómico que ``persistencia``: un ``save`` interrumpido no deja un JPEG
+      truncado con el nombre final, que la reanudación daría por bueno.
 
     Argumentos:
         pdf: ruta al PDF.
         pagina: índice de página a renderizar (0-based; default 0).
         dpi: resolución objetivo en puntos por pulgada (default 300, PROC.md §5).
+        recortar: ``None`` decide por cobertura, ``True``/``False`` lo fuerzan.
+        destino: archivo de salida; ``None`` crea uno temporal.
 
     Devuelve:
         ``Path`` al JPG creado (RGB, sin canal alfa).
@@ -118,14 +179,22 @@ def render_pdf_a_jpg(pdf: str | Path, pagina: int = 0, dpi: int = 300) -> Path:
                 f"(el PDF tiene {doc.page_count} página(s))."
             )
         hoja = doc[pagina]
-        infos = hoja.get_image_info()
-        if infos:
-            # Tomar la imagen de mayor área.
-            mayor = max(
-                infos,
-                key=lambda i: (i["bbox"][2] - i["bbox"][0]) * (i["bbox"][3] - i["bbox"][1]),
-            )
-            bbox = fitz.Rect(mayor["bbox"])
+        if recortar is None:
+            recortar = _fraccion_imagen_mayor(hoja) >= UMBRAL_IMAGEN_DOMINA
+
+        bbox = None
+        if recortar:
+            infos = hoja.get_image_info()
+            if infos:
+                # Tomar la imagen de mayor área.
+                mayor = max(
+                    infos,
+                    key=lambda i: (i["bbox"][2] - i["bbox"][0])
+                    * (i["bbox"][3] - i["bbox"][1]),
+                )
+                bbox = fitz.Rect(mayor["bbox"])
+
+        if bbox is not None:
             # Zoom para que el lado mayor de la imagen quede ~2000 px (bueno para OCR).
             lado_px = max(bbox.width, bbox.height)
             zoom = max(2000 / lado_px, dpi / 72) if lado_px else dpi / 72
@@ -137,9 +206,36 @@ def render_pdf_a_jpg(pdf: str | Path, pagina: int = 0, dpi: int = 300) -> Path:
     finally:
         doc.close()
 
-    tmp = Path(tempfile.mkdtemp(prefix="vf_render_")) / "pagina.jpg"
-    pix.save(str(tmp), jpg_quality=95)
-    return tmp
+    if destino is None:
+        tmp = Path(tempfile.mkdtemp(prefix="vf_render_")) / "pagina.jpg"
+        pix.save(str(tmp), jpg_quality=95)
+        return tmp
+
+    return _guardar_pixmap(pix, Path(destino))
+
+
+def _guardar_pixmap(pix: "fitz.Pixmap", destino: Path) -> Path:
+    """Guarda un pixmap en ``destino`` de forma atómica.
+
+    Delega la mecánica en ``persistencia.escribir_bytes_atomico`` (temporal en el
+    mismo directorio + ``fsync`` + ``os.replace``): tener una copia local del
+    patrón es justo lo que ese módulo vino a cerrar, y un test lo verifica.
+
+    PyMuPDF escribe a un archivo, no devuelve bytes, así que el pixmap se
+    serializa a JPEG en memoria (``tobytes``) y lo que viaja al temporal son los
+    bytes ya listos. Eso además hace que el ``fsync`` cubra el contenido real: con
+    un ``save`` a archivo, el buffer de PyMuPDF podría no estar vaciado.
+    """
+    import pymupdf as fitz  # noqa: F401  (documenta de quién son los pixmaps)
+
+    from ..persistencia import escribir_bytes_atomico
+
+    datos = pix.tobytes("jpeg", jpg_quality=95)
+    # El sufijo del temporal es el del destino: PyMuPDF deduce el formato de la
+    # extensión cuando escribe a archivo (acá ya no aplica, pero el temporal
+    # tampoco tiene que parecer un `.tmp` de otra cosa).
+    escribir_bytes_atomico(destino, datos, sufijo=destino.suffix or ".jpg")
+    return destino
 
 
 # ---------------------------------------------------------------------------
@@ -823,5 +919,6 @@ __all__ = [
     "procesar_documento",
     "procesar_imagen",
     "render_pdf_a_jpg",
+    "UMBRAL_IMAGEN_DOMINA",
     "_procesar_pdf_apto",
 ]

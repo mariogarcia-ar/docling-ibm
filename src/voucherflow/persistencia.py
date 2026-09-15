@@ -21,6 +21,11 @@ de los que depende esa reanudación: los checkpoints del lote, el sidecar y el
    renombrado y vacío. Es la diferencia entre «atómico» y «atómico de verdad».
 3. **El temporal se limpia si algo falla**: si no, quedan ``.nombre.XXX.tmp``
    acumulados al lado de cada archivo.
+
+Las tres se dan igual para texto (:func:`escribir_atomico`), JSON
+(:func:`escribir_json_atomico`) y binario (:func:`escribir_bytes_atomico`): las
+tres variantes comparten la mecánica, y tener una copia aparte para bytes fue
+exactamente el problema que este módulo vino a cerrar.
 """
 
 from __future__ import annotations
@@ -47,6 +52,39 @@ def escribir_atomico(destino: Path, contenido: str) -> None:
     try:
         with os.fdopen(descriptor, "w", encoding="utf-8") as archivo:
             archivo.write(contenido)
+            archivo.flush()
+            os.fsync(archivo.fileno())
+        os.replace(temporal, destino)
+    except BaseException:
+        try:
+            os.unlink(temporal)
+        except OSError:
+            pass
+        raise
+
+
+def escribir_bytes_atomico(destino: Path, datos: bytes, *, sufijo: str = ".tmp") -> None:
+    """Escribe ``datos`` (binario) en ``destino`` sin estado intermedio.
+
+    Misma mecánica que :func:`escribir_atomico` para el caso binario (una imagen
+    renderizada), con un detalle que **no** es cosmético:
+
+    ⚠️ ``sufijo`` es el del **contenido**, no ``.tmp``, porque hay escritores que
+    deducen el formato de la extensión (PyMuPDF, con los pixmaps) y un
+    ``x.jpg.abc.tmp`` no les dice que tienen que escribir un JPEG. El default
+    ``.tmp`` sirve para formatos que se declaran solos; quien necesite que la
+    extensión hable, pasa la extensión real del destino.
+
+    El ``fsync`` también se hace acá: un JPEG a medio escribir con el nombre final
+    es peor que no tenerlo, porque la reanudación lo daría por bueno.
+    """
+    destino.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, temporal = tempfile.mkstemp(
+        dir=str(destino.parent), prefix=f".{destino.name}.", suffix=sufijo
+    )
+    try:
+        with os.fdopen(descriptor, "wb") as archivo:
+            archivo.write(datos)
             archivo.flush()
             os.fsync(archivo.fileno())
         os.replace(temporal, destino)

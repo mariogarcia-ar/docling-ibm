@@ -23,7 +23,11 @@ from pathlib import Path
 
 import pytest
 
-from voucherflow.persistencia import escribir_atomico, escribir_json_atomico
+from voucherflow.persistencia import (
+    escribir_atomico,
+    escribir_bytes_atomico,
+    escribir_json_atomico,
+)
 
 
 class TestEscribeElContenido:
@@ -57,6 +61,73 @@ class TestEscribeElContenido:
         destino = tmp_path / "a.json"
         escribir_json_atomico(destino, {"fecha": date(2026, 8, 29)})
         assert "2026-08-29" in destino.read_text(encoding="utf-8")
+
+
+class TestEscribeBytes:
+    """La variante binaria: la usa el render de PDF a JPG.
+
+    ⚠️ Es el mismo invariante que las otras dos, así que tiene que pasar por acá:
+    una copia local en el módulo del render fue lo que el test de consumidores
+    destapó (escribía su propio ``mkstemp`` + ``replace``).
+    """
+
+    def test_escribe_los_bytes(self, tmp_path: Path):
+        destino = tmp_path / "a.bin"
+        escribir_bytes_atomico(destino, b"\x00\x01\x02")
+        assert destino.read_bytes() == b"\x00\x01\x02"
+
+    def test_sobrescribe_lo_que_habia(self, tmp_path: Path):
+        destino = tmp_path / "a.bin"
+        destino.write_bytes(b"viejo")
+        escribir_bytes_atomico(destino, b"nuevo")
+        assert destino.read_bytes() == b"nuevo"
+
+    def test_crea_las_carpetas_intermedias(self, tmp_path: Path):
+        destino = tmp_path / "a" / "b" / "c.jpg"
+        escribir_bytes_atomico(destino, b"x")
+        assert destino.read_bytes() == b"x"
+
+    def test_el_sufijo_del_temporal_es_configurable(self, tmp_path: Path, monkeypatch):
+        """⚠️ PyMuPDF deduce el formato de la extensión: un `.tmp` no le dice que
+        escriba un JPEG. El temporal tiene que poder terminar en `.jpg`."""
+        import voucherflow.persistencia as p
+
+        vistos: list[str] = []
+        original = p.tempfile.mkstemp
+
+        def espia(*args, **kwargs):
+            vistos.append(kwargs.get("suffix"))
+            return original(*args, **kwargs)
+
+        monkeypatch.setattr(p.tempfile, "mkstemp", espia)
+        escribir_bytes_atomico(tmp_path / "a.jpg", b"x", sufijo=".jpg")
+        assert vistos == [".jpg"]
+
+    def test_el_default_del_sufijo_sigue_siendo_tmp(self, tmp_path: Path, monkeypatch):
+        """Los formatos que se declaran solos no necesitan cambiar el sufijo."""
+        import voucherflow.persistencia as p
+
+        vistos: list[str] = []
+        original = p.tempfile.mkstemp
+
+        def espia(*args, **kwargs):
+            vistos.append(kwargs.get("suffix"))
+            return original(*args, **kwargs)
+
+        monkeypatch.setattr(p.tempfile, "mkstemp", espia)
+        escribir_bytes_atomico(tmp_path / "a.bin", b"x")
+        assert vistos == [".tmp"]
+
+    def test_no_queda_basura_si_falla(self, tmp_path: Path, monkeypatch):
+        import voucherflow.persistencia as p
+
+        def fallar(_fd):
+            raise OSError("disco lleno")
+
+        monkeypatch.setattr(p.os, "fsync", fallar)
+        with pytest.raises(OSError, match="disco lleno"):
+            escribir_bytes_atomico(tmp_path / "a.jpg", b"x", sufijo=".jpg")
+        assert list(tmp_path.glob(".*")) == []
 
 
 class TestNoDejaTemporales:
@@ -193,6 +264,16 @@ class TestTodosLosConsumidoresUsanLoMismo:
             f"estos módulos reimplementan la escritura atómica: {culpables} "
             "(usar `voucherflow.persistencia`)"
         )
+
+    def test_el_render_de_pdf_usa_el_helper_compartido(self):
+        """⚠️ El render escribía su propio `mkstemp` + `replace` (y el test de
+        arriba lo destapó). Ahora delega: el módulo del render no crea temporales.
+        """
+        import voucherflow.processing.orquestacion as orq
+
+        fuente = Path(orq.__file__).read_text(encoding="utf-8")
+        assert "mkstemp" not in fuente
+        assert "escribir_bytes_atomico" in fuente
 
     def test_el_punto_de_inyeccion_sigue_inyectable(self, tmp_path: Path, monkeypatch):
         """Control del monkeypatch real de `test_batch_t602.py`."""

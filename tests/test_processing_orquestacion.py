@@ -451,6 +451,105 @@ class TestRenderPdfAJpg:
         assert not img.exists()
 
 
+class TestRenderDecidePorCobertura:
+    """⚠️ El bug que esta regla cierra (medido sobre el corpus real).
+
+    El render recortaba SIEMPRE a la imagen mayor. En un PDF *born-digital* (con
+    texto nativo) la imagen mayor suele ser el **logo**: el recorte devolvía el
+    logo en vez del comprobante. Medido: 225 de los 232 PDF nacidos digitales con
+    imágenes del corpus, y esos JPG son los que se le mandan al VLM.
+    """
+
+    def _ancho(self, img):
+        from PIL import Image
+
+        try:
+            return Image.open(img).size
+        finally:
+            pass
+
+    def test_born_digital_con_logo_renderiza_la_pagina_completa(self, tmp_path):
+        """Un logo chico en una hoja grande NO puede convertirse en el render."""
+        ruta = tmp_path / "con_logo.pdf"
+        doc = fitz.open()
+        p = doc.new_page()  # A4: 595x842 pt
+        p.insert_text((72, 72), "FACTURA A 0001-00000001")
+        p.insert_text((72, 100), "Total: $ 1.234,56")
+        # Logo de 60x60 pt: 0,7% de la hoja (el caso medido: 2%).
+        pix = fitz.Pixmap(fitz.csRGB, fitz.IRect(0, 0, 60, 60), False)
+        pix.clear_with(200)
+        p.insert_image(fitz.Rect(400, 40, 460, 100), pixmap=pix)
+        doc.save(str(ruta))
+        doc.close()
+
+        img = render_pdf_a_jpg(ruta)
+        try:
+            ancho, alto = self._ancho(img)
+            # A4 a 300 dpi ≈ 2480x3508 (retrato). El logo daría algo cuadrado.
+            assert alto > ancho, "la página completa es vertical; el logo no"
+            assert ancho > 2000, f"esperaba la página completa, no el logo ({ancho}px)"
+        finally:
+            img.unlink(missing_ok=True)
+
+    def test_escaneado_sigue_recortando_a_la_imagen(self, tmp_path):
+        """En un escaneado la imagen mayor ES el documento: se mantiene el recorte.
+
+        Es el caso que motivó el recorte (fixture ``3ac5a2ec``): un ticket chico
+        centrado en una hoja grande, que a página completa queda ilegible.
+        """
+        ruta = tmp_path / "ticket.pdf"
+        doc = fitz.open()
+        p = doc.new_page(width=595, height=842)
+        pix = fitz.Pixmap(fitz.csRGB, fitz.IRect(0, 0, 800, 400), False)
+        pix.clear_with(255)
+        # Ticket de 400x200 pt en el centro: 16% de la hoja → NO domina.
+        p.insert_image(fitz.Rect(100, 300, 500, 500), pixmap=pix)
+        doc.save(str(ruta))
+        doc.close()
+
+        # Automático: no domina (16% < 50%) → página completa.
+        img_auto = render_pdf_a_jpg(ruta)
+        try:
+            assert self._ancho(img_auto)[1] > self._ancho(img_auto)[0]
+        finally:
+            img_auto.unlink(missing_ok=True)
+
+        # Forzado: recorta a la imagen (el comportamiento del prototipo).
+        img_crop = render_pdf_a_jpg(ruta, recortar=True)
+        try:
+            ancho, alto = self._ancho(img_crop)
+            assert ancho > alto, "el ticket es apaisado; el recorte debe respetarlo"
+        finally:
+            img_crop.unlink(missing_ok=True)
+
+    def test_recortar_false_ignora_la_cobertura(self, tmp_path):
+        """``recortar=False`` siempre da la página, aunque la imagen domine."""
+        ruta = _pdf_escaneado(tmp_path)
+        img = render_pdf_a_jpg(ruta, recortar=False)
+        try:
+            assert self._ancho(img)[1] > self._ancho(img)[0]
+        finally:
+            img.unlink(missing_ok=True)
+
+    def test_recortar_true_no_falla_sin_imagenes(self, tmp_path):
+        """Pedir recorte en una página sin imágenes cae a página completa."""
+        ruta = _pdf_texto(tmp_path)
+        img = render_pdf_a_jpg(ruta, recortar=True)
+        try:
+            assert img.stat().st_size > 0
+        finally:
+            img.unlink(missing_ok=True)
+
+    def test_el_umbral_esta_calibrado_en_el_hueco(self):
+        """El hueco medido: born-digital ≤0,10 y escaneados ≥0,83."""
+        from voucherflow.processing.orquestacion import UMBRAL_IMAGEN_DOMINA
+
+        assert 0.36 <= UMBRAL_IMAGEN_DOMINA <= 0.83, (
+            "el umbral tiene que caer en el hueco de la distribución medida "
+            "(ningún PDF del corpus entre 0,36 y 0,83)"
+        )
+
+
 # ---------------------------------------------------------------------------
 # procesar_imagen (subrutina de imagen, E-DOC-2)
 # ---------------------------------------------------------------------------

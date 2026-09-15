@@ -680,7 +680,7 @@ def test_el_servidor_es_un_binario_aparte_del_cli() -> None:
     """
     from voucherflow.cli.main import COMANDOS
 
-    assert len(COMANDOS) == 12
+    assert len(COMANDOS) == 13
     assert "serve" not in COMANDOS
     assert "http" not in COMANDOS
 

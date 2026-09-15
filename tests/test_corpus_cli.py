@@ -3,9 +3,10 @@
 ⚠️ **Este archivo también fija el contrato de subcomandos del CLI.** Hasta acá
 eran 11 (E-CLI-1 + los de auditoría) y estaban congelados por
 ``test_cli_t601.py``. Sumar ``corpus`` fue una **decisión explícita**: la
-capacidad se necesitaba en el pipeline, no como script suelto. Los tests que
-fijaban 11 se actualizaron a 12 a propósito; si alguien suma un 13.º comando sin
-querer, estos dos archivos fallan.
+capacidad se necesitaba en el pipeline, no como script suelto. Después se sumó
+``pdf`` (13.º), por el mismo camino: era ``scripts/operacion/pdf-a-imagen.py``.
+Los tests que fijaban 11 se actualizaron a 12 y después a 13 a propósito; si
+alguien suma un comando sin querer, estos dos archivos fallan.
 """
 
 from __future__ import annotations
@@ -19,7 +20,8 @@ from voucherflow.cli.main import COMANDOS, DESPACHO, construir_parser, main
 from voucherflow.corpus.cli import EntornoCorpus
 from voucherflow.corpus.cli import main as main_corpus
 
-#: Lo que el contrato debe seguir diciendo: los 11 de siempre + ``corpus``.
+#: Lo que el contrato debe seguir diciendo: los 11 de siempre + ``corpus`` (12.º)
+#: + ``pdf`` (13.º, del script ``scripts/operacion/pdf-a-imagen.py`` que se retiró).
 COMANDOS_ESPERADOS = {
     "process",
     "validate",
@@ -33,6 +35,7 @@ COMANDOS_ESPERADOS = {
     "case",
     "hitl",
     "corpus",
+    "pdf",
 }
 
 
@@ -75,11 +78,11 @@ def _parsear(argv: list[str]):
 
 
 class TestContrato:
-    """El contrato de subcomandos, con el 12.º declarado a propósito."""
+    """El contrato de subcomandos, con el 12.º y el 13.º declarados a propósito."""
 
-    def test_son_doce_y_estan_todos(self):
+    def test_son_trece_y_estan_todos(self):
         assert set(COMANDOS) == COMANDOS_ESPERADOS
-        assert len(COMANDOS) == 12
+        assert len(COMANDOS) == 13
 
     def test_el_despacho_cubre_los_comandos(self):
         assert set(DESPACHO) == COMANDOS_ESPERADOS

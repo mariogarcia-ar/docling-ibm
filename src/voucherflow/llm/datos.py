@@ -8,6 +8,7 @@ acepta tanto un JSON de un documento como un mapa de documentos, y lo declara.
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 # --------------------------------------------------------------------------- #
@@ -70,13 +71,29 @@ def buscar_datos(img: Path, datos: dict[str, dict]) -> tuple[str | None, dict | 
     Candidatos, en orden: nombre del archivo, nombre de la carpeta contenedora
     (el hash del lote), y la ruta relativa sin extensión. Si sólo hay un
     documento cargado (``__unico__``), se usa ese.
+
+    ⚠️ ``img`` puede ser la **clave de página** de un PDF (``x_p01.pdf``): los
+    datos se cargan por documento, así que se prueban también el nombre sin el
+    sufijo de página (``x``). Sin esto, un PDF con datos cargados no encontraba
+    su carga y la corrida fallaba con "no hay datos cargados".
     """
     if "__unico__" in datos and len(datos) == 1:
         return "__unico__", datos["__unico__"]
     candidatos = [img.stem, img.parent.name, str(img.with_suffix(""))]
+    sin_pagina = sin_sufijo_de_pagina(img.stem)
+    if sin_pagina != img.stem:
+        candidatos.extend([sin_pagina, str(img.with_name(sin_pagina).with_suffix(""))])
     for candidato in candidatos:
         if candidato in datos:
             return candidato, datos[candidato]
     return None, None
+
+
+def sin_sufijo_de_pagina(nombre: str) -> str:
+    """Quita el ``_pNN`` de una clave de página (``doc_p01`` → ``doc``).
+
+    Si no termina en ese sufijo, devuelve el nombre tal cual.
+    """
+    return re.sub(r"_p\d+$", "", nombre)
 
 

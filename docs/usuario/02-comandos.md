@@ -2,7 +2,7 @@
 
 > [← Volver a la guía del operador](README.md)
 
-Los once subcomandos de `voucherflow`. Para cada uno: qué hace, cuándo usarlo,
+Los trece subcomandos de `voucherflow`. Para cada uno: qué hace, cuándo usarlo,
 sus banderas y su código de salida.
 
 **La ayuda de la terminal es la fuente más actualizada**: `voucherflow <comando>
@@ -494,6 +494,63 @@ hubo algún fallo, `2` si los argumentos no son válidos.
 degradar la letra chica, porque el OCR lee píxeles. En ese caso bajá la reducción
 (`--lado-mayor 1536` o `2048`) o medí primero con `--solo-medir`. Para el camino
 **VLM** (la imagen viaja al modelo) reducir es lo correcto.
+
+---
+
+## `pdf` — convertir PDF a imágenes
+
+```bash
+voucherflow pdf comprobante.pdf                          # → var/paginas/pagina_1.jpg
+voucherflow pdf var/files -o var/paginas --dpi 300        # todo el corpus
+voucherflow pdf var/files -o var/paginas --solo-medir     # ver sin escribir
+voucherflow pdf lote.pdf --primera 1 --ultima 2 --forzar
+```
+
+**Para qué sirve**: materializa las **páginas** de un PDF como imágenes JPG.
+Tres usos concretos: mirar un PDF antes o después de procesarlo, armar un corpus
+de imágenes, y alimentar al **laboratorio de LLM externos** (`voucherflow-lab`),
+que manda imágenes al proveedor y por eso renderiza los PDF de su lote con esta
+misma pieza.
+
+⚠️ **No es lo mismo que `process`.** `voucherflow process` decide solo si un PDF
+se lee como texto nativo o hay que rasterizarlo, y **descarta** la imagen cuando
+termina. Este comando **conserva** las imágenes, que es otra cosa: no lo uses para
+"procesar un PDF", usalo cuando necesitás las imágenes.
+
+| Bandera | Qué hace |
+|---|---|
+| `-o, --salida DIR` | Carpeta de salida (default: `var/paginas`, de la configuración). |
+| `--raiz DIR` | Raíz desde la cual se espeja el árbol. Fijala si el corpus no tiene forma de mes. |
+| `--dpi DPI` | Resolución del render (default: `300`, la que usa el pipeline para OCR). |
+| `--calidad 1-100` | Calidad JPEG (default: `95`). |
+| `--recortar` | Recorta **siempre** a la imagen más grande de la página. |
+| `--sin-recortar` | Renderiza la página completa, **siempre**. |
+| `--primera N` / `--ultima N` | Rango de páginas, 1-based e inclusive. |
+| `--patron PLANTILLA` | Nombre de cada imagen. Tokens: `{nombre}`, `{pagina}`, `{total}`. |
+| `--forzar` | Re-renderiza aunque el archivo exista (sin esto, **reanuda**). |
+| `--solo-medir` | Muestra qué escribiría, sin crear nada. |
+| `--limite N` | Convierte solo las primeras N páginas (`0` = todas). |
+
+**El recorte, por defecto, se decide por página.** Un `--recortar` fijo es
+correcto para un **escaneado** (ahí la imagen grande *es* el documento: es el caso
+de un ticket chico centrado en una hoja A4, que a página completa queda diminuto e
+ilegible). Pero en un **PDF generado por sistema**, con texto nativo, la imagen
+más grande del archivo suele ser el **logo del emisor**: recortar ahí devuelve un
+logo de 60 pt en vez del comprobante. El default evalúa la cobertura de la imagen
+y elige por página, que es lo correcto en los dos casos sin que tengas que saber
+cuál tenés enfrente. Usá `--recortar` / `--sin-recortar` solo para forzarlo.
+
+**El nombre de la imagen**: con **un solo** PDF es `pagina_1.jpg`; con **varios**
+lleva el del documento (`<nombre>_pagina_1.jpg`), porque si no dos PDF homónimos
+de meses distintos se pisarían.
+
+**La salida espeja el árbol** desde la raíz de la entrada (igual que `corpus`), así
+que la misma entrada escribe siempre los mismos archivos: eso es lo que hace que
+la reanudación funcione.
+
+**Código de salida**: `0` si todo salió bien, `1` si alguna página falló, `2` si
+los argumentos no son válidos (por ejemplo un rango de páginas que deja el plan
+vacío, o una ruta sin ningún PDF).
 
 ---
 
