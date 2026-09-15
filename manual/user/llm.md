@@ -89,13 +89,26 @@ No llama a la API ni escribe nada: estima el costo del lote completo.
 
 ```
 archivos          : 3542
-tokens por archivo: entrada ≈ 2,769 (texto+esquema) + 1,024 de imagen (deepseek) | salida ≈ 240
-tokens totales    : entrada 13,434,182 | salida 850,080
+tokens por archivo: entrada ≈ 2,769 (texto+esquema) + 1,024 de imagen (deepseek) | salida ≈ 3,000
+tokens totales    : entrada 13,434,182 | salida 10,626,000
 COSTO ESTIMADO    : US$ 40.1400   (≈ US$ 0.0113 por comprobante)
 precios usados    : US$ 0.3/1M entrada, US$ 1.2/1M salida, US$ 0.006/1M entrada-caché (deepseek-flash)
-postura del precio: PICO (01:00-04:00 y 06:00-10:00 UTC, L-V) y SIN caché: es el techo; off-peak cuesta la mitad
+postura del precio: PICO (01:00-04:00 y 06:00-10:00 UTC, L-V); SIN caché: es el techo  ·  off-peak cuesta la mitad
 confianza         : fórmula (3.92 car/token; medido contra la API)
 ```
+
+⚠️ **«SIN caché: es el techo»** quiere decir que no había con qué medir el caché
+(carpeta de salida vacía, o el proveedor no expone el campo): la corrida real sale
+**igual o menos**. Cuando la carpeta **ya tiene** corridas del mismo modelo, la
+línea dice **«proyecta el caché observado»** y el número se parece al gasto real
+—medido sobre 95 comprobantes: estimado US$ 0,3735 vs real US$ 0,3735—. El caché
+pesa porque el system y el esquema son idénticos en todo el lote: ~76 % del prompt
+se sirve de caché y se cobra a 1/50 del precio.
+
+⚠️ **La salida es la mayor parte del gasto** (~92 % con thinking activo: los
+tokens de razonamiento se facturan como `completion`). Por eso la proyección usa
+la **media** de lo medido y no la mediana: el total del lote es
+`n × salida_media`, y la mediana lo subestimaría ~27 %.
 
 ⚠️ **El costo de la imagen depende del proveedor**, así que el número cambia con
 `-p`. La línea «tokens por archivo» nombra el proveedor con el que se estimó:

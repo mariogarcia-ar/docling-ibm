@@ -24,8 +24,19 @@ from pathlib import Path
 import pytest
 
 from voucherflow.llm import corrida
+from voucherflow.llm.cli import PROMPT_POR_DEFECTO
+from voucherflow.llm.prompts import cargar_prompt
 from voucherflow.llm.protocolo import CLAVE_CACHE_HIT, CLAVE_CACHE_MISS
 from voucherflow.llm.proveedores import AdaptadorDeepSeek
+
+#: PNG de 1x1 válido: la estimación de imagen necesita dimensiones legibles
+#: (Pillow), y un archivo de bytes basura daría ``tokens_imagen = None``.
+_PNG = (
+    b"\x89PNG\r\n\x1a\n"
+    b"\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x02\x00\x00\x00"
+    b"\x90wS\xde\x00\x00\x00\x0cIDATx\x9cc\xf8\xcf\xc0\x00\x00\x00\x03\x00\x01"
+    b"\x86\xa0\xb5\x9d\x00\x00\x00\x00IEND\xaeB`\x82"
+)
 
 
 def _opciones(salida: Path, **over) -> corrida.Opciones:
@@ -870,6 +881,112 @@ class TestProtocoloProveedorLLM:
             adaptador = clase()
             assert isinstance(adaptador, ProveedorLLM), nombre
             assert adaptador.capacidades.nombre == nombre
+
+
+class TestCalibracionDelEstimador:
+    """⚠️ La estimación tiene que parecerse al gasto, no ser un techo cómodo.
+
+    Medido sobre el lote real de 95 comprobantes (2026-09-15): la estimación
+    decía **US$ 0,5052** y el gasto fue **US$ 0,3735** → **1,35x**, porque
+    asumía el caso peor del caché. El caché no es un detalle: el 76 % del prompt
+    es el mismo en todo el lote (system + esquema), y la **salida** es el 91,8 %
+    del gasto, así que equivocarse en la salida mueve el total.
+    """
+
+    def _historial(self, tmp_path, *, n=4, prompt=3600, completion=3000, cache=0.76):
+        """Escribe un histórico con caché medido, del modelo y modo que se estima."""
+        for i in range(n):
+            hit = round(prompt * cache)
+            _escribir(
+                tmp_path,
+                f"2026-09/{i}/doc.extraccion.json",
+                _registro(
+                    f"/x/{i}.jpg",
+                    prompt=prompt,
+                    completion=completion,
+                    cache_hit=hit,
+                    cache_miss=prompt - hit,
+                ),
+            )
+
+    def _estimar(self, tmp_path, imagenes=1):
+        from voucherflow.llm.corrida import estimar_costo_corrida
+
+        rutas = []
+        for i in range(imagenes):
+            p = tmp_path / f"img{i}.png"
+            p.write_bytes(_PNG)
+            rutas.append(p)
+        sistema, user = cargar_prompt(PROMPT_POR_DEFECTO)
+        return estimar_costo_corrida(rutas, sistema, user, _opciones(tmp_path))
+
+    def test_sin_historico_declara_el_techo(self, tmp_path):
+        """Sin con qué medir el caché, se declara el caso peor — no se adivina."""
+        est = self._estimar(tmp_path)
+        assert est["cache_proyectado"] is False
+        assert est["fraccion_cache_proyectada"] is None
+
+    def test_con_historico_proyecta_el_cache_medido(self, tmp_path):
+        """⚠️ Es el ajuste que corrige el 1,35x: medir en vez de asumir cero."""
+        self._historial(tmp_path)
+        est = self._estimar(tmp_path)
+        assert est["cache_proyectado"] is True
+        assert est["fraccion_cache_proyectada"] == pytest.approx(0.76, abs=0.01)
+
+    def test_el_cache_baja_el_costo_estimado(self, tmp_path):
+        """La dirección del ajuste: proyectar el caché **abarata**, no encarece.
+
+        Si algún día el signo se invirtiera (un `hit` que se cobra a precio
+        lleno), el número crecería sin motivo y este test lo caza.
+        """
+        sin = self._estimar(tmp_path)["costo_usd_total"]
+        self._historial(tmp_path)
+        con = self._estimar(tmp_path)["costo_usd_total"]
+        assert con < sin
+
+    def test_la_estimacion_queda_cerca_del_gasto_real(self, tmp_path):
+        """El número tiene que ser una estimación, no un techo.
+
+        Con el histórico real medido, la estimación del lote tiene que caer
+        dentro del **10 %** del gasto observado. El caso concreto que motivó este
+        test: 95 comprobantes, caché al 76 %, salida media 3.008 → estimado
+        US$ 0,3735 vs real US$ 0,3735 (antes de calibrar: 0,5052, un 35 % arriba).
+        """
+        n, prompt, completion, cache = 95, 4186, 3008, 0.759
+        self._historial(
+            tmp_path, n=6, prompt=prompt, completion=completion, cache=cache
+        )
+        est = self._estimar(tmp_path, imagenes=n)
+
+        # El gasto real, con los precios de DeepSeek.
+        real_hit = round((1024 + (prompt - 1024)) * cache)
+        real = n * (
+            real_hit * 0.006 + (prompt - real_hit) * 0.3 + completion * 1.2
+        ) / 1e6
+        assert est["costo_usd_total"] == pytest.approx(real, rel=0.10), (
+            f"estimado {est['costo_usd_total']:.4f} vs real {real:.4f}"
+        )
+
+    def test_varios_documentos_con_prompt_largo_pesan_lo_que_corresponde(self, tmp_path):
+        """La fracción se pondera por **tokens**, no por documento.
+
+        Un documento con prompt largo tiene que pesar más en el promedio: así es
+        como el proveedor cobra el caché. Promediar fracciones por documento
+        sobreestimaría el ahorro cuando un solo documento domina el lote.
+        """
+        _escribir(
+            tmp_path,
+            "2026-09/a/corto.extraccion.json",
+            _registro("/x/a.jpg", prompt=1000, completion=100, cache_hit=100, cache_miss=900),
+        )
+        _escribir(
+            tmp_path,
+            "2026-09/b/largo.extraccion.json",
+            _registro("/x/b.jpg", prompt=9000, completion=100, cache_hit=8900, cache_miss=100),
+        )
+        est = self._estimar(tmp_path)
+        esperado = (100 + 8900) / (1000 + 9000)
+        assert est["fraccion_cache_proyectada"] == pytest.approx(esperado, abs=0.001)
 
 
 class TestCLIGastos:

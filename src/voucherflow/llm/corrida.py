@@ -406,9 +406,13 @@ def estimar_costo_corrida(
         confianza = CONFIANZA_MIXTA
 
     precio_entrada, precio_salida = precio_de(opciones.modelo, opciones.precios)
-    # El caché no se sabe de antemano: se estima el caso **sin caché** (el más
-    # caro) y se declara, en vez de suponer un ahorro que puede no darse.
+    # El caché del prompt: si el histórico lo tiene medido, se proyecta esa
+    # fracción (el system+esquema es el mismo en todo el lote, así que el
+    # proveedor lo sirve barato); si no, se cae al caso peor y se declara.
+    # Medido en el lote real: asumir cero sobreestima 1,24x.
+    fraccion_cache = _fraccion_cache_historica(opciones.salida, opciones)
     precio_cache = precio_cache_de(opciones.modelo, opciones.precios_cache)
+    cache_proyectado = fraccion_cache is not None and precio_cache is not None
 
     # ⚠️ La fórmula de la imagen la declara el **proveedor**: estimar todos con el
     # tope de DeepSeek daba de 0,9x a 12x de error con `-p openai`.
@@ -427,16 +431,17 @@ def estimar_costo_corrida(
         # Sin dimensiones legibles no se puede estimar la imagen: se cuenta el
         # texto y se declara que falta la parte más pesada.
         entrada = (tokens_img or 0) + tokens_texto
-        # Cache hit y miss cuestan distinto, y no se sabe de antemano cuánto va a
-        # pegar el caché: se estima el caso **sin caché** (el más caro) y la
-        # estimación del log se ajusta después, con lo que crezca el prefijo
-        # cacheado (el system es el mismo en todo el lote).
+        # Con el caché proyectado del histórico, la parte cacheada se cobra al
+        # precio barato; sin él, todo el prompt va a precio lleno (caso peor).
+        hit_proyectado = (
+            round(entrada * fraccion_cache) if cache_proyectado else 0
+        )
         costo = costo_de_tokens(
             entrada,
             tokens_salida,
             precio_entrada,
             precio_salida,
-            cache_hit_tokens=0,
+            cache_hit_tokens=hit_proyectado,
             precio_cache=precio_cache,
         )
         if costo is None:
@@ -472,6 +477,10 @@ def estimar_costo_corrida(
         "tokens_salida_estimados": tokens_salida,
         "tokens_entrada_totales": total_entrada,
         "tokens_salida_totales": total_salida,
+        # Fracción del prompt proyectada como servida de caché (``None`` = se
+        # estimó el caso peor porque no había con qué medirla).
+        "fraccion_cache_proyectada": fraccion_cache,
+        "cache_proyectado": cache_proyectado,
         "cache_hit_historicos": sum(
             (registro.get("uso") or {}).get(CLAVE_CACHE_HIT) or 0
             for registro in _registros_validos(opciones.salida, opciones)
@@ -534,6 +543,40 @@ def _tokens_de_salida_historicos(salida: Path, opciones: Opciones) -> list[int]:
     return salidas
 
 
+def _fraccion_cache_historica(salida: Path, opciones: Opciones) -> float | None:
+    """Fracción del prompt que el proveedor sirvió de su caché, medida (T-404).
+
+    **Por qué se mide en vez de asumir cero.** La estimación más vieja calculaba
+    el caso peor (todo el prompt a precio lleno) para no prometer un ahorro que
+    podía no darse. Medido sobre el lote real de 95 comprobantes, eso sobreestima
+    **1,24x**: el 76 % del prompt es el mismo en todo el lote (system + esquema),
+    así que el proveedor lo sirve de caché y la entrada se cobra a 1/50 del
+    precio. El techo no era prudencia: era un número que se sabía equivocado
+    cuando la carpeta de salida **ya tiene** corridas del mismo modelo y modo.
+
+    ⚠️ **Se proyecta lo observado, no se promete una mejora.** Si el histórico no
+    tiene el dato (corridas viejas, antes de que se registrara el caché), la
+    fracción es ``None`` y el llamador vuelve al caso peor: **no saber** no es
+    «no hay caché». Lo mismo si el proveedor no expone el campo (OpenAI/Gemini no
+    lo reportan con esta clave), donde no hay nada que medir.
+
+    La fracción se pondera por tokens (``sum(hit)/sum(prompt)``) y no por
+    documento: así un documento con prompt largo pesa lo que corresponde, que es
+    como el proveedor cobra.
+    """
+    total_prompt = total_hit = 0
+    for registro in _registros_validos(salida, opciones):
+        uso = registro.get("uso") or {}
+        prompt = uso.get("prompt_tokens") or 0
+        if prompt <= 0:
+            continue
+        total_prompt += prompt
+        total_hit += uso.get(CLAVE_CACHE_HIT) or 0
+    if total_prompt <= 0:
+        return None
+    return total_hit / total_prompt
+
+
 def _registros_validos(salida: Path, opciones: Opciones) -> list[dict]:
     """Registros pagos de la carpeta de salida, del mismo modelo y modo.
 
@@ -577,10 +620,18 @@ def imprimir_estimacion(est: dict[str, Any], *, detalle: bool = False) -> None:
         f"tokens totales    : entrada {est['tokens_entrada_totales']:,} | "
         f"salida {est['tokens_salida_totales']:,}"
     )
-    if est.get("cache_hit_historicos"):
+    if est.get("cache_proyectado"):
+        frac = est.get("fraccion_cache_proyectada") or 0
         print(
-            f"caché de contexto : {est['cache_hit_historicos']:,} tokens ya se "
-            "sirvieron de caché en corridas previas (se cobran mucho más barato)"
+            f"caché de contexto : {frac:.0%} del prompt se proyecta servido de "
+            f"caché (medido en {est.get('muestras_historico', 0)} corrida(s) "
+            "previa(s): el system+esquema es el mismo en todo el lote)"
+        )
+    elif est.get("cache_hit_historicos"):
+        print(
+            f"caché de contexto : {est['cache_hit_historicos']:,} tokens se "
+            "sirvieron de caché en corridas previas, pero NO se proyecta (falta "
+            "el desglose en el histórico): el número es el techo"
         )
     if est["costo_usd_total"] is not None:
         print(f"COSTO ESTIMADO    : US$ {est['costo_usd_total']:.4f}", end="")
@@ -595,8 +646,13 @@ def imprimir_estimacion(est: dict[str, Any], *, detalle: bool = False) -> None:
             f"({est['opciones']['modelo']})"
         )
         print(
-            "postura del precio: PICO (01:00-04:00 y 06:00-10:00 UTC, L-V) y SIN "
-            "caché: es el techo; off-peak cuesta la mitad"
+            "postura del precio: PICO (01:00-04:00 y 06:00-10:00 UTC, L-V); "
+            + (
+                "proyecta el caché observado"
+                if est.get("cache_proyectado")
+                else "SIN caché: es el techo"
+            )
+            + "  ·  off-peak cuesta la mitad"
         )
     else:
         print(

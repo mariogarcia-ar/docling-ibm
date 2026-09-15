@@ -58,8 +58,30 @@ El `--dry-run` recorre **todo el lote**, incluidas las imágenes ya procesadas: 
 saltea nada (saltear es cosa de la corrida real, que reanuda). Por eso `--forzar`
 es innecesario acá —si lo pasás igual, se avisa y no cambia la estimación—.
 
-La postura del precio es el **techo** (tarifa pico y sin caché): la corrida real
-sale igual o menos.
+### Qué tan cerca queda el número
+
+La estimación se **calibra con las corridas ya pagas** de la carpeta de salida
+(texto, salida y la fracción del prompt que el proveedor sirvió de caché). Sin
+histórico cae a la fórmula y lo declara.
+
+⚠️ **La línea de «postura del precio» dice cuál de las dos cosas estás viendo**:
+
+- **«proyecta el caché observado»** → hay histórico y el número se parece al
+  gasto. Medido sobre 95 comprobantes (2026-09-15): estimado **US$ 0,3735** vs
+  real **US$ 0,3735**.
+- **«SIN caché: es el techo»** → no hay con qué medir el caché (carpeta vacía, o
+  el proveedor no expone el campo). Es el **caso peor**: la corrida real sale
+  igual o menos.
+
+⚠️ **Por qué el caché no es un detalle**: el system + el esquema son **idénticos**
+en todo el lote, así que el proveedor sirve ~76 % del prompt desde su caché y lo
+cobra a 1/50 del precio. Ignorarlo no era prudencia: era un número que se sabía
+equivocado. Medido: asumir cero sobreestimaba **1,35x**.
+
+⚠️ **La salida es el 91,8 % del gasto** (con thinking activo, los tokens de
+razonamiento se facturan como `completion`). Por eso la proyección usa la
+**media** y no la mediana: el total es `n × salida_media`, y con la mediana el
+lote real se habría subestimado 27 %. La cola es larga (331 a 17.961 tokens).
 
 ### 2. Extraer el corpus
 
