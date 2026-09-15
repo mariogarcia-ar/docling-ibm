@@ -18,6 +18,8 @@ python scripts/operacion/pdf-a-imagen.py tests/fixtures/chicos --dry-run
 
 
 # revisar
+- es nacional o internacional
+
 - comprimir las imagenes
 - revisar la calidad y que procesamiento tengo que realizar en los otros docs o archivos.
 - crear un lote usando llm frontier (el lote tiene como objetivo tenerlo como referencia para un posterior entrenamiento)
