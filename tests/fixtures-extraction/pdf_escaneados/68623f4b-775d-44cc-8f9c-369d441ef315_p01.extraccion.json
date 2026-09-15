@@ -1,0 +1,109 @@
+{
+  "origen": "tests/fixtures/pdf_escaneados/68623f4b-775d-44cc-8f9c-369d441ef315_p01.pdf",
+  "archivo_relativo": "pdf_escaneados/68623f4b-775d-44cc-8f9c-369d441ef315_p01.pdf",
+  "procesado_utc": "2026-09-15T03:52:06+00:00",
+  "modelo": "deepseek-flash",
+  "modo": "extraer",
+  "version_prompt": "mendel-validacion@1",
+  "fuente": "api",
+  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_pcat1xl9/pdf_escaneados/68623f4b-775d-44cc-8f9c-369d441ef315_p01.jpg",
+  "pagina": 1,
+  "imagen": {
+    "bytes": 641199,
+    "mime": "image/jpeg",
+    "detalle": "high",
+    "dimensiones": [
+      2480,
+      3505
+    ],
+    "tokens_estimados": 1024
+  },
+  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "uso": {
+    "prompt_tokens": 3491,
+    "completion_tokens": 11049,
+    "total_tokens": 14540,
+    "prompt_cache_hit_tokens": 2304,
+    "prompt_cache_miss_tokens": 1187
+  },
+  "esquema_validado": true,
+  "precios_usd_1m": {
+    "entrada": 0.3,
+    "salida": 1.2,
+    "entrada_cache": 0.006,
+    "origen": "referencia"
+  },
+  "costo_usd": 0.013629,
+  "resultado": {
+    "legibilidad": "buena",
+    "tipo_comprobante": "A",
+    "codigo_afip": "001",
+    "razon_social_emisor": "INC SA",
+    "cuit_emisor": "30-68731043-4",
+    "digito_verificador_cuit_valido": true,
+    "fecha_emision": "16/07/26",
+    "nro_factura": "12137-00006997",
+    "moneda": "ARS",
+    "subtotal": 55958.68,
+    "no_gravado": 0,
+    "exento": 0,
+    "discrimina_impuestos": true,
+    "iva": 11751.32,
+    "impuestos_internos": 0,
+    "percepciones_iibb": 223.83,
+    "otros_impuestos": 1678.76,
+    "importe_total": 69612.59,
+    "cierra_aritmetica": true,
+    "rubro_emisor": "Distribuidora mayorista de almacén (alimentos) y librería",
+    "categoria_gasto_sugerida": "Supermercado",
+    "cantidad_comensales_personas": 0,
+    "cantidad_litros": 0,
+    "centro_de_costo": null,
+    "campos_no_legibles": [
+      "Primera línea del encabezado (cortada en el borde superior de la imagen)",
+      "Rótulo completo de la percepción de Ingresos Brutos (se lee 'PERC IB BSAS ... 0,40%', importe 223,83 legible)",
+      "Segunda línea del encabezado junto al CUIT (se lee algo como 'BCM/IIBB 30-68731043-4', parcialmente ilegible)"
+    ],
+    "observaciones": "Factura A (Cod. 001), P.V. 12137, Nro T. 00006997, Caja 0005, Cajero/a M. BELEN B. Fecha impresa 16/07/26 (año con dos dígitos) 10:13:58. Emisor según encabezado: INC SA, CUIT 30-68731043-4 (dígito verificador válido), IVA Responsable Inscripto, inicio de actividad 20/05/1999, Venado Tuerto. Inmediatamente debajo de los datos de emisión y antes del detalle aparece el bloque 'C.V.C SA - CORONEL DIAZ 2717 6 0 - CUIT: 30-58221570-3 - IVA Responsable Inscripto', que por su ubicación correspondería al cliente/receptor (no lleva la etiqueta 'Cliente'; su CUIT no valida dígito verificador). Detalle: SUBTOTAL SIN DESCUENTOS 62.611,58; descuentos 2do50% TRAVIATA -867,77 y 2do50% MORENITA -5.785,12 (ahorro total informado 6.652,89); AJUSTE B.I. -0,01; TOTAL NETO SIN IVA 55.958,68 (base IVA 21%). Impuestos: IVA 21% 11.751,32; No Gravado en IVA 0,00; Impuesto Interno 0,00; PERC IVA RG 2408 1.678,76; PERC IB (Bs. As.) 0,40% 223,83. TOTAL 69.612,59. La aritmética cierra: 55.958,68 + 11.751,32 + 1.678,76 + 223,83 = 69.612,59. La percepción de IVA RG 2408 se volcó en 'otros_impuestos' (no es IVA propiamente dicho). No hay línea de importe exento, por eso exento = 0. Rubro inferido: mayorista de almacén/librería (galletitas, bizcochos, café, yerba, adhesivo). Pago con VISA, precio contado, 1 cuota, TEA 0,00%, CFT 0,00%, sistema francés."
+  },
+  "extraccion": {
+    "legibilidad": "buena",
+    "tipo_comprobante": "A",
+    "codigo_afip": "001",
+    "razon_social_emisor": "INC SA",
+    "cuit_emisor": "30-68731043-4",
+    "digito_verificador_cuit_valido": true,
+    "fecha_emision": "16/07/26",
+    "nro_factura": "12137-00006997",
+    "moneda": "ARS",
+    "subtotal": 55958.68,
+    "no_gravado": 0,
+    "exento": 0,
+    "discrimina_impuestos": true,
+    "iva": 11751.32,
+    "impuestos_internos": 0,
+    "percepciones_iibb": 223.83,
+    "otros_impuestos": 1678.76,
+    "importe_total": 69612.59,
+    "cierra_aritmetica": true,
+    "rubro_emisor": "Distribuidora mayorista de almacén (alimentos) y librería",
+    "categoria_gasto_sugerida": "Supermercado",
+    "cantidad_comensales_personas": 0,
+    "cantidad_litros": 0,
+    "centro_de_costo": null,
+    "campos_no_legibles": [
+      "Primera línea del encabezado (cortada en el borde superior de la imagen)",
+      "Rótulo completo de la percepción de Ingresos Brutos (se lee 'PERC IB BSAS ... 0,40%', importe 223,83 legible)",
+      "Segunda línea del encabezado junto al CUIT (se lee algo como 'BCM/IIBB 30-68731043-4', parcialmente ilegible)"
+    ],
+    "observaciones": "Factura A (Cod. 001), P.V. 12137, Nro T. 00006997, Caja 0005, Cajero/a M. BELEN B. Fecha impresa 16/07/26 (año con dos dígitos) 10:13:58. Emisor según encabezado: INC SA, CUIT 30-68731043-4 (dígito verificador válido), IVA Responsable Inscripto, inicio de actividad 20/05/1999, Venado Tuerto. Inmediatamente debajo de los datos de emisión y antes del detalle aparece el bloque 'C.V.C SA - CORONEL DIAZ 2717 6 0 - CUIT: 30-58221570-3 - IVA Responsable Inscripto', que por su ubicación correspondería al cliente/receptor (no lleva la etiqueta 'Cliente'; su CUIT no valida dígito verificador). Detalle: SUBTOTAL SIN DESCUENTOS 62.611,58; descuentos 2do50% TRAVIATA -867,77 y 2do50% MORENITA -5.785,12 (ahorro total informado 6.652,89); AJUSTE B.I. -0,01; TOTAL NETO SIN IVA 55.958,68 (base IVA 21%). Impuestos: IVA 21% 11.751,32; No Gravado en IVA 0,00; Impuesto Interno 0,00; PERC IVA RG 2408 1.678,76; PERC IB (Bs. As.) 0,40% 223,83. TOTAL 69.612,59. La aritmética cierra: 55.958,68 + 11.751,32 + 1.678,76 + 223,83 = 69.612,59. La percepción de IVA RG 2408 se volcó en 'otros_impuestos' (no es IVA propiamente dicho). No hay línea de importe exento, por eso exento = 0. Rubro inferido: mayorista de almacén/librería (galletitas, bizcochos, café, yerba, adhesivo). Pago con VISA, precio contado, 1 cuota, TEA 0,00%, CFT 0,00%, sistema francés."
+  },
+  "aritmetica": {
+    "calculable": true,
+    "suma": 69612.59,
+    "total": 69612.59,
+    "diferencia": 0.0,
+    "cierra": true,
+    "faltantes": []
+  }
+}

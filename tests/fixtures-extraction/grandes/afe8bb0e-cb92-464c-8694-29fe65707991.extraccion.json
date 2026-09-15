@@ -1,0 +1,103 @@
+{
+  "origen": "tests/fixtures/grandes/afe8bb0e-cb92-464c-8694-29fe65707991.jpg",
+  "archivo_relativo": "grandes/afe8bb0e-cb92-464c-8694-29fe65707991.jpg",
+  "procesado_utc": "2026-09-15T03:53:46+00:00",
+  "modelo": "deepseek-flash",
+  "modo": "extraer",
+  "version_prompt": "mendel-validacion@1",
+  "fuente": "api",
+  "imagen": {
+    "bytes": 4633996,
+    "mime": "image/jpeg",
+    "detalle": "high",
+    "dimensiones": [
+      2200,
+      2700
+    ],
+    "tokens_estimados": 1024
+  },
+  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "uso": {
+    "prompt_tokens": 3478,
+    "completion_tokens": 5480,
+    "total_tokens": 8958,
+    "prompt_cache_hit_tokens": 2304,
+    "prompt_cache_miss_tokens": 1174
+  },
+  "esquema_validado": true,
+  "precios_usd_1m": {
+    "entrada": 0.3,
+    "salida": 1.2,
+    "entrada_cache": 0.006,
+    "origen": "referencia"
+  },
+  "costo_usd": 0.006942,
+  "resultado": {
+    "legibilidad": "buena",
+    "tipo_comprobante": "A",
+    "codigo_afip": "001",
+    "razon_social_emisor": "MALAGUARNERA ROBERTO",
+    "cuit_emisor": "20-06044320-4",
+    "digito_verificador_cuit_valido": true,
+    "fecha_emision": null,
+    "nro_factura": "0004B-00034385",
+    "moneda": "ARS",
+    "subtotal": 45385.31,
+    "no_gravado": 0.0,
+    "exento": 0.0,
+    "discrimina_impuestos": true,
+    "iva": 9530.91,
+    "impuestos_internos": 9777.02,
+    "percepciones_iibb": 0.0,
+    "otros_impuestos": 1334.8,
+    "importe_total": 66028.04,
+    "cierra_aritmetica": true,
+    "rubro_emisor": "Estación de servicio / expendedor de combustible (nombre de fantasía: SHELL EL PASO)",
+    "categoria_gasto_sugerida": "Combustible",
+    "cantidad_comensales_personas": 0,
+    "cantidad_litros": 42.38,
+    "centro_de_costo": null,
+    "campos_no_legibles": [
+      "fecha_emision"
+    ],
+    "observaciones": "Tique Factura A (Cód. 001) emitido por MALAGUARNERA ROBERTO (CUIT 20-06044320-4, DV válido, Responsable Inscripto), monotributista/persona física, nombre de fantasía SHELL EL PASO. Receptor en el cuerpo: CVC SA, CUIT 30582215703. Fecha: el mes impreso es ilegible (se lee '17/?0/2025'), por eso se cargó en null; el sello de tiempo del pie sugiere 17/09/2025 15:05:32, no verificable con seguridad. Nro de comprobante '0004B-00034385': el carácter del punto de venta es ambiguo en la impresión (podría ser 0004B o 00045). Detalle: 42,3800 lt de SUPER a $1558,000 = $45.385,30 (ITC unitario $230,6930). Ajuste B.I. 0,01 lleva el neto gravado a 45.385,31. Cierra aritmética: 45.385,31 (neto) + 9.530,91 (IVA 21%) + 11.111,82 (otros tributos) = 66.028,04. Los otros tributos se desglosan en Impuestos Internos/ITC 9.777,02 + TOC 598,91 + Tasa Vial/Imp. Municipal 735,89 (= 11.111,82), valores confirmados por el pie del ticket (Precio s/imp 45.385,30; IVA cont. 9.530,91; TOC 598,91; ITC 9.777,02; Imp.Muni 735,89; Perc. IIBB 0,00). Pago en efectivo por 66.028,04, cambio 0,00. Empleado: TIZIANO. No hay datos de centro de costo ni de comensales/personas."
+  },
+  "extraccion": {
+    "legibilidad": "buena",
+    "tipo_comprobante": "A",
+    "codigo_afip": "001",
+    "razon_social_emisor": "MALAGUARNERA ROBERTO",
+    "cuit_emisor": "20-06044320-4",
+    "digito_verificador_cuit_valido": true,
+    "fecha_emision": null,
+    "nro_factura": "0004B-00034385",
+    "moneda": "ARS",
+    "subtotal": 45385.31,
+    "no_gravado": 0.0,
+    "exento": 0.0,
+    "discrimina_impuestos": true,
+    "iva": 9530.91,
+    "impuestos_internos": 9777.02,
+    "percepciones_iibb": 0.0,
+    "otros_impuestos": 1334.8,
+    "importe_total": 66028.04,
+    "cierra_aritmetica": true,
+    "rubro_emisor": "Estación de servicio / expendedor de combustible (nombre de fantasía: SHELL EL PASO)",
+    "categoria_gasto_sugerida": "Combustible",
+    "cantidad_comensales_personas": 0,
+    "cantidad_litros": 42.38,
+    "centro_de_costo": null,
+    "campos_no_legibles": [
+      "fecha_emision"
+    ],
+    "observaciones": "Tique Factura A (Cód. 001) emitido por MALAGUARNERA ROBERTO (CUIT 20-06044320-4, DV válido, Responsable Inscripto), monotributista/persona física, nombre de fantasía SHELL EL PASO. Receptor en el cuerpo: CVC SA, CUIT 30582215703. Fecha: el mes impreso es ilegible (se lee '17/?0/2025'), por eso se cargó en null; el sello de tiempo del pie sugiere 17/09/2025 15:05:32, no verificable con seguridad. Nro de comprobante '0004B-00034385': el carácter del punto de venta es ambiguo en la impresión (podría ser 0004B o 00045). Detalle: 42,3800 lt de SUPER a $1558,000 = $45.385,30 (ITC unitario $230,6930). Ajuste B.I. 0,01 lleva el neto gravado a 45.385,31. Cierra aritmética: 45.385,31 (neto) + 9.530,91 (IVA 21%) + 11.111,82 (otros tributos) = 66.028,04. Los otros tributos se desglosan en Impuestos Internos/ITC 9.777,02 + TOC 598,91 + Tasa Vial/Imp. Municipal 735,89 (= 11.111,82), valores confirmados por el pie del ticket (Precio s/imp 45.385,30; IVA cont. 9.530,91; TOC 598,91; ITC 9.777,02; Imp.Muni 735,89; Perc. IIBB 0,00). Pago en efectivo por 66.028,04, cambio 0,00. Empleado: TIZIANO. No hay datos de centro de costo ni de comensales/personas."
+  },
+  "aritmetica": {
+    "calculable": true,
+    "suma": 66028.04,
+    "total": 66028.04,
+    "diferencia": 0.0,
+    "cierra": true,
+    "faltantes": []
+  }
+}
