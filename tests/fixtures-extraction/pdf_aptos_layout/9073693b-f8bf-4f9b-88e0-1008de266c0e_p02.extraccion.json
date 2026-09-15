@@ -1,12 +1,12 @@
 {
   "origen": "tests/fixtures/pdf_aptos_layout/9073693b-f8bf-4f9b-88e0-1008de266c0e_p02.pdf",
   "archivo_relativo": "pdf_aptos_layout/9073693b-f8bf-4f9b-88e0-1008de266c0e_p02.pdf",
-  "procesado_utc": "2026-09-15T13:43:52+00:00",
+  "procesado_utc": "2026-09-15T14:56:40+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
   "fuente": "api",
-  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_2gxv7ghk/pdf_aptos_layout/9073693b-f8bf-4f9b-88e0-1008de266c0e_p02.jpg",
+  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_mbl_qjjy/pdf_aptos_layout/9073693b-f8bf-4f9b-88e0-1008de266c0e_p02.jpg",
   "pagina": 2,
   "imagen": {
     "bytes": 431911,
@@ -18,13 +18,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:49bf219ef6de34fc",
+  "prompt_hash": "sha256:f9c4a199f7c38725",
   "uso": {
-    "prompt_tokens": 4019,
-    "completion_tokens": 1705,
-    "total_tokens": 5724,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 1203
+    "prompt_tokens": 4194,
+    "completion_tokens": 2344,
+    "total_tokens": 6538,
+    "prompt_cache_hit_tokens": 3072,
+    "prompt_cache_miss_tokens": 1122
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -33,9 +33,9 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.002424,
+  "costo_usd": 0.003168,
   "resultado": {
-    "es_comprobante": "no_comprobante",
+    "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": null,
     "codigo_afip": null,
@@ -55,16 +55,16 @@
     "otros_impuestos": null,
     "importe_total": null,
     "cierra_aritmetica": false,
-    "rubro_emisor": null,
-    "categoria_gasto_sugerida": null,
+    "rubro_emisor": "Servicio de transporte de pasajeros (viaje tipo remis/plataforma de movilidad)",
+    "categoria_gasto_sugerida": "Taxi/Remis",
     "cantidad_comensales_personas": null,
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "La imagen es una captura de pantalla de una app de viajes (pantalla 'Mis viajes' / historial), no un comprobante fiscal ni comercial: no acredita por sí misma la operación ante AFIP. Muestra únicamente el recorrido de Rosario (Cafferata 698, 21:34) a Pje. Baigorria 823, S2124BAA Villa Gdor. Galvez, Santa Fe (22:08), el conductor 'DANIEL ALBERTO', una calificación de 4,97 y avisos de cobertura de Galicia Seguros. No figura emisor/razón social, CUIT, código AFIP, letra A/B/C, número de comprobante, moneda, ni ningún importe (subtotal, IVA, total), por lo que los campos fiscales quedan en null. No hay fecha impresa (sólo horarios). No se puede determinar el emisor del servicio ni el rubro con la información visible; la categoría de gasto no es verificable desde la imagen."
+    "observaciones": "Captura de pantalla del detalle de un viaje de una app de movilidad: 21:34 hs desde Cafferata 698, Rosario, Santa Fe hasta 22:08 hs en Pje. Baigorria 823, S2124BAA Villa Gdor. Gálvez, Santa Fe, Argentina; incluye mapa del recorrido (Google Maps), la leyenda 'Viajaste con DANIEL ALBERTO' con calificación 4.97 y la mención 'Todos sus viajes están asegurados por Galicia Seguros'. Se trata de un comprobante comercial emitido por el prestador del servicio (acredita el viaje realizado), por lo que correspondería encuadrarlo como Otros Comprobantes (090/099), pero el documento NO imprime letra A/B/C ni código AFIP, ni razón social ni CUIT del emisor (el único nombre visible es el del conductor, DANIEL ALBERTO, que no constituye la razón social del emisor), ni número de comprobante, ni fecha de emisión (solo horarios), ni moneda ni importe alguno (no hay subtotal, IVA, total ni desglose de impuestos). Por eso todos los campos fiscales y de importes quedan en null y no puede verificarse cierre aritmético. El rubro se infiere del contenido (transporte de pasajeros). El nombre del conductor y la calificación no son datos fiscales transcribibles."
   },
   "extraccion": {
-    "es_comprobante": "no_comprobante",
+    "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": null,
     "codigo_afip": null,
@@ -84,13 +84,13 @@
     "otros_impuestos": null,
     "importe_total": null,
     "cierra_aritmetica": false,
-    "rubro_emisor": null,
-    "categoria_gasto_sugerida": null,
+    "rubro_emisor": "Servicio de transporte de pasajeros (viaje tipo remis/plataforma de movilidad)",
+    "categoria_gasto_sugerida": "Taxi/Remis",
     "cantidad_comensales_personas": null,
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "La imagen es una captura de pantalla de una app de viajes (pantalla 'Mis viajes' / historial), no un comprobante fiscal ni comercial: no acredita por sí misma la operación ante AFIP. Muestra únicamente el recorrido de Rosario (Cafferata 698, 21:34) a Pje. Baigorria 823, S2124BAA Villa Gdor. Galvez, Santa Fe (22:08), el conductor 'DANIEL ALBERTO', una calificación de 4,97 y avisos de cobertura de Galicia Seguros. No figura emisor/razón social, CUIT, código AFIP, letra A/B/C, número de comprobante, moneda, ni ningún importe (subtotal, IVA, total), por lo que los campos fiscales quedan en null. No hay fecha impresa (sólo horarios). No se puede determinar el emisor del servicio ni el rubro con la información visible; la categoría de gasto no es verificable desde la imagen."
+    "observaciones": "Captura de pantalla del detalle de un viaje de una app de movilidad: 21:34 hs desde Cafferata 698, Rosario, Santa Fe hasta 22:08 hs en Pje. Baigorria 823, S2124BAA Villa Gdor. Gálvez, Santa Fe, Argentina; incluye mapa del recorrido (Google Maps), la leyenda 'Viajaste con DANIEL ALBERTO' con calificación 4.97 y la mención 'Todos sus viajes están asegurados por Galicia Seguros'. Se trata de un comprobante comercial emitido por el prestador del servicio (acredita el viaje realizado), por lo que correspondería encuadrarlo como Otros Comprobantes (090/099), pero el documento NO imprime letra A/B/C ni código AFIP, ni razón social ni CUIT del emisor (el único nombre visible es el del conductor, DANIEL ALBERTO, que no constituye la razón social del emisor), ni número de comprobante, ni fecha de emisión (solo horarios), ni moneda ni importe alguno (no hay subtotal, IVA, total ni desglose de impuestos). Por eso todos los campos fiscales y de importes quedan en null y no puede verificarse cierre aritmético. El rubro se infiere del contenido (transporte de pasajeros). El nombre del conductor y la calificación no son datos fiscales transcribibles."
   },
   "aritmetica": {
     "calculable": false,

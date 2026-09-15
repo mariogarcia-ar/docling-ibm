@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/grandes/696960b7-d85e-4d1d-a2c1-fe7a67e994be.jpg",
   "archivo_relativo": "grandes/696960b7-d85e-4d1d-a2c1-fe7a67e994be.jpg",
-  "procesado_utc": "2026-09-15T13:46:57+00:00",
+  "procesado_utc": "2026-09-15T15:00:46+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:49bf219ef6de34fc",
+  "prompt_hash": "sha256:f9c4a199f7c38725",
   "uso": {
-    "prompt_tokens": 4025,
-    "completion_tokens": 2180,
-    "total_tokens": 6205,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 1209
+    "prompt_tokens": 4200,
+    "completion_tokens": 2912,
+    "total_tokens": 7112,
+    "prompt_cache_hit_tokens": 3072,
+    "prompt_cache_miss_tokens": 1128
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,7 +31,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.002996,
+  "costo_usd": 0.003851,
   "resultado": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
@@ -53,13 +53,13 @@
     "otros_impuestos": 0,
     "importe_total": 29400.01,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / combustible (con venta de comidas elaboradas)",
+    "rubro_emisor": "Estación de servicio (YPF) con despacho de comidas / rotisería",
     "categoria_gasto_sugerida": "Restaurante",
-    "cantidad_comensales_personas": 0,
-    "cantidad_litros": 0,
+    "cantidad_comensales_personas": null,
+    "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique Factura A (Cód. 081) N° 00029-00005017, emitida por LA POSTA DE CHIVILCOY S.A. (Estación de Servicio YPF), CUIT 30-68772552-9 (dígito verificador válido), fecha 10/09/2025 12:43:02. Cliente: 427781 - CVC S.A. (CUIT 30-58221570-3). Detalle: Empanadas Especiales 1 Un x $4545,45; Plato de carne de cerdo x $19696,24; ajuste por redondeo $0,01. Importes: SUBTOT. IMP. NETO GRAVADO $24241,70 + IVA 21% $5090,76 + Impuesto interno a nivel ítem (cód. 10) $67,55 = TOTAL $29400,01. La aritmética cierra. No hay percepciones de IIBB ni no gravado/exento. Pagado en efectivo $29400,00 + $0,01 (vuelto $0,00). ATENCIÓN: el emisor es una estación de servicio, pero los ítems facturados son alimentos elaborados (empanadas y plato de carne), por lo que la categoría sugerida es Restaurante; confirmar con el empleado si el gasto corresponde a comida o a combustible. No se observan litros ni datos de vehículo, por lo que no aplica cantidad de litros. Los campos de comensales y centro de costo no figuran en el comprobante."
+    "observaciones": "Tique Factura A (Cód. 081) de 'Estacio de Servicio YPF - LA POSTA DE CHIVILCOY S.A.', CUIT 30-68772552-9 (dígito verificador 9 validado correctamente). Fecha de emisión 10/09/2025, hora 12:43:02. N° 00029-00005017. Receptor: CVC S.A., CUIT 30-58221570-3, condición CONTADO, IVA Responsable Inscripto. Detalle: Empanadas Especiales 1 Un $4.545,45; Plato de carre de cerdo $19.696,24; Ajuste por redondeo $0,01. Importes: SUBTOT. IMP. NETO GRAVADO 24.241,70; ALICUOTA 21,00% (IVA) 5.090,76; Impuesto interno a nivel ítem 67,55, que coincide con 'IMPORTE TOTAL OTROS TRIBUTOS' 67,55 (mismo tributo, no se duplica). TOTAL 29.400,01. La aritmética cierra: 24.241,70 + 5.090,76 + 67,55 = 29.400,01. No hay líneas de no gravado, exento ni percepciones. Pago en efectivo: 29.400,00 + 0,01 = 29.400,01, vuelto 0,00. Advertencia de rubro: el emisor es una estación de servicio YPF, pero el detalle corresponde íntegramente a consumo de comidas (empanadas y plato de carne), por lo que se sugiere categoría 'Restaurante' antes que 'Combustible'; al ser gasto gastronómico correspondería informar cantidad de comensales, dato que el ticket no discrimina. No hay litros cargados (no es carga de combustible). No se informa centro de costo."
   },
   "extraccion": {
     "es_comprobante": "comprobante",
@@ -82,13 +82,13 @@
     "otros_impuestos": 0,
     "importe_total": 29400.01,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / combustible (con venta de comidas elaboradas)",
+    "rubro_emisor": "Estación de servicio (YPF) con despacho de comidas / rotisería",
     "categoria_gasto_sugerida": "Restaurante",
-    "cantidad_comensales_personas": 0,
-    "cantidad_litros": 0,
+    "cantidad_comensales_personas": null,
+    "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique Factura A (Cód. 081) N° 00029-00005017, emitida por LA POSTA DE CHIVILCOY S.A. (Estación de Servicio YPF), CUIT 30-68772552-9 (dígito verificador válido), fecha 10/09/2025 12:43:02. Cliente: 427781 - CVC S.A. (CUIT 30-58221570-3). Detalle: Empanadas Especiales 1 Un x $4545,45; Plato de carne de cerdo x $19696,24; ajuste por redondeo $0,01. Importes: SUBTOT. IMP. NETO GRAVADO $24241,70 + IVA 21% $5090,76 + Impuesto interno a nivel ítem (cód. 10) $67,55 = TOTAL $29400,01. La aritmética cierra. No hay percepciones de IIBB ni no gravado/exento. Pagado en efectivo $29400,00 + $0,01 (vuelto $0,00). ATENCIÓN: el emisor es una estación de servicio, pero los ítems facturados son alimentos elaborados (empanadas y plato de carne), por lo que la categoría sugerida es Restaurante; confirmar con el empleado si el gasto corresponde a comida o a combustible. No se observan litros ni datos de vehículo, por lo que no aplica cantidad de litros. Los campos de comensales y centro de costo no figuran en el comprobante."
+    "observaciones": "Tique Factura A (Cód. 081) de 'Estacio de Servicio YPF - LA POSTA DE CHIVILCOY S.A.', CUIT 30-68772552-9 (dígito verificador 9 validado correctamente). Fecha de emisión 10/09/2025, hora 12:43:02. N° 00029-00005017. Receptor: CVC S.A., CUIT 30-58221570-3, condición CONTADO, IVA Responsable Inscripto. Detalle: Empanadas Especiales 1 Un $4.545,45; Plato de carre de cerdo $19.696,24; Ajuste por redondeo $0,01. Importes: SUBTOT. IMP. NETO GRAVADO 24.241,70; ALICUOTA 21,00% (IVA) 5.090,76; Impuesto interno a nivel ítem 67,55, que coincide con 'IMPORTE TOTAL OTROS TRIBUTOS' 67,55 (mismo tributo, no se duplica). TOTAL 29.400,01. La aritmética cierra: 24.241,70 + 5.090,76 + 67,55 = 29.400,01. No hay líneas de no gravado, exento ni percepciones. Pago en efectivo: 29.400,00 + 0,01 = 29.400,01, vuelto 0,00. Advertencia de rubro: el emisor es una estación de servicio YPF, pero el detalle corresponde íntegramente a consumo de comidas (empanadas y plato de carne), por lo que se sugiere categoría 'Restaurante' antes que 'Combustible'; al ser gasto gastronómico correspondería informar cantidad de comensales, dato que el ticket no discrimina. No hay litros cargados (no es carga de combustible). No se informa centro de costo."
   },
   "aritmetica": {
     "calculable": true,

@@ -204,6 +204,17 @@ tarjeta— y sin este campo el modelo improvisaba la respuesta sobre
 `tipo_comprobante`: `null` (el dato se perdía), texto libre (que el vocabulario
 cerrado marca inválido) o una letra A/B/C que el papel no tiene.
 
+⚠️ **`no_comprobante` NO significa «no transcribas nada».** Es la trampa que
+costó una corrección medida: la primera versión de la guía pedía dejar en `null`
+los campos de un `no_comprobante`, y el modelo **citó el importe en la prosa
+mientras lo dejaba en `null` en el campo** (voucher de posnet `125cbe9f`: «Imp.
+Total: $30.920,00» en `observaciones`, `importe_total: null`). Leyó el dato y lo
+tiró: la peor pérdida posible, porque la lectura existía y ya no se recupera.
+Un DNI o el voucher de un posnet **igual tienen datos impresos**, y son el rastro
+de por qué el gasto no se acredita. Lo que no se transcribe es lo que el papel
+**no dice**. Medido con A/B sobre ese documento: con la frase, `null` en 4 de 5
+corridas; sin la frase, el importe en 4 de 4.
+
 ⚠️ **Es el mismo campo y el mismo vocabulario que usa el gate del pipeline**
 (`voucherflow/validation/qween.py`, `CAMPO_GATE`), y los dos salen de
 `schemas.evidence.ClaseDocumento`: el pipeline decide con el gate antes de

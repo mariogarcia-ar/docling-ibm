@@ -1,12 +1,12 @@
 {
   "origen": "tests/fixtures/pdf_aptos_layout/c9946aa2-0979-4b5c-9265-77e4f126b978_p01.pdf",
   "archivo_relativo": "pdf_aptos_layout/c9946aa2-0979-4b5c-9265-77e4f126b978_p01.pdf",
-  "procesado_utc": "2026-09-15T13:43:52+00:00",
+  "procesado_utc": "2026-09-15T14:56:41+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
   "fuente": "api",
-  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_2gxv7ghk/pdf_aptos_layout/c9946aa2-0979-4b5c-9265-77e4f126b978_p01.jpg",
+  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_mbl_qjjy/pdf_aptos_layout/c9946aa2-0979-4b5c-9265-77e4f126b978_p01.jpg",
   "pagina": 1,
   "imagen": {
     "bytes": 466774,
@@ -18,13 +18,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:49bf219ef6de34fc",
+  "prompt_hash": "sha256:f9c4a199f7c38725",
   "uso": {
-    "prompt_tokens": 4019,
-    "completion_tokens": 2742,
-    "total_tokens": 6761,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 1203
+    "prompt_tokens": 4194,
+    "completion_tokens": 2330,
+    "total_tokens": 6524,
+    "prompt_cache_hit_tokens": 3072,
+    "prompt_cache_miss_tokens": 1122
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -33,7 +33,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.003668,
+  "costo_usd": 0.003151,
   "resultado": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
@@ -55,13 +55,13 @@
     "otros_impuestos": 0,
     "importe_total": 21684.41,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Software / servicios digitales (licencias y suscripciones)",
-    "categoria_gasto_sugerida": "Software / Suscripción / Licencias",
+    "rubro_emisor": "Software / servicios digitales",
+    "categoria_gasto_sugerida": "Software",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Comprobante emitido por un proveedor del exterior (Adobe Systems Software Ireland Ltd, Dublin, Irlanda): es una INVOICE internacional, sin letra A/B/C ni código AFIP, por lo que corresponde tipo 'INTERNACIONAL'. Receptor: Martin Ojea Quintana, S2000 Rosario, Argentina (N° de IVA de cliente 30582215703). Divisa ARS. Detalle: Acrobat Pro (1 EA, neto 14.340,00, 21% = 3.011,40, total 17.351,40) y Asistente de IA para Acrobat (1 EA, neto 3.581,00, 21% = 752,01, total 4.333,01). Importe neto (ARS) 17.921,00 + Impuestos 3.763,41 = Total (ARS) 21.684,41; la suma cierra. Aclaración: el pie indica que el cargo incluye 30% por impuesto PAIS y 34% por RG 4815/2020 (AFIP) Ley de IVA Art. 28, mientras que las líneas muestran un tipo de impuesto del 21,00% (el importe de impuestos transcripto equivale al 21% del neto). Se transcribe el monto de impuestos tal como figura impreso (3.763,41); no se puede discriminar internamente el desglose entre IVA, PAIS y RG 4815 a partir de la imagen. No hay CUIT argentino del emisor (proveedor extranjero). Página 1 de 1."
+    "observaciones": "Comprobante emitido por proveedor del exterior (Adobe Systems Software Ireland Ltd, Dublin, Irlanda): NO es un comprobante fiscal argentino, sin letra A/B/C ni código AFIP. La leyenda 'Factura' y la 'Divisa ARS' no lo convierten en factura argentina; el criterio es el domicilio del emisor, por lo que corresponde clasificarlo como INTERNACIONAL. Receptor: Martin Ojea Quintana, S2000 Rosario, Argentina. El N° de IVA impreso (30582215703) corresponde al CLIENTE/receptor, no al emisor, por lo que no hay CUIT de emisor para transcribir. Fecha impresa en formato 04-JUL-2026. Detalle: Acrobat Pro (1 EA, precio 14.340,00, neto 14.340,00, 21% = 3.011,40, total 17.351,40) y Asistente de IA para Acrobat (1 EA, precio 3.581,00, neto 3.581,00, 21% = 752,01, total 4.333,01). Importe neto 17.921,00 + impuestos 3.763,41 = total 21.684,41 (la aritmética cierra). Los ítems muestran alícuota 21,00%, pero el comentario del pie menciona además 30% de impuesto PAIS y 34% de RG 4815/2020, por lo que el desglose de impuestos resulta ambiguo: se carga el total discriminado (3.763,41) en 'iva' por coincidir exactamente con el 21% informado en las líneas. Servicio de suscripción 04-JUL-2026 a 03-AGO-2026. Sin datos de litros ni comensales (no aplican)."
   },
   "extraccion": {
     "es_comprobante": "comprobante",
@@ -84,13 +84,13 @@
     "otros_impuestos": 0,
     "importe_total": 21684.41,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Software / servicios digitales (licencias y suscripciones)",
-    "categoria_gasto_sugerida": "Software / Suscripción / Licencias",
+    "rubro_emisor": "Software / servicios digitales",
+    "categoria_gasto_sugerida": "Software",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Comprobante emitido por un proveedor del exterior (Adobe Systems Software Ireland Ltd, Dublin, Irlanda): es una INVOICE internacional, sin letra A/B/C ni código AFIP, por lo que corresponde tipo 'INTERNACIONAL'. Receptor: Martin Ojea Quintana, S2000 Rosario, Argentina (N° de IVA de cliente 30582215703). Divisa ARS. Detalle: Acrobat Pro (1 EA, neto 14.340,00, 21% = 3.011,40, total 17.351,40) y Asistente de IA para Acrobat (1 EA, neto 3.581,00, 21% = 752,01, total 4.333,01). Importe neto (ARS) 17.921,00 + Impuestos 3.763,41 = Total (ARS) 21.684,41; la suma cierra. Aclaración: el pie indica que el cargo incluye 30% por impuesto PAIS y 34% por RG 4815/2020 (AFIP) Ley de IVA Art. 28, mientras que las líneas muestran un tipo de impuesto del 21,00% (el importe de impuestos transcripto equivale al 21% del neto). Se transcribe el monto de impuestos tal como figura impreso (3.763,41); no se puede discriminar internamente el desglose entre IVA, PAIS y RG 4815 a partir de la imagen. No hay CUIT argentino del emisor (proveedor extranjero). Página 1 de 1."
+    "observaciones": "Comprobante emitido por proveedor del exterior (Adobe Systems Software Ireland Ltd, Dublin, Irlanda): NO es un comprobante fiscal argentino, sin letra A/B/C ni código AFIP. La leyenda 'Factura' y la 'Divisa ARS' no lo convierten en factura argentina; el criterio es el domicilio del emisor, por lo que corresponde clasificarlo como INTERNACIONAL. Receptor: Martin Ojea Quintana, S2000 Rosario, Argentina. El N° de IVA impreso (30582215703) corresponde al CLIENTE/receptor, no al emisor, por lo que no hay CUIT de emisor para transcribir. Fecha impresa en formato 04-JUL-2026. Detalle: Acrobat Pro (1 EA, precio 14.340,00, neto 14.340,00, 21% = 3.011,40, total 17.351,40) y Asistente de IA para Acrobat (1 EA, precio 3.581,00, neto 3.581,00, 21% = 752,01, total 4.333,01). Importe neto 17.921,00 + impuestos 3.763,41 = total 21.684,41 (la aritmética cierra). Los ítems muestran alícuota 21,00%, pero el comentario del pie menciona además 30% de impuesto PAIS y 34% de RG 4815/2020, por lo que el desglose de impuestos resulta ambiguo: se carga el total discriminado (3.763,41) en 'iva' por coincidir exactamente con el 21% informado en las líneas. Servicio de suscripción 04-JUL-2026 a 03-AGO-2026. Sin datos de litros ni comensales (no aplican)."
   },
   "aritmetica": {
     "calculable": true,

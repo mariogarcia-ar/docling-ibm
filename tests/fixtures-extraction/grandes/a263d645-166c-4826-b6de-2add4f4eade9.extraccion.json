@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/grandes/a263d645-166c-4826-b6de-2add4f4eade9.jpg",
   "archivo_relativo": "grandes/a263d645-166c-4826-b6de-2add4f4eade9.jpg",
-  "procesado_utc": "2026-09-15T13:47:21+00:00",
+  "procesado_utc": "2026-09-15T15:01:04+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:49bf219ef6de34fc",
+  "prompt_hash": "sha256:f9c4a199f7c38725",
   "uso": {
-    "prompt_tokens": 4025,
-    "completion_tokens": 3861,
-    "total_tokens": 7886,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 1209
+    "prompt_tokens": 4200,
+    "completion_tokens": 4139,
+    "total_tokens": 8339,
+    "prompt_cache_hit_tokens": 3072,
+    "prompt_cache_miss_tokens": 1128
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,11 +31,11 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.005013,
+  "costo_usd": 0.005324,
   "resultado": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
-    "tipo_comprobante": "083",
+    "tipo_comprobante": "C",
     "codigo_afip": "083",
     "razon_social_emisor": "SHELL LOPEMA S.A.",
     "cuit_emisor": "30-64509280-1",
@@ -53,18 +53,18 @@
     "otros_impuestos": 0,
     "importe_total": 12800.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio (combustible)",
-    "categoria_gasto_sugerida": "Combustible",
-    "cantidad_comensales_personas": 0,
-    "cantidad_litros": 0,
+    "rubro_emisor": "Estación de servicio / tienda de conveniencia (Shell)",
+    "categoria_gasto_sugerida": "Restaurante",
+    "cantidad_comensales_personas": null,
+    "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Ticket/Tique Cód. 083 de Shell LOPEMA S.A. (Av. Hipólito Yrigoyen S/N, El Talar, Bs.As. - CP 1618), IVA Responsable Inscripto, 'A CONSUMIDOR FINAL'. P.V. N° 00010, Nro. 00093258, fecha 28/11/2025 16:10:56. Detalle: 1 x Café doble + tostado $10.300,00 y 1 x Pepsi 45 gr $2.500,00. TOTAL $12.800,00, pagado en efectivo. No discrimina IVA en el cuerpo: solo informa 'IVA Contenido: 2.221,49' y 'Otros Impuestos Nac. Indirecto: 0,00'; por eso los campos de impuestos van en cero y el subtotal coincide con el total. CUIT con dígito verificador válido (30-64509280-1). El emisor es una estación de servicio, pero los ítems consumidos son café/bebidas (no combustible), por lo que cabría evaluar si la categoría correcta es Combustible o Restaurante/Cafetería."
+    "observaciones": "TIQUE (Cód. 083) de controlador fiscal - equivale a comprobante clase C (IVA Responsable Inscripto a CONSUMIDOR FINAL, sin discriminación de IVA en el cuerpo). Emisor: SHELL LOPEMA S.A., CUIT 30-64509280-1 (dígito verificador válido), Ing. Brutos 306450928001, Av. Hipólito Yrigoyen S/N, El Talar, BsAs, CP 1618; inicio de actividades 12/03/1993. Punto de venta 00010, Nro. T. 00093258, fecha 28/11/2025 16:10:56. Detalle: 1,0000 u x 10300,0000 CAFE DOBLE + TOSTAD $10.300,00; 1,0000 u x 2500,0000 PEPSICO 45 GR $2.500,00. TOTAL $12.800,00, pagado en efectivo $12.800,00 (vuelto $0,00). No hay línea de neto gravado impresa: el único importe es el TOTAL, por lo que subtotal=total y no se adicionan impuestos (aritmética cierra). Por Ley 27743 el ticket informa 'IVA Contenido: 2.221,49' y 'Otros Impuestos Nac. Indirecto: 0,00'; ese IVA contenido es informativo y ya está incluido dentro del total, no se suma ni se discrimina, por eso se carga iva=0. Registro: EPEAA000021695, V: 1,02. No se observan consumos de combustible ni litros. Cantidad de comensales no figura en el ticket (ítems de cafetería para consumo)."
   },
   "extraccion": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
-    "tipo_comprobante": "083",
+    "tipo_comprobante": "C",
     "codigo_afip": "083",
     "razon_social_emisor": "SHELL LOPEMA S.A.",
     "cuit_emisor": "30-64509280-1",
@@ -82,13 +82,13 @@
     "otros_impuestos": 0,
     "importe_total": 12800.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio (combustible)",
-    "categoria_gasto_sugerida": "Combustible",
-    "cantidad_comensales_personas": 0,
-    "cantidad_litros": 0,
+    "rubro_emisor": "Estación de servicio / tienda de conveniencia (Shell)",
+    "categoria_gasto_sugerida": "Restaurante",
+    "cantidad_comensales_personas": null,
+    "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Ticket/Tique Cód. 083 de Shell LOPEMA S.A. (Av. Hipólito Yrigoyen S/N, El Talar, Bs.As. - CP 1618), IVA Responsable Inscripto, 'A CONSUMIDOR FINAL'. P.V. N° 00010, Nro. 00093258, fecha 28/11/2025 16:10:56. Detalle: 1 x Café doble + tostado $10.300,00 y 1 x Pepsi 45 gr $2.500,00. TOTAL $12.800,00, pagado en efectivo. No discrimina IVA en el cuerpo: solo informa 'IVA Contenido: 2.221,49' y 'Otros Impuestos Nac. Indirecto: 0,00'; por eso los campos de impuestos van en cero y el subtotal coincide con el total. CUIT con dígito verificador válido (30-64509280-1). El emisor es una estación de servicio, pero los ítems consumidos son café/bebidas (no combustible), por lo que cabría evaluar si la categoría correcta es Combustible o Restaurante/Cafetería."
+    "observaciones": "TIQUE (Cód. 083) de controlador fiscal - equivale a comprobante clase C (IVA Responsable Inscripto a CONSUMIDOR FINAL, sin discriminación de IVA en el cuerpo). Emisor: SHELL LOPEMA S.A., CUIT 30-64509280-1 (dígito verificador válido), Ing. Brutos 306450928001, Av. Hipólito Yrigoyen S/N, El Talar, BsAs, CP 1618; inicio de actividades 12/03/1993. Punto de venta 00010, Nro. T. 00093258, fecha 28/11/2025 16:10:56. Detalle: 1,0000 u x 10300,0000 CAFE DOBLE + TOSTAD $10.300,00; 1,0000 u x 2500,0000 PEPSICO 45 GR $2.500,00. TOTAL $12.800,00, pagado en efectivo $12.800,00 (vuelto $0,00). No hay línea de neto gravado impresa: el único importe es el TOTAL, por lo que subtotal=total y no se adicionan impuestos (aritmética cierra). Por Ley 27743 el ticket informa 'IVA Contenido: 2.221,49' y 'Otros Impuestos Nac. Indirecto: 0,00'; ese IVA contenido es informativo y ya está incluido dentro del total, no se suma ni se discrimina, por eso se carga iva=0. Registro: EPEAA000021695, V: 1,02. No se observan consumos de combustible ni litros. Cantidad de comensales no figura en el ticket (ítems de cafetería para consumo)."
   },
   "aritmetica": {
     "calculable": true,

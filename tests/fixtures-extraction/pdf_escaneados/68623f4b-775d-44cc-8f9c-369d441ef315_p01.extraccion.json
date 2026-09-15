@@ -1,12 +1,12 @@
 {
   "origen": "tests/fixtures/pdf_escaneados/68623f4b-775d-44cc-8f9c-369d441ef315_p01.pdf",
   "archivo_relativo": "pdf_escaneados/68623f4b-775d-44cc-8f9c-369d441ef315_p01.pdf",
-  "procesado_utc": "2026-09-15T13:43:59+00:00",
+  "procesado_utc": "2026-09-15T14:56:44+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
   "fuente": "api",
-  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_2gxv7ghk/pdf_escaneados/68623f4b-775d-44cc-8f9c-369d441ef315_p01.jpg",
+  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_mbl_qjjy/pdf_escaneados/68623f4b-775d-44cc-8f9c-369d441ef315_p01.jpg",
   "pagina": 1,
   "imagen": {
     "bytes": 641199,
@@ -18,13 +18,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:49bf219ef6de34fc",
+  "prompt_hash": "sha256:f9c4a199f7c38725",
   "uso": {
-    "prompt_tokens": 4038,
-    "completion_tokens": 2657,
-    "total_tokens": 6695,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 1222
+    "prompt_tokens": 4213,
+    "completion_tokens": 6543,
+    "total_tokens": 10756,
+    "prompt_cache_hit_tokens": 3072,
+    "prompt_cache_miss_tokens": 1141
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -33,14 +33,14 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.003572,
+  "costo_usd": 0.008212,
   "resultado": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "001",
-    "razon_social_emisor": "C.V.C SA",
-    "cuit_emisor": "30-58221570-3",
+    "razon_social_emisor": "INC SA",
+    "cuit_emisor": "30-68731043-4",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "16/07/26",
     "nro_factura": "12137-00006997",
@@ -55,21 +55,21 @@
     "otros_impuestos": 1678.76,
     "importe_total": 69612.59,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Autoservicio / distribuidor mayorista de almacén (almacén, cafés, galletitas y artículos de librería)",
+    "rubro_emisor": "Supermercado / Almacén (con sección Librería)",
     "categoria_gasto_sugerida": "Supermercado",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A (Cod. 001) emitida por C.V.C SA, CUIT 30-58221570-3 (dígito verificador válido), IVA Responsable Inscripto, domicilio Coronel Díaz 2717 6 0. Punto de venta 12137, número 00006997, fecha 16/07/26 10:13:58, caja 0005. Nota: en el encabezado superior aparece 'INC SA - CUIT 30-68731043-4' junto a la leyenda de orientación al consumidor, que corresponde al proveedor del sistema/controlador fiscal y NO al emisor del comprobante. Detalle: SUBTOTAL SIN DESCUENTOS $62.611,58; DESCUENTOS -$867,77 y -$5.785,12; AHORRO $6.652,89; AJUSTE B.I. -$0,01; TOTAL NETO SIN IVA (neto gravado) $55.958,68; IVA 21% (base $55.958,68) $11.751,32; No Gravado en IVA $0,00; Impuesto Interno $0,00; PERC IVA RG 2408 $1.678,76; PERC IB BSAS DNOI 0,40% $223,83; TOTAL $69.612,59. La aritmética cierra: 55.958,68 + 11.751,32 + 1.678,76 + 223,83 = 69.612,59. No hay monto no gravado ni exento. La percepción de IVA (RG 2408) se volcó en 'otros_impuestos' y la de Ingresos Brutos en 'percepciones_iibb'. Pago con VISA en 1 cuota por el total ($69.612,59); TEA y CFT 0,00%. Rubro del emisor inferible: autoservicio/mayorista de almacén y librería; se sugiere categoría 'Supermercado' (o 'Almacén'), no verificable con certeza mayor. No se observan datos de litros ni de comensales. La línea superior del ticket está levemente recortada pero no afecta ningún dato fiscal."
+    "observaciones": "Factura A (Cod. 001), emisor INC SA, CUIT 30-68731043-4 (dígito verificador válido), inicio actividad 20/05/1999, IVA Responsable Inscripto, domicilio Venado Tuerto. Se consigna como receptor a C.V.C SA, Coronel Díaz 2717, CUIT 30-58221570-3, IVA Responsable Inscripto (dato del cliente, no del emisor). Punto de venta 12137, comprobante Nro 00006997, fecha 16/07/26 10:13:58, caja 0005. Moneda pesos ($). Rubro: comercio minorista tipo supermercado/almacén con sección librería. Importes transcritos: Subtotal sin descuentos $62.611,58; descuentos -$867,77 y -$5.785,12; ajuste B.I. -$0,01; Total Neto sin IVA $55.958,68; IVA 21% (base $55.958,68) $11.751,32; No Gravado en IVA $0,00; Impuesto Interno $0,00; Percepción IVA RG 2408 $1.678,76; Percepción IIBB BSAS 0,40% $223,83; TOTAL $69.612,59. La aritmética cierra: 55.958,68 + 11.751,32 + 1.678,76 + 223,83 = 69.612,59. Categoría de gasto sugerida por rubro: Supermercado; sin cantidades de comensales ni litros aplicables. No se imprimen subtotal exento ni otros no gravados."
   },
   "extraccion": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "001",
-    "razon_social_emisor": "C.V.C SA",
-    "cuit_emisor": "30-58221570-3",
+    "razon_social_emisor": "INC SA",
+    "cuit_emisor": "30-68731043-4",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "16/07/26",
     "nro_factura": "12137-00006997",
@@ -84,13 +84,13 @@
     "otros_impuestos": 1678.76,
     "importe_total": 69612.59,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Autoservicio / distribuidor mayorista de almacén (almacén, cafés, galletitas y artículos de librería)",
+    "rubro_emisor": "Supermercado / Almacén (con sección Librería)",
     "categoria_gasto_sugerida": "Supermercado",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A (Cod. 001) emitida por C.V.C SA, CUIT 30-58221570-3 (dígito verificador válido), IVA Responsable Inscripto, domicilio Coronel Díaz 2717 6 0. Punto de venta 12137, número 00006997, fecha 16/07/26 10:13:58, caja 0005. Nota: en el encabezado superior aparece 'INC SA - CUIT 30-68731043-4' junto a la leyenda de orientación al consumidor, que corresponde al proveedor del sistema/controlador fiscal y NO al emisor del comprobante. Detalle: SUBTOTAL SIN DESCUENTOS $62.611,58; DESCUENTOS -$867,77 y -$5.785,12; AHORRO $6.652,89; AJUSTE B.I. -$0,01; TOTAL NETO SIN IVA (neto gravado) $55.958,68; IVA 21% (base $55.958,68) $11.751,32; No Gravado en IVA $0,00; Impuesto Interno $0,00; PERC IVA RG 2408 $1.678,76; PERC IB BSAS DNOI 0,40% $223,83; TOTAL $69.612,59. La aritmética cierra: 55.958,68 + 11.751,32 + 1.678,76 + 223,83 = 69.612,59. No hay monto no gravado ni exento. La percepción de IVA (RG 2408) se volcó en 'otros_impuestos' y la de Ingresos Brutos en 'percepciones_iibb'. Pago con VISA en 1 cuota por el total ($69.612,59); TEA y CFT 0,00%. Rubro del emisor inferible: autoservicio/mayorista de almacén y librería; se sugiere categoría 'Supermercado' (o 'Almacén'), no verificable con certeza mayor. No se observan datos de litros ni de comensales. La línea superior del ticket está levemente recortada pero no afecta ningún dato fiscal."
+    "observaciones": "Factura A (Cod. 001), emisor INC SA, CUIT 30-68731043-4 (dígito verificador válido), inicio actividad 20/05/1999, IVA Responsable Inscripto, domicilio Venado Tuerto. Se consigna como receptor a C.V.C SA, Coronel Díaz 2717, CUIT 30-58221570-3, IVA Responsable Inscripto (dato del cliente, no del emisor). Punto de venta 12137, comprobante Nro 00006997, fecha 16/07/26 10:13:58, caja 0005. Moneda pesos ($). Rubro: comercio minorista tipo supermercado/almacén con sección librería. Importes transcritos: Subtotal sin descuentos $62.611,58; descuentos -$867,77 y -$5.785,12; ajuste B.I. -$0,01; Total Neto sin IVA $55.958,68; IVA 21% (base $55.958,68) $11.751,32; No Gravado en IVA $0,00; Impuesto Interno $0,00; Percepción IVA RG 2408 $1.678,76; Percepción IIBB BSAS 0,40% $223,83; TOTAL $69.612,59. La aritmética cierra: 55.958,68 + 11.751,32 + 1.678,76 + 223,83 = 69.612,59. Categoría de gasto sugerida por rubro: Supermercado; sin cantidades de comensales ni litros aplicables. No se imprimen subtotal exento ni otros no gravados."
   },
   "aritmetica": {
     "calculable": true,

@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/expected-extraction/757f0acc-59c9-4830-932e-a4db7b2376fb.jpg",
   "archivo_relativo": "expected-extraction/757f0acc-59c9-4830-932e-a4db7b2376fb.jpg",
-  "procesado_utc": "2026-09-15T13:45:13+00:00",
+  "procesado_utc": "2026-09-15T14:58:23+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:49bf219ef6de34fc",
+  "prompt_hash": "sha256:f9c4a199f7c38725",
   "uso": {
-    "prompt_tokens": 3564,
-    "completion_tokens": 1396,
-    "total_tokens": 4960,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 748
+    "prompt_tokens": 3739,
+    "completion_tokens": 2407,
+    "total_tokens": 6146,
+    "prompt_cache_hit_tokens": 3072,
+    "prompt_cache_miss_tokens": 667
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,7 +31,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.001916,
+  "costo_usd": 0.003107,
   "resultado": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
@@ -43,23 +43,23 @@
     "fecha_emision": "17/09/2025",
     "nro_factura": "0008-00031820",
     "moneda": "ARS",
-    "subtotal": 55000.0,
+    "subtotal": 55000,
     "no_gravado": 0,
     "exento": 0,
     "discrimina_impuestos": true,
-    "iva": 11550.0,
+    "iva": 11550,
     "impuestos_internos": 0,
     "percepciones_iibb": 0,
     "otros_impuestos": 0,
-    "importe_total": 66550.0,
+    "importe_total": 66550,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Cartelería / señalización (fabricación o venta de carteles)",
-    "categoria_gasto_sugerida": "Publicidad / Cartelería",
+    "rubro_emisor": "Cartelería/Publicidad",
+    "categoria_gasto_sugerida": "Publicidad",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A, Código N° 01, Original, con CAE 75388481916621 (vto. 27/09/2025). Emisor MOLAR SRL, CUIT 30-66561976-8 (dígito verificador válido), Ingresos Brutos 30-66561976-8, domicilio Bto. de Miguel 280, CP (6000) Junín (Bs As), inicio de actividades 05/1997, IVA Responsable Inscripto. Receptor: CVC SA, RUTA 7 KM 262, CUIT 30-58221570-3, Responsable Inscripto. Detalle: '5 CARTELES DE 40CMX40CM', P.Unit $55.000,00, Cant. 1, P.Total $55.000,00. Línea de importes: 'Bruto' $55.000,00 (neto gravado, transcripto como subtotal), 'Iva 21' $11.550,00, 'Iva 10,5' $0,00, Total $66.550,00. La aritmética cierra: 55.000,00 + 11.550,00 = 66.550,00. No se imprimen percepciones, impuestos internos ni otros tributos. No hay leyenda de moneda explícita, pero el símbolo '$' y el tipo de comprobante AFIP indican ARS. El rubro del emisor se infiere del detalle (carteles), aunque la razón social no permite confirmar la actividad; no hay datos de comensales, litros ni centro de costo en el comprobante."
+    "observaciones": "Factura A legible. Emisor MOLAR SRL, CUIT 30-66561976-8 con dígito verificador válido. Receptor CVC SA. Detalle: 5 carteles de 40cmx40cm. Bruto $55.000,00, IVA 21% $11.550,00, total $66.550,00. No se observan no gravado, exento, percepciones ni otros tributos. La suma cierra: 55.000 + 11.550 = 66.550. CAE 75388481916621, vencimiento 27/09/2025."
   },
   "extraccion": {
     "es_comprobante": "comprobante",
@@ -72,23 +72,23 @@
     "fecha_emision": "17/09/2025",
     "nro_factura": "0008-00031820",
     "moneda": "ARS",
-    "subtotal": 55000.0,
+    "subtotal": 55000,
     "no_gravado": 0,
     "exento": 0,
     "discrimina_impuestos": true,
-    "iva": 11550.0,
+    "iva": 11550,
     "impuestos_internos": 0,
     "percepciones_iibb": 0,
     "otros_impuestos": 0,
-    "importe_total": 66550.0,
+    "importe_total": 66550,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Cartelería / señalización (fabricación o venta de carteles)",
-    "categoria_gasto_sugerida": "Publicidad / Cartelería",
+    "rubro_emisor": "Cartelería/Publicidad",
+    "categoria_gasto_sugerida": "Publicidad",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A, Código N° 01, Original, con CAE 75388481916621 (vto. 27/09/2025). Emisor MOLAR SRL, CUIT 30-66561976-8 (dígito verificador válido), Ingresos Brutos 30-66561976-8, domicilio Bto. de Miguel 280, CP (6000) Junín (Bs As), inicio de actividades 05/1997, IVA Responsable Inscripto. Receptor: CVC SA, RUTA 7 KM 262, CUIT 30-58221570-3, Responsable Inscripto. Detalle: '5 CARTELES DE 40CMX40CM', P.Unit $55.000,00, Cant. 1, P.Total $55.000,00. Línea de importes: 'Bruto' $55.000,00 (neto gravado, transcripto como subtotal), 'Iva 21' $11.550,00, 'Iva 10,5' $0,00, Total $66.550,00. La aritmética cierra: 55.000,00 + 11.550,00 = 66.550,00. No se imprimen percepciones, impuestos internos ni otros tributos. No hay leyenda de moneda explícita, pero el símbolo '$' y el tipo de comprobante AFIP indican ARS. El rubro del emisor se infiere del detalle (carteles), aunque la razón social no permite confirmar la actividad; no hay datos de comensales, litros ni centro de costo en el comprobante."
+    "observaciones": "Factura A legible. Emisor MOLAR SRL, CUIT 30-66561976-8 con dígito verificador válido. Receptor CVC SA. Detalle: 5 carteles de 40cmx40cm. Bruto $55.000,00, IVA 21% $11.550,00, total $66.550,00. No se observan no gravado, exento, percepciones ni otros tributos. La suma cierra: 55.000 + 11.550 = 66.550. CAE 75388481916621, vencimiento 27/09/2025."
   },
   "aritmetica": {
     "calculable": true,

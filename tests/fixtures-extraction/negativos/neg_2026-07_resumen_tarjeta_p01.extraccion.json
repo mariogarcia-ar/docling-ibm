@@ -1,12 +1,12 @@
 {
   "origen": "tests/fixtures/negativos/neg_2026-07_resumen_tarjeta_p01.pdf",
   "archivo_relativo": "negativos/neg_2026-07_resumen_tarjeta_p01.pdf",
-  "procesado_utc": "2026-09-15T13:43:42+00:00",
+  "procesado_utc": "2026-09-15T14:56:29+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
   "fuente": "api",
-  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_2gxv7ghk/negativos/neg_2026-07_resumen_tarjeta_p01.jpg",
+  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_mbl_qjjy/negativos/neg_2026-07_resumen_tarjeta_p01.jpg",
   "pagina": 1,
   "imagen": {
     "bytes": 130044,
@@ -18,13 +18,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:49bf219ef6de34fc",
+  "prompt_hash": "sha256:f9c4a199f7c38725",
   "uso": {
-    "prompt_tokens": 4038,
-    "completion_tokens": 463,
-    "total_tokens": 4501,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 1222
+    "prompt_tokens": 4213,
+    "completion_tokens": 493,
+    "total_tokens": 4706,
+    "prompt_cache_hit_tokens": 3072,
+    "prompt_cache_miss_tokens": 1141
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -33,7 +33,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.000939,
+  "costo_usd": 0.000952,
   "resultado": {
     "es_comprobante": "no_comprobante",
     "legibilidad": "buena",
@@ -61,7 +61,7 @@
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "El documento se titula 'RESUMEN DE TARJETA DE CREDITO' y aclara expresamente: 'El resumen no es el comprobante emitido por el comercio'. Es un listado de consumos y vencimientos del período, sin emisor fiscal, CUIT, fecha de emisión, número de factura ni importes desglosados. No constituye comprobante fiscal ni comercial válido para respaldar el gasto: corresponde solicitar la factura o ticket del comercio emisor. No se transcriben campos fiscales por no existir en la imagen."
+    "observaciones": "El documento NO es un comprobante fiscal ni comercial: es una hoja titulada 'RESUMEN DE TARJETA DE CREDITO' que se autodefine como 'Listado de consumos y vencimientos del periodo' y aclara expresamente que 'El resumen no es el comprobante emitido por el comercio'. No muestra emisor, CUIT, letra A/B/C, código AFIP, fecha de emisión, número de factura, moneda ni importes: no hay ningún dato transcribible. No debe usarse como respaldo del gasto; se requiere la factura o ticket emitido por el comercio."
   },
   "extraccion": {
     "es_comprobante": "no_comprobante",
@@ -90,7 +90,7 @@
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "El documento se titula 'RESUMEN DE TARJETA DE CREDITO' y aclara expresamente: 'El resumen no es el comprobante emitido por el comercio'. Es un listado de consumos y vencimientos del período, sin emisor fiscal, CUIT, fecha de emisión, número de factura ni importes desglosados. No constituye comprobante fiscal ni comercial válido para respaldar el gasto: corresponde solicitar la factura o ticket del comercio emisor. No se transcriben campos fiscales por no existir en la imagen."
+    "observaciones": "El documento NO es un comprobante fiscal ni comercial: es una hoja titulada 'RESUMEN DE TARJETA DE CREDITO' que se autodefine como 'Listado de consumos y vencimientos del periodo' y aclara expresamente que 'El resumen no es el comprobante emitido por el comercio'. No muestra emisor, CUIT, letra A/B/C, código AFIP, fecha de emisión, número de factura, moneda ni importes: no hay ningún dato transcribible. No debe usarse como respaldo del gasto; se requiere la factura o ticket emitido por el comercio."
   },
   "aritmetica": {
     "calculable": false,

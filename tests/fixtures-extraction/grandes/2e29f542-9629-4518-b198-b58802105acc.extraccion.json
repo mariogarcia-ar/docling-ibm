@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/grandes/2e29f542-9629-4518-b198-b58802105acc.jpg",
   "archivo_relativo": "grandes/2e29f542-9629-4518-b198-b58802105acc.jpg",
-  "procesado_utc": "2026-09-15T13:46:50+00:00",
+  "procesado_utc": "2026-09-15T15:00:32+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:49bf219ef6de34fc",
+  "prompt_hash": "sha256:f9c4a199f7c38725",
   "uso": {
-    "prompt_tokens": 4025,
-    "completion_tokens": 2813,
-    "total_tokens": 6838,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 1209
+    "prompt_tokens": 4200,
+    "completion_tokens": 12970,
+    "total_tokens": 17170,
+    "prompt_cache_hit_tokens": 3072,
+    "prompt_cache_miss_tokens": 1128
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,16 +31,16 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.003755,
+  "costo_usd": 0.015921,
   "resultado": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": null,
     "razon_social_emisor": "PAN & CAFE",
-    "cuit_emisor": "27-36261345-6",
+    "cuit_emisor": "27362613456",
     "digito_verificador_cuit_valido": true,
-    "fecha_emision": "15/10/25",
+    "fecha_emision": "15/10/2025",
     "nro_factura": "0002-00000091",
     "moneda": "ARS",
     "subtotal": 11644.63,
@@ -59,7 +59,7 @@
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A electrónica. Emisor PAN & CAFE (SOFIA MARTINEZ), Saavedra 101, CUIT 27-36261345-6 (dígito verificador válido). Receptor: Cuesa, CUIT 30-58221570-3, Responsable Inscripto. P.V. 2, N° de factura 0002-00000091, ticket 7475, fecha 15/10/25 07:40. Ítems: 260ml Chipa $3.867,77 + 255ml Bizcochos $3.371,90 + 260g Canasta dulce $4.404,96 = Subtotal (neto gravado) $11.644,63; IVA 21% $2.445,37; TOTAL $14.090,00. La aritmética cierra (11.644,63 + 2.445,37 = 14.090,00). Pago con tarjeta. CAE: 75426958003850, vto. 25/10/25. En el encabezado figura además el número 'C00009037' (posible nro. de control interno). No se discrimina exento, no gravado, percepciones ni otros tributos. Rubro: panadería/cafetería (chipa, bizcochos, canasta dulce). No se indican comensales ni litros."
+    "observaciones": "Ticket de Facturación Electrónica que se identifica como 'Factura A'. Encabezado del emisor: 'PAN & CAFE', Saavedra 101; titular que figura en el encabezado: SOFIA MARTINEZ; CUIT: 27362613456 (dígito verificador válido: 6). Inicio de Actividades 18/02/2025, Ingresos Brutos 27362613456. Bloque 'Factura A' seguido de los datos del receptor: Razon Social: Cuesa, CUIT: 30582215703 (dígito verificador válido: 3), Responsable Inscripto. Punto de venta 2, comprobante 0002-00000091, fecha 15/10/2025 07:40, número de ticket 7475. Detalle: 260ml Chipa $3.867,77 + 255ml Bizcochos $3.371,90 + 260g Canasta dulce $4.404,96 = SUBTOTAL (neto gravado) $11.644,63; IVA 21% $2.445,37; TOTAL $14.090,00. La aritmética cierra: 11.644,63 + 2.445,37 = 14.090,00. No se discriminan no gravado, exento, percepciones de IIBB, impuestos internos ni otros tributos. No se imprime código AFIP explícito; por la letra A correspondería a Cod. 001. El código 'C00009037' del encabezado no pudo identificarse con un campo específico (posible código interno/control). CAE 75426958003850, vencimiento CAE 25/10/2025. Forma de pago: TARJETA. Rubro inferible: panadería/cafetería (productos de panificación: chipá, bizcochos, canasta dulce). No hay detalle de comensales ni de litros cargados. Nota: el encabezado muestra un nombre de fantasía ('PAN & CAFE') y un titular (SOFIA MARTINEZ), con un CUIT distinto al del receptor 'Cuesa'."
   },
   "extraccion": {
     "es_comprobante": "comprobante",
@@ -67,9 +67,9 @@
     "tipo_comprobante": "A",
     "codigo_afip": null,
     "razon_social_emisor": "PAN & CAFE",
-    "cuit_emisor": "27-36261345-6",
+    "cuit_emisor": "27362613456",
     "digito_verificador_cuit_valido": true,
-    "fecha_emision": "15/10/25",
+    "fecha_emision": "15/10/2025",
     "nro_factura": "0002-00000091",
     "moneda": "ARS",
     "subtotal": 11644.63,
@@ -88,7 +88,7 @@
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A electrónica. Emisor PAN & CAFE (SOFIA MARTINEZ), Saavedra 101, CUIT 27-36261345-6 (dígito verificador válido). Receptor: Cuesa, CUIT 30-58221570-3, Responsable Inscripto. P.V. 2, N° de factura 0002-00000091, ticket 7475, fecha 15/10/25 07:40. Ítems: 260ml Chipa $3.867,77 + 255ml Bizcochos $3.371,90 + 260g Canasta dulce $4.404,96 = Subtotal (neto gravado) $11.644,63; IVA 21% $2.445,37; TOTAL $14.090,00. La aritmética cierra (11.644,63 + 2.445,37 = 14.090,00). Pago con tarjeta. CAE: 75426958003850, vto. 25/10/25. En el encabezado figura además el número 'C00009037' (posible nro. de control interno). No se discrimina exento, no gravado, percepciones ni otros tributos. Rubro: panadería/cafetería (chipa, bizcochos, canasta dulce). No se indican comensales ni litros."
+    "observaciones": "Ticket de Facturación Electrónica que se identifica como 'Factura A'. Encabezado del emisor: 'PAN & CAFE', Saavedra 101; titular que figura en el encabezado: SOFIA MARTINEZ; CUIT: 27362613456 (dígito verificador válido: 6). Inicio de Actividades 18/02/2025, Ingresos Brutos 27362613456. Bloque 'Factura A' seguido de los datos del receptor: Razon Social: Cuesa, CUIT: 30582215703 (dígito verificador válido: 3), Responsable Inscripto. Punto de venta 2, comprobante 0002-00000091, fecha 15/10/2025 07:40, número de ticket 7475. Detalle: 260ml Chipa $3.867,77 + 255ml Bizcochos $3.371,90 + 260g Canasta dulce $4.404,96 = SUBTOTAL (neto gravado) $11.644,63; IVA 21% $2.445,37; TOTAL $14.090,00. La aritmética cierra: 11.644,63 + 2.445,37 = 14.090,00. No se discriminan no gravado, exento, percepciones de IIBB, impuestos internos ni otros tributos. No se imprime código AFIP explícito; por la letra A correspondería a Cod. 001. El código 'C00009037' del encabezado no pudo identificarse con un campo específico (posible código interno/control). CAE 75426958003850, vencimiento CAE 25/10/2025. Forma de pago: TARJETA. Rubro inferible: panadería/cafetería (productos de panificación: chipá, bizcochos, canasta dulce). No hay detalle de comensales ni de litros cargados. Nota: el encabezado muestra un nombre de fantasía ('PAN & CAFE') y un titular (SOFIA MARTINEZ), con un CUIT distinto al del receptor 'Cuesa'."
   },
   "aritmetica": {
     "calculable": true,

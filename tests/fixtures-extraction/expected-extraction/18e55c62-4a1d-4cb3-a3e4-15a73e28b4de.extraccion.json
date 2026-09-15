@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/expected-extraction/18e55c62-4a1d-4cb3-a3e4-15a73e28b4de.jpg",
   "archivo_relativo": "expected-extraction/18e55c62-4a1d-4cb3-a3e4-15a73e28b4de.jpg",
-  "procesado_utc": "2026-09-15T13:44:25+00:00",
+  "procesado_utc": "2026-09-15T14:57:11+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:49bf219ef6de34fc",
+  "prompt_hash": "sha256:f9c4a199f7c38725",
   "uso": {
-    "prompt_tokens": 3564,
-    "completion_tokens": 4252,
-    "total_tokens": 7816,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 748
+    "prompt_tokens": 3739,
+    "completion_tokens": 1989,
+    "total_tokens": 5728,
+    "prompt_cache_hit_tokens": 3072,
+    "prompt_cache_miss_tokens": 667
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,19 +31,19 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.005344,
+  "costo_usd": 0.002605,
   "resultado": {
-    "es_comprobante": "comprobante",
+    "es_comprobante": "no_comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": null,
     "codigo_afip": null,
     "razon_social_emisor": "ROCK & FELLERS",
-    "cuit_emisor": "30-71530218-5",
-    "digito_verificador_cuit_valido": false,
+    "cuit_emisor": "30-71530218-3",
+    "digito_verificador_cuit_valido": true,
     "fecha_emision": "27/11/25",
     "nro_factura": null,
     "moneda": "ARS",
-    "subtotal": 8933.33,
+    "subtotal": null,
     "no_gravado": 0,
     "exento": 0,
     "discrimina_impuestos": false,
@@ -52,31 +52,27 @@
     "percepciones_iibb": 0,
     "otros_impuestos": 0,
     "importe_total": 8933.33,
-    "cierra_aritmetica": true,
-    "rubro_emisor": "No verificable con certeza: el comprobante no informa actividad/rubro. El nombre del emisor (ROCK & FELLERS) sugiere bar/restaurante.",
-    "categoria_gasto_sugerida": "Restaurante (presunto por el nombre del emisor, no verificable desde este comprobante)",
+    "cierra_aritmetica": false,
+    "rubro_emisor": "no verificable",
+    "categoria_gasto_sugerida": "No verificable",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
-    "campos_no_legibles": [
-      "Valor de 'Cuotas:' (impreso a la derecha del total, cortado/borroso)",
-      "Leyendas al pie del ticket (texto muy tenue, no legible)",
-      "Marca de agua diagonal superior (no legible con certeza)"
-    ],
-    "observaciones": "El documento es un cupón/voucher de pago con tarjeta emitido por el POS 'payway' del comercio, en copia cliente: NO es una factura fiscal argentina (no tiene letra A/B/C, ni COD. AFIP, ni CAE, ni punto de venta/número de factura, ni discriminación de IVA). Se transcribe: emisor ROCK & FELLERS, CUIT 30-71530218-5 (11 dígitos, formato correcto; el dígito verificador impreso '5' no valida — con los 10 primeros dígitos correspondería '3', posible error de impresión o de lectura), fecha y hora 27/11/25 00:41 h (formato DD/MM/AA, año a 2 dígitos), operación 'COMPRA - (00) APROBADA', tarjeta VISA terminada en 7064, Nro. cupón 8555, Nro. lote 035, Nro. autorización 312952, software 'WUDU 3.3.0.15-newland'. Único importe impreso: Total $ 8.933,33 (moneda ARS por el símbolo $); no hay líneas de SUBTOT. IMP. NETO GRAVADO, NO GRAVADO, EXENTO, PERCEPCIONES ni OTROS TRIBUTOS, por lo que no hay impuestos discriminados: el 'subtotal' se consigna igual al total solo a efectos de cierre aritmético (subtotal = total). No hay número de factura ni código AFIP que transcribir. El 'Nro. cupón 8555' NO es un número de factura. Si este voucher se usa para respaldar el gasto, lo habitual sería cargarlo como 090/099 (otros comprobantes, sin IVA) adjuntando además la factura del comercio si existiera."
+    "campos_no_legibles": [],
+    "observaciones": "El documento NO es un comprobante fiscal: es el voucher/cupón de un posnet de Payway (\"Sistema Payway\", 3.3.0.15-newland, \"Copia cliente\"), que solo acredita el pago con tarjeta. Por eso no hay letra A/B/C ni código AFIP, y los campos tipo_comprobante, codigo_afip y nro_factura van en null. Datos transcritos del papel: emisor/comercio ROCK & FELLERS, CUIT 30-71530218-3 (dígito verificador válido, calculado: 3), fecha y hora 27/11/25 00:41 h, Total $8.933,33 (único importe impreso, en pesos), operación \"COMPRA - (00) APROBADA\" con VISA terminada en 7064, Nro. cupón 8555, Nro. lote 035, Nro. autorización 312952. No hay discriminación de IVA ni de otros impuestos, ni línea de subtotal/neto gravado/exento: el único importe es el total, por lo que subtotal queda null y no se puede validar la aritmética (cierra_aritmetica=false por falta de desglose, no por error de suma). El rubro del emisor no es inferible con confianza desde esta imagen, por lo que la categoría de gasto no es verificable. No sirve como respaldo fiscal del gasto; debería pedirse la factura correspondiente."
   },
   "extraccion": {
-    "es_comprobante": "comprobante",
+    "es_comprobante": "no_comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": null,
     "codigo_afip": null,
     "razon_social_emisor": "ROCK & FELLERS",
-    "cuit_emisor": "30-71530218-5",
-    "digito_verificador_cuit_valido": false,
+    "cuit_emisor": "30-71530218-3",
+    "digito_verificador_cuit_valido": true,
     "fecha_emision": "27/11/25",
     "nro_factura": null,
     "moneda": "ARS",
-    "subtotal": 8933.33,
+    "subtotal": null,
     "no_gravado": 0,
     "exento": 0,
     "discrimina_impuestos": false,
@@ -85,25 +81,24 @@
     "percepciones_iibb": 0,
     "otros_impuestos": 0,
     "importe_total": 8933.33,
-    "cierra_aritmetica": true,
-    "rubro_emisor": "No verificable con certeza: el comprobante no informa actividad/rubro. El nombre del emisor (ROCK & FELLERS) sugiere bar/restaurante.",
-    "categoria_gasto_sugerida": "Restaurante (presunto por el nombre del emisor, no verificable desde este comprobante)",
+    "cierra_aritmetica": false,
+    "rubro_emisor": "no verificable",
+    "categoria_gasto_sugerida": "No verificable",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
-    "campos_no_legibles": [
-      "Valor de 'Cuotas:' (impreso a la derecha del total, cortado/borroso)",
-      "Leyendas al pie del ticket (texto muy tenue, no legible)",
-      "Marca de agua diagonal superior (no legible con certeza)"
-    ],
-    "observaciones": "El documento es un cupón/voucher de pago con tarjeta emitido por el POS 'payway' del comercio, en copia cliente: NO es una factura fiscal argentina (no tiene letra A/B/C, ni COD. AFIP, ni CAE, ni punto de venta/número de factura, ni discriminación de IVA). Se transcribe: emisor ROCK & FELLERS, CUIT 30-71530218-5 (11 dígitos, formato correcto; el dígito verificador impreso '5' no valida — con los 10 primeros dígitos correspondería '3', posible error de impresión o de lectura), fecha y hora 27/11/25 00:41 h (formato DD/MM/AA, año a 2 dígitos), operación 'COMPRA - (00) APROBADA', tarjeta VISA terminada en 7064, Nro. cupón 8555, Nro. lote 035, Nro. autorización 312952, software 'WUDU 3.3.0.15-newland'. Único importe impreso: Total $ 8.933,33 (moneda ARS por el símbolo $); no hay líneas de SUBTOT. IMP. NETO GRAVADO, NO GRAVADO, EXENTO, PERCEPCIONES ni OTROS TRIBUTOS, por lo que no hay impuestos discriminados: el 'subtotal' se consigna igual al total solo a efectos de cierre aritmético (subtotal = total). No hay número de factura ni código AFIP que transcribir. El 'Nro. cupón 8555' NO es un número de factura. Si este voucher se usa para respaldar el gasto, lo habitual sería cargarlo como 090/099 (otros comprobantes, sin IVA) adjuntando además la factura del comercio si existiera."
+    "campos_no_legibles": [],
+    "observaciones": "El documento NO es un comprobante fiscal: es el voucher/cupón de un posnet de Payway (\"Sistema Payway\", 3.3.0.15-newland, \"Copia cliente\"), que solo acredita el pago con tarjeta. Por eso no hay letra A/B/C ni código AFIP, y los campos tipo_comprobante, codigo_afip y nro_factura van en null. Datos transcritos del papel: emisor/comercio ROCK & FELLERS, CUIT 30-71530218-3 (dígito verificador válido, calculado: 3), fecha y hora 27/11/25 00:41 h, Total $8.933,33 (único importe impreso, en pesos), operación \"COMPRA - (00) APROBADA\" con VISA terminada en 7064, Nro. cupón 8555, Nro. lote 035, Nro. autorización 312952. No hay discriminación de IVA ni de otros impuestos, ni línea de subtotal/neto gravado/exento: el único importe es el total, por lo que subtotal queda null y no se puede validar la aritmética (cierra_aritmetica=false por falta de desglose, no por error de suma). El rubro del emisor no es inferible con confianza desde esta imagen, por lo que la categoría de gasto no es verificable. No sirve como respaldo fiscal del gasto; debería pedirse la factura correspondiente."
   },
   "aritmetica": {
     "calculable": true,
-    "suma": 8933.33,
+    "suma": 0.0,
     "total": 8933.33,
-    "diferencia": 0.0,
-    "cierra": true,
-    "faltantes": []
+    "diferencia": 8933.33,
+    "cierra": false,
+    "faltantes": [
+      "subtotal"
+    ],
+    "aviso": "Los importes leídos suman 0.00 y el total impreso es 8,933.33 (diferencia 8,933.33). Puede faltar alguno de: subtotal."
   }
 }

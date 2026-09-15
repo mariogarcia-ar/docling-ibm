@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/otros/6d36ef2c-ad48-4a58-bba5-52c476344e00.jpg",
   "archivo_relativo": "otros/6d36ef2c-ad48-4a58-bba5-52c476344e00.jpg",
-  "procesado_utc": "2026-09-15T13:48:26+00:00",
+  "procesado_utc": "2026-09-15T15:02:28+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:49bf219ef6de34fc",
+  "prompt_hash": "sha256:f9c4a199f7c38725",
   "uso": {
-    "prompt_tokens": 4025,
-    "completion_tokens": 2059,
-    "total_tokens": 6084,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 1209
+    "prompt_tokens": 4200,
+    "completion_tokens": 2571,
+    "total_tokens": 6771,
+    "prompt_cache_hit_tokens": 3072,
+    "prompt_cache_miss_tokens": 1128
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,7 +31,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.00285,
+  "costo_usd": 0.003442,
   "resultado": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
@@ -53,13 +53,13 @@
     "otros_impuestos": 603.67,
     "importe_total": 72076.02,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / venta de combustible (NAFTA SUPER)",
+    "rubro_emisor": "Estación de servicio / venta de combustibles (expende NAFTA SUPER)",
     "categoria_gasto_sugerida": "Combustible",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 34.1269,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique Factura \"A\" Cód. 081 (AFIP 081 = Tique Factura A), punto de venta 00002 - N° 00113331. Emisor PRIMAS GROUP S.A, CUIT 30-71599456-5 (dígito verificador válido), IVA Responsable Inscripto, domicilio Av. Mitre 101, Chivilcoy, Pcia. de Buenos Aires. Fecha impresa 23/07/2026 (fecha futura respecto de lo habitual; se transcribe tal como figura). Detalle: 34,1269 u. x 1492,1767 = NAFTA SUPER 50923,37 (se interpreta la cantidad como litros de combustible, aunque el ticket la rotula como \"u.\"). Impuestos: IVA 21% = 10693,91; Impuesto interno a nivel ítem (cód. 10) = 9855,07; IDC (cód. 04) = 603,67; IMPORTE TOTAL OTROS TRIBUTOS 10458,74. No hay percepciones de IIBB ni exento/no gravado. Aritmética verificada: 50923,37 + 10693,91 + 10458,74 = 72076,02 (cierra)."
+    "observaciones": "Tique Factura \"A\" (Cód. 081) emitido por PRIMAS GROUP S.A, CUIT 30-71599456-5 (dígito verificador válido), Av. Mitre 101, Chivilcoy, Pcia. de Buenos Aires, IVA Responsable Inscripto. Punto de venta 00002, comprobante N° 00113331, fecha 23/07/2026 11:25:32 (fecha impresa a futuro respecto de la fecha habitual de carga: verificar). Adquirente: CVC SOCIEDAD ANONIMA, CUIT 30-58221570-3, contado, PL 05227 OP 0018 - NICOLAS. Detalle: 34,1269 u. de NAFTA SUPER a 1492,1767 = 50923,37. Se transcribe el NETO GRAVADO (50923,37) como subtotal, tal como está impreso («SUBTOT. IMP. NETO GRAVADO»). IVA 21% = 10693,91. Otros tributos: «10 - Impuesto interno a nivel ítem» 9855,07 (cargado en impuestos_internos) y «04 - IDC» 603,67 (cargado en otros_impuestos); el rótulo «IMPORTE TOTAL OTROS TRIBUTOS 10458,74» es la suma de ambos (9855,07 + 603,67). Aritmética verificada: 50923,37 + 10693,91 + 10458,74 = 72076,02 = TOTAL impreso. No hay percepciones de IIBB ni montos no gravados/exentos. No hay leyenda ni símbolo de moneda impreso; se asume ARS por tratarse de comprobante fiscal argentino en pesos. No hay campo de centro de costo en el ticket. Cantidad de litros tomada del detalle (34,1269 u.)."
   },
   "extraccion": {
     "es_comprobante": "comprobante",
@@ -82,13 +82,13 @@
     "otros_impuestos": 603.67,
     "importe_total": 72076.02,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / venta de combustible (NAFTA SUPER)",
+    "rubro_emisor": "Estación de servicio / venta de combustibles (expende NAFTA SUPER)",
     "categoria_gasto_sugerida": "Combustible",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 34.1269,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique Factura \"A\" Cód. 081 (AFIP 081 = Tique Factura A), punto de venta 00002 - N° 00113331. Emisor PRIMAS GROUP S.A, CUIT 30-71599456-5 (dígito verificador válido), IVA Responsable Inscripto, domicilio Av. Mitre 101, Chivilcoy, Pcia. de Buenos Aires. Fecha impresa 23/07/2026 (fecha futura respecto de lo habitual; se transcribe tal como figura). Detalle: 34,1269 u. x 1492,1767 = NAFTA SUPER 50923,37 (se interpreta la cantidad como litros de combustible, aunque el ticket la rotula como \"u.\"). Impuestos: IVA 21% = 10693,91; Impuesto interno a nivel ítem (cód. 10) = 9855,07; IDC (cód. 04) = 603,67; IMPORTE TOTAL OTROS TRIBUTOS 10458,74. No hay percepciones de IIBB ni exento/no gravado. Aritmética verificada: 50923,37 + 10693,91 + 10458,74 = 72076,02 (cierra)."
+    "observaciones": "Tique Factura \"A\" (Cód. 081) emitido por PRIMAS GROUP S.A, CUIT 30-71599456-5 (dígito verificador válido), Av. Mitre 101, Chivilcoy, Pcia. de Buenos Aires, IVA Responsable Inscripto. Punto de venta 00002, comprobante N° 00113331, fecha 23/07/2026 11:25:32 (fecha impresa a futuro respecto de la fecha habitual de carga: verificar). Adquirente: CVC SOCIEDAD ANONIMA, CUIT 30-58221570-3, contado, PL 05227 OP 0018 - NICOLAS. Detalle: 34,1269 u. de NAFTA SUPER a 1492,1767 = 50923,37. Se transcribe el NETO GRAVADO (50923,37) como subtotal, tal como está impreso («SUBTOT. IMP. NETO GRAVADO»). IVA 21% = 10693,91. Otros tributos: «10 - Impuesto interno a nivel ítem» 9855,07 (cargado en impuestos_internos) y «04 - IDC» 603,67 (cargado en otros_impuestos); el rótulo «IMPORTE TOTAL OTROS TRIBUTOS 10458,74» es la suma de ambos (9855,07 + 603,67). Aritmética verificada: 50923,37 + 10693,91 + 10458,74 = 72076,02 = TOTAL impreso. No hay percepciones de IIBB ni montos no gravados/exentos. No hay leyenda ni símbolo de moneda impreso; se asume ARS por tratarse de comprobante fiscal argentino en pesos. No hay campo de centro de costo en el ticket. Cantidad de litros tomada del detalle (34,1269 u.)."
   },
   "aritmetica": {
     "calculable": true,

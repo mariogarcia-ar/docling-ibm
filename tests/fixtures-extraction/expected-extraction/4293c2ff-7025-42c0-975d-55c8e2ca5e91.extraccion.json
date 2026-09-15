@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/expected-extraction/4293c2ff-7025-42c0-975d-55c8e2ca5e91.jpg",
   "archivo_relativo": "expected-extraction/4293c2ff-7025-42c0-975d-55c8e2ca5e91.jpg",
-  "procesado_utc": "2026-09-15T13:44:46+00:00",
+  "procesado_utc": "2026-09-15T14:57:39+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,28 +16,30 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:49bf219ef6de34fc",
+  "prompt_hash": "sha256:f9c4a199f7c38725",
   "uso": {
-    "prompt_tokens": 3564,
-    "completion_tokens": 1544,
-    "total_tokens": 5108,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 748
+    "prompt_tokens": 8154,
+    "completion_tokens": 2707,
+    "total_tokens": 10861,
+    "prompt_cache_hit_tokens": 6784,
+    "prompt_cache_miss_tokens": 1370
   },
   "esquema_validado": true,
+  "reintentos_esquema": 1,
+  "avisos_esquema": [],
   "precios_usd_1m": {
     "entrada": 0.3,
     "salida": 1.2,
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.002094,
+  "costo_usd": 0.0037,
   "resultado": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
-    "codigo_afip": "01",
-    "razon_social_emisor": "HOTEL JARDIN SRL",
+    "codigo_afip": "001",
+    "razon_social_emisor": "HOTEL JARDIN S.R.L.",
     "cuit_emisor": "30-58221570-3",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "14/07/2026",
@@ -53,23 +55,24 @@
     "otros_impuestos": 0,
     "importe_total": 44000.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Hotel / alojamiento",
+    "rubro_emisor": "Hospedaje / hotel",
     "categoria_gasto_sugerida": "Hospedaje",
-    "cantidad_comensales_personas": null,
-    "cantidad_litros": null,
+    "cantidad_comensales_personas": 0,
+    "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [
-      "detalle del concepto (fechas de alojamiento parcialmente ilegibles)",
-      "C.A.E. (últimos dígitos)"
+      "C.A.E. (número de autorización, sólo parcialmente legible)",
+      "Ingresos Brutos del emisor",
+      "Localidad del domicilio del emisor (Bartolomé Mitre 1588 – CP 2840 – Tel. 03444-429979)"
     ],
-    "observaciones": "Factura A digital (COD. 01) emitida por HOTEL JARDIN SRL, Bertolotono Mitre 1688 - CP 2840 - Tel. 03444-429979, Gualeguaychú, Entre Ríos. Receptor: CVC S.A., ALM 1017 - Capital Federal, Condición IVA Inscripto. Fecha de emisión 14/07/2026, comprobante N° 0003-00015364. Discrimina IVA 21%: neto gravado 36.363,64 + IVA 7.636,36 = total 44.000,00 (la aritmética cierra). No se observan percepciones, impuestos internos ni otros tributos, ni montos no gravados ni exentos. La línea de conceptos muestra un servicio de alojamiento (fechas de estadía parcialmente legibles) por $ 36.363,64. CUIT del emisor 30-58221570-3 con dígito verificador válido. Al pie figura CAE y fecha de vencimiento de CAE (24/07/2026), parcialmente legibles. No se discrimina cantidad de personas ni litros."
+    "observaciones": "Factura A (COD. 001) electrónica, impresa en formato continuo. Emisor: Hotel Jardín S.R.L., Bartolomé Mitre 1588, CP 2840, Tel. 03444-429979. Fecha de emisión 14/07/2026 (Fecha Vto. 24/07/2026). Receptor: CVC S.A., ALEM 1107, Capital Federal, Condición IVA: Inscripto. Concepto: Alojamiento - Habitación, período 14/07/2026 al 15/07/2026 (1/2). Única línea de detalle: %IVA 21,00 - Cant. 1,00 - Importe 36.363,64 - %Desc 0,00 - Total 36.363,64. Pie: Subtotal 36.363,64 + IVA 21% 7.636,36 = Total 44.000,00 (la aritmética cierra). No hay líneas de no gravado, exento, percepciones ni otros tributos. No se discrimina cantidad de huéspedes/personas en la factura. El dígito verificador del CUIT 30-58221570-3 es válido."
   },
   "extraccion": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
-    "codigo_afip": "01",
-    "razon_social_emisor": "HOTEL JARDIN SRL",
+    "codigo_afip": "001",
+    "razon_social_emisor": "HOTEL JARDIN S.R.L.",
     "cuit_emisor": "30-58221570-3",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "14/07/2026",
@@ -85,16 +88,17 @@
     "otros_impuestos": 0,
     "importe_total": 44000.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Hotel / alojamiento",
+    "rubro_emisor": "Hospedaje / hotel",
     "categoria_gasto_sugerida": "Hospedaje",
-    "cantidad_comensales_personas": null,
-    "cantidad_litros": null,
+    "cantidad_comensales_personas": 0,
+    "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [
-      "detalle del concepto (fechas de alojamiento parcialmente ilegibles)",
-      "C.A.E. (últimos dígitos)"
+      "C.A.E. (número de autorización, sólo parcialmente legible)",
+      "Ingresos Brutos del emisor",
+      "Localidad del domicilio del emisor (Bartolomé Mitre 1588 – CP 2840 – Tel. 03444-429979)"
     ],
-    "observaciones": "Factura A digital (COD. 01) emitida por HOTEL JARDIN SRL, Bertolotono Mitre 1688 - CP 2840 - Tel. 03444-429979, Gualeguaychú, Entre Ríos. Receptor: CVC S.A., ALM 1017 - Capital Federal, Condición IVA Inscripto. Fecha de emisión 14/07/2026, comprobante N° 0003-00015364. Discrimina IVA 21%: neto gravado 36.363,64 + IVA 7.636,36 = total 44.000,00 (la aritmética cierra). No se observan percepciones, impuestos internos ni otros tributos, ni montos no gravados ni exentos. La línea de conceptos muestra un servicio de alojamiento (fechas de estadía parcialmente legibles) por $ 36.363,64. CUIT del emisor 30-58221570-3 con dígito verificador válido. Al pie figura CAE y fecha de vencimiento de CAE (24/07/2026), parcialmente legibles. No se discrimina cantidad de personas ni litros."
+    "observaciones": "Factura A (COD. 001) electrónica, impresa en formato continuo. Emisor: Hotel Jardín S.R.L., Bartolomé Mitre 1588, CP 2840, Tel. 03444-429979. Fecha de emisión 14/07/2026 (Fecha Vto. 24/07/2026). Receptor: CVC S.A., ALEM 1107, Capital Federal, Condición IVA: Inscripto. Concepto: Alojamiento - Habitación, período 14/07/2026 al 15/07/2026 (1/2). Única línea de detalle: %IVA 21,00 - Cant. 1,00 - Importe 36.363,64 - %Desc 0,00 - Total 36.363,64. Pie: Subtotal 36.363,64 + IVA 21% 7.636,36 = Total 44.000,00 (la aritmética cierra). No hay líneas de no gravado, exento, percepciones ni otros tributos. No se discrimina cantidad de huéspedes/personas en la factura. El dígito verificador del CUIT 30-58221570-3 es válido."
   },
   "aritmetica": {
     "calculable": true,

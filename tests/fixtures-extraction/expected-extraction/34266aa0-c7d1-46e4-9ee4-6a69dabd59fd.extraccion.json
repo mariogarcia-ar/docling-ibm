@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/expected-extraction/34266aa0-c7d1-46e4-9ee4-6a69dabd59fd.jpg",
   "archivo_relativo": "expected-extraction/34266aa0-c7d1-46e4-9ee4-6a69dabd59fd.jpg",
-  "procesado_utc": "2026-09-15T13:44:34+00:00",
+  "procesado_utc": "2026-09-15T14:57:19+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:49bf219ef6de34fc",
+  "prompt_hash": "sha256:f9c4a199f7c38725",
   "uso": {
-    "prompt_tokens": 3564,
-    "completion_tokens": 8393,
-    "total_tokens": 11957,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 748
+    "prompt_tokens": 3739,
+    "completion_tokens": 4017,
+    "total_tokens": 7756,
+    "prompt_cache_hit_tokens": 3072,
+    "prompt_cache_miss_tokens": 667
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,7 +31,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.010313,
+  "costo_usd": 0.005039,
   "resultado": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
@@ -53,13 +53,13 @@
     "otros_impuestos": 0,
     "importe_total": 12300.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Gastronómico (cafetería/bar - desayuno y snacks)",
-    "categoria_gasto_sugerida": "Restaurante",
+    "rubro_emisor": "Estación de servicio / tienda de conveniencia (con tasa vial y venta de alimentos y bebidas)",
+    "categoria_gasto_sugerida": "Restaurante / Cafetería (consumo de alimentos y bebidas)",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique de controlador fiscal (TIQUE Cód. 083), equivalente a un comprobante clase B: emisor Responsable Inscripto a CONSUMIDOR FINAL, sin discriminación de IVA. Encabezado: HERRERO SRL, CUIT 30-51808998-2 (dígito verificador válido), Ing. Brutos 021-093598-9, Av. Eva Perón 7898, Rosario, Santa Fe, CP 2000, Tel. 341-4515008, inicio de actividades 11/11/1966. P.V. N° 00026 - Nro. T. 00038429, fecha 23/01/2026 08:34:59. Detalle: 1,0000 x 7700,0000 'Latte 415 cc + 2 fact' = 7.700,00 y 1,0000 x 4600,0000 'Gall Surtido Bagley' = 4.600,00; Subtotal 12.300,00 y TOTAL 12.300,00. Pagos: Tarjeta de crédito 12.300,00; Otros medios de pago 0,00; Suma de sus pagos 12.300,00; Su Vuelto 0,00. Transparencia Fiscal al Consumidor Ley 27743: 'IVA Contenido 2.134,71' (21%, incluido en el precio, no adicionado: por eso NO se carga como IVA discriminado y subtotal = total, sin desglose de impuestos) y 'Otros Impuestos Nac. Indirectos 0,00'. No hay percepciones de Ingresos Brutos (el 021-093598-9 es el número de inscripción, no una percepción). No se imprime símbolo de moneda; se asume ARS por ser comprobante fiscal argentino con importes en pesos. Pie: INCLUYE TASA VIAL, REGISTRO EPEPAA0000051486, V: 1.03 Neptuno, Vendedor HERNANDORENA JENIFER, Turno 30. El ítem '2 fact' sugiere consumo de dos personas, pero el ticket no detalla cubiertos: si la categoría es Restaurante, corresponde indicar la cantidad de comensales/personas. Rubro gastronómico (cafetería/bar) consistente con la categoría Restaurante. No hay litros de combustible ni centro de costo en el comprobante."
+    "observaciones": "Tique de controlador fiscal 'TIQUE (Cod. 083)', P.V. N° 00026, Nro. T. 00038429, fecha 23/01/2026 08:34:59. Emisor HERRERO SRL, CUIT 30-51808998-2 (dígito verificador válido), IVA Responsable Inscripto, Ing. Brutos 021-093598-9, domicilio Av. Eva Perón 7898, Rosario, Santa Fe. Receptor: A CONSUMIDOR FINAL. El comprobante NO discrimina impuestos: única línea de impuestos es 'Transparencia Fiscal al Consumidor Ley 27743' con IVA Contenido 2.134,71 y Otros Impuestos Nac. Indirectos 0,00, que van incluidos en el total (21% sobre 10.165,29), por eso los campos de impuestos quedan en cero y no se computan como IVA discriminado. Líneas: 1,0000 (00) x 7700,0000 = 7.700,00 (Latte 415 cc + 2 fact); 1,0000 (00) x 4600,0000 = 4.600,00 (Gall Surtido Bagley); Subtotal 12.300,00; TOTAL 12.300,00. Pago: Tarjeta de crédito (57KKJHZ0MJ) 12.300,00; Suma de sus pagos 12.300,00; Su vuelto 0,00. Rubro del emisor: estación de servicio/tienda (leyenda 'INCLUYE TASA VIAL', REGISTRO EPEPAA0000051486, V: 1.03 Neptuno). Los ítems comprados son alimentos y bebidas (cafetería), no combustible: no hay litros impresos ni datos de vehículo/patente. Cantidad de comensales no impresa en el ticket. No se informa centro de costo. La aritmética cierra: subtotal 12.300,00 + 0 + 0 + 0 = total 12.300,00. Importes y CUIT legibles en su totalidad. La categoría sugerida es tentativa: el rubro del emisor es una estación de servicio con tienda, pero la compra es de alimentos/bebidas."
   },
   "extraccion": {
     "es_comprobante": "comprobante",
@@ -82,13 +82,13 @@
     "otros_impuestos": 0,
     "importe_total": 12300.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Gastronómico (cafetería/bar - desayuno y snacks)",
-    "categoria_gasto_sugerida": "Restaurante",
+    "rubro_emisor": "Estación de servicio / tienda de conveniencia (con tasa vial y venta de alimentos y bebidas)",
+    "categoria_gasto_sugerida": "Restaurante / Cafetería (consumo de alimentos y bebidas)",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique de controlador fiscal (TIQUE Cód. 083), equivalente a un comprobante clase B: emisor Responsable Inscripto a CONSUMIDOR FINAL, sin discriminación de IVA. Encabezado: HERRERO SRL, CUIT 30-51808998-2 (dígito verificador válido), Ing. Brutos 021-093598-9, Av. Eva Perón 7898, Rosario, Santa Fe, CP 2000, Tel. 341-4515008, inicio de actividades 11/11/1966. P.V. N° 00026 - Nro. T. 00038429, fecha 23/01/2026 08:34:59. Detalle: 1,0000 x 7700,0000 'Latte 415 cc + 2 fact' = 7.700,00 y 1,0000 x 4600,0000 'Gall Surtido Bagley' = 4.600,00; Subtotal 12.300,00 y TOTAL 12.300,00. Pagos: Tarjeta de crédito 12.300,00; Otros medios de pago 0,00; Suma de sus pagos 12.300,00; Su Vuelto 0,00. Transparencia Fiscal al Consumidor Ley 27743: 'IVA Contenido 2.134,71' (21%, incluido en el precio, no adicionado: por eso NO se carga como IVA discriminado y subtotal = total, sin desglose de impuestos) y 'Otros Impuestos Nac. Indirectos 0,00'. No hay percepciones de Ingresos Brutos (el 021-093598-9 es el número de inscripción, no una percepción). No se imprime símbolo de moneda; se asume ARS por ser comprobante fiscal argentino con importes en pesos. Pie: INCLUYE TASA VIAL, REGISTRO EPEPAA0000051486, V: 1.03 Neptuno, Vendedor HERNANDORENA JENIFER, Turno 30. El ítem '2 fact' sugiere consumo de dos personas, pero el ticket no detalla cubiertos: si la categoría es Restaurante, corresponde indicar la cantidad de comensales/personas. Rubro gastronómico (cafetería/bar) consistente con la categoría Restaurante. No hay litros de combustible ni centro de costo en el comprobante."
+    "observaciones": "Tique de controlador fiscal 'TIQUE (Cod. 083)', P.V. N° 00026, Nro. T. 00038429, fecha 23/01/2026 08:34:59. Emisor HERRERO SRL, CUIT 30-51808998-2 (dígito verificador válido), IVA Responsable Inscripto, Ing. Brutos 021-093598-9, domicilio Av. Eva Perón 7898, Rosario, Santa Fe. Receptor: A CONSUMIDOR FINAL. El comprobante NO discrimina impuestos: única línea de impuestos es 'Transparencia Fiscal al Consumidor Ley 27743' con IVA Contenido 2.134,71 y Otros Impuestos Nac. Indirectos 0,00, que van incluidos en el total (21% sobre 10.165,29), por eso los campos de impuestos quedan en cero y no se computan como IVA discriminado. Líneas: 1,0000 (00) x 7700,0000 = 7.700,00 (Latte 415 cc + 2 fact); 1,0000 (00) x 4600,0000 = 4.600,00 (Gall Surtido Bagley); Subtotal 12.300,00; TOTAL 12.300,00. Pago: Tarjeta de crédito (57KKJHZ0MJ) 12.300,00; Suma de sus pagos 12.300,00; Su vuelto 0,00. Rubro del emisor: estación de servicio/tienda (leyenda 'INCLUYE TASA VIAL', REGISTRO EPEPAA0000051486, V: 1.03 Neptuno). Los ítems comprados son alimentos y bebidas (cafetería), no combustible: no hay litros impresos ni datos de vehículo/patente. Cantidad de comensales no impresa en el ticket. No se informa centro de costo. La aritmética cierra: subtotal 12.300,00 + 0 + 0 + 0 = total 12.300,00. Importes y CUIT legibles en su totalidad. La categoría sugerida es tentativa: el rubro del emisor es una estación de servicio con tienda, pero la compra es de alimentos/bebidas."
   },
   "aritmetica": {
     "calculable": true,

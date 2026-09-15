@@ -1,12 +1,12 @@
 {
   "origen": "tests/fixtures/pdf_aptos_layout/36744cc6-2ed9-47e5-b4b8-66c31768164b_p01.pdf",
   "archivo_relativo": "pdf_aptos_layout/36744cc6-2ed9-47e5-b4b8-66c31768164b_p01.pdf",
-  "procesado_utc": "2026-09-15T13:43:45+00:00",
+  "procesado_utc": "2026-09-15T14:56:32+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
   "fuente": "api",
-  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_2gxv7ghk/pdf_aptos_layout/36744cc6-2ed9-47e5-b4b8-66c31768164b_p01.jpg",
+  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_mbl_qjjy/pdf_aptos_layout/36744cc6-2ed9-47e5-b4b8-66c31768164b_p01.jpg",
   "pagina": 1,
   "imagen": {
     "bytes": 570008,
@@ -18,13 +18,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:49bf219ef6de34fc",
+  "prompt_hash": "sha256:f9c4a199f7c38725",
   "uso": {
-    "prompt_tokens": 4038,
-    "completion_tokens": 1376,
-    "total_tokens": 5414,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 1222
+    "prompt_tokens": 4213,
+    "completion_tokens": 1855,
+    "total_tokens": 6068,
+    "prompt_cache_hit_tokens": 3072,
+    "prompt_cache_miss_tokens": 1141
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -33,14 +33,14 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.002035,
+  "costo_usd": 0.002587,
   "resultado": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "001",
     "razon_social_emisor": "FERRAMENTA BERTE SRL",
-    "cuit_emisor": "30717060101",
+    "cuit_emisor": "30-71706010-1",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "10/04/2026",
     "nro_factura": "0001-00008810",
@@ -55,13 +55,13 @@
     "otros_impuestos": 0,
     "importe_total": 27772.5,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Ferretería / venta de herramientas y artículos de ferretería (razón social 'FERRAMENTA BERTE SRL'; ítem facturado: juego de peines para medir rosca)",
-    "categoria_gasto_sugerida": "Ferretería / Herramientas",
-    "cantidad_comensales_personas": 0,
-    "cantidad_litros": 0,
+    "rubro_emisor": "Ferretería / herramientas (venta de herramienta de medición y envío)",
+    "categoria_gasto_sugerida": "Ferretería",
+    "cantidad_comensales_personas": null,
+    "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A Original, Cod. 01, N° 0001-00008810, emitida el 10/04/2026 (vencimiento 11/04/2026). Emisor: FERRAMENTA BERTE SRL, AV JUAN B. ALBERDI 6930, MATADEROS, Ciudad de Buenos Aires, CUIT 30-71706010-1 (dígito verificador válido), Responsable Inscripto, Ingresos Brutos 30717060101, inicio de actividades 01/03/2021. Receptor: CVC SOCIEDAD ANONIMA, CUIT 30-58221570-3, condición de venta MercadoPago, Responsable Inscripto. Detalle: 1x 'Juego De Peines Para Medir Rosca Harden Milim Y Pulg. 580412' $17.572,31 (IVA 21%) + 1x 'Costo de envío' $5.380,17 (IVA 21%); neto gravado $22.952,48. Importe en letras: 'Son Pesos VEINTISIETE MIL SETECIENTOS SETENTA Y DOS con CINCUENTA'. Aritmética verificada: 22.952,48 + 4.820,02 = 27.772,50. No se observan líneas de no gravado, exento, percepciones ni otros tributos. CAE 86151069624308 con vencimiento 20/04/2026. Incluye costo de envío facturado por el mismo emisor. No hay datos de comensales ni litros (no aplica). Centro de costo no informado en el comprobante."
+    "observaciones": "Factura A, Original, Cód. 001. Emisor: FERRAMENTA BERTE SRL (Responsable Inscripto), CUIT 30-71706010-1, Ingresos Brutos 30717060101, inicio de actividades 01/03/2021, domicilio AV JUAN B. ALBERDI 6930, MATADEROS, Ciudad de Buenos Aires. Dígito verificador del CUIT emisor validado correctamente (resultado 1). Nro 0001-00008810, fecha de emisión 10/04/2026, vencimiento 11/04/2026. Receptor: CVC SOCIEDAD ANONIMA, CUIT 30582215703, Santa Fe; condición de venta MercadoPago. Ítems: (1) 'Juego De Peines Para Medir Rosca Harden Milim Y PuLG. 590412' $17.572,31 + IVA 21%; (2) 'Costo de envío' $5.380,17 + IVA 21%; suma de ítems = $22.952,48, coincide con el Importe Neto Gravado. Importe Neto Gravado $22.952,48 + IVA 21% $4.820,02 = Importe Total $27.772,50 (cierra). Son Pesos VEINTISIETE MIL SETECIENTOS SETENTA Y DOS con CINCUENTA. CAE 86151069624308, vencimiento CAE 20/04/2026. No hay líneas de no gravado, exento, percepciones ni otros tributos. Sin datos de comensales, litros ni centro de costo en el comprobante (campos propios de la carga en Mendel). Categoría sugerida 'Ferretería' por el rubro del emisor (venta de herramienta/insumo), a confirmar según el motivo del gasto."
   },
   "extraccion": {
     "es_comprobante": "comprobante",
@@ -69,7 +69,7 @@
     "tipo_comprobante": "A",
     "codigo_afip": "001",
     "razon_social_emisor": "FERRAMENTA BERTE SRL",
-    "cuit_emisor": "30717060101",
+    "cuit_emisor": "30-71706010-1",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "10/04/2026",
     "nro_factura": "0001-00008810",
@@ -84,13 +84,13 @@
     "otros_impuestos": 0,
     "importe_total": 27772.5,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Ferretería / venta de herramientas y artículos de ferretería (razón social 'FERRAMENTA BERTE SRL'; ítem facturado: juego de peines para medir rosca)",
-    "categoria_gasto_sugerida": "Ferretería / Herramientas",
-    "cantidad_comensales_personas": 0,
-    "cantidad_litros": 0,
+    "rubro_emisor": "Ferretería / herramientas (venta de herramienta de medición y envío)",
+    "categoria_gasto_sugerida": "Ferretería",
+    "cantidad_comensales_personas": null,
+    "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A Original, Cod. 01, N° 0001-00008810, emitida el 10/04/2026 (vencimiento 11/04/2026). Emisor: FERRAMENTA BERTE SRL, AV JUAN B. ALBERDI 6930, MATADEROS, Ciudad de Buenos Aires, CUIT 30-71706010-1 (dígito verificador válido), Responsable Inscripto, Ingresos Brutos 30717060101, inicio de actividades 01/03/2021. Receptor: CVC SOCIEDAD ANONIMA, CUIT 30-58221570-3, condición de venta MercadoPago, Responsable Inscripto. Detalle: 1x 'Juego De Peines Para Medir Rosca Harden Milim Y Pulg. 580412' $17.572,31 (IVA 21%) + 1x 'Costo de envío' $5.380,17 (IVA 21%); neto gravado $22.952,48. Importe en letras: 'Son Pesos VEINTISIETE MIL SETECIENTOS SETENTA Y DOS con CINCUENTA'. Aritmética verificada: 22.952,48 + 4.820,02 = 27.772,50. No se observan líneas de no gravado, exento, percepciones ni otros tributos. CAE 86151069624308 con vencimiento 20/04/2026. Incluye costo de envío facturado por el mismo emisor. No hay datos de comensales ni litros (no aplica). Centro de costo no informado en el comprobante."
+    "observaciones": "Factura A, Original, Cód. 001. Emisor: FERRAMENTA BERTE SRL (Responsable Inscripto), CUIT 30-71706010-1, Ingresos Brutos 30717060101, inicio de actividades 01/03/2021, domicilio AV JUAN B. ALBERDI 6930, MATADEROS, Ciudad de Buenos Aires. Dígito verificador del CUIT emisor validado correctamente (resultado 1). Nro 0001-00008810, fecha de emisión 10/04/2026, vencimiento 11/04/2026. Receptor: CVC SOCIEDAD ANONIMA, CUIT 30582215703, Santa Fe; condición de venta MercadoPago. Ítems: (1) 'Juego De Peines Para Medir Rosca Harden Milim Y PuLG. 590412' $17.572,31 + IVA 21%; (2) 'Costo de envío' $5.380,17 + IVA 21%; suma de ítems = $22.952,48, coincide con el Importe Neto Gravado. Importe Neto Gravado $22.952,48 + IVA 21% $4.820,02 = Importe Total $27.772,50 (cierra). Son Pesos VEINTISIETE MIL SETECIENTOS SETENTA Y DOS con CINCUENTA. CAE 86151069624308, vencimiento CAE 20/04/2026. No hay líneas de no gravado, exento, percepciones ni otros tributos. Sin datos de comensales, litros ni centro de costo en el comprobante (campos propios de la carga en Mendel). Categoría sugerida 'Ferretería' por el rubro del emisor (venta de herramienta/insumo), a confirmar según el motivo del gasto."
   },
   "aritmetica": {
     "calculable": true,

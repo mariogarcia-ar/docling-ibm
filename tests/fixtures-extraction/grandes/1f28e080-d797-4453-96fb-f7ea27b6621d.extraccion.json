@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/grandes/1f28e080-d797-4453-96fb-f7ea27b6621d.jpg",
   "archivo_relativo": "grandes/1f28e080-d797-4453-96fb-f7ea27b6621d.jpg",
-  "procesado_utc": "2026-09-15T13:46:43+00:00",
+  "procesado_utc": "2026-09-15T15:00:29+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:49bf219ef6de34fc",
+  "prompt_hash": "sha256:f9c4a199f7c38725",
   "uso": {
-    "prompt_tokens": 4025,
-    "completion_tokens": 2537,
-    "total_tokens": 6562,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 1209
+    "prompt_tokens": 4200,
+    "completion_tokens": 5423,
+    "total_tokens": 9623,
+    "prompt_cache_hit_tokens": 3072,
+    "prompt_cache_miss_tokens": 1128
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,7 +31,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.003424,
+  "costo_usd": 0.006864,
   "resultado": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
@@ -53,13 +53,13 @@
     "otros_impuestos": 0,
     "importe_total": 55117.59,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / venta de combustibles",
+    "rubro_emisor": "Estación de servicio / venta de combustible (nafta)",
     "categoria_gasto_sugerida": "Combustible",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 36.7349,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A Original (COD. 001) emitida por Operadora de Estaciones de Servicios S.A. (CUIT 30-67877449-5, dígito verificador válido), Ruta Nacional 7 KM 246 (Descendente), Junín, PBA. Adquirente: CUC Sociedad Anónima, CUIT 30582215703. Fecha 10/09/2025 09:50:05, Nro. comp. 07246-00053120, Terminal 06. Detalle: Nafta Super XXI, 36,7349 x 1004,7793 = 36910,47. Aritmética: neto gravado 36910,47 + IVA 21% 7751,20 + conceptos no gravados 10220,27 + percepción IIBB Bs As 0,5% 235,65 = 55117,59 = TOTAL impreso; cierra correctamente. Aclaración importante: la sección 'OTROS IMPUESTOS NACIONALES' (Imp. Dicx. Carb 589,93 + Imp. Comb. Liq 9630,35 = 10220,28) es el desglose de los 'CONCEPTOS NO GRAVADOS' (10220,27), por lo que NO se cargó como impuestos_internos para evitar doble cómputo; ambos rótulos refieren al mismo monto. No hay línea de exento. Pago: Visa Vto1 55117,59. C.A.E. 75375584534237, Vto. CAE 20250920. Sin línea de centro de costo."
+    "observaciones": "Factura A Original (COD. 001), impresa en ticket fiscal. Emisor: Operadora de Estaciones de Servicios S.A., CUIT 30-67877449-5 (dígito verificador válido), IVA Responsable Inscripto, domicilio Ruta Nacional 7 KM 246 (Descendente), Junín, PBA / Macacha Güemes 515, CABA. Receptor: CUC SOCIEDAD ANONIMA, CUIT 30582215703, IVA Responsable Inscripto, cc Leones, Córdoba. Fecha 10/09/2025 09:50:05, PE 5400, TR 641085, SUC 01686, operador Triviño Sofía. Detalle: Nafta Super XXI, 36,7349 L x $1.004,7793 = $36.910,47. Desglose: Subtotal/Neto gravado 21% $36.910,47; IVA 21% $7.751,20; Conceptos No Gravados $10.220,27; Percepción IIBB Bs As 0,5% $235,65; TOTAL $55.117,59. La aritmética cierra: 36.910,47 + 7.751,20 + 10.220,27 + 235,65 = 55.117,59. Aclaración: las líneas 'OTROS IMPUESTOS NACIONALES' (Imp. Diox. Carb $589,93 + Imp. Comb. Liq $9.630,35 = $10.220,28) son el desglose del mismo importe ya incluido en 'CONCEPTOS NO GRAVADOS' ($10.220,27; diferencia de $0,01 por redondeo), por lo que NO se cargaron en otros_impuestos para no duplicar el concepto. Pago: Visa Vtol $55.117,59, suma de pagos $55.117,59, vuelto $0,00, cantidad de unidades 1. Referencia electrónica: C.A.E. 75375584534237, vto. 20/09/2025. No se discrimina cantidad de comensales (no aplica a combustible). No hay centro de costo impreso. Moneda inferida ARS por tratarse de comprobante fiscal argentino en pesos (no hay leyenda de moneda extranjera)."
   },
   "extraccion": {
     "es_comprobante": "comprobante",
@@ -82,13 +82,13 @@
     "otros_impuestos": 0,
     "importe_total": 55117.59,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / venta de combustibles",
+    "rubro_emisor": "Estación de servicio / venta de combustible (nafta)",
     "categoria_gasto_sugerida": "Combustible",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 36.7349,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A Original (COD. 001) emitida por Operadora de Estaciones de Servicios S.A. (CUIT 30-67877449-5, dígito verificador válido), Ruta Nacional 7 KM 246 (Descendente), Junín, PBA. Adquirente: CUC Sociedad Anónima, CUIT 30582215703. Fecha 10/09/2025 09:50:05, Nro. comp. 07246-00053120, Terminal 06. Detalle: Nafta Super XXI, 36,7349 x 1004,7793 = 36910,47. Aritmética: neto gravado 36910,47 + IVA 21% 7751,20 + conceptos no gravados 10220,27 + percepción IIBB Bs As 0,5% 235,65 = 55117,59 = TOTAL impreso; cierra correctamente. Aclaración importante: la sección 'OTROS IMPUESTOS NACIONALES' (Imp. Dicx. Carb 589,93 + Imp. Comb. Liq 9630,35 = 10220,28) es el desglose de los 'CONCEPTOS NO GRAVADOS' (10220,27), por lo que NO se cargó como impuestos_internos para evitar doble cómputo; ambos rótulos refieren al mismo monto. No hay línea de exento. Pago: Visa Vto1 55117,59. C.A.E. 75375584534237, Vto. CAE 20250920. Sin línea de centro de costo."
+    "observaciones": "Factura A Original (COD. 001), impresa en ticket fiscal. Emisor: Operadora de Estaciones de Servicios S.A., CUIT 30-67877449-5 (dígito verificador válido), IVA Responsable Inscripto, domicilio Ruta Nacional 7 KM 246 (Descendente), Junín, PBA / Macacha Güemes 515, CABA. Receptor: CUC SOCIEDAD ANONIMA, CUIT 30582215703, IVA Responsable Inscripto, cc Leones, Córdoba. Fecha 10/09/2025 09:50:05, PE 5400, TR 641085, SUC 01686, operador Triviño Sofía. Detalle: Nafta Super XXI, 36,7349 L x $1.004,7793 = $36.910,47. Desglose: Subtotal/Neto gravado 21% $36.910,47; IVA 21% $7.751,20; Conceptos No Gravados $10.220,27; Percepción IIBB Bs As 0,5% $235,65; TOTAL $55.117,59. La aritmética cierra: 36.910,47 + 7.751,20 + 10.220,27 + 235,65 = 55.117,59. Aclaración: las líneas 'OTROS IMPUESTOS NACIONALES' (Imp. Diox. Carb $589,93 + Imp. Comb. Liq $9.630,35 = $10.220,28) son el desglose del mismo importe ya incluido en 'CONCEPTOS NO GRAVADOS' ($10.220,27; diferencia de $0,01 por redondeo), por lo que NO se cargaron en otros_impuestos para no duplicar el concepto. Pago: Visa Vtol $55.117,59, suma de pagos $55.117,59, vuelto $0,00, cantidad de unidades 1. Referencia electrónica: C.A.E. 75375584534237, vto. 20/09/2025. No se discrimina cantidad de comensales (no aplica a combustible). No hay centro de costo impreso. Moneda inferida ARS por tratarse de comprobante fiscal argentino en pesos (no hay leyenda de moneda extranjera)."
   },
   "aritmetica": {
     "calculable": true,

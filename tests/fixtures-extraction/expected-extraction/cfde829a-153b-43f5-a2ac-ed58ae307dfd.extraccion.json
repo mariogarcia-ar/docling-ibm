@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/expected-extraction/cfde829a-153b-43f5-a2ac-ed58ae307dfd.jpg",
   "archivo_relativo": "expected-extraction/cfde829a-153b-43f5-a2ac-ed58ae307dfd.jpg",
-  "procesado_utc": "2026-09-15T13:45:47+00:00",
+  "procesado_utc": "2026-09-15T14:59:03+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:49bf219ef6de34fc",
+  "prompt_hash": "sha256:f9c4a199f7c38725",
   "uso": {
-    "prompt_tokens": 3564,
-    "completion_tokens": 2805,
-    "total_tokens": 6369,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 748
+    "prompt_tokens": 3739,
+    "completion_tokens": 1863,
+    "total_tokens": 5602,
+    "prompt_cache_hit_tokens": 3072,
+    "prompt_cache_miss_tokens": 667
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,7 +31,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.003607,
+  "costo_usd": 0.002454,
   "resultado": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
@@ -53,13 +53,13 @@
     "otros_impuestos": 671.44,
     "importe_total": 99999.34,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / venta de combustible (YPF)",
+    "rubro_emisor": "Estación de servicio / combustible",
     "categoria_gasto_sugerida": "Combustible",
-    "cantidad_comensales_personas": 0,
+    "cantidad_comensales_personas": null,
     "cantidad_litros": 53.91,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A - Cód. 001. Emisor: ESTACION DE SERVICIO BOMBAL SRL, CUIT 30-70941587-1 (dígito verificador válido), Ruta 14 Km 79.5, (2000) Bombal, Santa Fe, IVA Responsable Inscripto, Ing. Brutos 1020112144, inicio de actividades 01/11/2005. Receptor: C.V.C SA (3061), Responsable Inscripto, CUIT 30582215703, Cond. de venta Contado. Comprobante N° 00013-00007168, fecha 09/12/2025, hora 16:22. Detalle único: 53.91 x $1855.00 INFINIA DIESEL (0.21), importe neto de línea $82025.88. Cierra aritmética: subtotal 82025.88 + IVA 17225.43 + Impuestos Internos 76.59 + Otros Impuestos 671.44 = 99999.34 = IMP. TOTAL. Pago con App YPF [#279742905] por $99999.34. Régimen de Transparencia Fiscal al Consumidor (Ley 27.743): IVA Contenido 17225.43 y Otros Impuestos Nac. Indirectos 748.03 (coincide con 76.59 + 671.44). CAE 75491098706506 con vencimiento 19/12/2025. Turno 3, Oper. GONZALO. Nota: la cantidad 53.91 figura en la columna Cant. asociada al precio unitario $1855.00; si se interpreta como litros, cabe señalar que 53.91 x $1855.00 no reproduce exactamente el neto de línea impreso ($82025.88), por lo que el precio unitario impreso podría corresponder a un valor con impuestos o a un redondeo distinto del neto. No se observan percepciones de IIBB ni monto no gravado. No se informa centro de costo."
+    "observaciones": "Factura A (COD. 001) emitida por ESTACION DE SERVICIO BOMBAL SRL, RUTA 14 KM 79,5, (2000) BOMBAL, Santa Fe; Ing. Brutos 1020112144, inicio de actividades 01/11/2005, IVA Responsable Inscripto. Adquirente: C.V.C SA (3061), CUIT 30582215703, Cond. de venta Contado. Ítem: 53,91 litros x $1855,00 de INFINIA DIESEL (alícuota IVA 0,21) = $82025,88. La aritmética cierra: subtotal/neto gravado 82025,88 + IVA 17225,43 + Impuestos Internos 76,59 + Otros Impuestos 671,44 = 99999,34 (IMP. TOTAL). Nota: los 76,59 + 671,44 = 748,03 coinciden con la leyenda 'Otros Impuestos Nac. Indirectos 748,03' del Régimen de Transparencia Fiscal (Ley 27.743); el 'IVA Contenido 17225,43' coincide con el IVA discriminado. Pago registrado como App YPF [#279742905] por el total. CAE 75491098706506 (vto. 19/12/2025), Turno 3, Oper. GONZALO. No se observan percepciones de IIBB ni importes exentos/no gravados. Dígito verificador del CUIT del emisor validado correctamente. Rubro y categoría consistentes con estación de servicio (combustible)."
   },
   "extraccion": {
     "es_comprobante": "comprobante",
@@ -82,13 +82,13 @@
     "otros_impuestos": 671.44,
     "importe_total": 99999.34,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / venta de combustible (YPF)",
+    "rubro_emisor": "Estación de servicio / combustible",
     "categoria_gasto_sugerida": "Combustible",
-    "cantidad_comensales_personas": 0,
+    "cantidad_comensales_personas": null,
     "cantidad_litros": 53.91,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A - Cód. 001. Emisor: ESTACION DE SERVICIO BOMBAL SRL, CUIT 30-70941587-1 (dígito verificador válido), Ruta 14 Km 79.5, (2000) Bombal, Santa Fe, IVA Responsable Inscripto, Ing. Brutos 1020112144, inicio de actividades 01/11/2005. Receptor: C.V.C SA (3061), Responsable Inscripto, CUIT 30582215703, Cond. de venta Contado. Comprobante N° 00013-00007168, fecha 09/12/2025, hora 16:22. Detalle único: 53.91 x $1855.00 INFINIA DIESEL (0.21), importe neto de línea $82025.88. Cierra aritmética: subtotal 82025.88 + IVA 17225.43 + Impuestos Internos 76.59 + Otros Impuestos 671.44 = 99999.34 = IMP. TOTAL. Pago con App YPF [#279742905] por $99999.34. Régimen de Transparencia Fiscal al Consumidor (Ley 27.743): IVA Contenido 17225.43 y Otros Impuestos Nac. Indirectos 748.03 (coincide con 76.59 + 671.44). CAE 75491098706506 con vencimiento 19/12/2025. Turno 3, Oper. GONZALO. Nota: la cantidad 53.91 figura en la columna Cant. asociada al precio unitario $1855.00; si se interpreta como litros, cabe señalar que 53.91 x $1855.00 no reproduce exactamente el neto de línea impreso ($82025.88), por lo que el precio unitario impreso podría corresponder a un valor con impuestos o a un redondeo distinto del neto. No se observan percepciones de IIBB ni monto no gravado. No se informa centro de costo."
+    "observaciones": "Factura A (COD. 001) emitida por ESTACION DE SERVICIO BOMBAL SRL, RUTA 14 KM 79,5, (2000) BOMBAL, Santa Fe; Ing. Brutos 1020112144, inicio de actividades 01/11/2005, IVA Responsable Inscripto. Adquirente: C.V.C SA (3061), CUIT 30582215703, Cond. de venta Contado. Ítem: 53,91 litros x $1855,00 de INFINIA DIESEL (alícuota IVA 0,21) = $82025,88. La aritmética cierra: subtotal/neto gravado 82025,88 + IVA 17225,43 + Impuestos Internos 76,59 + Otros Impuestos 671,44 = 99999,34 (IMP. TOTAL). Nota: los 76,59 + 671,44 = 748,03 coinciden con la leyenda 'Otros Impuestos Nac. Indirectos 748,03' del Régimen de Transparencia Fiscal (Ley 27.743); el 'IVA Contenido 17225,43' coincide con el IVA discriminado. Pago registrado como App YPF [#279742905] por el total. CAE 75491098706506 (vto. 19/12/2025), Turno 3, Oper. GONZALO. No se observan percepciones de IIBB ni importes exentos/no gravados. Dígito verificador del CUIT del emisor validado correctamente. Rubro y categoría consistentes con estación de servicio (combustible)."
   },
   "aritmetica": {
     "calculable": true,

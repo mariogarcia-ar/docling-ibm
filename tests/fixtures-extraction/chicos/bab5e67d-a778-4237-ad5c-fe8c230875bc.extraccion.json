@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/chicos/bab5e67d-a778-4237-ad5c-fe8c230875bc.jpeg",
   "archivo_relativo": "chicos/bab5e67d-a778-4237-ad5c-fe8c230875bc.jpeg",
-  "procesado_utc": "2026-09-15T13:44:16+00:00",
+  "procesado_utc": "2026-09-15T14:57:04+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:49bf219ef6de34fc",
+  "prompt_hash": "sha256:f9c4a199f7c38725",
   "uso": {
-    "prompt_tokens": 3228,
-    "completion_tokens": 1690,
-    "total_tokens": 4918,
+    "prompt_tokens": 3403,
+    "completion_tokens": 1550,
+    "total_tokens": 4953,
     "prompt_cache_hit_tokens": 3072,
-    "prompt_cache_miss_tokens": 156
+    "prompt_cache_miss_tokens": 331
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,9 +31,9 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.002093,
+  "costo_usd": 0.001978,
   "resultado": {
-    "es_comprobante": "indeterminado",
+    "es_comprobante": "no_comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": null,
     "codigo_afip": null,
@@ -53,29 +53,16 @@
     "otros_impuestos": 72.0,
     "importe_total": null,
     "cierra_aritmetica": false,
-    "rubro_emisor": null,
-    "categoria_gasto_sugerida": null,
-    "cantidad_comensales_personas": null,
-    "cantidad_litros": null,
+    "rubro_emisor": "no verificable",
+    "categoria_gasto_sugerida": "no verificable",
+    "cantidad_comensales_personas": 0,
+    "cantidad_litros": 0,
     "centro_de_costo": null,
-    "campos_no_legibles": [
-      "tipo_comprobante",
-      "codigo_afip",
-      "razon_social_emisor",
-      "cuit_emisor",
-      "nro_factura",
-      "subtotal",
-      "no_gravado",
-      "exento",
-      "iva",
-      "impuestos_internos",
-      "percepciones_iibb",
-      "importe_total"
-    ],
-    "observaciones": "La imagen es un recorte parcial (fragmento de pantalla) que muestra únicamente el encabezado 'Conceptos TLPP' y una línea de detalle: fecha 27/03/2026, concepto 'Impuesto de Sellos' por $ 72,00 (moneda ARS inferida por el símbolo $). No se visualiza emisor, CUIT, tipo/letra de comprobante, código AFIP, número de factura, subtotal, IVA ni total, por lo que no puede determinarse si el documento completo es un comprobante fiscal o un detalle de conceptos/pagos de una aplicación. No se transcribe ningún importe no visible ni se calcula total alguno."
+    "campos_no_legibles": [],
+    "observaciones": "La imagen es una captura parcial de un listado de conceptos (encabezado 'Conceptos TLPP') con una única línea: fecha 27/03/2026, concepto 'Impuesto de Sellos' por $ 72,00. No es un comprobante fiscal ni comercial: no hay emisor, CUIT, letra/código AFIP, punto de venta, número de factura, ni total del comprobante; sólo el detalle de un concepto tributario (probablemente el sellado incluido en otro comprobante). Transcribo los únicos datos impresos: la fecha 27/03/2026 (fecha del concepto, no necesariamente fecha de emisión de un comprobante) y el importe de $ 72,00, registrado en 'otros_impuestos' por corresponder a un impuesto de sellos, aunque no hay desglose fiscal que lo respalde. No se puede verificar aritmética (no hay subtotal, neto gravado, exento, IVA ni total impreso), por lo que 'cierra_aritmetica' queda en false y el resto de los importes en null. Rubro del emisor no inferible: la captura no identifica proveedor ni actividad."
   },
   "extraccion": {
-    "es_comprobante": "indeterminado",
+    "es_comprobante": "no_comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": null,
     "codigo_afip": null,
@@ -95,26 +82,13 @@
     "otros_impuestos": 72.0,
     "importe_total": null,
     "cierra_aritmetica": false,
-    "rubro_emisor": null,
-    "categoria_gasto_sugerida": null,
-    "cantidad_comensales_personas": null,
-    "cantidad_litros": null,
+    "rubro_emisor": "no verificable",
+    "categoria_gasto_sugerida": "no verificable",
+    "cantidad_comensales_personas": 0,
+    "cantidad_litros": 0,
     "centro_de_costo": null,
-    "campos_no_legibles": [
-      "tipo_comprobante",
-      "codigo_afip",
-      "razon_social_emisor",
-      "cuit_emisor",
-      "nro_factura",
-      "subtotal",
-      "no_gravado",
-      "exento",
-      "iva",
-      "impuestos_internos",
-      "percepciones_iibb",
-      "importe_total"
-    ],
-    "observaciones": "La imagen es un recorte parcial (fragmento de pantalla) que muestra únicamente el encabezado 'Conceptos TLPP' y una línea de detalle: fecha 27/03/2026, concepto 'Impuesto de Sellos' por $ 72,00 (moneda ARS inferida por el símbolo $). No se visualiza emisor, CUIT, tipo/letra de comprobante, código AFIP, número de factura, subtotal, IVA ni total, por lo que no puede determinarse si el documento completo es un comprobante fiscal o un detalle de conceptos/pagos de una aplicación. No se transcribe ningún importe no visible ni se calcula total alguno."
+    "campos_no_legibles": [],
+    "observaciones": "La imagen es una captura parcial de un listado de conceptos (encabezado 'Conceptos TLPP') con una única línea: fecha 27/03/2026, concepto 'Impuesto de Sellos' por $ 72,00. No es un comprobante fiscal ni comercial: no hay emisor, CUIT, letra/código AFIP, punto de venta, número de factura, ni total del comprobante; sólo el detalle de un concepto tributario (probablemente el sellado incluido en otro comprobante). Transcribo los únicos datos impresos: la fecha 27/03/2026 (fecha del concepto, no necesariamente fecha de emisión de un comprobante) y el importe de $ 72,00, registrado en 'otros_impuestos' por corresponder a un impuesto de sellos, aunque no hay desglose fiscal que lo respalde. No se puede verificar aritmética (no hay subtotal, neto gravado, exento, IVA ni total impreso), por lo que 'cierra_aritmetica' queda en false y el resto de los importes en null. Rubro del emisor no inferible: la captura no identifica proveedor ni actividad."
   },
   "aritmetica": {
     "calculable": false,

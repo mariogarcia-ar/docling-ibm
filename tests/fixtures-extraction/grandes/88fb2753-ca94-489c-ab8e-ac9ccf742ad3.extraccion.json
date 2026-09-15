@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/grandes/88fb2753-ca94-489c-ab8e-ac9ccf742ad3.jpg",
   "archivo_relativo": "grandes/88fb2753-ca94-489c-ab8e-ac9ccf742ad3.jpg",
-  "procesado_utc": "2026-09-15T13:47:05+00:00",
+  "procesado_utc": "2026-09-15T15:00:48+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:49bf219ef6de34fc",
+  "prompt_hash": "sha256:f9c4a199f7c38725",
   "uso": {
-    "prompt_tokens": 4025,
-    "completion_tokens": 6954,
-    "total_tokens": 10979,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 1209
+    "prompt_tokens": 4200,
+    "completion_tokens": 5695,
+    "total_tokens": 9895,
+    "prompt_cache_hit_tokens": 3072,
+    "prompt_cache_miss_tokens": 1128
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,13 +31,13 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.008724,
+  "costo_usd": 0.007191,
   "resultado": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "B",
     "codigo_afip": null,
-    "razon_social_emisor": "CHUMO Y TORDO SRL",
+    "razon_social_emisor": "CHUNO Y TORDO SRL",
     "cuit_emisor": "30-71594815-6",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "09/16/25",
@@ -47,26 +47,26 @@
     "no_gravado": 0,
     "exento": 0,
     "discrimina_impuestos": false,
-    "iva": 6855.37,
+    "iva": 0,
     "impuestos_internos": 0,
     "percepciones_iibb": 0,
     "otros_impuestos": 0,
     "importe_total": 39500.0,
-    "cierra_aritmetica": false,
-    "rubro_emisor": "Gastronómico (hamburguesería / cervecería artesanal)",
+    "cierra_aritmetica": true,
+    "rubro_emisor": "Restaurante / bar (cervecería - hamburguesería; sistema Maxirest, ticket de mesa)",
     "categoria_gasto_sugerida": "Restaurante",
     "cantidad_comensales_personas": null,
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Ticket de 'FACTURA B ELECTRONICA' (encabezado 'Fcb-0002' / nro 39001) emitido por CHUMO Y TORDO SRL, emisor gastronómico (hamburguesas y cerveza artesanal, ticket de mesa 7, sitio www.maxirest.com). CAE N° 75376434637639. No se imprime código AFIP explícito (001/006/011); por tratarse de 'Factura B' correspondería el código 006, pero no figura en el comprobante. El CUIT 30-71594815-6 es válido (dígito verificador correcto). Los importes están en pesos (ARS). Al ser Factura B sin discriminación de IVA por línea, el subtotal coincide con el total (39500.00); el renglón 'Iva contenido: 6855.37' (Ley 27.743, Régimen de Transparencia Fiscal al Consumidor) es informativo e incluido dentro del total, por lo que no se suma aparte. 'Otros impuestos Nac. indirectos: 0.00'. La suma subtotal + no gravado + exento + impuestos cierra contra el total. La fecha está impresa en formato MM/DD/AA (09/16/25), poco habitual en comprobantes argentinos; se transcribe tal cual. Cantidad de comensales no indicada (solo 'MESA 7'). No se imprimen litros."
+    "observaciones": "Factura B electrónica impresa por sistema Maxirest, emisor CHUNO Y TORDO SRL (Remedios de Escalada de San Martín 74), Resp. Inscripto, inicio de actividades 03/2018, IIBB 30-71594815-6. CUIT 30-71594815-6 con dígito verificador correcto (cálculo módulo 11 = 6). Ticket de consumo en mesa ('MESA 7'): 2 pintas (Golden y Honey), 3 hamburguesas (Birrera, Americana, Mushroom) y 2 Sprite. No discrimina IVA: es Factura B y el único dato fiscal es la leyenda de transparencia 'IVA contenido: 6.855,37' (equivale a 21% del total, Ley 27.743), por lo que no se carga como IVA discriminado; 'Otros impuestos Nac. indirectos: 0,00'. No hay líneas de exento, no gravado, percepciones ni otros tributos. El total impreso ($39.500,00) coincide con la suma del detalle si los precios unitarios de las hamburguesas son $6.900,00 c/u (mi lectura inicial sugirió 13.500,00, valor que no cerraría con el total ni con el IVA contenido) — conviene reverificar el precio unitario de las hamburguesas. Nro de factura impreso como 'Factura: Fcb-0002 39001' (punto de venta 0002, número 39001). No hay código AFIP impreso (se infiere 006 por ser Factura B). Fecha impresa en formato MM/DD/AA (09/16/25 = 16/09/2025). No se imprime símbolo ni leyenda de moneda (se asume ARS por ser comprobante argentino). No figura cantidad de comensales ni litros; 'Cliente' vacío."
   },
   "extraccion": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "B",
     "codigo_afip": null,
-    "razon_social_emisor": "CHUMO Y TORDO SRL",
+    "razon_social_emisor": "CHUNO Y TORDO SRL",
     "cuit_emisor": "30-71594815-6",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "09/16/25",
@@ -76,27 +76,26 @@
     "no_gravado": 0,
     "exento": 0,
     "discrimina_impuestos": false,
-    "iva": 6855.37,
+    "iva": 0,
     "impuestos_internos": 0,
     "percepciones_iibb": 0,
     "otros_impuestos": 0,
     "importe_total": 39500.0,
-    "cierra_aritmetica": false,
-    "rubro_emisor": "Gastronómico (hamburguesería / cervecería artesanal)",
+    "cierra_aritmetica": true,
+    "rubro_emisor": "Restaurante / bar (cervecería - hamburguesería; sistema Maxirest, ticket de mesa)",
     "categoria_gasto_sugerida": "Restaurante",
     "cantidad_comensales_personas": null,
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Ticket de 'FACTURA B ELECTRONICA' (encabezado 'Fcb-0002' / nro 39001) emitido por CHUMO Y TORDO SRL, emisor gastronómico (hamburguesas y cerveza artesanal, ticket de mesa 7, sitio www.maxirest.com). CAE N° 75376434637639. No se imprime código AFIP explícito (001/006/011); por tratarse de 'Factura B' correspondería el código 006, pero no figura en el comprobante. El CUIT 30-71594815-6 es válido (dígito verificador correcto). Los importes están en pesos (ARS). Al ser Factura B sin discriminación de IVA por línea, el subtotal coincide con el total (39500.00); el renglón 'Iva contenido: 6855.37' (Ley 27.743, Régimen de Transparencia Fiscal al Consumidor) es informativo e incluido dentro del total, por lo que no se suma aparte. 'Otros impuestos Nac. indirectos: 0.00'. La suma subtotal + no gravado + exento + impuestos cierra contra el total. La fecha está impresa en formato MM/DD/AA (09/16/25), poco habitual en comprobantes argentinos; se transcribe tal cual. Cantidad de comensales no indicada (solo 'MESA 7'). No se imprimen litros."
+    "observaciones": "Factura B electrónica impresa por sistema Maxirest, emisor CHUNO Y TORDO SRL (Remedios de Escalada de San Martín 74), Resp. Inscripto, inicio de actividades 03/2018, IIBB 30-71594815-6. CUIT 30-71594815-6 con dígito verificador correcto (cálculo módulo 11 = 6). Ticket de consumo en mesa ('MESA 7'): 2 pintas (Golden y Honey), 3 hamburguesas (Birrera, Americana, Mushroom) y 2 Sprite. No discrimina IVA: es Factura B y el único dato fiscal es la leyenda de transparencia 'IVA contenido: 6.855,37' (equivale a 21% del total, Ley 27.743), por lo que no se carga como IVA discriminado; 'Otros impuestos Nac. indirectos: 0,00'. No hay líneas de exento, no gravado, percepciones ni otros tributos. El total impreso ($39.500,00) coincide con la suma del detalle si los precios unitarios de las hamburguesas son $6.900,00 c/u (mi lectura inicial sugirió 13.500,00, valor que no cerraría con el total ni con el IVA contenido) — conviene reverificar el precio unitario de las hamburguesas. Nro de factura impreso como 'Factura: Fcb-0002 39001' (punto de venta 0002, número 39001). No hay código AFIP impreso (se infiere 006 por ser Factura B). Fecha impresa en formato MM/DD/AA (09/16/25 = 16/09/2025). No se imprime símbolo ni leyenda de moneda (se asume ARS por ser comprobante argentino). No figura cantidad de comensales ni litros; 'Cliente' vacío."
   },
   "aritmetica": {
     "calculable": true,
-    "suma": 46355.37,
+    "suma": 39500.0,
     "total": 39500.0,
-    "diferencia": -6855.37,
-    "cierra": false,
-    "faltantes": [],
-    "aviso": "Los importes leídos suman 46,355.37 y el total impreso es 39,500.00 (diferencia -6,855.37)."
+    "diferencia": 0.0,
+    "cierra": true,
+    "faltantes": []
   }
 }

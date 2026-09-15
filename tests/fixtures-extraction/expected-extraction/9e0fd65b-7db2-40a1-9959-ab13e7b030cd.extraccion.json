@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/expected-extraction/9e0fd65b-7db2-40a1-9959-ab13e7b030cd.jpg",
   "archivo_relativo": "expected-extraction/9e0fd65b-7db2-40a1-9959-ab13e7b030cd.jpg",
-  "procesado_utc": "2026-09-15T13:45:20+00:00",
+  "procesado_utc": "2026-09-15T14:58:35+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:49bf219ef6de34fc",
+  "prompt_hash": "sha256:f9c4a199f7c38725",
   "uso": {
-    "prompt_tokens": 3564,
-    "completion_tokens": 1466,
-    "total_tokens": 5030,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 748
+    "prompt_tokens": 3739,
+    "completion_tokens": 1463,
+    "total_tokens": 5202,
+    "prompt_cache_hit_tokens": 3072,
+    "prompt_cache_miss_tokens": 667
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,13 +31,13 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.002,
+  "costo_usd": 0.001974,
   "resultado": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "C",
     "codigo_afip": "011",
-    "razon_social_emisor": "ALTOS DEL PARQUE - OPPICILIA NOEMI",
+    "razon_social_emisor": "ALTOS DEL PARQUE (titular: OPPLICI LIA NOEMI)",
     "cuit_emisor": "27-38132636-0",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "27/02/2026",
@@ -53,20 +53,20 @@
     "otros_impuestos": 0,
     "importe_total": 17050.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Restaurante / gastronomía",
+    "rubro_emisor": "Restaurante / gastronómico (renglón milanesa, mesa y mozo, servicio de cubiertos)",
     "categoria_gasto_sugerida": "Restaurante",
     "cantidad_comensales_personas": 1,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura C (COD. 011) Nro. 00005-00000171, emitida por ALTOS DEL PARQUE (OPPICILIA NOEMI), CUIT 27-38132636-0 (dígito verificador válido), IIBB 0214415209, inicio de actividades 01/11/2016, domicilio ALBERDI 737 CP 2126, PUEBLO ESTHER - SANTA FE, condición IVA RESPONSABLE MONOTRIBUTO, a CONSUMIDOR FINAL. Fecha de emisión impresa 27/02/26 13:09. Detalle: MESA 19 - MOZO 1; ítems: 1 MILANESA [MEDIODIA] 15500,00 y 1 RECARGO 1550,00. Aunque es Factura C, el ticket sí discrimina: NETO SIN IVA 13469,50 e IVA 21,00% 3580,50, que suman el TOTAL ARS 17050,00. La aritmética cierra: 13469,50 + 3580,50 = 17050,00. Cubiertos impresos CUB: 1 (PROM: 17050). CAE 86095509033708, vencimiento CAE 09/03/2026. Sin percepciones, impuestos internos ni otros tributos. No se registran líneas de no gravado ni exento."
+    "observaciones": "Ticket de FACTURA 'C' (011) Nro 00005-00000171, emitido por ALTOS DEL PARQUE (titular OPPLICI LIA NOEMI), CUIT 27-38132636-0, IIBB 0214415209, Inicio de Actividades 01/11/2016, Alberdi 737 CP 2126, Pueblo Esther - Santa Fe, IVA Responsable Monotributo, a Consumidor Final. Fecha 27/02/26 13:09 (27/02/2026). Detalle: MESA 19 - MOZO 1; items MILANESA [MEDIODIA] $15.500,00 y RECARGO $1.550,00 (suma de items = $17.050,00). Desglose impreso: NETO SIN IVA $13.469,50 + IVA 21,00% $3.580,50 = TOTAL ARS $17.050,00, por lo que la aritmética cierra. Nota: aunque es Factura C (monotributo, que habitualmente no discrimina IVA), este ticket sí muestra el desglose de IVA 21%. El importe de los items coincide con el total, no hay línea de no gravado ni exento. CUB: 1 PROM: 17050 -> 1 comensal. No se imprime cantidad de litros (no aplica). CAE 86095509033708, VENC 09/03/2026, con código QR. No hay centro de costo impreso. El campo 'no_gravado' (ajuste manual por recargo de medio de pago) no figura en el comprobante por definición; se transcribe en 0 porque no está impreso."
   },
   "extraccion": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "C",
     "codigo_afip": "011",
-    "razon_social_emisor": "ALTOS DEL PARQUE - OPPICILIA NOEMI",
+    "razon_social_emisor": "ALTOS DEL PARQUE (titular: OPPLICI LIA NOEMI)",
     "cuit_emisor": "27-38132636-0",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "27/02/2026",
@@ -82,13 +82,13 @@
     "otros_impuestos": 0,
     "importe_total": 17050.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Restaurante / gastronomía",
+    "rubro_emisor": "Restaurante / gastronómico (renglón milanesa, mesa y mozo, servicio de cubiertos)",
     "categoria_gasto_sugerida": "Restaurante",
     "cantidad_comensales_personas": 1,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura C (COD. 011) Nro. 00005-00000171, emitida por ALTOS DEL PARQUE (OPPICILIA NOEMI), CUIT 27-38132636-0 (dígito verificador válido), IIBB 0214415209, inicio de actividades 01/11/2016, domicilio ALBERDI 737 CP 2126, PUEBLO ESTHER - SANTA FE, condición IVA RESPONSABLE MONOTRIBUTO, a CONSUMIDOR FINAL. Fecha de emisión impresa 27/02/26 13:09. Detalle: MESA 19 - MOZO 1; ítems: 1 MILANESA [MEDIODIA] 15500,00 y 1 RECARGO 1550,00. Aunque es Factura C, el ticket sí discrimina: NETO SIN IVA 13469,50 e IVA 21,00% 3580,50, que suman el TOTAL ARS 17050,00. La aritmética cierra: 13469,50 + 3580,50 = 17050,00. Cubiertos impresos CUB: 1 (PROM: 17050). CAE 86095509033708, vencimiento CAE 09/03/2026. Sin percepciones, impuestos internos ni otros tributos. No se registran líneas de no gravado ni exento."
+    "observaciones": "Ticket de FACTURA 'C' (011) Nro 00005-00000171, emitido por ALTOS DEL PARQUE (titular OPPLICI LIA NOEMI), CUIT 27-38132636-0, IIBB 0214415209, Inicio de Actividades 01/11/2016, Alberdi 737 CP 2126, Pueblo Esther - Santa Fe, IVA Responsable Monotributo, a Consumidor Final. Fecha 27/02/26 13:09 (27/02/2026). Detalle: MESA 19 - MOZO 1; items MILANESA [MEDIODIA] $15.500,00 y RECARGO $1.550,00 (suma de items = $17.050,00). Desglose impreso: NETO SIN IVA $13.469,50 + IVA 21,00% $3.580,50 = TOTAL ARS $17.050,00, por lo que la aritmética cierra. Nota: aunque es Factura C (monotributo, que habitualmente no discrimina IVA), este ticket sí muestra el desglose de IVA 21%. El importe de los items coincide con el total, no hay línea de no gravado ni exento. CUB: 1 PROM: 17050 -> 1 comensal. No se imprime cantidad de litros (no aplica). CAE 86095509033708, VENC 09/03/2026, con código QR. No hay centro de costo impreso. El campo 'no_gravado' (ajuste manual por recargo de medio de pago) no figura en el comprobante por definición; se transcribe en 0 porque no está impreso."
   },
   "aritmetica": {
     "calculable": true,

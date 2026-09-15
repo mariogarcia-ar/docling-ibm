@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/otros/1da34e0e-d688-4ece-80f3-c803310a5b54.jpg",
   "archivo_relativo": "otros/1da34e0e-d688-4ece-80f3-c803310a5b54.jpg",
-  "procesado_utc": "2026-09-15T13:47:53+00:00",
+  "procesado_utc": "2026-09-15T15:01:41+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:49bf219ef6de34fc",
+  "prompt_hash": "sha256:f9c4a199f7c38725",
   "uso": {
-    "prompt_tokens": 4029,
-    "completion_tokens": 3985,
-    "total_tokens": 8014,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 1213
+    "prompt_tokens": 4204,
+    "completion_tokens": 13461,
+    "total_tokens": 17665,
+    "prompt_cache_hit_tokens": 3072,
+    "prompt_cache_miss_tokens": 1132
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,13 +31,13 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.005163,
+  "costo_usd": 0.016511,
   "resultado": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
-    "tipo_comprobante": "C",
+    "tipo_comprobante": "083 - TIQUE",
     "codigo_afip": "083",
-    "razon_social_emisor": "MALAGUARNERA ROBERTO",
+    "razon_social_emisor": "SHELL EL CICLON / MALAGUARNERA ROBERTO",
     "cuit_emisor": "20-06044320-4",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "23/06/2026",
@@ -53,20 +53,20 @@
     "otros_impuestos": 0,
     "importe_total": 9000.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio (combustible / tienda de conveniencia)",
+    "rubro_emisor": "Estación de servicio (Shell)",
     "categoria_gasto_sugerida": "Combustible",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique clase C (Cód. 083 - TIQUE) emitido a CONSUMIDOR FINAL por la estación de servicio 'SHELL EL CICLON', titular 'MALAGUARNERA ROBERTO', C.U.I.T. 20-06044320-4 (dígito verificador válido), Ing. Brutos 0210967933, domicilio AV. EVA PERON 6702 - ROSARIO - SANTA FE, IVA Responsable Inscripto, inicio de actividades 10/02/1969. Punto de venta 00042, Nº 00084035, fecha 23/06/2026 11:13:32 hs. Detalle: 1 unidad '(2028329) COMBO EMPANADAS Y BEBIDA' por 9000.00 con alícuota 21,00%. El ticket no distingue una línea de neto gravado tradicional, pero imprime el desglose por Ley 27.743: 'Precio s/imp: 7438.02 - IVA cont: 1561.98'; se cargó ese neto como subtotal y ese IVA contenido como iva. Aritmética: 7438.02 + 1561.98 = 9000.00, cierra correctamente con el TOTAL impreso (9000.00). No figuran no gravado ni exento ni percepciones ni impuestos internos. Pago: dos consumos con Tarjeta SHELL BOX xxxx 1940 (8200.00 + 800.00 = 9000.00), CAMBIO 0.00. Atención: si bien el emisor es una estación de servicio (rubro combustible), el ítem adquirido es un combo de empanadas y bebida (rubro gastronómico), por lo que la categoría sugerida 'Combustible' responde al tipo de emisor y podría no reflejar el gasto real. No se imprimen litros cargados. Empleado: MELANI GONZALEZ - Aplic.: C0. Código de barras/QR HSHSAB0000019297, V: 01.00."
+    "observaciones": "Ticket de Shell El Ciclón (Malaguarnera Roberto), Cód. 083 - TIQUE. Emisor estación de servicio; detalle: combo empanadas y bebida. IVA contenido discriminado al pie: Precio s/imp 7438.02 + IVA cont 1561.98 = 9000.00. Pago con dos tarjetas Shell Box (8200 + 800). No se imprimen litros ni comensales. Moneda no impresa explícitamente; se asume ARS por comprobante argentino. Categoría sugerida según rubro del emisor; por el detalle, el gasto es de comida."
   },
   "extraccion": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
-    "tipo_comprobante": "C",
+    "tipo_comprobante": "083 - TIQUE",
     "codigo_afip": "083",
-    "razon_social_emisor": "MALAGUARNERA ROBERTO",
+    "razon_social_emisor": "SHELL EL CICLON / MALAGUARNERA ROBERTO",
     "cuit_emisor": "20-06044320-4",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "23/06/2026",
@@ -82,13 +82,13 @@
     "otros_impuestos": 0,
     "importe_total": 9000.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio (combustible / tienda de conveniencia)",
+    "rubro_emisor": "Estación de servicio (Shell)",
     "categoria_gasto_sugerida": "Combustible",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique clase C (Cód. 083 - TIQUE) emitido a CONSUMIDOR FINAL por la estación de servicio 'SHELL EL CICLON', titular 'MALAGUARNERA ROBERTO', C.U.I.T. 20-06044320-4 (dígito verificador válido), Ing. Brutos 0210967933, domicilio AV. EVA PERON 6702 - ROSARIO - SANTA FE, IVA Responsable Inscripto, inicio de actividades 10/02/1969. Punto de venta 00042, Nº 00084035, fecha 23/06/2026 11:13:32 hs. Detalle: 1 unidad '(2028329) COMBO EMPANADAS Y BEBIDA' por 9000.00 con alícuota 21,00%. El ticket no distingue una línea de neto gravado tradicional, pero imprime el desglose por Ley 27.743: 'Precio s/imp: 7438.02 - IVA cont: 1561.98'; se cargó ese neto como subtotal y ese IVA contenido como iva. Aritmética: 7438.02 + 1561.98 = 9000.00, cierra correctamente con el TOTAL impreso (9000.00). No figuran no gravado ni exento ni percepciones ni impuestos internos. Pago: dos consumos con Tarjeta SHELL BOX xxxx 1940 (8200.00 + 800.00 = 9000.00), CAMBIO 0.00. Atención: si bien el emisor es una estación de servicio (rubro combustible), el ítem adquirido es un combo de empanadas y bebida (rubro gastronómico), por lo que la categoría sugerida 'Combustible' responde al tipo de emisor y podría no reflejar el gasto real. No se imprimen litros cargados. Empleado: MELANI GONZALEZ - Aplic.: C0. Código de barras/QR HSHSAB0000019297, V: 01.00."
+    "observaciones": "Ticket de Shell El Ciclón (Malaguarnera Roberto), Cód. 083 - TIQUE. Emisor estación de servicio; detalle: combo empanadas y bebida. IVA contenido discriminado al pie: Precio s/imp 7438.02 + IVA cont 1561.98 = 9000.00. Pago con dos tarjetas Shell Box (8200 + 800). No se imprimen litros ni comensales. Moneda no impresa explícitamente; se asume ARS por comprobante argentino. Categoría sugerida según rubro del emisor; por el detalle, el gasto es de comida."
   },
   "aritmetica": {
     "calculable": true,

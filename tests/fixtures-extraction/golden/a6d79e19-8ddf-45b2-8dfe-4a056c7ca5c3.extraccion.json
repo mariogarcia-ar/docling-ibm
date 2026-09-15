@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/golden/a6d79e19-8ddf-45b2-8dfe-4a056c7ca5c3.png",
   "archivo_relativo": "golden/a6d79e19-8ddf-45b2-8dfe-4a056c7ca5c3.png",
-  "procesado_utc": "2026-09-15T13:46:40+00:00",
+  "procesado_utc": "2026-09-15T15:00:26+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:49bf219ef6de34fc",
+  "prompt_hash": "sha256:f9c4a199f7c38725",
   "uso": {
-    "prompt_tokens": 3503,
-    "completion_tokens": 434,
-    "total_tokens": 3937,
-    "prompt_cache_hit_tokens": 3328,
-    "prompt_cache_miss_tokens": 175
+    "prompt_tokens": 3678,
+    "completion_tokens": 485,
+    "total_tokens": 4163,
+    "prompt_cache_hit_tokens": 3456,
+    "prompt_cache_miss_tokens": 222
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,7 +31,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.000593,
+  "costo_usd": 0.000669,
   "resultado": {
     "es_comprobante": "no_comprobante",
     "legibilidad": "buena",
@@ -59,7 +59,7 @@
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "El documento no es un comprobante fiscal ni comercial: es una hoja con la leyenda 'NO EXISTE COMPROBANTE PARA LA RENDICION DEL GASTO. SE CARGA A NOMBRE DE CVC.' No hay emisor, CUIT, fecha, número ni importes que transcribir. No se fuerza ningún tipo A/B/C."
+    "observaciones": "El documento no es un comprobante fiscal ni comercial: es una hoja/memo con la leyenda 'NO EXISTE COMPROBANTE PARA LA RENDICION DEL GASTO. SE CARGA A NOMBRE DE CVC.' No tiene emisor, CUIT, fecha, número, importes ni letra A/B/C, por lo que no respalda ningún gasto. No se transcriben datos inexistentes; no hay campos no legibles porque el texto es legible pero no constituye información de comprobante."
   },
   "extraccion": {
     "es_comprobante": "no_comprobante",
@@ -88,7 +88,7 @@
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "El documento no es un comprobante fiscal ni comercial: es una hoja con la leyenda 'NO EXISTE COMPROBANTE PARA LA RENDICION DEL GASTO. SE CARGA A NOMBRE DE CVC.' No hay emisor, CUIT, fecha, número ni importes que transcribir. No se fuerza ningún tipo A/B/C."
+    "observaciones": "El documento no es un comprobante fiscal ni comercial: es una hoja/memo con la leyenda 'NO EXISTE COMPROBANTE PARA LA RENDICION DEL GASTO. SE CARGA A NOMBRE DE CVC.' No tiene emisor, CUIT, fecha, número, importes ni letra A/B/C, por lo que no respalda ningún gasto. No se transcriben datos inexistentes; no hay campos no legibles porque el texto es legible pero no constituye información de comprobante."
   },
   "aritmetica": {
     "calculable": false,

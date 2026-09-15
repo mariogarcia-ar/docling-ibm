@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/otros/f9e731c4-080c-4962-8671-ac410cb171e7.jpg",
   "archivo_relativo": "otros/f9e731c4-080c-4962-8671-ac410cb171e7.jpg",
-  "procesado_utc": "2026-09-15T13:48:53+00:00",
+  "procesado_utc": "2026-09-15T15:03:09+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:49bf219ef6de34fc",
+  "prompt_hash": "sha256:f9c4a199f7c38725",
   "uso": {
-    "prompt_tokens": 4025,
-    "completion_tokens": 2126,
-    "total_tokens": 6151,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 1209
+    "prompt_tokens": 4200,
+    "completion_tokens": 2119,
+    "total_tokens": 6319,
+    "prompt_cache_hit_tokens": 3072,
+    "prompt_cache_miss_tokens": 1128
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,7 +31,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.002931,
+  "costo_usd": 0.0029,
   "resultado": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
@@ -53,13 +53,13 @@
     "otros_impuestos": 0,
     "importe_total": 46187.85,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / combustible (YPF - Combustibles Nicolls S.A., Ruta Nac. Nro 7 Km 201, Chacabuco, Bs. As.)",
+    "rubro_emisor": "Estación de servicio / combustible (expendio bajo marca YPF, 'SON POR CUENTA Y ORDEN DE YPF SA')",
     "categoria_gasto_sugerida": "Combustible",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 27.0353,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique Factura A (Cod. 081) de COMBUSTIBLES NICOLLS S.A., CUIT 30-70937771-6 (dígito verificador válido), IVA Responsable Inscripto, Ruta Nac. Nro 7 Km 201, Chacabuco, Bs. As. (CP 6740). Nro 00011-00041910, fecha 13/01/2026, hora 14:06:22. Detalle: 27,0353 u x 1286,3461 = 34.776,75, menos DTO. POR REDONDEO -0,08. Se transcribe: SUBTOT. IMP. NETO GRAVADO 34.776,67; ALICUOTA 21,00% (IVA) 7.303,10; Impuesto interno a nivel ítem 3.934,20; IIBB ARBA 173,88; IMPORTE TOTAL OTROS TRIBUTOS 4.108,08 (= 3.934,20 + 173,88, por lo que 'otros_impuestos' queda en 0 para no duplicar). TOTAL 46.187,85. La aritmética cierra: 34.776,67 + 7.303,10 + 3.934,20 + 173,88 = 46.187,85. El ticket corresponde a una operación pagada con tarjeta de crédito (recibo '120662, CVC SA - Tarjetas', CUIT 30-56221570-3, Av. Circunvalación 1245 bis, Rosario, Santa Fe), con línea 'SON POR CUENTA Y ORDEN DE YPF SA'. Pago informado: Tarjeta de Crédito 46.187,68, Suma de sus pagos 46.187,68, Su vuelto 0,03; se advierte una diferencia de 0,17 respecto del TOTAL impreso (46.187,85), atribuible a redondeo del medio de pago, sin afectar el total del comprobante. Cantidad de litros tomada del renglón '27,0353 u x 1286,3461'. No se observan campos ilegibles ni centro de costo en el comprobante."
+    "observaciones": "Tique Factura A (Cod. 081), N° 00011-00041910, emitido el 13/01/2026 14:06:22 por COMBUSTIBLES NICOLLS S.A. (CUIT 30-70937771-6, dígito verificador válido; IIBB 30-70937771-6). Domicilio: Ruta Nac Nro 7 Km 201, Chacabuco, Bs. As., CP 6740. IVA Responsable Inscripto. Se lee 'SON POR CUENTA Y ORDEN DE YPF SA - LOS COMBUSTIBLES Y LIQUIDOS PARA AUTOMOTOR', FT A 0011 00049773 AUT: 9671. Detalle: 27,0353 u x 1286,3461 = 34.776,75; DTO. POR REDONDEO -0,08; SUBTOT. IMP. NETO GRAVADO 34.776,67; IVA 21,00% 7.303,10; Impuesto interno a nivel ítem 3.934,20; IIBB ARBA 173,88; IMPORTE TOTAL OTROS TRIBUTOS 4.108,08; TOTAL 46.187,85. La aritmética cierra: 34.776,67 + 7.303,10 + 4.108,08 = 46.187,85. Pago con Tarjeta de Crédito por 46.187,88 (suma de pagos 46.187,88, vuelto 0,03; diferencia de centavos respecto del total impreso). Receptor: 20662, CVC SA, Tarjetas, CUIT 30-56221570-3, Av. Circunvalación 1245 bis, Rosario (Santa Fe), PL 03080 OP 0030 - MANUEL DICUNO. No se discrimina monto no gravado ni exento (no aparecen esos rótulos). No se imprime centro de costo. La cantidad de litros se toma del detalle '27,0353 u' (unidades de combustible). Moneda inferida como ARS por tratarse de comprobante fiscal argentino con importes en pesos (no hay símbolo explícito impreso)."
   },
   "extraccion": {
     "es_comprobante": "comprobante",
@@ -82,13 +82,13 @@
     "otros_impuestos": 0,
     "importe_total": 46187.85,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / combustible (YPF - Combustibles Nicolls S.A., Ruta Nac. Nro 7 Km 201, Chacabuco, Bs. As.)",
+    "rubro_emisor": "Estación de servicio / combustible (expendio bajo marca YPF, 'SON POR CUENTA Y ORDEN DE YPF SA')",
     "categoria_gasto_sugerida": "Combustible",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 27.0353,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique Factura A (Cod. 081) de COMBUSTIBLES NICOLLS S.A., CUIT 30-70937771-6 (dígito verificador válido), IVA Responsable Inscripto, Ruta Nac. Nro 7 Km 201, Chacabuco, Bs. As. (CP 6740). Nro 00011-00041910, fecha 13/01/2026, hora 14:06:22. Detalle: 27,0353 u x 1286,3461 = 34.776,75, menos DTO. POR REDONDEO -0,08. Se transcribe: SUBTOT. IMP. NETO GRAVADO 34.776,67; ALICUOTA 21,00% (IVA) 7.303,10; Impuesto interno a nivel ítem 3.934,20; IIBB ARBA 173,88; IMPORTE TOTAL OTROS TRIBUTOS 4.108,08 (= 3.934,20 + 173,88, por lo que 'otros_impuestos' queda en 0 para no duplicar). TOTAL 46.187,85. La aritmética cierra: 34.776,67 + 7.303,10 + 3.934,20 + 173,88 = 46.187,85. El ticket corresponde a una operación pagada con tarjeta de crédito (recibo '120662, CVC SA - Tarjetas', CUIT 30-56221570-3, Av. Circunvalación 1245 bis, Rosario, Santa Fe), con línea 'SON POR CUENTA Y ORDEN DE YPF SA'. Pago informado: Tarjeta de Crédito 46.187,68, Suma de sus pagos 46.187,68, Su vuelto 0,03; se advierte una diferencia de 0,17 respecto del TOTAL impreso (46.187,85), atribuible a redondeo del medio de pago, sin afectar el total del comprobante. Cantidad de litros tomada del renglón '27,0353 u x 1286,3461'. No se observan campos ilegibles ni centro de costo en el comprobante."
+    "observaciones": "Tique Factura A (Cod. 081), N° 00011-00041910, emitido el 13/01/2026 14:06:22 por COMBUSTIBLES NICOLLS S.A. (CUIT 30-70937771-6, dígito verificador válido; IIBB 30-70937771-6). Domicilio: Ruta Nac Nro 7 Km 201, Chacabuco, Bs. As., CP 6740. IVA Responsable Inscripto. Se lee 'SON POR CUENTA Y ORDEN DE YPF SA - LOS COMBUSTIBLES Y LIQUIDOS PARA AUTOMOTOR', FT A 0011 00049773 AUT: 9671. Detalle: 27,0353 u x 1286,3461 = 34.776,75; DTO. POR REDONDEO -0,08; SUBTOT. IMP. NETO GRAVADO 34.776,67; IVA 21,00% 7.303,10; Impuesto interno a nivel ítem 3.934,20; IIBB ARBA 173,88; IMPORTE TOTAL OTROS TRIBUTOS 4.108,08; TOTAL 46.187,85. La aritmética cierra: 34.776,67 + 7.303,10 + 4.108,08 = 46.187,85. Pago con Tarjeta de Crédito por 46.187,88 (suma de pagos 46.187,88, vuelto 0,03; diferencia de centavos respecto del total impreso). Receptor: 20662, CVC SA, Tarjetas, CUIT 30-56221570-3, Av. Circunvalación 1245 bis, Rosario (Santa Fe), PL 03080 OP 0030 - MANUEL DICUNO. No se discrimina monto no gravado ni exento (no aparecen esos rótulos). No se imprime centro de costo. La cantidad de litros se toma del detalle '27,0353 u' (unidades de combustible). Moneda inferida como ARS por tratarse de comprobante fiscal argentino con importes en pesos (no hay símbolo explícito impreso)."
   },
   "aritmetica": {
     "calculable": true,

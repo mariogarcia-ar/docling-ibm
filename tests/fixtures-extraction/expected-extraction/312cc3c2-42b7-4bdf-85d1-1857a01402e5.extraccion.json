@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/expected-extraction/312cc3c2-42b7-4bdf-85d1-1857a01402e5.jpg",
   "archivo_relativo": "expected-extraction/312cc3c2-42b7-4bdf-85d1-1857a01402e5.jpg",
-  "procesado_utc": "2026-09-15T13:44:34+00:00",
+  "procesado_utc": "2026-09-15T14:57:13+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:49bf219ef6de34fc",
+  "prompt_hash": "sha256:f9c4a199f7c38725",
   "uso": {
-    "prompt_tokens": 3564,
-    "completion_tokens": 6526,
-    "total_tokens": 10090,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 748
+    "prompt_tokens": 3739,
+    "completion_tokens": 27553,
+    "total_tokens": 31292,
+    "prompt_cache_hit_tokens": 3072,
+    "prompt_cache_miss_tokens": 667
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,19 +31,19 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.008072,
+  "costo_usd": 0.033282,
   "resultado": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
-    "tipo_comprobante": "B",
+    "tipo_comprobante": null,
     "codigo_afip": "083",
-    "razon_social_emisor": "LUCIE SABORES S.R.L. (nombre de fantasía: SANTA LUCIA VGG)",
+    "razon_social_emisor": "LUCIE SABORES S.R.L.",
     "cuit_emisor": "30-71816388-5",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "03/12/2025",
     "nro_factura": "00007-00079492",
     "moneda": "ARS",
-    "subtotal": 24600.0,
+    "subtotal": 24600,
     "no_gravado": 0,
     "exento": 0,
     "discrimina_impuestos": false,
@@ -51,30 +51,28 @@
     "impuestos_internos": 0,
     "percepciones_iibb": 0,
     "otros_impuestos": 0,
-    "importe_total": 24600.0,
+    "importe_total": 24600,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Panadería / elaboración y venta de panificados (único ítem: PANADERIA)",
-    "categoria_gasto_sugerida": "Panadería",
+    "rubro_emisor": "Panadería / elaboración de productos de panificación (rubro gastronómico-comercial)",
+    "categoria_gasto_sugerida": "Restaurante",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
-    "campos_no_legibles": [
-      "importe_recibido_efectivo (línea 'RECIBI(MOS) EFECTIVO' parcialmente cortada por el pliegue del papel: se lee '$2460q,3(')"
-    ],
-    "observaciones": "Tique emitido por controlador fiscal (Cod. 083 - TIQUE), P.V. 00007 / Nro. T. 00079492, Fecha 03/12/2025 12:49:59. Emisor LUCIE SABORES S.R.L., CUIT 30-71816388-5 (dígito verificador 5 validado: correcto), Ing. Brutos 0215194259, Chubut 705, (2124) Villa Gobernador Gálvez, inicio de actividades 01/08/2023, IVA Responsable Inscripto, 'A CONSUMIDOR FINAL': por ello se mapea el código 083 al tipo B (no imprime letra A/B/C). Único ítem: PANADERIA (10,50) $24.600,00 y TOTAL $24.600,00. No hay línea de 'Subtot. Imp. Neto Gravado' ni de no gravado/exento: el único importe es el total, por lo que subtotal = total (sin discriminación de impuestos) y la aritmética cierra. En 'TRANSPARENCIA FISCAL' se informa IVA contenido $2.337,56 (equivalente a la alícuota reducida del 10,5% incluida en el precio) y 'Otros Impuestos Nacionales Indirectos $0,00'; al ser contenido y no discriminado como impuesto adicional, no se lo suma aparte (neto implícito ~$22.262,44, no impreso en el ticket). Forma de pago: efectivo por $24.600,00 (renglón parcialmente cortado por el pliegue). Código de barras/QR SES HRA0000013673 - V: 1.02. Sin datos de comensales ni litros (no aplica). No hay centro de costo impreso."
+    "campos_no_legibles": [],
+    "observaciones": "Tique emitido por controlador fiscal con leyenda 'Cod. 083 - TIQUE' (no es factura A/B/C; no mapea a código 001/006/011). Emisor: LUCIE SABORES S.R.L. (nombre de fantasía 'SANTA LUCIA VGG'), IVA Responsable Inscripto, a Consumidor Final; Ing. Brutos 0215194259; Inicio de Actividades 01/08/2023; domicilio Chubut 705, (2124) Villa Gobernador Gálvez. Punto de venta 00007 - Nro. T. 00079492; fecha 03/12/2025 12:49:59. Detalle: PANADERÍA (cant. 10,50) $24.600,00. Pago: RECIBIMOS EFECTIVO $24.600,00. Único importe discriminado: TOTAL $24.600,00 (no hay línea de neto gravado, exento ni no gravado). En la sección 'Transparencia Fiscal' informa IVA contenido $2.337,56 (equivalente a 10,5%, incluido dentro del precio, no agregado al mismo) y Otros Impuestos Nacionales Indirectos $0,00: al estar contenido en el precio, el comprobante no discrimina impuestos como ítem separado, por lo que subtotal = total y los campos de impuestos van en cero. CUIT 30-71816388-5 verificado: dígito verificador 5 correcto. No se informa cantidad de comensales/personas ni litros. No se consigna centro de costo."
   },
   "extraccion": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
-    "tipo_comprobante": "B",
+    "tipo_comprobante": null,
     "codigo_afip": "083",
-    "razon_social_emisor": "LUCIE SABORES S.R.L. (nombre de fantasía: SANTA LUCIA VGG)",
+    "razon_social_emisor": "LUCIE SABORES S.R.L.",
     "cuit_emisor": "30-71816388-5",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "03/12/2025",
     "nro_factura": "00007-00079492",
     "moneda": "ARS",
-    "subtotal": 24600.0,
+    "subtotal": 24600,
     "no_gravado": 0,
     "exento": 0,
     "discrimina_impuestos": false,
@@ -82,17 +80,15 @@
     "impuestos_internos": 0,
     "percepciones_iibb": 0,
     "otros_impuestos": 0,
-    "importe_total": 24600.0,
+    "importe_total": 24600,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Panadería / elaboración y venta de panificados (único ítem: PANADERIA)",
-    "categoria_gasto_sugerida": "Panadería",
+    "rubro_emisor": "Panadería / elaboración de productos de panificación (rubro gastronómico-comercial)",
+    "categoria_gasto_sugerida": "Restaurante",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
-    "campos_no_legibles": [
-      "importe_recibido_efectivo (línea 'RECIBI(MOS) EFECTIVO' parcialmente cortada por el pliegue del papel: se lee '$2460q,3(')"
-    ],
-    "observaciones": "Tique emitido por controlador fiscal (Cod. 083 - TIQUE), P.V. 00007 / Nro. T. 00079492, Fecha 03/12/2025 12:49:59. Emisor LUCIE SABORES S.R.L., CUIT 30-71816388-5 (dígito verificador 5 validado: correcto), Ing. Brutos 0215194259, Chubut 705, (2124) Villa Gobernador Gálvez, inicio de actividades 01/08/2023, IVA Responsable Inscripto, 'A CONSUMIDOR FINAL': por ello se mapea el código 083 al tipo B (no imprime letra A/B/C). Único ítem: PANADERIA (10,50) $24.600,00 y TOTAL $24.600,00. No hay línea de 'Subtot. Imp. Neto Gravado' ni de no gravado/exento: el único importe es el total, por lo que subtotal = total (sin discriminación de impuestos) y la aritmética cierra. En 'TRANSPARENCIA FISCAL' se informa IVA contenido $2.337,56 (equivalente a la alícuota reducida del 10,5% incluida en el precio) y 'Otros Impuestos Nacionales Indirectos $0,00'; al ser contenido y no discriminado como impuesto adicional, no se lo suma aparte (neto implícito ~$22.262,44, no impreso en el ticket). Forma de pago: efectivo por $24.600,00 (renglón parcialmente cortado por el pliegue). Código de barras/QR SES HRA0000013673 - V: 1.02. Sin datos de comensales ni litros (no aplica). No hay centro de costo impreso."
+    "campos_no_legibles": [],
+    "observaciones": "Tique emitido por controlador fiscal con leyenda 'Cod. 083 - TIQUE' (no es factura A/B/C; no mapea a código 001/006/011). Emisor: LUCIE SABORES S.R.L. (nombre de fantasía 'SANTA LUCIA VGG'), IVA Responsable Inscripto, a Consumidor Final; Ing. Brutos 0215194259; Inicio de Actividades 01/08/2023; domicilio Chubut 705, (2124) Villa Gobernador Gálvez. Punto de venta 00007 - Nro. T. 00079492; fecha 03/12/2025 12:49:59. Detalle: PANADERÍA (cant. 10,50) $24.600,00. Pago: RECIBIMOS EFECTIVO $24.600,00. Único importe discriminado: TOTAL $24.600,00 (no hay línea de neto gravado, exento ni no gravado). En la sección 'Transparencia Fiscal' informa IVA contenido $2.337,56 (equivalente a 10,5%, incluido dentro del precio, no agregado al mismo) y Otros Impuestos Nacionales Indirectos $0,00: al estar contenido en el precio, el comprobante no discrimina impuestos como ítem separado, por lo que subtotal = total y los campos de impuestos van en cero. CUIT 30-71816388-5 verificado: dígito verificador 5 correcto. No se informa cantidad de comensales/personas ni litros. No se consigna centro de costo."
   },
   "aritmetica": {
     "calculable": true,

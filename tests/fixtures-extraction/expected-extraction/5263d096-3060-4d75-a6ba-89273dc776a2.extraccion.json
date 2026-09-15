@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/expected-extraction/5263d096-3060-4d75-a6ba-89273dc776a2.jpg",
   "archivo_relativo": "expected-extraction/5263d096-3060-4d75-a6ba-89273dc776a2.jpg",
-  "procesado_utc": "2026-09-15T13:45:01+00:00",
+  "procesado_utc": "2026-09-15T14:57:39+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:49bf219ef6de34fc",
+  "prompt_hash": "sha256:f9c4a199f7c38725",
   "uso": {
-    "prompt_tokens": 3564,
-    "completion_tokens": 1835,
-    "total_tokens": 5399,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 748
+    "prompt_tokens": 3739,
+    "completion_tokens": 3637,
+    "total_tokens": 7376,
+    "prompt_cache_hit_tokens": 3072,
+    "prompt_cache_miss_tokens": 667
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,17 +31,17 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.002443,
+  "costo_usd": 0.004583,
   "resultado": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "001",
     "razon_social_emisor": "GRUPO COMERCIAL S.R.L.",
-    "cuit_emisor": "30-70719828-8",
-    "digito_verificador_cuit_valido": true,
+    "cuit_emisor": "30-70718920-8",
+    "digito_verificador_cuit_valido": false,
     "fecha_emision": "22/04/2026",
-    "nro_factura": "00028-00000082",
+    "nro_factura": "00028-00098682",
     "moneda": "ARS",
     "subtotal": 26708.54,
     "no_gravado": 0,
@@ -53,13 +53,13 @@
     "otros_impuestos": 0,
     "importe_total": 38309.91,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / combustible (YPF - \"CUENTA Y ORDEN DE YPF SA\")",
+    "rubro_emisor": "Estación de servicio / venta de combustibles (expendio YPF, cuenta y orden de YPF S.A.)",
     "categoria_gasto_sugerida": "Combustible",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 18.57,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique Factura A (COD. 001) N° 00028-00000082, fecha 22/04/2026, hora 07:05:04. Emisor GRUPO COMERCIAL S.R.L., CUIT 30-70719828-8 (dígito verificador válido), domicilio Belgrano y Ruta 12, Nogoyá, Entre Ríos, IVA Responsable Inscripto. Receptor: CVC S.A. (CUIT 30-58221570-3). Detalle: NAFTA SUPER, 18,5700 u x 1438,2626; NAFTA SUPER ICL 304,076; 18,570 L $ 2063,000. Línea de IVA: (21)[B1,67] 26708,54. Importes: SUBTOT. IMP. NETO GRAVADO 26708,54; ALICUOTA 21,00% 5608,79; Impuesto interno a nivel item 5992,58 (= IMPORTE TOTAL OTROS TRIBUTOS). La suma 26708,54 + 5608,79 + 5992,58 = 38309,91 coincide con el TOTAL impreso, por lo que la aritmética cierra. Pago con Tarjeta de Crédito 38310,00, vuelto 0,09. Es un comprobante de combustible (YPF), por lo que se transcribieron los litros (18,570 L); no aplica cantidad de comensales."
+    "observaciones": "Tique Factura \"A\" (COD. 001) N° 00028-00098682, emitido por GRUPO COMERCIAL S.R.L., CUIT 30-70718920-8, IVA Responsable Inscripto, Inicio de Actividades 05/05/2000, domicilio Belgrano y Ruta 12 (localidad parcialmente ilegible), expendedor YPF - \"Cuenta y Orden de YPF SA\", REGISTRO EPEAA0000022880, AUT 108, #PEDIDO 17505, V: 1,02 Jano. Hora 07:05:04. Detalle: NAFTA SUPER, 18,5700 u x 1438,2626 = 26708,54 (NAFTA SUPER ICL: 304,076; 18,570 L $ 2063,000; alícuota (21%) [B1,67]). Impuestos discriminados: SUBTOT. IMP. NETO GRAVADO 26708,54 + ALICUOTA 21,00% (IVA) 5608,79 + Impuesto interno a nivel ítem 5992,58 (rotulado también como \"IMPORTE TOTAL OTROS TRIBUTOS\" 5992,58, es el mismo importe subtotalizado, no un tributo adicional) = TOTAL 38309,91. La aritmética cierra. Pago: Tarjeta de Crédito 38310,00; Suma de sus pagos 38310,00; Su Vuelto 0,09. Nota: el dígito verificador del CUIT del emisor impreso (8) no corresponde al calculado (3) con el resto 30-70718920; se transcribe tal como figura impreso. Se aclara que el segundo CUIT que aparece en el cuerpo del ticket (30-58221570-3, CVC S.A. - Tarjetas, DV válido) corresponde a la emisora de la tarjeta, no al emisor del comprobante. El comprobante no detalla categoría de gasto ni centro de costo; no hay leyenda de percepciones de IIBB ni de importes exentos o no gravados. Los litros cargados (18,570 L) surgen del detalle del ticket."
   },
   "extraccion": {
     "es_comprobante": "comprobante",
@@ -67,10 +67,10 @@
     "tipo_comprobante": "A",
     "codigo_afip": "001",
     "razon_social_emisor": "GRUPO COMERCIAL S.R.L.",
-    "cuit_emisor": "30-70719828-8",
-    "digito_verificador_cuit_valido": true,
+    "cuit_emisor": "30-70718920-8",
+    "digito_verificador_cuit_valido": false,
     "fecha_emision": "22/04/2026",
-    "nro_factura": "00028-00000082",
+    "nro_factura": "00028-00098682",
     "moneda": "ARS",
     "subtotal": 26708.54,
     "no_gravado": 0,
@@ -82,13 +82,13 @@
     "otros_impuestos": 0,
     "importe_total": 38309.91,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / combustible (YPF - \"CUENTA Y ORDEN DE YPF SA\")",
+    "rubro_emisor": "Estación de servicio / venta de combustibles (expendio YPF, cuenta y orden de YPF S.A.)",
     "categoria_gasto_sugerida": "Combustible",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 18.57,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique Factura A (COD. 001) N° 00028-00000082, fecha 22/04/2026, hora 07:05:04. Emisor GRUPO COMERCIAL S.R.L., CUIT 30-70719828-8 (dígito verificador válido), domicilio Belgrano y Ruta 12, Nogoyá, Entre Ríos, IVA Responsable Inscripto. Receptor: CVC S.A. (CUIT 30-58221570-3). Detalle: NAFTA SUPER, 18,5700 u x 1438,2626; NAFTA SUPER ICL 304,076; 18,570 L $ 2063,000. Línea de IVA: (21)[B1,67] 26708,54. Importes: SUBTOT. IMP. NETO GRAVADO 26708,54; ALICUOTA 21,00% 5608,79; Impuesto interno a nivel item 5992,58 (= IMPORTE TOTAL OTROS TRIBUTOS). La suma 26708,54 + 5608,79 + 5992,58 = 38309,91 coincide con el TOTAL impreso, por lo que la aritmética cierra. Pago con Tarjeta de Crédito 38310,00, vuelto 0,09. Es un comprobante de combustible (YPF), por lo que se transcribieron los litros (18,570 L); no aplica cantidad de comensales."
+    "observaciones": "Tique Factura \"A\" (COD. 001) N° 00028-00098682, emitido por GRUPO COMERCIAL S.R.L., CUIT 30-70718920-8, IVA Responsable Inscripto, Inicio de Actividades 05/05/2000, domicilio Belgrano y Ruta 12 (localidad parcialmente ilegible), expendedor YPF - \"Cuenta y Orden de YPF SA\", REGISTRO EPEAA0000022880, AUT 108, #PEDIDO 17505, V: 1,02 Jano. Hora 07:05:04. Detalle: NAFTA SUPER, 18,5700 u x 1438,2626 = 26708,54 (NAFTA SUPER ICL: 304,076; 18,570 L $ 2063,000; alícuota (21%) [B1,67]). Impuestos discriminados: SUBTOT. IMP. NETO GRAVADO 26708,54 + ALICUOTA 21,00% (IVA) 5608,79 + Impuesto interno a nivel ítem 5992,58 (rotulado también como \"IMPORTE TOTAL OTROS TRIBUTOS\" 5992,58, es el mismo importe subtotalizado, no un tributo adicional) = TOTAL 38309,91. La aritmética cierra. Pago: Tarjeta de Crédito 38310,00; Suma de sus pagos 38310,00; Su Vuelto 0,09. Nota: el dígito verificador del CUIT del emisor impreso (8) no corresponde al calculado (3) con el resto 30-70718920; se transcribe tal como figura impreso. Se aclara que el segundo CUIT que aparece en el cuerpo del ticket (30-58221570-3, CVC S.A. - Tarjetas, DV válido) corresponde a la emisora de la tarjeta, no al emisor del comprobante. El comprobante no detalla categoría de gasto ni centro de costo; no hay leyenda de percepciones de IIBB ni de importes exentos o no gravados. Los litros cargados (18,570 L) surgen del detalle del ticket."
   },
   "aritmetica": {
     "calculable": true,

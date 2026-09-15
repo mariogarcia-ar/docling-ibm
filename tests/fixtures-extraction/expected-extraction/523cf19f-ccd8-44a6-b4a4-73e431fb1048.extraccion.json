@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/expected-extraction/523cf19f-ccd8-44a6-b4a4-73e431fb1048.jpg",
   "archivo_relativo": "expected-extraction/523cf19f-ccd8-44a6-b4a4-73e431fb1048.jpg",
-  "procesado_utc": "2026-09-15T13:44:54+00:00",
+  "procesado_utc": "2026-09-15T14:57:39+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:49bf219ef6de34fc",
+  "prompt_hash": "sha256:f9c4a199f7c38725",
   "uso": {
-    "prompt_tokens": 3564,
-    "completion_tokens": 3958,
-    "total_tokens": 7522,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 748
+    "prompt_tokens": 3739,
+    "completion_tokens": 1818,
+    "total_tokens": 5557,
+    "prompt_cache_hit_tokens": 3072,
+    "prompt_cache_miss_tokens": 667
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,17 +31,17 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.004991,
+  "costo_usd": 0.0024,
   "resultado": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "001",
-    "razon_social_emisor": "DOSMASTRES S.R.L. (nombre de fantasía: CAMELIA)",
+    "razon_social_emisor": "DOSMASTRES S.R.L. (CAMELIA)",
     "cuit_emisor": "30-71845835-4",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "08/28/25",
-    "nro_factura": "00003-399",
+    "nro_factura": "00003-00000399",
     "moneda": "ARS",
     "subtotal": 25123.96,
     "no_gravado": 0,
@@ -53,27 +53,24 @@
     "otros_impuestos": 0,
     "importe_total": 30400.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Restaurante",
+    "rubro_emisor": "Restaurante / gastronomía",
     "categoria_gasto_sugerida": "Restaurante",
     "cantidad_comensales_personas": 2,
     "cantidad_litros": 0,
     "centro_de_costo": null,
-    "campos_no_legibles": [
-      "importes de la columna 'Tota' del detalle de ítems (cortados al borde derecho del papel: se leen parcialmente '2909…', '1057…', '1454…')",
-      "importe de la línea 'PROM VASO AGUA' (sin precio ni total impresos a la vista)"
-    ],
-    "observaciones": "Factura A Electrónica (COD. 001) emitida por DOSMASTRES S.R.L., nombre comercial 'CAMELIA', Juan Pablo II 1740, Rosario, Santa Fe; CUIT 30-71845835-4 (dígito verificador 4 validado correctamente). Receptor: CVC S A, Circunvalación 1245 BIS, CUIT 30-58221570-3, Responsable Inscripto. Punto de venta 00003, comprobante N° 399 (el número se imprime abreviado; no se descarta truncamiento). Fecha impresa en formato MM/DD/AA: 08/28/25, que corresponde al 28/08/2025; es coherente con el vencimiento del CAE (09/07/25 = 07/09/2025, 10 días posteriores). CAE N° 75354917277906. No se imprime leyenda ni símbolo de moneda: se asume ARS por tratarse de emisor argentino. Se discrimina IVA al 21%: Neto 25.123,96 + IVA 5.276,04 = TOTAL 30.400,00 (la aritmética cierra exactamente). El campo 'Descuento' aparece en blanco. Detalle de ítems: 2 CUBIERTOS (14545 c/u), 1 Tarta DEL DIA, 1 PROM VASO AGUA, 1 MENU PESCADO (14545); los totales de la columna derecha están cortados y, aun leídos, la suma del detalle (>54.000) no reconcilia con el Neto impreso (25.123,96), lo que sugiere un descuento no impreso o un error de impresión del detalle. El rubro gastronómico es claro, por lo que la categoría sugerida es Restaurante. La cantidad de comensales (2) se infiere del ítem '2 CUBIERTOS'; no hay otros datos de cubiertos. No se imprime centro de costo."
+    "campos_no_legibles": [],
+    "observaciones": "Factura A electrónica, COD. 001, emitida por DOSMASTRES S.R.L. (nombre de fantasía CAMELIA), Juan Pablo II 1740, Rosario, Santa Fe. CUIT 30-71845835-4 con dígito verificador válido (cálculo: 194 mod 11 = 7, 11-7 = 4). Letra A y responsable inscripto coinciden con el emisor. Fecha impresa en formato MM/DD/AA (08/28/25 = 28/08/2025), distinto del habitual DD/MM/AAAA. Nro de comprobante: punto de venta 00003, número 399. Neto 25123,96 + IVA 5276,04 = 30400,00: la aritmética cierra (IVA ~21%). No hay percepciones, exentos ni no gravado; 'Descuento' figura vacío. Detalle: 2 CUBIERTOS (14545 c/u), 1 Tarta DEL DIA, 1 PROM VASO AGUA, 1 MENU PESCADO; los importes de la columna 'Total' del detalle quedan parcialmente cortados en el borde de la imagen (p. ej. 290.., 1454..), por lo que se transcriben los totales del pie (Neto/IVA/TOTAL), que son los legibles y consistentes. Cantidad de comensales inferida de los 2 cubiertos impresos. Moneda ARS inferida por el emisor y los importes (no hay leyenda explícita de moneda). C.A.E. 75354917277906, vencimiento 09/07/25. Rubro gastronómico consistente con categoría Restaurante. Sin centro de costo indicado."
   },
   "extraccion": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "001",
-    "razon_social_emisor": "DOSMASTRES S.R.L. (nombre de fantasía: CAMELIA)",
+    "razon_social_emisor": "DOSMASTRES S.R.L. (CAMELIA)",
     "cuit_emisor": "30-71845835-4",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "08/28/25",
-    "nro_factura": "00003-399",
+    "nro_factura": "00003-00000399",
     "moneda": "ARS",
     "subtotal": 25123.96,
     "no_gravado": 0,
@@ -85,16 +82,13 @@
     "otros_impuestos": 0,
     "importe_total": 30400.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Restaurante",
+    "rubro_emisor": "Restaurante / gastronomía",
     "categoria_gasto_sugerida": "Restaurante",
     "cantidad_comensales_personas": 2,
     "cantidad_litros": 0,
     "centro_de_costo": null,
-    "campos_no_legibles": [
-      "importes de la columna 'Tota' del detalle de ítems (cortados al borde derecho del papel: se leen parcialmente '2909…', '1057…', '1454…')",
-      "importe de la línea 'PROM VASO AGUA' (sin precio ni total impresos a la vista)"
-    ],
-    "observaciones": "Factura A Electrónica (COD. 001) emitida por DOSMASTRES S.R.L., nombre comercial 'CAMELIA', Juan Pablo II 1740, Rosario, Santa Fe; CUIT 30-71845835-4 (dígito verificador 4 validado correctamente). Receptor: CVC S A, Circunvalación 1245 BIS, CUIT 30-58221570-3, Responsable Inscripto. Punto de venta 00003, comprobante N° 399 (el número se imprime abreviado; no se descarta truncamiento). Fecha impresa en formato MM/DD/AA: 08/28/25, que corresponde al 28/08/2025; es coherente con el vencimiento del CAE (09/07/25 = 07/09/2025, 10 días posteriores). CAE N° 75354917277906. No se imprime leyenda ni símbolo de moneda: se asume ARS por tratarse de emisor argentino. Se discrimina IVA al 21%: Neto 25.123,96 + IVA 5.276,04 = TOTAL 30.400,00 (la aritmética cierra exactamente). El campo 'Descuento' aparece en blanco. Detalle de ítems: 2 CUBIERTOS (14545 c/u), 1 Tarta DEL DIA, 1 PROM VASO AGUA, 1 MENU PESCADO (14545); los totales de la columna derecha están cortados y, aun leídos, la suma del detalle (>54.000) no reconcilia con el Neto impreso (25.123,96), lo que sugiere un descuento no impreso o un error de impresión del detalle. El rubro gastronómico es claro, por lo que la categoría sugerida es Restaurante. La cantidad de comensales (2) se infiere del ítem '2 CUBIERTOS'; no hay otros datos de cubiertos. No se imprime centro de costo."
+    "campos_no_legibles": [],
+    "observaciones": "Factura A electrónica, COD. 001, emitida por DOSMASTRES S.R.L. (nombre de fantasía CAMELIA), Juan Pablo II 1740, Rosario, Santa Fe. CUIT 30-71845835-4 con dígito verificador válido (cálculo: 194 mod 11 = 7, 11-7 = 4). Letra A y responsable inscripto coinciden con el emisor. Fecha impresa en formato MM/DD/AA (08/28/25 = 28/08/2025), distinto del habitual DD/MM/AAAA. Nro de comprobante: punto de venta 00003, número 399. Neto 25123,96 + IVA 5276,04 = 30400,00: la aritmética cierra (IVA ~21%). No hay percepciones, exentos ni no gravado; 'Descuento' figura vacío. Detalle: 2 CUBIERTOS (14545 c/u), 1 Tarta DEL DIA, 1 PROM VASO AGUA, 1 MENU PESCADO; los importes de la columna 'Total' del detalle quedan parcialmente cortados en el borde de la imagen (p. ej. 290.., 1454..), por lo que se transcriben los totales del pie (Neto/IVA/TOTAL), que son los legibles y consistentes. Cantidad de comensales inferida de los 2 cubiertos impresos. Moneda ARS inferida por el emisor y los importes (no hay leyenda explícita de moneda). C.A.E. 75354917277906, vencimiento 09/07/25. Rubro gastronómico consistente con categoría Restaurante. Sin centro de costo indicado."
   },
   "aritmetica": {
     "calculable": true,

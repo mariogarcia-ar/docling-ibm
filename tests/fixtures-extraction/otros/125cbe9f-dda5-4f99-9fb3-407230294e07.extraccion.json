@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/otros/125cbe9f-dda5-4f99-9fb3-407230294e07.jpeg",
   "archivo_relativo": "otros/125cbe9f-dda5-4f99-9fb3-407230294e07.jpeg",
-  "procesado_utc": "2026-09-15T13:47:53+00:00",
+  "procesado_utc": "2026-09-15T15:01:39+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:49bf219ef6de34fc",
+  "prompt_hash": "sha256:f9c4a199f7c38725",
   "uso": {
-    "prompt_tokens": 3936,
-    "completion_tokens": 2608,
-    "total_tokens": 6544,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 1120
+    "prompt_tokens": 4111,
+    "completion_tokens": 2587,
+    "total_tokens": 6698,
+    "prompt_cache_hit_tokens": 3968,
+    "prompt_cache_miss_tokens": 143
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,7 +31,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.003482,
+  "costo_usd": 0.003171,
   "resultado": {
     "es_comprobante": "no_comprobante",
     "legibilidad": "buena",
@@ -40,9 +40,9 @@
     "razon_social_emisor": null,
     "cuit_emisor": null,
     "digito_verificador_cuit_valido": false,
-    "fecha_emision": null,
-    "nro_factura": null,
-    "moneda": null,
+    "fecha_emision": "22/05/26",
+    "nro_factura": "0",
+    "moneda": "ARS",
     "subtotal": null,
     "no_gravado": null,
     "exento": null,
@@ -51,7 +51,7 @@
     "impuestos_internos": null,
     "percepciones_iibb": null,
     "otros_impuestos": null,
-    "importe_total": null,
+    "importe_total": 30920.0,
     "cierra_aritmetica": false,
     "rubro_emisor": null,
     "categoria_gasto_sugerida": null,
@@ -59,7 +59,7 @@
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "El documento NO es un comprobante fiscal ni comercial: es una constancia/voucher de pago con tarjeta emitida por un terminal POS (posnet). Muestra: COB-04217890, fecha 22/05/26 18:01:31, operación 'COMPRA - VISA DEBITO' (luego figura 'VISA CREDITO'), Nro.Com. 67708131, Term. 78103516, Nro. de Lote 382, Nro. de Cupon 1284, tarjeta ************2052, Autorización 592716-ONL, Imp. Total: $30920.00, Cuotas: 01, Referencia 2478, '(00 APROBADA)' y 'Nro. de Factura: 0'. No identifica comercio/emisor, no tiene CUIT, ni letra A/B/C, ni código AFIP, ni discriminación de IVA ni detalle de bienes/servicios; tampoco es un ticket fiscal. Por eso no se transcriben campos fiscales (emisor, CUIT, tipo, fecha e importes van en null). Se recomienda solicitar la factura o ticket fiscal correspondiente al gasto."
+    "observaciones": "Voucher de posnet (COB-04217890), no un comprobante fiscal: no tiene letra A/B/C, ni código AFIP, ni CUIT, ni razón social del emisor, por lo que no acredita por sí mismo el gasto. Transcripción: fecha 22/05/26 (hora ~18:01), operación 'COMPRA - VISA_DEBITO' (también imprime 'VISA CREDITO'), Nro.Com. 67708131, Term. 78103516, Nro. de Lote 382, Nro. de Cupon 1284, Nro.Tarj. ************2052 (L), Nro. Cta. 000000002857, Auto 592716 - ONL, A0000000031010, Cuotas 01, Tipo de Plan 0, Ref:2478 V.Soft:PRI301, (00 APROBADA) (00 APROBADA). Importe Total: $30.920,00 (único importe impreso; moneda ARS por símbolo $). Imprime 'Nro. de Factura: 0', es decir sin número de factura asociado. No hay desglose de neto gravado, no gravado, exento, IVA ni percepciones, por lo que no se puede validar aritmética ni categorizar el gasto: no hay rubro del emisor inferible desde este ticket."
   },
   "extraccion": {
     "es_comprobante": "no_comprobante",
@@ -69,9 +69,9 @@
     "razon_social_emisor": null,
     "cuit_emisor": null,
     "digito_verificador_cuit_valido": false,
-    "fecha_emision": null,
-    "nro_factura": null,
-    "moneda": null,
+    "fecha_emision": "22/05/26",
+    "nro_factura": "0",
+    "moneda": "ARS",
     "subtotal": null,
     "no_gravado": null,
     "exento": null,
@@ -80,7 +80,7 @@
     "impuestos_internos": null,
     "percepciones_iibb": null,
     "otros_impuestos": null,
-    "importe_total": null,
+    "importe_total": 30920.0,
     "cierra_aritmetica": false,
     "rubro_emisor": null,
     "categoria_gasto_sugerida": null,
@@ -88,12 +88,12 @@
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "El documento NO es un comprobante fiscal ni comercial: es una constancia/voucher de pago con tarjeta emitida por un terminal POS (posnet). Muestra: COB-04217890, fecha 22/05/26 18:01:31, operación 'COMPRA - VISA DEBITO' (luego figura 'VISA CREDITO'), Nro.Com. 67708131, Term. 78103516, Nro. de Lote 382, Nro. de Cupon 1284, tarjeta ************2052, Autorización 592716-ONL, Imp. Total: $30920.00, Cuotas: 01, Referencia 2478, '(00 APROBADA)' y 'Nro. de Factura: 0'. No identifica comercio/emisor, no tiene CUIT, ni letra A/B/C, ni código AFIP, ni discriminación de IVA ni detalle de bienes/servicios; tampoco es un ticket fiscal. Por eso no se transcriben campos fiscales (emisor, CUIT, tipo, fecha e importes van en null). Se recomienda solicitar la factura o ticket fiscal correspondiente al gasto."
+    "observaciones": "Voucher de posnet (COB-04217890), no un comprobante fiscal: no tiene letra A/B/C, ni código AFIP, ni CUIT, ni razón social del emisor, por lo que no acredita por sí mismo el gasto. Transcripción: fecha 22/05/26 (hora ~18:01), operación 'COMPRA - VISA_DEBITO' (también imprime 'VISA CREDITO'), Nro.Com. 67708131, Term. 78103516, Nro. de Lote 382, Nro. de Cupon 1284, Nro.Tarj. ************2052 (L), Nro. Cta. 000000002857, Auto 592716 - ONL, A0000000031010, Cuotas 01, Tipo de Plan 0, Ref:2478 V.Soft:PRI301, (00 APROBADA) (00 APROBADA). Importe Total: $30.920,00 (único importe impreso; moneda ARS por símbolo $). Imprime 'Nro. de Factura: 0', es decir sin número de factura asociado. No hay desglose de neto gravado, no gravado, exento, IVA ni percepciones, por lo que no se puede validar aritmética ni categorizar el gasto: no hay rubro del emisor inferible desde este ticket."
   },
   "aritmetica": {
     "calculable": false,
     "suma": null,
-    "total": null,
+    "total": 30920.0,
     "diferencia": null,
     "cierra": null,
     "faltantes": []

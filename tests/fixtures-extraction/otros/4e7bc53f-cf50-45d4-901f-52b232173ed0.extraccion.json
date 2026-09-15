@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/otros/4e7bc53f-cf50-45d4-901f-52b232173ed0.jpg",
   "archivo_relativo": "otros/4e7bc53f-cf50-45d4-901f-52b232173ed0.jpg",
-  "procesado_utc": "2026-09-15T13:48:26+00:00",
+  "procesado_utc": "2026-09-15T15:02:23+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:49bf219ef6de34fc",
+  "prompt_hash": "sha256:f9c4a199f7c38725",
   "uso": {
-    "prompt_tokens": 8807,
-    "completion_tokens": 6680,
-    "total_tokens": 15487,
-    "prompt_cache_hit_tokens": 6784,
-    "prompt_cache_miss_tokens": 2023
+    "prompt_tokens": 9399,
+    "completion_tokens": 13782,
+    "total_tokens": 23181,
+    "prompt_cache_hit_tokens": 7168,
+    "prompt_cache_miss_tokens": 2231
   },
   "esquema_validado": true,
   "reintentos_esquema": 1,
@@ -33,7 +33,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.008664,
+  "costo_usd": 0.017251,
   "resultado": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
@@ -55,17 +55,18 @@
     "otros_impuestos": 0,
     "importe_total": 50000.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Restaurante / gastronomía (ticket de mesa y mozo)",
+    "rubro_emisor": "Restaurante / gastronomía (menú fijo, cubierto, mesa y moza)",
     "categoria_gasto_sugerida": "Restaurante",
-    "cantidad_comensales_personas": 0,
+    "cantidad_comensales_personas": 1,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [
-      "Tasa confto (Régimen de Transparencia Fiscal)",
-      "CAE (parcial)",
-      "Vencimiento CAE"
+      "línea superior de nombre de fantasía ('LEY ... PILAR')",
+      "línea 'Tasa con.: 12323.54' impresa bajo el total",
+      "C.A.E. Nº y línea final 'V: 01.00'",
+      "importe de la línea 'Saldo'"
     ],
-    "observaciones": "Tique Factura A, Cod. 001 (AFIP). Emisor: GESTION Y PROYECTOS LATINOS S.A. ('LEY PRIMERA PILAR'), C.U.I.T. 33-71547300-3, Ing. Brutos 33-71547300-3, Panamericana Km 50,5 - C.P. 1629 - Pilar - Buenos Aires. IVA Responsable Inscripto. Mesa 28, Mozo (17). Cliente: CUC S.A., C.U.I.T. 30-50622157-9, IVA Responsable Inscripto, Ruta 7 Km 262. Fecha 03/06/2026 22:09:03, N° 00003-00005362. Detalle: CLIENTE 0,00 y MENU FIJO 41.322,31 (alícuota 21,00%). Importes: NETO NO GRAVADO 0,00 / NETO EXENTO 0,00 / NETO GRAVADO 41.322,31; IVA 21% 8.677,69; TOTAL 50.000,00; RECIBIDOS 50.000,00 (Saldo 0,00). La aritmética cierra: 41.322,31 + 8.677,69 = 50.000,00. Se discrimina IVA. Bajo el Régimen de Transparencia Fiscal al Consumidor (Ley 27.743) figura 'Tasa confto' 12.525,54 (no coincide con el IVA discriminado; dato de lectura dudoso) y Otros impuestos Nac. Indirectos 0,00; no se suma al total. El dígito verificador del C.U.I.T. del emisor no valida con el número leído (33-71547300-3), pero se transcribe tal como está impreso. Cantidad de comensales, litros y centro de costo no impresos."
+    "observaciones": "Tique Factura A (Cód. 001), Punto de Venta 00003, Nº 00005362, emitido el 03/06/2026 a las 22:09:03. Emisor del encabezado fiscal: GESTION Y PROYECTOS LATINOS S.A., C.U.I.T. 33-71547300-3, Ing. Brutos 33-71547300-3, Panamericana Km 50,5 - C.P. 1629 - Pilar - Buenos Aires, Inicio de Actividades 01/09/2021, IVA Responsable Inscripto. Por debajo del bloque fiscal aparece un segundo bloque (CUC S.A., C.U.I.T. 30-58022157-3, IVA Responsable Inscripto, Ruta 7 Km 262) que se interpreta como receptor/cliente y no como emisor (no tiene Ingresos Brutos ni Inicio de Actividades). Detalle: 1,000 CUBIERTO (21,00%) con precio neto 0,00 y 1,000 MENÚ FIJO (21,00%) con precio neto 41.322,31. Importes discriminados: SUBTOTAL NETO NO GRAVADO 0,00; SUBTOTAL EXENTO 0,00; SUBTOTAL NETO GRAVADO 41.322,31; IVA 21,00% base 41.322,31 = 8.677,69; IMPORTE TOTAL 50.000,00. La aritmética cierra: 41.322,31 + 8.677,69 = 50.000,00. No hay percepciones de IIBB ni impuestos internos; 'Otros impuestos Nac. indirectos: 0,00'. Se imprime la leyenda del Régimen de Transparencia Fiscal al Consumidor (Ley 27.743). Con los dígitos leídos, el dígito verificador del CUIT del emisor no valida; la imagen es algo borrosa en esa zona (podría tratarse de 33-71547300-9, que sí validaría), por lo que la lectura del CUIT es dudosa. La línea 'Tasa con.: 12.323,54' posterior al total no corresponde a ninguno de los impuestos discriminados y no se pudo identificar. No se imprime símbolo de moneda; se asume ARS por tratarse de comprobante fiscal argentino en pesos. La cantidad de comensales (1) se transcribió a partir del renglón '1,000 CUBIERTO' / '1,000 MENÚ FIJO' impreso, no de un dato declarado como cantidad de personas. El renglón 'Saldo' figura como 50.000,00, valor inconsistente con 'RECIBIDOS 50.000,00' (posible problema de impresión o de lectura)."
   },
   "extraccion": {
     "es_comprobante": "comprobante",
@@ -88,17 +89,18 @@
     "otros_impuestos": 0,
     "importe_total": 50000.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Restaurante / gastronomía (ticket de mesa y mozo)",
+    "rubro_emisor": "Restaurante / gastronomía (menú fijo, cubierto, mesa y moza)",
     "categoria_gasto_sugerida": "Restaurante",
-    "cantidad_comensales_personas": 0,
+    "cantidad_comensales_personas": 1,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [
-      "Tasa confto (Régimen de Transparencia Fiscal)",
-      "CAE (parcial)",
-      "Vencimiento CAE"
+      "línea superior de nombre de fantasía ('LEY ... PILAR')",
+      "línea 'Tasa con.: 12323.54' impresa bajo el total",
+      "C.A.E. Nº y línea final 'V: 01.00'",
+      "importe de la línea 'Saldo'"
     ],
-    "observaciones": "Tique Factura A, Cod. 001 (AFIP). Emisor: GESTION Y PROYECTOS LATINOS S.A. ('LEY PRIMERA PILAR'), C.U.I.T. 33-71547300-3, Ing. Brutos 33-71547300-3, Panamericana Km 50,5 - C.P. 1629 - Pilar - Buenos Aires. IVA Responsable Inscripto. Mesa 28, Mozo (17). Cliente: CUC S.A., C.U.I.T. 30-50622157-9, IVA Responsable Inscripto, Ruta 7 Km 262. Fecha 03/06/2026 22:09:03, N° 00003-00005362. Detalle: CLIENTE 0,00 y MENU FIJO 41.322,31 (alícuota 21,00%). Importes: NETO NO GRAVADO 0,00 / NETO EXENTO 0,00 / NETO GRAVADO 41.322,31; IVA 21% 8.677,69; TOTAL 50.000,00; RECIBIDOS 50.000,00 (Saldo 0,00). La aritmética cierra: 41.322,31 + 8.677,69 = 50.000,00. Se discrimina IVA. Bajo el Régimen de Transparencia Fiscal al Consumidor (Ley 27.743) figura 'Tasa confto' 12.525,54 (no coincide con el IVA discriminado; dato de lectura dudoso) y Otros impuestos Nac. Indirectos 0,00; no se suma al total. El dígito verificador del C.U.I.T. del emisor no valida con el número leído (33-71547300-3), pero se transcribe tal como está impreso. Cantidad de comensales, litros y centro de costo no impresos."
+    "observaciones": "Tique Factura A (Cód. 001), Punto de Venta 00003, Nº 00005362, emitido el 03/06/2026 a las 22:09:03. Emisor del encabezado fiscal: GESTION Y PROYECTOS LATINOS S.A., C.U.I.T. 33-71547300-3, Ing. Brutos 33-71547300-3, Panamericana Km 50,5 - C.P. 1629 - Pilar - Buenos Aires, Inicio de Actividades 01/09/2021, IVA Responsable Inscripto. Por debajo del bloque fiscal aparece un segundo bloque (CUC S.A., C.U.I.T. 30-58022157-3, IVA Responsable Inscripto, Ruta 7 Km 262) que se interpreta como receptor/cliente y no como emisor (no tiene Ingresos Brutos ni Inicio de Actividades). Detalle: 1,000 CUBIERTO (21,00%) con precio neto 0,00 y 1,000 MENÚ FIJO (21,00%) con precio neto 41.322,31. Importes discriminados: SUBTOTAL NETO NO GRAVADO 0,00; SUBTOTAL EXENTO 0,00; SUBTOTAL NETO GRAVADO 41.322,31; IVA 21,00% base 41.322,31 = 8.677,69; IMPORTE TOTAL 50.000,00. La aritmética cierra: 41.322,31 + 8.677,69 = 50.000,00. No hay percepciones de IIBB ni impuestos internos; 'Otros impuestos Nac. indirectos: 0,00'. Se imprime la leyenda del Régimen de Transparencia Fiscal al Consumidor (Ley 27.743). Con los dígitos leídos, el dígito verificador del CUIT del emisor no valida; la imagen es algo borrosa en esa zona (podría tratarse de 33-71547300-9, que sí validaría), por lo que la lectura del CUIT es dudosa. La línea 'Tasa con.: 12.323,54' posterior al total no corresponde a ninguno de los impuestos discriminados y no se pudo identificar. No se imprime símbolo de moneda; se asume ARS por tratarse de comprobante fiscal argentino en pesos. La cantidad de comensales (1) se transcribió a partir del renglón '1,000 CUBIERTO' / '1,000 MENÚ FIJO' impreso, no de un dato declarado como cantidad de personas. El renglón 'Saldo' figura como 50.000,00, valor inconsistente con 'RECIBIDOS 50.000,00' (posible problema de impresión o de lectura)."
   },
   "aritmetica": {
     "calculable": true,

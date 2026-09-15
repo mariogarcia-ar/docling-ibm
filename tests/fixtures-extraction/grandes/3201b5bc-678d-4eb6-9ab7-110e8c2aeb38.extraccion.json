@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/grandes/3201b5bc-678d-4eb6-9ab7-110e8c2aeb38.jpg",
   "archivo_relativo": "grandes/3201b5bc-678d-4eb6-9ab7-110e8c2aeb38.jpg",
-  "procesado_utc": "2026-09-15T13:46:57+00:00",
+  "procesado_utc": "2026-09-15T15:00:34+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:49bf219ef6de34fc",
+  "prompt_hash": "sha256:f9c4a199f7c38725",
   "uso": {
-    "prompt_tokens": 4025,
-    "completion_tokens": 4014,
-    "total_tokens": 8039,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 1209
+    "prompt_tokens": 4200,
+    "completion_tokens": 2430,
+    "total_tokens": 6630,
+    "prompt_cache_hit_tokens": 3072,
+    "prompt_cache_miss_tokens": 1128
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,16 +31,16 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.005196,
+  "costo_usd": 0.003273,
   "resultado": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "001",
-    "razon_social_emisor": "PAN & CAFE (Sofia Martinez)",
+    "razon_social_emisor": "PAN & CAFE (SOFIA MARTINEZ)",
     "cuit_emisor": "27-36261345-6",
     "digito_verificador_cuit_valido": true,
-    "fecha_emision": "30/09/25",
+    "fecha_emision": "30/09/2025",
     "nro_factura": "0002-00000081",
     "moneda": "ARS",
     "subtotal": 13185.95,
@@ -55,21 +55,21 @@
     "cierra_aritmetica": true,
     "rubro_emisor": "Panadería / cafetería (gastronomía)",
     "categoria_gasto_sugerida": "Restaurante",
-    "cantidad_comensales_personas": 0,
-    "cantidad_litros": 0,
+    "cantidad_comensales_personas": null,
+    "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Ticket de Factura A electrónica (COD. 001). Emisor en el encabezado: 'PAN & CAFE', domicilio Saavedra 101, titular 'SOFIA MARTINEZ', CUIT 27-36261345-6 (dígito verificador válido), Inicio de Actividades 18/02/2025, Ingresos Brutos 27362613456 (mismo número que el CUIT, dato impreso así). Punto de venta 2, número de factura 0002-00000081, ticket 5816, fecha 30/09/25 07:48. Se distingue el bloque del receptor: Razon Social 'Cusca', CUIT 30-58221570-3 (DV válido), RESPONSABLE INSCRIPTO — no debe confundirse con el emisor. Detalle: '550g Canasta dulce' $ 9.318,18 y '260ml Chips' $ 3.887,77. SUBTOTAL impreso $ 13.185,95, IVA 21% $ 2.769,05 y TOTAL $ 15.955,00; la aritmética subtotal + IVA = total cierra exactamente y el IVA equivale al 21% del subtotal. Advertencia: la suma de las dos líneas de detalle tal como se leen (9.318,18 + 3.887,77 = 13.205,95) difiere del SUBTOTAL impreso en $ 20,00; la diferencia probablemente se deba a la lectura de uno de los precios unitarios, que se ve algo ambiguo en la impresión. Medio de pago: TARJETA. Facturación electrónica: CAE 75396945605216, fecha 30/09/25, vencimiento 10/10/25. Código 'C00007061' impreso sobre el encabezado (posible código interno/CAI de control). No se imprimen no gravado, exento, impuestos internos, percepciones ni otros tributos. No figura cantidad de comensales ni litros. Centro de costo no informado."
+    "observaciones": "Ticket de Factura A electrónica (COD. 001) emitido por PAN & CAFE / Sofia Martinez, CUIT 27-36261345-6 (dígito verificador válido), con Inicio de Actividades 18/02/2025 e IIBB 27362613456. Encabezado con código interno C00007061. P.V. N° 2, ticket N° 5816, fecha 30/09/25 07:48. Receptor: Razon Social 'Cuesa', CUIT 30582215703, Responsable Inscripto (no es el emisor). Ítems: 550g Canasta dulce $ 9.318,18 y 260ml Chipa $ 3.867,77. Discrimina IVA: SUBTOTAL (neto gravado) $ 13.185,95 + IVA $ 2.769,05 = TOTAL $ 15.955,00; el IVA equivale al 21% del neto, por lo que el neto se cargó en 'subtotal' y no en 'importe_total'. No hay líneas de no gravado, exento, percepciones ni otros tributos. Pago con TARJETA. CAE 75396945605216, vencimiento 10/10/25. No se imprime cantidad de comensales, litros ni centro de costo. Rubro inferido: panadería/cafetería -> categoría sugerida 'Restaurante'."
   },
   "extraccion": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "001",
-    "razon_social_emisor": "PAN & CAFE (Sofia Martinez)",
+    "razon_social_emisor": "PAN & CAFE (SOFIA MARTINEZ)",
     "cuit_emisor": "27-36261345-6",
     "digito_verificador_cuit_valido": true,
-    "fecha_emision": "30/09/25",
+    "fecha_emision": "30/09/2025",
     "nro_factura": "0002-00000081",
     "moneda": "ARS",
     "subtotal": 13185.95,
@@ -84,11 +84,11 @@
     "cierra_aritmetica": true,
     "rubro_emisor": "Panadería / cafetería (gastronomía)",
     "categoria_gasto_sugerida": "Restaurante",
-    "cantidad_comensales_personas": 0,
-    "cantidad_litros": 0,
+    "cantidad_comensales_personas": null,
+    "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Ticket de Factura A electrónica (COD. 001). Emisor en el encabezado: 'PAN & CAFE', domicilio Saavedra 101, titular 'SOFIA MARTINEZ', CUIT 27-36261345-6 (dígito verificador válido), Inicio de Actividades 18/02/2025, Ingresos Brutos 27362613456 (mismo número que el CUIT, dato impreso así). Punto de venta 2, número de factura 0002-00000081, ticket 5816, fecha 30/09/25 07:48. Se distingue el bloque del receptor: Razon Social 'Cusca', CUIT 30-58221570-3 (DV válido), RESPONSABLE INSCRIPTO — no debe confundirse con el emisor. Detalle: '550g Canasta dulce' $ 9.318,18 y '260ml Chips' $ 3.887,77. SUBTOTAL impreso $ 13.185,95, IVA 21% $ 2.769,05 y TOTAL $ 15.955,00; la aritmética subtotal + IVA = total cierra exactamente y el IVA equivale al 21% del subtotal. Advertencia: la suma de las dos líneas de detalle tal como se leen (9.318,18 + 3.887,77 = 13.205,95) difiere del SUBTOTAL impreso en $ 20,00; la diferencia probablemente se deba a la lectura de uno de los precios unitarios, que se ve algo ambiguo en la impresión. Medio de pago: TARJETA. Facturación electrónica: CAE 75396945605216, fecha 30/09/25, vencimiento 10/10/25. Código 'C00007061' impreso sobre el encabezado (posible código interno/CAI de control). No se imprimen no gravado, exento, impuestos internos, percepciones ni otros tributos. No figura cantidad de comensales ni litros. Centro de costo no informado."
+    "observaciones": "Ticket de Factura A electrónica (COD. 001) emitido por PAN & CAFE / Sofia Martinez, CUIT 27-36261345-6 (dígito verificador válido), con Inicio de Actividades 18/02/2025 e IIBB 27362613456. Encabezado con código interno C00007061. P.V. N° 2, ticket N° 5816, fecha 30/09/25 07:48. Receptor: Razon Social 'Cuesa', CUIT 30582215703, Responsable Inscripto (no es el emisor). Ítems: 550g Canasta dulce $ 9.318,18 y 260ml Chipa $ 3.867,77. Discrimina IVA: SUBTOTAL (neto gravado) $ 13.185,95 + IVA $ 2.769,05 = TOTAL $ 15.955,00; el IVA equivale al 21% del neto, por lo que el neto se cargó en 'subtotal' y no en 'importe_total'. No hay líneas de no gravado, exento, percepciones ni otros tributos. Pago con TARJETA. CAE 75396945605216, vencimiento 10/10/25. No se imprime cantidad de comensales, litros ni centro de costo. Rubro inferido: panadería/cafetería -> categoría sugerida 'Restaurante'."
   },
   "aritmetica": {
     "calculable": true,

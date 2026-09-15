@@ -1,12 +1,12 @@
 {
   "origen": "tests/fixtures/pdf_escaneados/bddb529d-11ef-4380-92c3-56bdecf2acc2_p01.pdf",
   "archivo_relativo": "pdf_escaneados/bddb529d-11ef-4380-92c3-56bdecf2acc2_p01.pdf",
-  "procesado_utc": "2026-09-15T13:44:09+00:00",
+  "procesado_utc": "2026-09-15T14:56:56+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
   "fuente": "api",
-  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_2gxv7ghk/pdf_escaneados/bddb529d-11ef-4380-92c3-56bdecf2acc2_p01.jpg",
+  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_mbl_qjjy/pdf_escaneados/bddb529d-11ef-4380-92c3-56bdecf2acc2_p01.jpg",
   "pagina": 1,
   "imagen": {
     "bytes": 908335,
@@ -18,13 +18,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:49bf219ef6de34fc",
+  "prompt_hash": "sha256:f9c4a199f7c38725",
   "uso": {
-    "prompt_tokens": 4001,
-    "completion_tokens": 1330,
-    "total_tokens": 5331,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 1185
+    "prompt_tokens": 4176,
+    "completion_tokens": 1733,
+    "total_tokens": 5909,
+    "prompt_cache_hit_tokens": 3072,
+    "prompt_cache_miss_tokens": 1104
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -33,7 +33,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.001968,
+  "costo_usd": 0.002429,
   "resultado": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
@@ -55,13 +55,13 @@
     "otros_impuestos": 0,
     "importe_total": 14000.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Servicio de transporte de cargas / encomiendas",
-    "categoria_gasto_sugerida": "Envío / Courier (logística y encomiendas)",
+    "rubro_emisor": "Servicio de encomiendas / logística y transporte de cargas",
+    "categoria_gasto_sugerida": "Envíos / Logística",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A ORIGINAL, Cod. 001, emitida por VIA CARGO S.A. (Blvd. Oroño Nro. 3041, Santa Fe), IVA Responsable Inscripto, CUIT 33-71104306-9 (dígito verificador correcto). Punto de venta 4110, comprobante N° 00000107. Fecha de emisión 02/06/2026; CAE N° 86228021432759 con vencimiento 12/06/2026. Receptor: CVC, CUIT 30582215703, IVA Responsable Inscripto, condición de venta Contado. Detalle: 1.00 Servicio de encomiendas a $14.000,00 (precio unitario con IVA incluido). Aritmética: Importe Neto $11.570,25 + IVA 21% $2.429,75 = Total $14.000,00; cierra correctamente. Leyenda 'Son pesos argentinos: Catorce mil' confirma moneda ARS. No se discriminan percepciones de IIBB ni otros tributos. El rótulo «Subtotal» de la línea de detalle ($14.000,00) es el precio unitario con IVA incluido, no el neto gravado. Nota manuscrita al pie: 'ENCOMIENDA CON DOCUMENTACION'. No se observan campos ilegibles."
+    "observaciones": "Factura A ORIGINAL, Cod. 001, emitida por VIA CARGO S.A. (Blvd. Oroño Nro. 3041, Santa Fe), IVA Responsable Inscripto, Ingresos Brutos 33711043069. Punto de venta 4110, comprobante N° 00000107. CAE N° 86228021432759, vencimiento de CAE 12/06/2026. Moneda pesos argentinos (\"Son pesos argentinos: Catorce mil\"). Detalle: 1,00 unidad de \"Servicio de encomiendas\". El pie discrimina Importe Neto $11.570,25 + IVA $2.429,75 = Total $14.000,00 (aritmética verificada: cierra). ATENCIÓN: en la línea de detalle el precio unitario/subtotal está impreso como $14.000,00, lo que contradice el neto gravado del pie ($11.570,25); se transcribió el neto del pie como subtotal por ser el importe fiscalmente discriminado. CUIT 33711043069: 11 dígitos, dígito verificador calculado (9) coincidente con el impreso, por lo que se considera válido. No se observan percepciones, exentos ni no gravados. No se indica centro de costo. Nota manuscrita al pie: \"ENCOMIENDA CON DOCUMENTACION\". Cantidad de comensales/litros no aplica al rubro."
   },
   "extraccion": {
     "es_comprobante": "comprobante",
@@ -84,13 +84,13 @@
     "otros_impuestos": 0,
     "importe_total": 14000.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Servicio de transporte de cargas / encomiendas",
-    "categoria_gasto_sugerida": "Envío / Courier (logística y encomiendas)",
+    "rubro_emisor": "Servicio de encomiendas / logística y transporte de cargas",
+    "categoria_gasto_sugerida": "Envíos / Logística",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A ORIGINAL, Cod. 001, emitida por VIA CARGO S.A. (Blvd. Oroño Nro. 3041, Santa Fe), IVA Responsable Inscripto, CUIT 33-71104306-9 (dígito verificador correcto). Punto de venta 4110, comprobante N° 00000107. Fecha de emisión 02/06/2026; CAE N° 86228021432759 con vencimiento 12/06/2026. Receptor: CVC, CUIT 30582215703, IVA Responsable Inscripto, condición de venta Contado. Detalle: 1.00 Servicio de encomiendas a $14.000,00 (precio unitario con IVA incluido). Aritmética: Importe Neto $11.570,25 + IVA 21% $2.429,75 = Total $14.000,00; cierra correctamente. Leyenda 'Son pesos argentinos: Catorce mil' confirma moneda ARS. No se discriminan percepciones de IIBB ni otros tributos. El rótulo «Subtotal» de la línea de detalle ($14.000,00) es el precio unitario con IVA incluido, no el neto gravado. Nota manuscrita al pie: 'ENCOMIENDA CON DOCUMENTACION'. No se observan campos ilegibles."
+    "observaciones": "Factura A ORIGINAL, Cod. 001, emitida por VIA CARGO S.A. (Blvd. Oroño Nro. 3041, Santa Fe), IVA Responsable Inscripto, Ingresos Brutos 33711043069. Punto de venta 4110, comprobante N° 00000107. CAE N° 86228021432759, vencimiento de CAE 12/06/2026. Moneda pesos argentinos (\"Son pesos argentinos: Catorce mil\"). Detalle: 1,00 unidad de \"Servicio de encomiendas\". El pie discrimina Importe Neto $11.570,25 + IVA $2.429,75 = Total $14.000,00 (aritmética verificada: cierra). ATENCIÓN: en la línea de detalle el precio unitario/subtotal está impreso como $14.000,00, lo que contradice el neto gravado del pie ($11.570,25); se transcribió el neto del pie como subtotal por ser el importe fiscalmente discriminado. CUIT 33711043069: 11 dígitos, dígito verificador calculado (9) coincidente con el impreso, por lo que se considera válido. No se observan percepciones, exentos ni no gravados. No se indica centro de costo. Nota manuscrita al pie: \"ENCOMIENDA CON DOCUMENTACION\". Cantidad de comensales/litros no aplica al rubro."
   },
   "aritmetica": {
     "calculable": true,

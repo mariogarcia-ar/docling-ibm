@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/expected-extraction/f69d1898-40f7-4424-9c94-77a961677595.jpg",
   "archivo_relativo": "expected-extraction/f69d1898-40f7-4424-9c94-77a961677595.jpg",
-  "procesado_utc": "2026-09-15T13:46:20+00:00",
+  "procesado_utc": "2026-09-15T14:59:36+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:49bf219ef6de34fc",
+  "prompt_hash": "sha256:f9c4a199f7c38725",
   "uso": {
-    "prompt_tokens": 3564,
-    "completion_tokens": 1242,
-    "total_tokens": 4806,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 748
+    "prompt_tokens": 3739,
+    "completion_tokens": 1956,
+    "total_tokens": 5695,
+    "prompt_cache_hit_tokens": 3072,
+    "prompt_cache_miss_tokens": 667
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,7 +31,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.001732,
+  "costo_usd": 0.002566,
   "resultado": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
@@ -53,13 +53,13 @@
     "otros_impuestos": 0,
     "importe_total": 42350,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Comercio de materiales/rótulos publicitarios (PVC y vinilo)",
-    "categoria_gasto_sugerida": "Publicidad",
-    "cantidad_comensales_personas": 0,
-    "cantidad_litros": 0,
+    "rubro_emisor": "Comercio de materiales (PVC/vinilo) — rubro no concluyente",
+    "categoria_gasto_sugerida": "Otros",
+    "cantidad_comensales_personas": null,
+    "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A emitida por MOLAR SRL (CUIT 30-66561976-8, Responsable Inscripto, Junín BS AS), Código 01, N° 0008-00031771, fecha 15/09/2025. Detalle: '1 PVC DE 60CMX80CM + 1 VINILO DE 60CMX80CM' por $ 35.000,00 (Cant. 1). Se transcribe 'Bruto' $ 35.000,00 como neto gravado (subtotal), IVA 21% $ 7.350,00, IVA 10,5% $ 0,00 y Total $ 42.350,00. Aritmética verificada: 35.000 + 7.350 = 42.350. Dígito verificador del CUIT del emisor validado (módulo 11, resultado 8, correcto). Receptor: CVC SA, RUTA 7 KM 262, CUIT 30-58221570-3. CAE 75378179332331 con vencimiento 25/09/2025. Categoría sugerida tentativa ('Publicidad') según el rubro inferido (PVC + vinilo tipo cartelería); el rubro exacto del emisor no es determinable con total certeza desde la imagen. No hay líneas de no gravado, exento, percepciones ni otros tributos."
+    "observaciones": "Factura A (Cód. 01) emitida por MOLAR SRL, IVA Responsable Inscripto, Bto. de Miguel 280, (6000) Junín (BS AS), inicio de actividades 05/1997. Receptor: CVC SA, Ruta 7 Km 262, CUIT 30-58221570-3 (Responsable Inscripto). Punto de venta 0008, comprobante 00031771, fecha 15/09/2025. Detalle: 1 PVC de 60x80 cm + 1 vinilo de 60x80 cm, P.Unit. $35.000,00 x 1 = $35.000,00. Se discrimina IVA 21% ($7.350,00) sobre neto gravado $35.000,00; IVA 10,5% $0,00; no hay no gravado ni exento ni percepciones. Total $42.350,00: la aritmética cierra (35.000 + 7.350 = 42.350). CAE 75378179332331, vencimiento CAE 25/09/2025, Original. CUIT del emisor con dígito verificador válido. El rubro del emisor (placas de PVC/vinilo) no permite inferir con confianza una categoría de gasto; se sugiere revisar la categoría asignada."
   },
   "extraccion": {
     "es_comprobante": "comprobante",
@@ -82,13 +82,13 @@
     "otros_impuestos": 0,
     "importe_total": 42350,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Comercio de materiales/rótulos publicitarios (PVC y vinilo)",
-    "categoria_gasto_sugerida": "Publicidad",
-    "cantidad_comensales_personas": 0,
-    "cantidad_litros": 0,
+    "rubro_emisor": "Comercio de materiales (PVC/vinilo) — rubro no concluyente",
+    "categoria_gasto_sugerida": "Otros",
+    "cantidad_comensales_personas": null,
+    "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A emitida por MOLAR SRL (CUIT 30-66561976-8, Responsable Inscripto, Junín BS AS), Código 01, N° 0008-00031771, fecha 15/09/2025. Detalle: '1 PVC DE 60CMX80CM + 1 VINILO DE 60CMX80CM' por $ 35.000,00 (Cant. 1). Se transcribe 'Bruto' $ 35.000,00 como neto gravado (subtotal), IVA 21% $ 7.350,00, IVA 10,5% $ 0,00 y Total $ 42.350,00. Aritmética verificada: 35.000 + 7.350 = 42.350. Dígito verificador del CUIT del emisor validado (módulo 11, resultado 8, correcto). Receptor: CVC SA, RUTA 7 KM 262, CUIT 30-58221570-3. CAE 75378179332331 con vencimiento 25/09/2025. Categoría sugerida tentativa ('Publicidad') según el rubro inferido (PVC + vinilo tipo cartelería); el rubro exacto del emisor no es determinable con total certeza desde la imagen. No hay líneas de no gravado, exento, percepciones ni otros tributos."
+    "observaciones": "Factura A (Cód. 01) emitida por MOLAR SRL, IVA Responsable Inscripto, Bto. de Miguel 280, (6000) Junín (BS AS), inicio de actividades 05/1997. Receptor: CVC SA, Ruta 7 Km 262, CUIT 30-58221570-3 (Responsable Inscripto). Punto de venta 0008, comprobante 00031771, fecha 15/09/2025. Detalle: 1 PVC de 60x80 cm + 1 vinilo de 60x80 cm, P.Unit. $35.000,00 x 1 = $35.000,00. Se discrimina IVA 21% ($7.350,00) sobre neto gravado $35.000,00; IVA 10,5% $0,00; no hay no gravado ni exento ni percepciones. Total $42.350,00: la aritmética cierra (35.000 + 7.350 = 42.350). CAE 75378179332331, vencimiento CAE 25/09/2025, Original. CUIT del emisor con dígito verificador válido. El rubro del emisor (placas de PVC/vinilo) no permite inferir con confianza una categoría de gasto; se sugiere revisar la categoría asignada."
   },
   "aritmetica": {
     "calculable": true,

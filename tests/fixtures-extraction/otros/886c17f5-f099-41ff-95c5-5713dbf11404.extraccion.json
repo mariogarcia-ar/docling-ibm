@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/otros/886c17f5-f099-41ff-95c5-5713dbf11404.jpg",
   "archivo_relativo": "otros/886c17f5-f099-41ff-95c5-5713dbf11404.jpg",
-  "procesado_utc": "2026-09-15T13:48:37+00:00",
+  "procesado_utc": "2026-09-15T15:02:41+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:49bf219ef6de34fc",
+  "prompt_hash": "sha256:f9c4a199f7c38725",
   "uso": {
-    "prompt_tokens": 3985,
-    "completion_tokens": 1610,
-    "total_tokens": 5595,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 1169
+    "prompt_tokens": 4160,
+    "completion_tokens": 2106,
+    "total_tokens": 6266,
+    "prompt_cache_hit_tokens": 3072,
+    "prompt_cache_miss_tokens": 1088
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,7 +31,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.0023,
+  "costo_usd": 0.002872,
   "resultado": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
@@ -40,7 +40,7 @@
     "razon_social_emisor": "BRUNETTI FRANCO (Antartida)",
     "cuit_emisor": "20-29397499-4",
     "digito_verificador_cuit_valido": true,
-    "fecha_emision": "14/07/2026",
+    "fecha_emision": "14/07/26",
     "nro_factura": "00005-00008956",
     "moneda": "ARS",
     "subtotal": 11735.53,
@@ -53,13 +53,13 @@
     "otros_impuestos": 0,
     "importe_total": 14200,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Gastronomía / Restaurante",
+    "rubro_emisor": "Restaurante / gastronómico",
     "categoria_gasto_sugerida": "Restaurante",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A (COD. 001) emitida por BRUNETTI FRANCO (nombre de fantasía 'Antartida'), CUIT 20-29397499-4 (dígito verificador válido), Responsable Inscripto, domicilio Eva Perón 7902, Rosario - Santa Fe. Nro. 00005-00008956, fecha 14/07/2026 12:49. Receptor: CVC SA, CUIT 30582215703, Responsable Inscripto. Detalle: Mesa 29 - Mozo 1. Items: MENU MERLUZA 13900,00; CAFE MENU 0,00; ADIC PAPAS o ENSA MENU 300,00; AQUARIUS POMELO MENU 0,00. Neto sin IVA 11735,53 + IVA 21% 2464,47 = TOTAL ARS 14200,00: la aritmética cierra. No se discriminan percepciones de IIBB, impuestos internos ni otros tributos. Presenta leyenda 'EXCEPCION COMPUTO IVA CREDITO FISCAL' con motivo 'confer./congresos/eventos'. CAE 86283825198382, vencimiento 24/07/2026. Emisor de rubro gastronómico: la categoría sugerida es Restaurante. No se informa cantidad de comensales en el ticket (solo mesa y mozo), por lo que no es verificable desde la imagen."
+    "observaciones": "Factura A, COD. 001, ticket fiscal de restaurante 'Antartida' (emisor BRUNETTI FRANCO, CUIT 20-29397499-4, Responsable Inscripto, dom. Eva Perón 7902, Rosario - S.FE). Fecha impresa 14/07/26 12:49 (formato DD/MM/AA). Nro 00005-00008956. Detalle: MESA 29 - MOZO 1; MENU MERLUZA $13.900,00 + ADIC PAPAS o ENSA MENU $300,00 (CAFE MENU y AQUARIUS POMELO MENU $0,00) = $14.200,00, coincide con el total. Discrimina IVA: NETO SIN IVA $11.735,53 + IVA 21% $2.464,47 = TOTAL ARS $14.200,00; aritmética cerrada. No hay percepciones, internos ni exentos/no gravados impresos. Receptor: CVC SA, CUIT 30582215703, Responsable Inscripto. Leyenda '* EXCEPCION COMPUTO IVA CREDITO FISCAL * Motivo Excep.: confer./congresos/eventos'. CAE 86283825198382, VENC 24/07/2026. Ambos CUIT validados con dígito verificador correcto. No se detallan comensales/cubiertos ni litros. Categoría sugerida: Restaurante."
   },
   "extraccion": {
     "es_comprobante": "comprobante",
@@ -69,7 +69,7 @@
     "razon_social_emisor": "BRUNETTI FRANCO (Antartida)",
     "cuit_emisor": "20-29397499-4",
     "digito_verificador_cuit_valido": true,
-    "fecha_emision": "14/07/2026",
+    "fecha_emision": "14/07/26",
     "nro_factura": "00005-00008956",
     "moneda": "ARS",
     "subtotal": 11735.53,
@@ -82,13 +82,13 @@
     "otros_impuestos": 0,
     "importe_total": 14200,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Gastronomía / Restaurante",
+    "rubro_emisor": "Restaurante / gastronómico",
     "categoria_gasto_sugerida": "Restaurante",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A (COD. 001) emitida por BRUNETTI FRANCO (nombre de fantasía 'Antartida'), CUIT 20-29397499-4 (dígito verificador válido), Responsable Inscripto, domicilio Eva Perón 7902, Rosario - Santa Fe. Nro. 00005-00008956, fecha 14/07/2026 12:49. Receptor: CVC SA, CUIT 30582215703, Responsable Inscripto. Detalle: Mesa 29 - Mozo 1. Items: MENU MERLUZA 13900,00; CAFE MENU 0,00; ADIC PAPAS o ENSA MENU 300,00; AQUARIUS POMELO MENU 0,00. Neto sin IVA 11735,53 + IVA 21% 2464,47 = TOTAL ARS 14200,00: la aritmética cierra. No se discriminan percepciones de IIBB, impuestos internos ni otros tributos. Presenta leyenda 'EXCEPCION COMPUTO IVA CREDITO FISCAL' con motivo 'confer./congresos/eventos'. CAE 86283825198382, vencimiento 24/07/2026. Emisor de rubro gastronómico: la categoría sugerida es Restaurante. No se informa cantidad de comensales en el ticket (solo mesa y mozo), por lo que no es verificable desde la imagen."
+    "observaciones": "Factura A, COD. 001, ticket fiscal de restaurante 'Antartida' (emisor BRUNETTI FRANCO, CUIT 20-29397499-4, Responsable Inscripto, dom. Eva Perón 7902, Rosario - S.FE). Fecha impresa 14/07/26 12:49 (formato DD/MM/AA). Nro 00005-00008956. Detalle: MESA 29 - MOZO 1; MENU MERLUZA $13.900,00 + ADIC PAPAS o ENSA MENU $300,00 (CAFE MENU y AQUARIUS POMELO MENU $0,00) = $14.200,00, coincide con el total. Discrimina IVA: NETO SIN IVA $11.735,53 + IVA 21% $2.464,47 = TOTAL ARS $14.200,00; aritmética cerrada. No hay percepciones, internos ni exentos/no gravados impresos. Receptor: CVC SA, CUIT 30582215703, Responsable Inscripto. Leyenda '* EXCEPCION COMPUTO IVA CREDITO FISCAL * Motivo Excep.: confer./congresos/eventos'. CAE 86283825198382, VENC 24/07/2026. Ambos CUIT validados con dígito verificador correcto. No se detallan comensales/cubiertos ni litros. Categoría sugerida: Restaurante."
   },
   "aritmetica": {
     "calculable": true,

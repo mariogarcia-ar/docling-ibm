@@ -1,12 +1,12 @@
 {
   "origen": "tests/fixtures/pdf_escaneados/9b7a423c-189c-4b9b-8ab1-23b38d4518b4_p01.pdf",
   "archivo_relativo": "pdf_escaneados/9b7a423c-189c-4b9b-8ab1-23b38d4518b4_p01.pdf",
-  "procesado_utc": "2026-09-15T13:44:05+00:00",
+  "procesado_utc": "2026-09-15T14:56:54+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
   "fuente": "api",
-  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_2gxv7ghk/pdf_escaneados/9b7a423c-189c-4b9b-8ab1-23b38d4518b4_p01.jpg",
+  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_mbl_qjjy/pdf_escaneados/9b7a423c-189c-4b9b-8ab1-23b38d4518b4_p01.jpg",
   "pagina": 1,
   "imagen": {
     "bytes": 740920,
@@ -18,13 +18,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:49bf219ef6de34fc",
+  "prompt_hash": "sha256:f9c4a199f7c38725",
   "uso": {
-    "prompt_tokens": 4038,
-    "completion_tokens": 2483,
-    "total_tokens": 6521,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 1222
+    "prompt_tokens": 4213,
+    "completion_tokens": 2381,
+    "total_tokens": 6594,
+    "prompt_cache_hit_tokens": 3072,
+    "prompt_cache_miss_tokens": 1141
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -33,13 +33,13 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.003363,
+  "costo_usd": 0.003218,
   "resultado": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "001",
-    "razon_social_emisor": "S.A. IMPORTADORA Y EXPORTADORA DE LA PATAGONIA (La Anónima Sucursal 67)",
+    "razon_social_emisor": "S.A. IMPORTADORA Y EXPORTADORA DE LA PATAGONIA (LA ANÓNIMA)",
     "cuit_emisor": "30-50673003-8",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "19-08-26",
@@ -55,20 +55,20 @@
     "otros_impuestos": 1816.07,
     "importe_total": 75306.21,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Supermercado / autoservicio (cadena de supermercados La Anónima)",
+    "rubro_emisor": "Supermercado / Almacén (cadena La Anónima)",
     "categoria_gasto_sugerida": "Supermercado",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A ORIGINAL (Código 001) emitida por La Anónima Sucursal 67 (Venado Tuerto, Santa Fe); emisor S.A. Importadora y Exportadora de la Patagonia, CUIT 30-50673003-8 (dígito verificador válido), Responsable Inscripto. Fecha 19-08-26 11:45, Caja 012 / Oper 051. Receptor: CYC SOCIEDAD ANONIMA, CUIT 30582215703, Paraguay 660, CABA. Comprobante de supermercado con detalle ALMACÉN y NO COMESTIBLES. Aritmética verificada: NETO GRAVADO 60.535,54 + IVA 21% 12.712,46 + Percep. Bs.As. 242,14 + Percep. IVA 1.816,07 = 75.306,21 (total impreso, coincide con pago VISA). 'SUBTOTAL SIN DESCUENTOS' y 'TOTAL NETO' informan el mismo valor 60.535,54 (neto gravado). Sin montos no gravados ni exentos. CAE 86338984422527, vencimiento 2026-08-29."
+    "observaciones": "Factura A - Original, Código 001, emitida por La Anónima Sucursal 67 (Venado Tuerto, Santa Fe). Emisor: S.A. Importadora y Exportadora de la Patagonia, CUIT 30-50673003-8 (dígito verificador válido). Fecha de emisión impresa 19-08-26, hora 11:45. Nro. de comprobante: 04928-00054475. Receptor: CYC SOCIEDAD ANÓNIMA, CUIT 30582215703. SÍ discrimina impuestos: Subtotal sin descuentos / TOTAL NETO $60.535,54, IVA 21% $12.712,46, Percep. Bs.As. $242,14 y Percep. IVA $1.816,07. La suma (60.535,54 + 12.712,46 + 242,14 + 1.816,07) da exactamente $75.306,21, por lo que la aritmética cierra. Pago con VISA por el total. CAE 86338984422527, vto. 2026-08-29. Tipo de cambio/moneda: pesos argentinos. Rubro: supermercado/almacén (cadena La Anónima)."
   },
   "extraccion": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "001",
-    "razon_social_emisor": "S.A. IMPORTADORA Y EXPORTADORA DE LA PATAGONIA (La Anónima Sucursal 67)",
+    "razon_social_emisor": "S.A. IMPORTADORA Y EXPORTADORA DE LA PATAGONIA (LA ANÓNIMA)",
     "cuit_emisor": "30-50673003-8",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "19-08-26",
@@ -84,13 +84,13 @@
     "otros_impuestos": 1816.07,
     "importe_total": 75306.21,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Supermercado / autoservicio (cadena de supermercados La Anónima)",
+    "rubro_emisor": "Supermercado / Almacén (cadena La Anónima)",
     "categoria_gasto_sugerida": "Supermercado",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A ORIGINAL (Código 001) emitida por La Anónima Sucursal 67 (Venado Tuerto, Santa Fe); emisor S.A. Importadora y Exportadora de la Patagonia, CUIT 30-50673003-8 (dígito verificador válido), Responsable Inscripto. Fecha 19-08-26 11:45, Caja 012 / Oper 051. Receptor: CYC SOCIEDAD ANONIMA, CUIT 30582215703, Paraguay 660, CABA. Comprobante de supermercado con detalle ALMACÉN y NO COMESTIBLES. Aritmética verificada: NETO GRAVADO 60.535,54 + IVA 21% 12.712,46 + Percep. Bs.As. 242,14 + Percep. IVA 1.816,07 = 75.306,21 (total impreso, coincide con pago VISA). 'SUBTOTAL SIN DESCUENTOS' y 'TOTAL NETO' informan el mismo valor 60.535,54 (neto gravado). Sin montos no gravados ni exentos. CAE 86338984422527, vencimiento 2026-08-29."
+    "observaciones": "Factura A - Original, Código 001, emitida por La Anónima Sucursal 67 (Venado Tuerto, Santa Fe). Emisor: S.A. Importadora y Exportadora de la Patagonia, CUIT 30-50673003-8 (dígito verificador válido). Fecha de emisión impresa 19-08-26, hora 11:45. Nro. de comprobante: 04928-00054475. Receptor: CYC SOCIEDAD ANÓNIMA, CUIT 30582215703. SÍ discrimina impuestos: Subtotal sin descuentos / TOTAL NETO $60.535,54, IVA 21% $12.712,46, Percep. Bs.As. $242,14 y Percep. IVA $1.816,07. La suma (60.535,54 + 12.712,46 + 242,14 + 1.816,07) da exactamente $75.306,21, por lo que la aritmética cierra. Pago con VISA por el total. CAE 86338984422527, vto. 2026-08-29. Tipo de cambio/moneda: pesos argentinos. Rubro: supermercado/almacén (cadena La Anónima)."
   },
   "aritmetica": {
     "calculable": true,

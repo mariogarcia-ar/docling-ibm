@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/golden/a751a566-583b-4295-8a44-1ede7ab4fa77.jpg",
   "archivo_relativo": "golden/a751a566-583b-4295-8a44-1ede7ab4fa77.jpg",
-  "procesado_utc": "2026-09-15T13:46:43+00:00",
+  "procesado_utc": "2026-09-15T15:00:26+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:49bf219ef6de34fc",
+  "prompt_hash": "sha256:f9c4a199f7c38725",
   "uso": {
-    "prompt_tokens": 4025,
-    "completion_tokens": 2526,
-    "total_tokens": 6551,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 1209
+    "prompt_tokens": 4200,
+    "completion_tokens": 3859,
+    "total_tokens": 8059,
+    "prompt_cache_hit_tokens": 3072,
+    "prompt_cache_miss_tokens": 1128
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,14 +31,14 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.003411,
+  "costo_usd": 0.004988,
   "resultado": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "001",
     "razon_social_emisor": "AZUL COMBUSTIBLES S A",
-    "cuit_emisor": "30-69086753-1",
+    "cuit_emisor": "30690867531",
     "digito_verificador_cuit_valido": false,
     "fecha_emision": "12/01/2026",
     "nro_factura": "00117-00000445",
@@ -53,13 +53,13 @@
     "otros_impuestos": 0,
     "importe_total": 9400.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / combustible (AZUL COMBUSTIBLES), con venta de alimentos (ítems de empanadas y bebida)",
+    "rubro_emisor": "Estación de servicio / expendio de combustibles (con tienda/rotisería: empanadas y bebidas)",
     "categoria_gasto_sugerida": "Restaurante",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique Factura A (Cód. 001), Nº 00117-00000445, emitido el 12/01/2026 13:01:23. Emisor AZUL COMBUSTIBLES S A, CUIT 30690867531 (30-69086753-1): el dígito verificador impreso (1) no valida, ya que el cálculo arroja 9; se transcribe tal como figura. Inicio de actividades 11/03/1997, IVA Responsable Inscripto. Receptor: CUC SA, CUIT 30582215703, Contado. Ítems: (6230) PROMO 3 EMPANADAS A ORDEN + BEBIDA 500cc $5950,41; (6228) LA ORDEN EMPANADAS $1818,18, ambos al 21%. Neto gravado $7768,59 + IVA 21% $1631,41 = Total $9400,00 (coincide con la leyenda 'Precio s/imp: 7768.60 / IVA cont: 1631.40' por redondeo). Sin no gravado ni exento. Pago en efectivo $9400,00, cambio $0,00. No discrimina litros ni comensales (el emisor es una estación de servicio, pero los ítems son gastronómicos)."
+    "observaciones": "Tique Factura A emitido por controlador fiscal (Cód. 001, ley 27.743). Emisor AZUL COMBUSTIBLES S A, CUIT 30690867531, Ing. Brutos 0212841619, Mendoza 6180 - Rosario, inicio de actividades 11/03/1997, IVA Responsable Inscripto. Receptor: CUC SA, CUIT 30582215703 (dígito verificador válido), AV CIRCUNVALACION 1245 ROSARIO (21420) CONTADO. Fecha 12/01/2026 13:01:23. Nro 00117-00000445. Detalle: PROMO 3 EMPANADAS A ORDEN + BEBIDA 500CC $5.950,41 y LA ORDEN EMPANADAS $1.818,18, ambos al 21% (suman el neto gravado 7.768,59). Aritmética: neto gravado 7.768,59 + IVA 1.631,41 = 9.400,00 (total) y pago en efectivo 9.400,00, cambio 0,00; cierra. Observación: al pie figura 'Precio s/imp: 7768.60 - IVA cont: 1631.40', diferencia de $0,01 por redondeo del controlador frente a la base/IVA discriminados (7768,59/1631,41), no altera el total. El CUIT del emisor tal como está impreso no valida su dígito verificador (con 30690867531 correspondería 9); probable error de lectura/impresión, verificarlo contra el padrón. No hay leyenda explícita de moneda: por tratarse de comprobante fiscal argentino y no figurar símbolo de otra divisa se transcribe ARS. Rubro: el emisor es una estación de servicio (Azul Combustibles S.A., Rosario), pero los ítems facturados son alimentos/bebida, por lo que la categoría sugerida es Restaurante. No hay impresión de litros de combustible (cantidad_litros no aplicable) ni de cubiertos/comensales. Sin percepciones, impuestos internos ni otros tributos. Centro de costo no informado."
   },
   "extraccion": {
     "es_comprobante": "comprobante",
@@ -67,7 +67,7 @@
     "tipo_comprobante": "A",
     "codigo_afip": "001",
     "razon_social_emisor": "AZUL COMBUSTIBLES S A",
-    "cuit_emisor": "30-69086753-1",
+    "cuit_emisor": "30690867531",
     "digito_verificador_cuit_valido": false,
     "fecha_emision": "12/01/2026",
     "nro_factura": "00117-00000445",
@@ -82,13 +82,13 @@
     "otros_impuestos": 0,
     "importe_total": 9400.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / combustible (AZUL COMBUSTIBLES), con venta de alimentos (ítems de empanadas y bebida)",
+    "rubro_emisor": "Estación de servicio / expendio de combustibles (con tienda/rotisería: empanadas y bebidas)",
     "categoria_gasto_sugerida": "Restaurante",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique Factura A (Cód. 001), Nº 00117-00000445, emitido el 12/01/2026 13:01:23. Emisor AZUL COMBUSTIBLES S A, CUIT 30690867531 (30-69086753-1): el dígito verificador impreso (1) no valida, ya que el cálculo arroja 9; se transcribe tal como figura. Inicio de actividades 11/03/1997, IVA Responsable Inscripto. Receptor: CUC SA, CUIT 30582215703, Contado. Ítems: (6230) PROMO 3 EMPANADAS A ORDEN + BEBIDA 500cc $5950,41; (6228) LA ORDEN EMPANADAS $1818,18, ambos al 21%. Neto gravado $7768,59 + IVA 21% $1631,41 = Total $9400,00 (coincide con la leyenda 'Precio s/imp: 7768.60 / IVA cont: 1631.40' por redondeo). Sin no gravado ni exento. Pago en efectivo $9400,00, cambio $0,00. No discrimina litros ni comensales (el emisor es una estación de servicio, pero los ítems son gastronómicos)."
+    "observaciones": "Tique Factura A emitido por controlador fiscal (Cód. 001, ley 27.743). Emisor AZUL COMBUSTIBLES S A, CUIT 30690867531, Ing. Brutos 0212841619, Mendoza 6180 - Rosario, inicio de actividades 11/03/1997, IVA Responsable Inscripto. Receptor: CUC SA, CUIT 30582215703 (dígito verificador válido), AV CIRCUNVALACION 1245 ROSARIO (21420) CONTADO. Fecha 12/01/2026 13:01:23. Nro 00117-00000445. Detalle: PROMO 3 EMPANADAS A ORDEN + BEBIDA 500CC $5.950,41 y LA ORDEN EMPANADAS $1.818,18, ambos al 21% (suman el neto gravado 7.768,59). Aritmética: neto gravado 7.768,59 + IVA 1.631,41 = 9.400,00 (total) y pago en efectivo 9.400,00, cambio 0,00; cierra. Observación: al pie figura 'Precio s/imp: 7768.60 - IVA cont: 1631.40', diferencia de $0,01 por redondeo del controlador frente a la base/IVA discriminados (7768,59/1631,41), no altera el total. El CUIT del emisor tal como está impreso no valida su dígito verificador (con 30690867531 correspondería 9); probable error de lectura/impresión, verificarlo contra el padrón. No hay leyenda explícita de moneda: por tratarse de comprobante fiscal argentino y no figurar símbolo de otra divisa se transcribe ARS. Rubro: el emisor es una estación de servicio (Azul Combustibles S.A., Rosario), pero los ítems facturados son alimentos/bebida, por lo que la categoría sugerida es Restaurante. No hay impresión de litros de combustible (cantidad_litros no aplicable) ni de cubiertos/comensales. Sin percepciones, impuestos internos ni otros tributos. Centro de costo no informado."
   },
   "aritmetica": {
     "calculable": true,

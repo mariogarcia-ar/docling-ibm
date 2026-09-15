@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/otros/ca40d927-193d-49bb-b399-8e86be519af2.jpg",
   "archivo_relativo": "otros/ca40d927-193d-49bb-b399-8e86be519af2.jpg",
-  "procesado_utc": "2026-09-15T13:48:53+00:00",
+  "procesado_utc": "2026-09-15T15:02:58+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,29 +16,27 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:49bf219ef6de34fc",
+  "prompt_hash": "sha256:f9c4a199f7c38725",
   "uso": {
-    "prompt_tokens": 8989,
-    "completion_tokens": 4819,
-    "total_tokens": 13808,
-    "prompt_cache_hit_tokens": 6784,
-    "prompt_cache_miss_tokens": 2205
+    "prompt_tokens": 4200,
+    "completion_tokens": 5004,
+    "total_tokens": 9204,
+    "prompt_cache_hit_tokens": 3072,
+    "prompt_cache_miss_tokens": 1128
   },
   "esquema_validado": true,
-  "reintentos_esquema": 1,
-  "avisos_esquema": [],
   "precios_usd_1m": {
     "entrada": 0.3,
     "salida": 1.2,
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.006485,
+  "costo_usd": 0.006362,
   "resultado": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
-    "tipo_comprobante": "C",
-    "codigo_afip": "003",
+    "tipo_comprobante": "B",
+    "codigo_afip": "006",
     "razon_social_emisor": "GESTION Y PROYECTOS LATINOS S.A.",
     "cuit_emisor": "33-71547309-3",
     "digito_verificador_cuit_valido": false,
@@ -49,28 +47,28 @@
     "no_gravado": 0,
     "exento": 0,
     "discrimina_impuestos": false,
-    "iva": 0,
+    "iva": 11483.15,
     "impuestos_internos": 0,
     "percepciones_iibb": 0,
     "otros_impuestos": 0,
     "importe_total": 65392.0,
-    "cierra_aritmetica": true,
-    "rubro_emisor": "Restaurante / gastronomía (menú fijo, cubierto, mesa y mozo)",
+    "cierra_aritmetica": false,
+    "rubro_emisor": "Restaurante / gastronomía (parador de ruta, menú fijo y cubiertos)",
     "categoria_gasto_sugerida": "Restaurante",
-    "cantidad_comensales_personas": 1,
-    "cantidad_litros": 0,
+    "cantidad_comensales_personas": null,
+    "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [
-      "importe de la línea RECIBIDOS (franja central del ticket desvanecida)",
-      "rótulo del tributo del Régimen de Transparencia Fiscal (monto 11453,15 legible, nombre del tributo ilegible)"
+      "Línea 'Saldo' (parcialmente ilegible; podría decir 0,00)",
+      "Código CAA del pie (7515AB0000020723 aprox.)"
     ],
-    "observaciones": "Ticket de controlador fiscal. Encabezado: LEV PRIMERA PILAR - GESTION Y PROYECTOS LATINOS S.A., CUIT 33-71547309-3, Ing. Brutos 33-71547330-9, PANAMERICANA KM. 50,5 - C.P. 1629 - PILAR - BUENOS AIRES, Inicio de Actividades 01/08/2021, IVA Responsable Inscripto, A CONSUMIDOR FINAL. Cód. 003 - TIQUE, P.V. Nro 00003 - Nro T. 00350541, Fecha 01/06/2026, Hora 23:06:43. Mesa 5 - Mozo 19. Detalle: CUBIERTO (21,00) 0,00; MENU FIJO (21,00) 65392,00; TOTAL 65392,00. No discrimina IVA ni otros impuestos en el cuerpo (precios finales), por lo que subtotal = total; los campos de impuestos van en cero. Se imprime 'Régimen de Transparencia Fiscal al Consumidor (Ley 27.743)' con un importe de 11453,15 (rótulo parcialmente ilegible) y 'Otros Impuestos Nac. Indirectos: 0,00'; esos importes son informativos del régimen y no constituyen una discriminación de impuestos del comprobante. Alerta de auditoría: el dígito verificador del CUIT impreso no cierra (calculado 2, impreso 3) — el emisor lo tiene mal impreso; no invalida el comprobante pero conviene señalarlo. La fecha 01/06/2026 parece posterior a la fecha habitual de carga; se transcribe tal cual figura impresa. Cantidad de comensales estimada en 1 a partir de la única línea CUBIERTO. Pie: 'MAHFRBC00002323' y 'U: 01.00' (probable numeración de controlador/CAI, parcialmente legible). Aritmética verificada: 65392,00 + 0 + 0 + 0 = 65392,00 = TOTAL impreso. No hay centro de costo indicado en el comprobante."
+    "observaciones": "Ticket de restaurante emitido por LEY PRIMERA PILAR (nombre de fantasía); razón social impresa: GESTION Y PROYECTOS LATINOS S.A., CUIT 33-71547309-3 (el dígito verificador no cierra: correspondería 2 para el prefijo 33; sí cerraría si el prefijo fuera 30, dato a confirmar). Domicilio: Panamericana Km. 50,5 - C.P. 1629 - Pilar, Buenos Aires. Inicio de actividades 01/08/2021. IVA Responsable Inscripto. Comprobante Cód. 006 (Factura B) - TIQUE, P.V. Nº 00003. La fecha impresa figura como 01/06/2026 a las 23:08:43 (verificar el año, puede ser error de tipeo del equipamiento). Mesa 5, Mozo 19. Detalle: CUBIERTO (21,00) $0,00 y MENU FIJO (21,00) $65.392,00; TOTAL $65.392,00; RECIBIDO(S) $65.392,00. Es Factura B a consumidor final: no discrimina IVA como línea sumada; el importe 'IVA contenido: 11.483,15' corresponde al IVA incluido en el precio (Régimen de Transparencia Fiscal al Consumidor, Ley 27.743), por lo que el total coincide con el subtotal y la aritmética cierra. 'Otros Impuestos Nac. Indirectos: 0,00'. No hay percepciones de IIBB ni impuestos internos. No se imprimen cantidad de comensales ni litros (no es combustible). El código 'Nº 7.' previo al número de comprobante parece un carácter residual del ticket; se transcribió el número de 8 dígitos 00350541. Pie con código QR y CAA; U: 01,00."
   },
   "extraccion": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
-    "tipo_comprobante": "C",
-    "codigo_afip": "003",
+    "tipo_comprobante": "B",
+    "codigo_afip": "006",
     "razon_social_emisor": "GESTION Y PROYECTOS LATINOS S.A.",
     "cuit_emisor": "33-71547309-3",
     "digito_verificador_cuit_valido": false,
@@ -81,29 +79,30 @@
     "no_gravado": 0,
     "exento": 0,
     "discrimina_impuestos": false,
-    "iva": 0,
+    "iva": 11483.15,
     "impuestos_internos": 0,
     "percepciones_iibb": 0,
     "otros_impuestos": 0,
     "importe_total": 65392.0,
-    "cierra_aritmetica": true,
-    "rubro_emisor": "Restaurante / gastronomía (menú fijo, cubierto, mesa y mozo)",
+    "cierra_aritmetica": false,
+    "rubro_emisor": "Restaurante / gastronomía (parador de ruta, menú fijo y cubiertos)",
     "categoria_gasto_sugerida": "Restaurante",
-    "cantidad_comensales_personas": 1,
-    "cantidad_litros": 0,
+    "cantidad_comensales_personas": null,
+    "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [
-      "importe de la línea RECIBIDOS (franja central del ticket desvanecida)",
-      "rótulo del tributo del Régimen de Transparencia Fiscal (monto 11453,15 legible, nombre del tributo ilegible)"
+      "Línea 'Saldo' (parcialmente ilegible; podría decir 0,00)",
+      "Código CAA del pie (7515AB0000020723 aprox.)"
     ],
-    "observaciones": "Ticket de controlador fiscal. Encabezado: LEV PRIMERA PILAR - GESTION Y PROYECTOS LATINOS S.A., CUIT 33-71547309-3, Ing. Brutos 33-71547330-9, PANAMERICANA KM. 50,5 - C.P. 1629 - PILAR - BUENOS AIRES, Inicio de Actividades 01/08/2021, IVA Responsable Inscripto, A CONSUMIDOR FINAL. Cód. 003 - TIQUE, P.V. Nro 00003 - Nro T. 00350541, Fecha 01/06/2026, Hora 23:06:43. Mesa 5 - Mozo 19. Detalle: CUBIERTO (21,00) 0,00; MENU FIJO (21,00) 65392,00; TOTAL 65392,00. No discrimina IVA ni otros impuestos en el cuerpo (precios finales), por lo que subtotal = total; los campos de impuestos van en cero. Se imprime 'Régimen de Transparencia Fiscal al Consumidor (Ley 27.743)' con un importe de 11453,15 (rótulo parcialmente ilegible) y 'Otros Impuestos Nac. Indirectos: 0,00'; esos importes son informativos del régimen y no constituyen una discriminación de impuestos del comprobante. Alerta de auditoría: el dígito verificador del CUIT impreso no cierra (calculado 2, impreso 3) — el emisor lo tiene mal impreso; no invalida el comprobante pero conviene señalarlo. La fecha 01/06/2026 parece posterior a la fecha habitual de carga; se transcribe tal cual figura impresa. Cantidad de comensales estimada en 1 a partir de la única línea CUBIERTO. Pie: 'MAHFRBC00002323' y 'U: 01.00' (probable numeración de controlador/CAI, parcialmente legible). Aritmética verificada: 65392,00 + 0 + 0 + 0 = 65392,00 = TOTAL impreso. No hay centro de costo indicado en el comprobante."
+    "observaciones": "Ticket de restaurante emitido por LEY PRIMERA PILAR (nombre de fantasía); razón social impresa: GESTION Y PROYECTOS LATINOS S.A., CUIT 33-71547309-3 (el dígito verificador no cierra: correspondería 2 para el prefijo 33; sí cerraría si el prefijo fuera 30, dato a confirmar). Domicilio: Panamericana Km. 50,5 - C.P. 1629 - Pilar, Buenos Aires. Inicio de actividades 01/08/2021. IVA Responsable Inscripto. Comprobante Cód. 006 (Factura B) - TIQUE, P.V. Nº 00003. La fecha impresa figura como 01/06/2026 a las 23:08:43 (verificar el año, puede ser error de tipeo del equipamiento). Mesa 5, Mozo 19. Detalle: CUBIERTO (21,00) $0,00 y MENU FIJO (21,00) $65.392,00; TOTAL $65.392,00; RECIBIDO(S) $65.392,00. Es Factura B a consumidor final: no discrimina IVA como línea sumada; el importe 'IVA contenido: 11.483,15' corresponde al IVA incluido en el precio (Régimen de Transparencia Fiscal al Consumidor, Ley 27.743), por lo que el total coincide con el subtotal y la aritmética cierra. 'Otros Impuestos Nac. Indirectos: 0,00'. No hay percepciones de IIBB ni impuestos internos. No se imprimen cantidad de comensales ni litros (no es combustible). El código 'Nº 7.' previo al número de comprobante parece un carácter residual del ticket; se transcribió el número de 8 dígitos 00350541. Pie con código QR y CAA; U: 01,00."
   },
   "aritmetica": {
     "calculable": true,
-    "suma": 65392.0,
+    "suma": 76875.15,
     "total": 65392.0,
-    "diferencia": 0.0,
-    "cierra": true,
-    "faltantes": []
+    "diferencia": -11483.15,
+    "cierra": false,
+    "faltantes": [],
+    "aviso": "Los importes leídos suman 76,875.15 y el total impreso es 65,392.00 (diferencia -11,483.15)."
   }
 }

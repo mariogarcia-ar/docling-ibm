@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/chicos/a6d79e19-8ddf-45b2-8dfe-4a056c7ca5c3.png",
   "archivo_relativo": "chicos/a6d79e19-8ddf-45b2-8dfe-4a056c7ca5c3.png",
-  "procesado_utc": "2026-09-15T13:44:16+00:00",
+  "procesado_utc": "2026-09-15T14:57:01+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:49bf219ef6de34fc",
+  "prompt_hash": "sha256:f9c4a199f7c38725",
   "uso": {
-    "prompt_tokens": 3503,
-    "completion_tokens": 445,
-    "total_tokens": 3948,
-    "prompt_cache_hit_tokens": 3328,
-    "prompt_cache_miss_tokens": 175
+    "prompt_tokens": 3678,
+    "completion_tokens": 470,
+    "total_tokens": 4148,
+    "prompt_cache_hit_tokens": 3072,
+    "prompt_cache_miss_tokens": 606
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,7 +31,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.000606,
+  "costo_usd": 0.000764,
   "resultado": {
     "es_comprobante": "no_comprobante",
     "legibilidad": "buena",
@@ -59,7 +59,7 @@
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "La imagen no es un comprobante fiscal ni comercial: es una hoja con la leyenda 'NO EXISTE COMPROBANTE PARA LA RENDICION DEL GASTO. SE CARGA A NOMBRE DE CVC.' Se trata de una declaración de ausencia de comprobante (falta de factura), no de una factura, ticket, recibo o boleto. Por lo tanto no hay emisor, CUIT, fecha, número ni importes que transcribir. No se fuerza ningún tipo A/B/C."
+    "observaciones": "La imagen no es un comprobante fiscal ni comercial: es una hoja blanca con la leyenda impresa 'NO EXISTE COMPROBANTE PARA LA RENDICION DEL GASTO. SE CARGA A NOMBRE DE CVC.' No hay emisor, CUIT, fecha, número de factura, moneda ni importes impresos, por lo que no hay datos que transcribir más allá de esa leyenda. No se fuerza ninguna letra A/B/C ni tipo de comprobante. El documento no respalda el gasto: no existe comprobante de la operación."
   },
   "extraccion": {
     "es_comprobante": "no_comprobante",
@@ -88,7 +88,7 @@
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "La imagen no es un comprobante fiscal ni comercial: es una hoja con la leyenda 'NO EXISTE COMPROBANTE PARA LA RENDICION DEL GASTO. SE CARGA A NOMBRE DE CVC.' Se trata de una declaración de ausencia de comprobante (falta de factura), no de una factura, ticket, recibo o boleto. Por lo tanto no hay emisor, CUIT, fecha, número ni importes que transcribir. No se fuerza ningún tipo A/B/C."
+    "observaciones": "La imagen no es un comprobante fiscal ni comercial: es una hoja blanca con la leyenda impresa 'NO EXISTE COMPROBANTE PARA LA RENDICION DEL GASTO. SE CARGA A NOMBRE DE CVC.' No hay emisor, CUIT, fecha, número de factura, moneda ni importes impresos, por lo que no hay datos que transcribir más allá de esa leyenda. No se fuerza ninguna letra A/B/C ni tipo de comprobante. El documento no respalda el gasto: no existe comprobante de la operación."
   },
   "aritmetica": {
     "calculable": false,

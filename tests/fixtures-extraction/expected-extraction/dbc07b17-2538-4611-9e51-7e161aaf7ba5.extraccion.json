@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/expected-extraction/dbc07b17-2538-4611-9e51-7e161aaf7ba5.jpg",
   "archivo_relativo": "expected-extraction/dbc07b17-2538-4611-9e51-7e161aaf7ba5.jpg",
-  "procesado_utc": "2026-09-15T13:46:11+00:00",
+  "procesado_utc": "2026-09-15T14:59:21+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:49bf219ef6de34fc",
+  "prompt_hash": "sha256:f9c4a199f7c38725",
   "uso": {
-    "prompt_tokens": 3564,
-    "completion_tokens": 9141,
-    "total_tokens": 12705,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 748
+    "prompt_tokens": 3739,
+    "completion_tokens": 2638,
+    "total_tokens": 6377,
+    "prompt_cache_hit_tokens": 3072,
+    "prompt_cache_miss_tokens": 667
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,7 +31,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.01121,
+  "costo_usd": 0.003384,
   "resultado": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
@@ -53,13 +53,15 @@
     "otros_impuestos": 545.48,
     "importe_total": 50211.29,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio (combustible)",
+    "rubro_emisor": "Estación de servicio / venta de combustible (V-Power Nitro Diesel)",
     "categoria_gasto_sugerida": "Combustible",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 29.0698,
     "centro_de_costo": null,
-    "campos_no_legibles": [],
-    "observaciones": "Factura A (COD 001) de SOCOMA S.A. (CUIT 33-53674744-9), emisor de estación de servicio. Se transcribe: Neto Gravado 36916,18; IVA 7752,40; Impuesto Interno 4785,99; IDC 545,48; Percepciones IIBB 211,24; Total 50211,29. La suma de componentes cierra. La leyenda 'IDC(545,48) + ICL(4785,99) = TCNG(5331,48)' es informativa; el total de impuestos internos (ICL+IDC) da 5331,47 por redondeo."
+    "campos_no_legibles": [
+      "razon_social_emisor (el sufijo societario queda parcialmente tapado por otro ticket superpuesto en el encabezado)"
+    ],
+    "observaciones": "Factura A (COD. 001), ORIGINAL, emitida por SOCOMA S.A. (CUIT 33-53674744-9, Ingresos Brutos 33536747449, Ruta 188 km 110 - Rojas, Bs. As., inicio de actividad 01-01-1958, Responsable Inscripto). Nro. 0020-00049776, fecha 07/08/2025 16:30:00. Cliente: 1887-C V C SA, CUIT 30-58221570-3, Rosario - Santa Fe. Detalle: 29,0698 litros x $1.720,00 = $36.916,18 (V-Power Nitro Diesel). Neto Gravado $36.916,18 + IVA $7.752,40 (21%) + Impuesto Interno (ICL) $4.785,99 + IDC $545,48 + Perc. IIBB ARBA $211,24 = TOTAL $50.211,29. La aritmética cierra exactamente. El comprobante imprime el desglose 'IDC(545,48) + ICL(4785,99) = TCNG(5331,48)': el ICL se cargó en impuestos_internos y el IDC en otros_impuestos (la suma impresa 5.331,48 difiere en 1 centavo por redondeo del propio ticket). Percepción de IIBB corresponde al régimen de recaudación de ARBA. Forma de pago: Contado. Planilla 00002838, Operario MARVEGGIO JUAN. CAE N° 75329394209058, vencimiento de CAE 17/08/2025. El encabezado está superpuesto con otro ticket (payway.com.ar) que no afecta la lectura de los datos de esta factura."
   },
   "extraccion": {
     "es_comprobante": "comprobante",
@@ -82,13 +84,15 @@
     "otros_impuestos": 545.48,
     "importe_total": 50211.29,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio (combustible)",
+    "rubro_emisor": "Estación de servicio / venta de combustible (V-Power Nitro Diesel)",
     "categoria_gasto_sugerida": "Combustible",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 29.0698,
     "centro_de_costo": null,
-    "campos_no_legibles": [],
-    "observaciones": "Factura A (COD 001) de SOCOMA S.A. (CUIT 33-53674744-9), emisor de estación de servicio. Se transcribe: Neto Gravado 36916,18; IVA 7752,40; Impuesto Interno 4785,99; IDC 545,48; Percepciones IIBB 211,24; Total 50211,29. La suma de componentes cierra. La leyenda 'IDC(545,48) + ICL(4785,99) = TCNG(5331,48)' es informativa; el total de impuestos internos (ICL+IDC) da 5331,47 por redondeo."
+    "campos_no_legibles": [
+      "razon_social_emisor (el sufijo societario queda parcialmente tapado por otro ticket superpuesto en el encabezado)"
+    ],
+    "observaciones": "Factura A (COD. 001), ORIGINAL, emitida por SOCOMA S.A. (CUIT 33-53674744-9, Ingresos Brutos 33536747449, Ruta 188 km 110 - Rojas, Bs. As., inicio de actividad 01-01-1958, Responsable Inscripto). Nro. 0020-00049776, fecha 07/08/2025 16:30:00. Cliente: 1887-C V C SA, CUIT 30-58221570-3, Rosario - Santa Fe. Detalle: 29,0698 litros x $1.720,00 = $36.916,18 (V-Power Nitro Diesel). Neto Gravado $36.916,18 + IVA $7.752,40 (21%) + Impuesto Interno (ICL) $4.785,99 + IDC $545,48 + Perc. IIBB ARBA $211,24 = TOTAL $50.211,29. La aritmética cierra exactamente. El comprobante imprime el desglose 'IDC(545,48) + ICL(4785,99) = TCNG(5331,48)': el ICL se cargó en impuestos_internos y el IDC en otros_impuestos (la suma impresa 5.331,48 difiere en 1 centavo por redondeo del propio ticket). Percepción de IIBB corresponde al régimen de recaudación de ARBA. Forma de pago: Contado. Planilla 00002838, Operario MARVEGGIO JUAN. CAE N° 75329394209058, vencimiento de CAE 17/08/2025. El encabezado está superpuesto con otro ticket (payway.com.ar) que no afecta la lectura de los datos de esta factura."
   },
   "aritmetica": {
     "calculable": true,

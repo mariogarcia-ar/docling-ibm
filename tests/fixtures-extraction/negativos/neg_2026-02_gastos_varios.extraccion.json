@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/negativos/neg_2026-02_gastos_varios.png",
   "archivo_relativo": "negativos/neg_2026-02_gastos_varios.png",
-  "procesado_utc": "2026-09-15T13:47:40+00:00",
+  "procesado_utc": "2026-09-15T15:01:27+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:49bf219ef6de34fc",
+  "prompt_hash": "sha256:f9c4a199f7c38725",
   "uso": {
-    "prompt_tokens": 3267,
-    "completion_tokens": 413,
-    "total_tokens": 3680,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 451
+    "prompt_tokens": 3442,
+    "completion_tokens": 675,
+    "total_tokens": 4117,
+    "prompt_cache_hit_tokens": 3072,
+    "prompt_cache_miss_tokens": 370
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,7 +31,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.000648,
+  "costo_usd": 0.000939,
   "resultado": {
     "es_comprobante": "no_comprobante",
     "legibilidad": "buena",
@@ -59,7 +59,7 @@
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "El documento no es un comprobante fiscal ni comercial: es una hoja interna que dice «GASTOS VARIOS», «Comprobante: FALTA FACTURA», «Detalle: sin documento respaldatorio» y «NO ES COMPROBANTE». No hay emisor, CUIT, fecha, número ni importes que transcribir, por lo que los campos fiscales quedan en null."
+    "observaciones": "El documento es una hoja/captura interna rotulada 'GASTOS VARIOS' con la leyenda 'Comprobante: FALTA FACTURA', 'Detalle: sin documento respaldatorio' y 'NO ES COMPROBANTE'. No es un comprobante fiscal ni comercial: no acredita la operación, es una declaración de faltante de respaldo. No tiene emisor, CUIT, fecha, número, moneda ni importes impresos, por lo que no hay datos que transcribir. No se fuerza ninguna letra A/B/C ni tipo 090/099. El gasto queda sin respaldo documental."
   },
   "extraccion": {
     "es_comprobante": "no_comprobante",
@@ -88,7 +88,7 @@
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "El documento no es un comprobante fiscal ni comercial: es una hoja interna que dice «GASTOS VARIOS», «Comprobante: FALTA FACTURA», «Detalle: sin documento respaldatorio» y «NO ES COMPROBANTE». No hay emisor, CUIT, fecha, número ni importes que transcribir, por lo que los campos fiscales quedan en null."
+    "observaciones": "El documento es una hoja/captura interna rotulada 'GASTOS VARIOS' con la leyenda 'Comprobante: FALTA FACTURA', 'Detalle: sin documento respaldatorio' y 'NO ES COMPROBANTE'. No es un comprobante fiscal ni comercial: no acredita la operación, es una declaración de faltante de respaldo. No tiene emisor, CUIT, fecha, número, moneda ni importes impresos, por lo que no hay datos que transcribir. No se fuerza ninguna letra A/B/C ni tipo 090/099. El gasto queda sin respaldo documental."
   },
   "aritmetica": {
     "calculable": false,

@@ -222,5 +222,15 @@ class TestElYamlReconstruyeElTemplate:
         # **validar** NO cambió a propósito: ese modo no tiene el campo en su
         # esquema y pedírselo haría que el modelo devolviera un JSON inválido
         # (repregunta paga).
+        #
+        # ⚠️ Y se volvió a actualizar el mismo día al corregir esa guía: pedía
+        # dejar en null «emisor, CUIT, fecha ni importes» de un no_comprobante, y
+        # el modelo **transcribía el importe en la prosa mientras lo dejaba en
+        # null en el campo** (caso 125cbe9f: `Imp. Total: $30920,00` citado en
+        # `observaciones`, `importe_total: null`). Medido con A/B sobre el mismo
+        # documento: con la frase, 4 de 5 corridas en null; sin ella, 4 de 4 con
+        # el importe. Ahora la guía pide transcribir lo impreso **sea o no** un
+        # comprobante, y aclara que lo que no se inventa es lo que el papel no
+        # dice.
         assert hash_prompt(*para_validar) == "sha256:60b92df8beb84472"
-        assert hash_prompt(*para_extraer) == "sha256:f319ce3e9e6d63bd"
+        assert hash_prompt(*para_extraer) == "sha256:fbcbd02e21eba3c0"

@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/expected-extraction/36aa4a1e-0d78-43a3-8a72-5765d6ff294d.jpg",
   "archivo_relativo": "expected-extraction/36aa4a1e-0d78-43a3-8a72-5765d6ff294d.jpg",
-  "procesado_utc": "2026-09-15T13:44:35+00:00",
+  "procesado_utc": "2026-09-15T14:57:21+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:49bf219ef6de34fc",
+  "prompt_hash": "sha256:f9c4a199f7c38725",
   "uso": {
-    "prompt_tokens": 3564,
-    "completion_tokens": 2353,
-    "total_tokens": 5917,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 748
+    "prompt_tokens": 3739,
+    "completion_tokens": 2002,
+    "total_tokens": 5741,
+    "prompt_cache_hit_tokens": 3072,
+    "prompt_cache_miss_tokens": 667
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,17 +31,17 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.003065,
+  "costo_usd": 0.002621,
   "resultado": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
-    "codigo_afip": null,
-    "razon_social_emisor": "BENITO, MANUEL (Don Benito El Origen)",
+    "codigo_afip": "001",
+    "razon_social_emisor": "BENITO, MANUEL",
     "cuit_emisor": "20-37812905-3",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "26/08/2025",
-    "nro_factura": "Fca-0012 0002104",
+    "nro_factura": "FCA-0012 0002104",
     "moneda": "ARS",
     "subtotal": 189256.2,
     "no_gravado": 0,
@@ -53,24 +53,24 @@
     "otros_impuestos": 0,
     "importe_total": 229000.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Gastronómico / restaurante (sistema Maxirest, ítem 'CENA')",
+    "rubro_emisor": "Gastronomía / restaurante (nombre de fantasía 'Don Benito El Origen', sistema de facturación Maxirest)",
     "categoria_gasto_sugerida": "Restaurante",
     "cantidad_comensales_personas": 5,
-    "cantidad_litros": null,
+    "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A electrónica impresa por controlador fiscal (sistema www.maxirest.com), emitida por BENITO, MANUEL (nombre de fantasía 'Don Benito El Origen'), domicilio Saavedra 80, IIBB 20-37812905-3, IVA Responsable Inscripto, inicio de actividades 11/2021. No se imprime el código AFIP en forma explícita (por ser Factura A correspondería 001). Ítem único: 5 x CENA, P.Unit. 37851.240 = Subtotal 189256.20. El comprobante discrimina IVA 39743.800 (21%), por lo que el NETO GRAVADO es 189256.20 y no debe confundirse con el total. La línea 'DESCUENTO' está impresa sin importe. Aritmética verificada: 189256.20 (neto gravado) + 39743.80 (IVA) = 229000.00 = TOTAL. DV del CUIT emisor 20-37812905-3 validado correctamente. Cliente: CUC SA, CUIT 30-58221570-3 (no coincide con el empleado; la factura está emitida a nombre de un tercero). CAE 75343726828718, hora 22:49:47. En el encabezado hay una anotación manuscrita 'LO MENDEL' fuera del cuerpo fiscal. Cantidad de comensales inferida del detalle (5 'CENA'): no hay leyenda explícita de cubiertos."
+    "observaciones": "Factura A electrónica (COD. 001) emitida por BENITO, MANUEL (nombre de fantasía 'Don Benito El Origen'), domicilio Saavedra 80, CUIT 20-37812905-3 (dígito verificador 3 validado correctamente), Ingresos Brutos 20-37812905-3, IVA Responsable Inscripto, inicio de actividades 11/2021. Fecha/hora de emisión: 26/08/2025 22:49:47. Número impreso como 'FCA-0012 0002104' (punto de venta 0012, número 0002104). Receptor: CVC SA CVC SA, CUIT 30-58221570-3. Detalle: 5 x CENA a $37.851,240 = $189.256,20 (la cantidad de comensales se transcribe del detalle de líneas; no es un campo explícito de cubiertos). Aritmética verificada: SUBTOTAL 189.256,20 + IVA 39.743,80 = TOTAL 229.000,00. La línea 'DESCUENTO:' está impresa sin importe (vacía). No hay percepciones, impuestos internos, exentos ni no gravado discriminados. Moneda inferida como ARS (no hay símbolo de moneda impreso; todos los comprobantes y el sistema emisor son locales). C.A.E. 75343726828718."
   },
   "extraccion": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
-    "codigo_afip": null,
-    "razon_social_emisor": "BENITO, MANUEL (Don Benito El Origen)",
+    "codigo_afip": "001",
+    "razon_social_emisor": "BENITO, MANUEL",
     "cuit_emisor": "20-37812905-3",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "26/08/2025",
-    "nro_factura": "Fca-0012 0002104",
+    "nro_factura": "FCA-0012 0002104",
     "moneda": "ARS",
     "subtotal": 189256.2,
     "no_gravado": 0,
@@ -82,13 +82,13 @@
     "otros_impuestos": 0,
     "importe_total": 229000.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Gastronómico / restaurante (sistema Maxirest, ítem 'CENA')",
+    "rubro_emisor": "Gastronomía / restaurante (nombre de fantasía 'Don Benito El Origen', sistema de facturación Maxirest)",
     "categoria_gasto_sugerida": "Restaurante",
     "cantidad_comensales_personas": 5,
-    "cantidad_litros": null,
+    "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A electrónica impresa por controlador fiscal (sistema www.maxirest.com), emitida por BENITO, MANUEL (nombre de fantasía 'Don Benito El Origen'), domicilio Saavedra 80, IIBB 20-37812905-3, IVA Responsable Inscripto, inicio de actividades 11/2021. No se imprime el código AFIP en forma explícita (por ser Factura A correspondería 001). Ítem único: 5 x CENA, P.Unit. 37851.240 = Subtotal 189256.20. El comprobante discrimina IVA 39743.800 (21%), por lo que el NETO GRAVADO es 189256.20 y no debe confundirse con el total. La línea 'DESCUENTO' está impresa sin importe. Aritmética verificada: 189256.20 (neto gravado) + 39743.80 (IVA) = 229000.00 = TOTAL. DV del CUIT emisor 20-37812905-3 validado correctamente. Cliente: CUC SA, CUIT 30-58221570-3 (no coincide con el empleado; la factura está emitida a nombre de un tercero). CAE 75343726828718, hora 22:49:47. En el encabezado hay una anotación manuscrita 'LO MENDEL' fuera del cuerpo fiscal. Cantidad de comensales inferida del detalle (5 'CENA'): no hay leyenda explícita de cubiertos."
+    "observaciones": "Factura A electrónica (COD. 001) emitida por BENITO, MANUEL (nombre de fantasía 'Don Benito El Origen'), domicilio Saavedra 80, CUIT 20-37812905-3 (dígito verificador 3 validado correctamente), Ingresos Brutos 20-37812905-3, IVA Responsable Inscripto, inicio de actividades 11/2021. Fecha/hora de emisión: 26/08/2025 22:49:47. Número impreso como 'FCA-0012 0002104' (punto de venta 0012, número 0002104). Receptor: CVC SA CVC SA, CUIT 30-58221570-3. Detalle: 5 x CENA a $37.851,240 = $189.256,20 (la cantidad de comensales se transcribe del detalle de líneas; no es un campo explícito de cubiertos). Aritmética verificada: SUBTOTAL 189.256,20 + IVA 39.743,80 = TOTAL 229.000,00. La línea 'DESCUENTO:' está impresa sin importe (vacía). No hay percepciones, impuestos internos, exentos ni no gravado discriminados. Moneda inferida como ARS (no hay símbolo de moneda impreso; todos los comprobantes y el sistema emisor son locales). C.A.E. 75343726828718."
   },
   "aritmetica": {
     "calculable": true,

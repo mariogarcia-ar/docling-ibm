@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/expected-extraction/deddaca4-049e-4a9e-be19-9da7ddde3ec6.jpg",
   "archivo_relativo": "expected-extraction/deddaca4-049e-4a9e-be19-9da7ddde3ec6.jpg",
-  "procesado_utc": "2026-09-15T13:46:11+00:00",
+  "procesado_utc": "2026-09-15T14:59:27+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,16 +16,16 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:49bf219ef6de34fc",
+  "prompt_hash": "sha256:f9c4a199f7c38725",
   "uso": {
-    "prompt_tokens": 12604,
-    "completion_tokens": 22292,
-    "total_tokens": 34896,
-    "prompt_cache_hit_tokens": 10368,
-    "prompt_cache_miss_tokens": 2236
+    "prompt_tokens": 8218,
+    "completion_tokens": 14628,
+    "total_tokens": 22846,
+    "prompt_cache_hit_tokens": 6784,
+    "prompt_cache_miss_tokens": 1434
   },
   "esquema_validado": true,
-  "reintentos_esquema": 2,
+  "reintentos_esquema": 1,
   "avisos_esquema": [],
   "precios_usd_1m": {
     "entrada": 0.3,
@@ -33,17 +33,17 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.027483,
+  "costo_usd": 0.018025,
   "resultado": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "001",
-    "razon_social_emisor": "DIARCO S.A.",
-    "cuit_emisor": "30-62215796-5",
-    "digito_verificador_cuit_valido": true,
-    "fecha_emision": "30/05/2025",
-    "nro_factura": null,
+    "razon_social_emisor": "CVC SOCIEDAD ANONIMA (Diarco)",
+    "cuit_emisor": "30-50332160-3",
+    "digito_verificador_cuit_valido": false,
+    "fecha_emision": "23/05/2025",
+    "nro_factura": "0001-00037299",
     "moneda": "ARS",
     "subtotal": 102329.5,
     "no_gravado": 0,
@@ -55,27 +55,24 @@
     "otros_impuestos": 3069.89,
     "importe_total": 127911.89,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Supermercado mayorista (alimentos, bebidas y artículos de consumo masivo)",
+    "rubro_emisor": "Comercio mayorista de alimentos y bebidas (cadena Diarco, sucursal 010-Junín)",
     "categoria_gasto_sugerida": "Supermercado",
-    "cantidad_comensales_personas": null,
-    "cantidad_litros": null,
+    "cantidad_comensales_personas": 0,
+    "cantidad_litros": 0,
     "centro_de_costo": null,
-    "campos_no_legibles": [
-      "nro_factura",
-      "rótulos de las líneas de percepción (parcial)"
-    ],
-    "observaciones": "Factura A de DIARCO S.A., sucursal 010 - Junín, emitida el 30/05/2025 09:13:03 hs (IVA Responsable Inscripto). Pago: Visa Electrón, 1 cuota, $ 127.911,89 (66 unidades). Detalle: neto gravado al 21% $ 102.329,50; IVA 21% $ 21.489,20; dos percepciones IIBB de $ 511,65 c/u y una percepción de IVA (RG 3337) de $ 3.069,89, imputada en 'otros_impuestos'. La suma 102.329,50 + 21.489,20 + 1.023,30 + 3.069,89 = 127.911,89 cierra exactamente contra el total impreso. No hay líneas de importe no gravado, exento ni impuestos internos. La zona de totales está parcialmente tapada por un sello rojo y anotaciones manuscritas, lo que dificulta la lectura exacta de algunos importes y rótulos. No se pudo leer el número de comprobante (punto de venta - número). CUIT del emisor transcrito con dígito verificador válido."
+    "campos_no_legibles": [],
+    "observaciones": "Factura A (COD. 001) emitida por CVC SOCIEDAD ANONIMA, cadena Diarco, sucursal 010-Junín, IVA Responsable Inscripto, Ingresos Brutos 27-1717?8-0, domicilio Capital Federal. Detalle de 8 items (alfajor Guaymallén, café La Planta 1 kg x2, leche en polvo entera 400 gr x2, té Taragüí 50 saquitos, turrón Misky 25 gr, yerba Playadito 1 kg) por 66 unidades. Aritmética verificada: neto gravado 102.329,50 + IVA 21% 21.489,20 + percepciones 4.093,19 (dos líneas de 511,65 y una de 3.069,89) = 127.911,89, coincidente con el TOTAL impreso. No hay líneas de no gravado ni exento. El ticket está parcialmente cubierto por un sello rojo en la zona central y el encabezado es de tipografía muy pequeña: la fecha de emisión, el punto de venta y el CUIT se leen con dificultad, por lo que podría haber diferencias de un dígito. El dígito verificador del CUIT leído (30-50332160-3) no valida (correspondería 9): puede ser error de lectura del ticket o un dígito mal impreso por el emisor; se informa sin rechazar por ese motivo. Pago: Visa Electrón, 1 cuota, por el total. No aplican comensales ni litros para el rubro. No figura centro de costo en el comprobante."
   },
   "extraccion": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "001",
-    "razon_social_emisor": "DIARCO S.A.",
-    "cuit_emisor": "30-62215796-5",
-    "digito_verificador_cuit_valido": true,
-    "fecha_emision": "30/05/2025",
-    "nro_factura": null,
+    "razon_social_emisor": "CVC SOCIEDAD ANONIMA (Diarco)",
+    "cuit_emisor": "30-50332160-3",
+    "digito_verificador_cuit_valido": false,
+    "fecha_emision": "23/05/2025",
+    "nro_factura": "0001-00037299",
     "moneda": "ARS",
     "subtotal": 102329.5,
     "no_gravado": 0,
@@ -87,16 +84,13 @@
     "otros_impuestos": 3069.89,
     "importe_total": 127911.89,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Supermercado mayorista (alimentos, bebidas y artículos de consumo masivo)",
+    "rubro_emisor": "Comercio mayorista de alimentos y bebidas (cadena Diarco, sucursal 010-Junín)",
     "categoria_gasto_sugerida": "Supermercado",
-    "cantidad_comensales_personas": null,
-    "cantidad_litros": null,
+    "cantidad_comensales_personas": 0,
+    "cantidad_litros": 0,
     "centro_de_costo": null,
-    "campos_no_legibles": [
-      "nro_factura",
-      "rótulos de las líneas de percepción (parcial)"
-    ],
-    "observaciones": "Factura A de DIARCO S.A., sucursal 010 - Junín, emitida el 30/05/2025 09:13:03 hs (IVA Responsable Inscripto). Pago: Visa Electrón, 1 cuota, $ 127.911,89 (66 unidades). Detalle: neto gravado al 21% $ 102.329,50; IVA 21% $ 21.489,20; dos percepciones IIBB de $ 511,65 c/u y una percepción de IVA (RG 3337) de $ 3.069,89, imputada en 'otros_impuestos'. La suma 102.329,50 + 21.489,20 + 1.023,30 + 3.069,89 = 127.911,89 cierra exactamente contra el total impreso. No hay líneas de importe no gravado, exento ni impuestos internos. La zona de totales está parcialmente tapada por un sello rojo y anotaciones manuscritas, lo que dificulta la lectura exacta de algunos importes y rótulos. No se pudo leer el número de comprobante (punto de venta - número). CUIT del emisor transcrito con dígito verificador válido."
+    "campos_no_legibles": [],
+    "observaciones": "Factura A (COD. 001) emitida por CVC SOCIEDAD ANONIMA, cadena Diarco, sucursal 010-Junín, IVA Responsable Inscripto, Ingresos Brutos 27-1717?8-0, domicilio Capital Federal. Detalle de 8 items (alfajor Guaymallén, café La Planta 1 kg x2, leche en polvo entera 400 gr x2, té Taragüí 50 saquitos, turrón Misky 25 gr, yerba Playadito 1 kg) por 66 unidades. Aritmética verificada: neto gravado 102.329,50 + IVA 21% 21.489,20 + percepciones 4.093,19 (dos líneas de 511,65 y una de 3.069,89) = 127.911,89, coincidente con el TOTAL impreso. No hay líneas de no gravado ni exento. El ticket está parcialmente cubierto por un sello rojo en la zona central y el encabezado es de tipografía muy pequeña: la fecha de emisión, el punto de venta y el CUIT se leen con dificultad, por lo que podría haber diferencias de un dígito. El dígito verificador del CUIT leído (30-50332160-3) no valida (correspondería 9): puede ser error de lectura del ticket o un dígito mal impreso por el emisor; se informa sin rechazar por ese motivo. Pago: Visa Electrón, 1 cuota, por el total. No aplican comensales ni litros para el rubro. No figura centro de costo en el comprobante."
   },
   "aritmetica": {
     "calculable": true,

@@ -1,12 +1,12 @@
 {
   "origen": "tests/fixtures/golden/9dfc597f-34c5-41ec-99ae-cf35544c7af8_p01.pdf",
   "archivo_relativo": "golden/9dfc597f-34c5-41ec-99ae-cf35544c7af8_p01.pdf",
-  "procesado_utc": "2026-09-15T13:43:34+00:00",
+  "procesado_utc": "2026-09-15T14:56:20+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
   "fuente": "api",
-  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_2gxv7ghk/golden/9dfc597f-34c5-41ec-99ae-cf35544c7af8_p01.jpg",
+  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_mbl_qjjy/golden/9dfc597f-34c5-41ec-99ae-cf35544c7af8_p01.jpg",
   "pagina": 1,
   "imagen": {
     "bytes": 1396072,
@@ -18,13 +18,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:49bf219ef6de34fc",
+  "prompt_hash": "sha256:f9c4a199f7c38725",
   "uso": {
-    "prompt_tokens": 4038,
-    "completion_tokens": 1455,
-    "total_tokens": 5493,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 1222
+    "prompt_tokens": 4213,
+    "completion_tokens": 1741,
+    "total_tokens": 5954,
+    "prompt_cache_hit_tokens": 3072,
+    "prompt_cache_miss_tokens": 1141
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -33,13 +33,13 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.002129,
+  "costo_usd": 0.00245,
   "resultado": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "090",
     "codigo_afip": null,
-    "razon_social_emisor": "R. U. y otros - UTE",
+    "razon_social_emisor": "R.U. y otros - UTE",
     "cuit_emisor": "30-71674544-5",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "25/08/2026",
@@ -55,20 +55,20 @@
     "otros_impuestos": 0,
     "importe_total": 31700,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Transporte de pasajeros - servicio público de larga distancia (ómnibus)",
+    "rubro_emisor": "Transporte de pasajeros (ómnibus de larga distancia)",
     "categoria_gasto_sugerida": "Transporte",
-    "cantidad_comensales_personas": 1,
+    "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Boleto de ómnibus de larga distancia (Rosario Terminal -> Venado Tuerto, Butaca 56, salida 28/08/2026 15:00), no es factura AFIP: no muestra letra A/B/C ni código AFIP, corresponde a tipo 090/099. Pasajero: ALONSO, LUCAS - DNI 37295063. Importe $ 31.700,00 pagado con Tarjeta de Crédito - 175587040190. Identificador SUV-34071269-255671438. El comprobante figura impreso dos veces (duplicado: talón para el pasajero y copia con condiciones generales) con los mismos datos. Emisor 'R. U. y otros - UTE', Almirante Brown 215 - Colón - C.P. 3280 - Entre Ríos, IVA Resp. Inscripto, CUIT 30-71674544-5 (dígito verificador válido). El único importe impreso es el total ($ 31.700,00); no hay discriminación de IVA ni de otros impuestos, por lo que subtotal = total y no se registran percepciones. Fecha de emisión tomada de 'Vendedor: CDP - 25/08/2026 14:58' (fecha de venta); 'Fecha Inic. Act.: 15/11/2019' corresponde al inicio de actividades del emisor, no a la emisión. Cubierto por Protección Mutual de Seguros. Aclaración: los descuentos por devolución (100%/90%/80%) mencionados en condiciones generales son informativos y no aplican a este boleto."
+    "observaciones": "Boleto de ómnibus (comprobante tipo 090/099, no factura AFIP) Rosario Terminal -> Venado Tuerto, viaje 28/08/2026 15:00 hs. Emitido/ vendido el 25/08/2026 14:58 (CDP). Pasajero: ALONSO, LUCAS - DNI 37295063. Importe $31.700,00 abonado con Tarjeta de Crédito (175587040190). Identificador: SUV-34071269-255671438. Emisor del servicio: R.U. y otros - UTE, Almirante Brown 215, Colón, Entre Ríos, CUIT 30-71674544-5 (dígito verificador válido). No discrimina IVA ni otros impuestos: un único importe total de $31.700,00. La leyenda 'Tasas establecidas por la empresa de transporte. Total: $0,00' indica que no se cobraron tasas adicionales. Nro de factura transcripto como el número de boleto/identificador del pasaje (el documento no es una factura AFIP)."
   },
   "extraccion": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "090",
     "codigo_afip": null,
-    "razon_social_emisor": "R. U. y otros - UTE",
+    "razon_social_emisor": "R.U. y otros - UTE",
     "cuit_emisor": "30-71674544-5",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "25/08/2026",
@@ -84,13 +84,13 @@
     "otros_impuestos": 0,
     "importe_total": 31700,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Transporte de pasajeros - servicio público de larga distancia (ómnibus)",
+    "rubro_emisor": "Transporte de pasajeros (ómnibus de larga distancia)",
     "categoria_gasto_sugerida": "Transporte",
-    "cantidad_comensales_personas": 1,
+    "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Boleto de ómnibus de larga distancia (Rosario Terminal -> Venado Tuerto, Butaca 56, salida 28/08/2026 15:00), no es factura AFIP: no muestra letra A/B/C ni código AFIP, corresponde a tipo 090/099. Pasajero: ALONSO, LUCAS - DNI 37295063. Importe $ 31.700,00 pagado con Tarjeta de Crédito - 175587040190. Identificador SUV-34071269-255671438. El comprobante figura impreso dos veces (duplicado: talón para el pasajero y copia con condiciones generales) con los mismos datos. Emisor 'R. U. y otros - UTE', Almirante Brown 215 - Colón - C.P. 3280 - Entre Ríos, IVA Resp. Inscripto, CUIT 30-71674544-5 (dígito verificador válido). El único importe impreso es el total ($ 31.700,00); no hay discriminación de IVA ni de otros impuestos, por lo que subtotal = total y no se registran percepciones. Fecha de emisión tomada de 'Vendedor: CDP - 25/08/2026 14:58' (fecha de venta); 'Fecha Inic. Act.: 15/11/2019' corresponde al inicio de actividades del emisor, no a la emisión. Cubierto por Protección Mutual de Seguros. Aclaración: los descuentos por devolución (100%/90%/80%) mencionados en condiciones generales son informativos y no aplican a este boleto."
+    "observaciones": "Boleto de ómnibus (comprobante tipo 090/099, no factura AFIP) Rosario Terminal -> Venado Tuerto, viaje 28/08/2026 15:00 hs. Emitido/ vendido el 25/08/2026 14:58 (CDP). Pasajero: ALONSO, LUCAS - DNI 37295063. Importe $31.700,00 abonado con Tarjeta de Crédito (175587040190). Identificador: SUV-34071269-255671438. Emisor del servicio: R.U. y otros - UTE, Almirante Brown 215, Colón, Entre Ríos, CUIT 30-71674544-5 (dígito verificador válido). No discrimina IVA ni otros impuestos: un único importe total de $31.700,00. La leyenda 'Tasas establecidas por la empresa de transporte. Total: $0,00' indica que no se cobraron tasas adicionales. Nro de factura transcripto como el número de boleto/identificador del pasaje (el documento no es una factura AFIP)."
   },
   "aritmetica": {
     "calculable": true,

@@ -1,12 +1,12 @@
 {
   "origen": "tests/fixtures/pdf_aptos_layout/242823d2-afd3-4107-a49c-ce382592c6a5_p01.pdf",
   "archivo_relativo": "pdf_aptos_layout/242823d2-afd3-4107-a49c-ce382592c6a5_p01.pdf",
-  "procesado_utc": "2026-09-15T13:43:43+00:00",
+  "procesado_utc": "2026-09-15T14:56:29+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
   "fuente": "api",
-  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_2gxv7ghk/pdf_aptos_layout/242823d2-afd3-4107-a49c-ce382592c6a5_p01.jpg",
+  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_mbl_qjjy/pdf_aptos_layout/242823d2-afd3-4107-a49c-ce382592c6a5_p01.jpg",
   "pagina": 1,
   "imagen": {
     "bytes": 685037,
@@ -18,13 +18,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:49bf219ef6de34fc",
+  "prompt_hash": "sha256:f9c4a199f7c38725",
   "uso": {
-    "prompt_tokens": 4038,
-    "completion_tokens": 1730,
-    "total_tokens": 5768,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 1222
+    "prompt_tokens": 4213,
+    "completion_tokens": 2137,
+    "total_tokens": 6350,
+    "prompt_cache_hit_tokens": 3072,
+    "prompt_cache_miss_tokens": 1141
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -33,17 +33,17 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.002459,
+  "costo_usd": 0.002925,
   "resultado": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "01",
-    "razon_social_emisor": "CARLOS ANDRETICH S.A.",
-    "cuit_emisor": "30684416096",
+    "razon_social_emisor": "CARLOS ANDRETICH S.A. (NEXAND)",
+    "cuit_emisor": "30-68441609-6",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "07/07/2026",
-    "nro_factura": "0138-00000236-A",
+    "nro_factura": "0138-00000236",
     "moneda": "ARS",
     "subtotal": 54639.36,
     "no_gravado": 0,
@@ -55,24 +55,26 @@
     "otros_impuestos": 0,
     "importe_total": 66222.9,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Comercio de artículos/equipamiento para combustibles y lubricantes (marca NEXAND)",
-    "categoria_gasto_sugerida": "Otros / Insumos y materiales (NO es combustible: el ítem es un bidón para nafta, no nafta)",
+    "rubro_emisor": "Comercio de bidones/accesorios para combustible (marca NEXAND)",
+    "categoria_gasto_sugerida": "Combustible / Insumos de vehículo (no verificable con certeza: el ítem es un bidón, no combustible cargado)",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
-    "campos_no_legibles": [],
-    "observaciones": "Factura A (COD. 01) de CARLOS ANDRETICH S.A. (marca NEXAND), emisor argentino de Rafaela, Santa Fe. CUIT 30684416096 con dígito verificador correcto. Punto de venta 0138, número 00000236. Único ítem: 1,00 BIDON PARA NAFTA CANADIENSE ROJO PICO VERTEDOR A' a $ 54.639,36 con IVA 21% (no es carga de combustible, es un envase, por lo que no se registran litros). Desglose de la leyenda inferior: BRUTO $ 54.639,36; DESCUENTO $ 0,00; RECARGO $ 0,00; NETO $ 54.639,36; I.V.A. 21% $ 11.474,26; renglón I.V.A. 10,5% impreso sin importe (0); Perc. IIBB $ 109,28; TOTAL $ 66.222,90. Verificación aritmética: 54.639,36 + 11.474,26 + 109,28 = 66.222,90 (cierra). La nota inferior corresponde a una operación procesada vía Mercado Libre (NickName GM20260409085145, procesado por GBELTRAMINO, PERC IIBB ARBA $ 109,28). Receptor: CVC SOCIEDAD ANONIMA, CUIT 30-58221570-3, condición de venta Cta. Cte. CAE 86272811918677, vencimiento 17/07/2026, ORIGINAL."
+    "campos_no_legibles": [
+      "I.V.A. 10,5% (renglón impreso sin importe visible, aparenta $0,00)"
+    ],
+    "observaciones": "Factura A, COD. 01, Nro 0138-00000236, emitida por CARLOS ANDRETICH S.A. (NEXAND), CUIT 30-68441609-6 (dígito verificador válido), Paul Harris 136 - Rafaela, Santa Fe, Ing. Brutos 921-749636-2, inicio de actividad 02/01/1998. Fecha de emisión 07/07/2026. Receptor: CVC SOCIEDAD ANONIMA, CUIT 30-58221570-3, Ruta Nac. 262, Junín, Resp. Inscripto; condición de venta Cta. Cte. Único ítem: DV-BP20-R, 1.00 BIDON PARA NAFTA CANADIENSE ROJO PICO VERTEDOR, IVA 21%, PR. UNIT. 54.639,36, DTO 0,00%, TOTAL 54.639,36 (se trata de un envase/bidón, no de combustible despachado por litro; no hay litros impresos). Discrimina impuestos: BRUTO/NETO 54.639,36 + IVA 21% 11.474,26 + Perc. IIBB 109,28 = TOTAL 66.222,90 (la aritmética cierra). Descuento y recargo $0,00. Renglón I.V.A. 10,5% impreso sin monto visible. Nota Mercado Libre: NickName GM20260409085145, procesado por GBELTRAMINO, N° Venta 2000017234667292, N° Pack 2000013830391821, PERC IIBB AFIP: $109,28. CAE 86272811918677, FEC VENC 17/07/2026, original. Categoría de gasto no verificable con confianza desde la imagen: el emisor comercializa bidones/accesorios, por lo que 'Combustible' es plausible pero no concluyente."
   },
   "extraccion": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "01",
-    "razon_social_emisor": "CARLOS ANDRETICH S.A.",
-    "cuit_emisor": "30684416096",
+    "razon_social_emisor": "CARLOS ANDRETICH S.A. (NEXAND)",
+    "cuit_emisor": "30-68441609-6",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "07/07/2026",
-    "nro_factura": "0138-00000236-A",
+    "nro_factura": "0138-00000236",
     "moneda": "ARS",
     "subtotal": 54639.36,
     "no_gravado": 0,
@@ -84,13 +86,15 @@
     "otros_impuestos": 0,
     "importe_total": 66222.9,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Comercio de artículos/equipamiento para combustibles y lubricantes (marca NEXAND)",
-    "categoria_gasto_sugerida": "Otros / Insumos y materiales (NO es combustible: el ítem es un bidón para nafta, no nafta)",
+    "rubro_emisor": "Comercio de bidones/accesorios para combustible (marca NEXAND)",
+    "categoria_gasto_sugerida": "Combustible / Insumos de vehículo (no verificable con certeza: el ítem es un bidón, no combustible cargado)",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
-    "campos_no_legibles": [],
-    "observaciones": "Factura A (COD. 01) de CARLOS ANDRETICH S.A. (marca NEXAND), emisor argentino de Rafaela, Santa Fe. CUIT 30684416096 con dígito verificador correcto. Punto de venta 0138, número 00000236. Único ítem: 1,00 BIDON PARA NAFTA CANADIENSE ROJO PICO VERTEDOR A' a $ 54.639,36 con IVA 21% (no es carga de combustible, es un envase, por lo que no se registran litros). Desglose de la leyenda inferior: BRUTO $ 54.639,36; DESCUENTO $ 0,00; RECARGO $ 0,00; NETO $ 54.639,36; I.V.A. 21% $ 11.474,26; renglón I.V.A. 10,5% impreso sin importe (0); Perc. IIBB $ 109,28; TOTAL $ 66.222,90. Verificación aritmética: 54.639,36 + 11.474,26 + 109,28 = 66.222,90 (cierra). La nota inferior corresponde a una operación procesada vía Mercado Libre (NickName GM20260409085145, procesado por GBELTRAMINO, PERC IIBB ARBA $ 109,28). Receptor: CVC SOCIEDAD ANONIMA, CUIT 30-58221570-3, condición de venta Cta. Cte. CAE 86272811918677, vencimiento 17/07/2026, ORIGINAL."
+    "campos_no_legibles": [
+      "I.V.A. 10,5% (renglón impreso sin importe visible, aparenta $0,00)"
+    ],
+    "observaciones": "Factura A, COD. 01, Nro 0138-00000236, emitida por CARLOS ANDRETICH S.A. (NEXAND), CUIT 30-68441609-6 (dígito verificador válido), Paul Harris 136 - Rafaela, Santa Fe, Ing. Brutos 921-749636-2, inicio de actividad 02/01/1998. Fecha de emisión 07/07/2026. Receptor: CVC SOCIEDAD ANONIMA, CUIT 30-58221570-3, Ruta Nac. 262, Junín, Resp. Inscripto; condición de venta Cta. Cte. Único ítem: DV-BP20-R, 1.00 BIDON PARA NAFTA CANADIENSE ROJO PICO VERTEDOR, IVA 21%, PR. UNIT. 54.639,36, DTO 0,00%, TOTAL 54.639,36 (se trata de un envase/bidón, no de combustible despachado por litro; no hay litros impresos). Discrimina impuestos: BRUTO/NETO 54.639,36 + IVA 21% 11.474,26 + Perc. IIBB 109,28 = TOTAL 66.222,90 (la aritmética cierra). Descuento y recargo $0,00. Renglón I.V.A. 10,5% impreso sin monto visible. Nota Mercado Libre: NickName GM20260409085145, procesado por GBELTRAMINO, N° Venta 2000017234667292, N° Pack 2000013830391821, PERC IIBB AFIP: $109,28. CAE 86272811918677, FEC VENC 17/07/2026, original. Categoría de gasto no verificable con confianza desde la imagen: el emisor comercializa bidones/accesorios, por lo que 'Combustible' es plausible pero no concluyente."
   },
   "aritmetica": {
     "calculable": true,

@@ -377,3 +377,33 @@ class TestCampoEsComprobante:
 
         assert "no_comprobante" not in _prompt("validar")
         assert "no_comprobante" in _prompt("extraer")
+
+    def test_un_no_comprobante_igual_transcribe_lo_impreso(self):
+        """⚠️ Regresión medida: la guía pedía dejar en `null` los importes.
+
+        El texto decía, de un `no_comprobante`, que «los campos fiscales van en
+        null: no hay emisor, CUIT, fecha ni importes que transcribir». El modelo
+        lo obedeció **literalmente**: en `125cbe9f` citó «Imp. Total: $30.920,00»
+        en `observaciones` y dejó `importe_total` en `null` — o sea que leyó el
+        dato y lo tiró. Es la peor pérdida posible: la lectura existía y no se
+        podía recuperar.
+
+        Medido con A/B sobre ese documento (mismo modelo, 5 y 4 corridas):
+
+        | prompt | `importe_total` |
+        |---|---|
+        | con la frase | `null` en 4 de 5 |
+        | sin la frase | `30920.0` en 4 de 4 |
+
+        La clasificación (`no_comprobante`) **varía por su cuenta** en las dos
+        ramas: eso es ruido del modelo, no de la guía. Lo que la guía controla es
+        la transcripción, y por eso lo que se fija acá es que pida transcribir.
+        """
+        texto = INSTRUCCIONES_SISTEMA_EXTRACCION
+        # La instrucción que causaba la pérdida NO puede volver.
+        assert "no hay\n  emisor, CUIT, fecha ni importes que transcribir" not in texto
+        # Y la que la reemplaza tiene que estar, nombrando el caso medido.
+        assert "sea o no un" in texto
+        assert "pierde la" in texto  # «pierde la lectura»
+        # Sigue prohibido inventar: lo que cambió es transcribir lo IMPRESO.
+        assert "inventes" in texto

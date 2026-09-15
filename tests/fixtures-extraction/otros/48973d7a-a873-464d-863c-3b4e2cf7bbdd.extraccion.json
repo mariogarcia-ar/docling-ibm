@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/otros/48973d7a-a873-464d-863c-3b4e2cf7bbdd.jpg",
   "archivo_relativo": "otros/48973d7a-a873-464d-863c-3b4e2cf7bbdd.jpg",
-  "procesado_utc": "2026-09-15T13:48:11+00:00",
+  "procesado_utc": "2026-09-15T15:02:10+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:49bf219ef6de34fc",
+  "prompt_hash": "sha256:f9c4a199f7c38725",
   "uso": {
-    "prompt_tokens": 4025,
-    "completion_tokens": 1663,
-    "total_tokens": 5688,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 1209
+    "prompt_tokens": 4200,
+    "completion_tokens": 2180,
+    "total_tokens": 6380,
+    "prompt_cache_hit_tokens": 3072,
+    "prompt_cache_miss_tokens": 1128
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,7 +31,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.002375,
+  "costo_usd": 0.002973,
   "resultado": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
@@ -41,7 +41,7 @@
     "cuit_emisor": "23-25435587-9",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "10/11/2025",
-    "nro_factura": "00021-0005658",
+    "nro_factura": "00021-00005658",
     "moneda": "ARS",
     "subtotal": 40743.8,
     "no_gravado": 0,
@@ -53,13 +53,13 @@
     "otros_impuestos": 0,
     "importe_total": 49300.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Gastronomía / Restaurante",
+    "rubro_emisor": "Restaurante / gastronómico",
     "categoria_gasto_sugerida": "Restaurante",
-    "cantidad_comensales_personas": 0,
-    "cantidad_litros": 0,
+    "cantidad_comensales_personas": null,
+    "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique Factura A (Cód. 081) N° 00021-0005658, emitido 10/11/2025 22:11:49. Emisor AYAM MARCELO ROBERTO (CUIT 23-25435587-9, Responsable Inscripto), domicilio Las Magnolias 754, Local 1166, CP 1629, Pilar, Pcia. de Buenos Aires. Receptor: CVC S.A. CUIT 30-58221570-3. Detalle: 'CENA' por 40743,80 al 21%. Aritmética verificada: Neto Gravado 40743,80 + IVA 21% (8556,20) = Total 49300,00. No hay líneas de No Gravado, Exento, Percepciones ni Otros Tributos. Dígito verificador del CUIT del emisor validado correctamente (termina en -9). El ticket consigna Mesa 21 y Mozo, por lo que el rubro es gastronómico (Restaurante). La cantidad de comensales no surge del comprobante ('1,0000 (00)' refiere a cantidad de unidades del ítem, no a cubiertos), por lo que no es verificable. No se observa símbolo de moneda impreso, pero por tratarse de comprobante fiscal argentino con separador decimal de coma se asume ARS. Pago registrado como Cuenta Corriente por 49300,00."
+    "observaciones": "Tique Factura A (Cód. 081) N° 00021-00005658, emitido por AYAM MARCELO ROBERTO (CUIT 23-25435587-9, IVA Responsable Inscripto, inicio de actividades 28/01/2013, domicilio Las Magnolias 754 Local 1166, C.P. 1629, Pilar, Pcia. de Buenos Aires). Fecha de emisión 10/11/2025, hora 22:11:49. Detalle: 1,0000 x 40743,8017 CENA (Mesa 21, mozo Guadalupe) = 40.743,80. Se discrimina SUBTOT. IMP. NETO GRAVADO 40.743,80 + IVA ALICUOTA 21,00% 8.556,20 = TOTAL 49.300,00; la aritmética cierra. Pago: cuenta corriente / suma de sus pagos 49.300,00, vuelto 0,00. En el cuerpo del comprobante figura además 'CVC S.A. CUIT 30-58221570-3', línea asociada a comprobantes asociados (Cód. 081 - Tique Factura A 00021-00005658), que se transcribe tal como está impresa y no corresponde al emisor. No hay leyenda ni símbolo de moneda impreso, pero por tratarse de comprobante fiscal argentino con IVA en pesos se consigna ARS. No se detallan cantidad de comensales ni litros; no hay percepciones, impuestos internos ni otros tributos."
   },
   "extraccion": {
     "es_comprobante": "comprobante",
@@ -70,7 +70,7 @@
     "cuit_emisor": "23-25435587-9",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "10/11/2025",
-    "nro_factura": "00021-0005658",
+    "nro_factura": "00021-00005658",
     "moneda": "ARS",
     "subtotal": 40743.8,
     "no_gravado": 0,
@@ -82,13 +82,13 @@
     "otros_impuestos": 0,
     "importe_total": 49300.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Gastronomía / Restaurante",
+    "rubro_emisor": "Restaurante / gastronómico",
     "categoria_gasto_sugerida": "Restaurante",
-    "cantidad_comensales_personas": 0,
-    "cantidad_litros": 0,
+    "cantidad_comensales_personas": null,
+    "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique Factura A (Cód. 081) N° 00021-0005658, emitido 10/11/2025 22:11:49. Emisor AYAM MARCELO ROBERTO (CUIT 23-25435587-9, Responsable Inscripto), domicilio Las Magnolias 754, Local 1166, CP 1629, Pilar, Pcia. de Buenos Aires. Receptor: CVC S.A. CUIT 30-58221570-3. Detalle: 'CENA' por 40743,80 al 21%. Aritmética verificada: Neto Gravado 40743,80 + IVA 21% (8556,20) = Total 49300,00. No hay líneas de No Gravado, Exento, Percepciones ni Otros Tributos. Dígito verificador del CUIT del emisor validado correctamente (termina en -9). El ticket consigna Mesa 21 y Mozo, por lo que el rubro es gastronómico (Restaurante). La cantidad de comensales no surge del comprobante ('1,0000 (00)' refiere a cantidad de unidades del ítem, no a cubiertos), por lo que no es verificable. No se observa símbolo de moneda impreso, pero por tratarse de comprobante fiscal argentino con separador decimal de coma se asume ARS. Pago registrado como Cuenta Corriente por 49300,00."
+    "observaciones": "Tique Factura A (Cód. 081) N° 00021-00005658, emitido por AYAM MARCELO ROBERTO (CUIT 23-25435587-9, IVA Responsable Inscripto, inicio de actividades 28/01/2013, domicilio Las Magnolias 754 Local 1166, C.P. 1629, Pilar, Pcia. de Buenos Aires). Fecha de emisión 10/11/2025, hora 22:11:49. Detalle: 1,0000 x 40743,8017 CENA (Mesa 21, mozo Guadalupe) = 40.743,80. Se discrimina SUBTOT. IMP. NETO GRAVADO 40.743,80 + IVA ALICUOTA 21,00% 8.556,20 = TOTAL 49.300,00; la aritmética cierra. Pago: cuenta corriente / suma de sus pagos 49.300,00, vuelto 0,00. En el cuerpo del comprobante figura además 'CVC S.A. CUIT 30-58221570-3', línea asociada a comprobantes asociados (Cód. 081 - Tique Factura A 00021-00005658), que se transcribe tal como está impresa y no corresponde al emisor. No hay leyenda ni símbolo de moneda impreso, pero por tratarse de comprobante fiscal argentino con IVA en pesos se consigna ARS. No se detallan cantidad de comensales ni litros; no hay percepciones, impuestos internos ni otros tributos."
   },
   "aritmetica": {
     "calculable": true,

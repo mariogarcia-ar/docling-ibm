@@ -1,12 +1,12 @@
 {
   "origen": "tests/fixtures/pdf_aptos_layout/5b2e1460-197a-436e-b8cc-df5a99f77a43_p01.pdf",
   "archivo_relativo": "pdf_aptos_layout/5b2e1460-197a-436e-b8cc-df5a99f77a43_p01.pdf",
-  "procesado_utc": "2026-09-15T13:43:45+00:00",
+  "procesado_utc": "2026-09-15T14:56:32+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
   "fuente": "api",
-  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_2gxv7ghk/pdf_aptos_layout/5b2e1460-197a-436e-b8cc-df5a99f77a43_p01.jpg",
+  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_mbl_qjjy/pdf_aptos_layout/5b2e1460-197a-436e-b8cc-df5a99f77a43_p01.jpg",
   "pagina": 1,
   "imagen": {
     "bytes": 1437578,
@@ -18,13 +18,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:49bf219ef6de34fc",
+  "prompt_hash": "sha256:f9c4a199f7c38725",
   "uso": {
-    "prompt_tokens": 4038,
-    "completion_tokens": 3122,
-    "total_tokens": 7160,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 1222
+    "prompt_tokens": 4213,
+    "completion_tokens": 2175,
+    "total_tokens": 6388,
+    "prompt_cache_hit_tokens": 3072,
+    "prompt_cache_miss_tokens": 1141
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -33,15 +33,15 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.00413,
+  "costo_usd": 0.002971,
   "resultado": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "090",
     "codigo_afip": null,
     "razon_social_emisor": "Transportes Automotores 20 de Junio S.A.",
-    "cuit_emisor": "30-54643467-3",
-    "digito_verificador_cuit_valido": false,
+    "cuit_emisor": "30-54634367-3",
+    "digito_verificador_cuit_valido": true,
     "fecha_emision": "07/05/2026",
     "nro_factura": "AV1-452470",
     "moneda": "ARS",
@@ -55,13 +55,13 @@
     "otros_impuestos": 0,
     "importe_total": 29719.2,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Transporte de pasajeros",
+    "rubro_emisor": "Transporte de pasajeros (empresa de ómnibus de larga distancia)",
     "categoria_gasto_sugerida": "Transporte",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Boleto de transporte de pasajeros (Rosario Terminal - Terminal El Talar de Pacheco). Emisor: Transportes Automotores 20 de Junio S.A., CUIT 30-54643467-3 (dígito verificador no válido). Importe total $ 29.719,20. No discrimina IVA ni otros impuestos. Tipo de comprobante asimilable a 090/099."
+    "observaciones": "Boleto de pasaje de ómnibus (Otros Comprobantes, tipo 090/099), no es factura A/B/C ni tiene código AFIP. Emisor: Transportes Automotores 20 de Junio S.A., CUIT 30-54634367-3 (dígito verificador válido). Boleto N° AV1-452470, Butaca 55, Origen Rosario Terminal - Destino Terminal El Talar de Pacheco, Pasajero ALMADA GUSTAVO DNI 35702559. Importe impreso: $29.719,20 abonado con Tarjeta de Crédito (157385119981); Identifier LA20-38840017-2634272. No discrimina IVA ni otros impuestos (corresponde a este tipo de comprobante). La fecha de emisión/venta consignada por el vendedor es 07/05/2026 11:45; la fecha de viaje/salida es lunes 11/05/2026 12:30. Se aclara que al pie figura aparte 'Las tasas establecidas por la empresa de transporte. TOTAL: $30.00' correspondiente a tasas, distinto del importe del pasaje transcripto en importe_total. Documento en buen estado de legibilidad."
   },
   "extraccion": {
     "es_comprobante": "comprobante",
@@ -69,8 +69,8 @@
     "tipo_comprobante": "090",
     "codigo_afip": null,
     "razon_social_emisor": "Transportes Automotores 20 de Junio S.A.",
-    "cuit_emisor": "30-54643467-3",
-    "digito_verificador_cuit_valido": false,
+    "cuit_emisor": "30-54634367-3",
+    "digito_verificador_cuit_valido": true,
     "fecha_emision": "07/05/2026",
     "nro_factura": "AV1-452470",
     "moneda": "ARS",
@@ -84,13 +84,13 @@
     "otros_impuestos": 0,
     "importe_total": 29719.2,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Transporte de pasajeros",
+    "rubro_emisor": "Transporte de pasajeros (empresa de ómnibus de larga distancia)",
     "categoria_gasto_sugerida": "Transporte",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Boleto de transporte de pasajeros (Rosario Terminal - Terminal El Talar de Pacheco). Emisor: Transportes Automotores 20 de Junio S.A., CUIT 30-54643467-3 (dígito verificador no válido). Importe total $ 29.719,20. No discrimina IVA ni otros impuestos. Tipo de comprobante asimilable a 090/099."
+    "observaciones": "Boleto de pasaje de ómnibus (Otros Comprobantes, tipo 090/099), no es factura A/B/C ni tiene código AFIP. Emisor: Transportes Automotores 20 de Junio S.A., CUIT 30-54634367-3 (dígito verificador válido). Boleto N° AV1-452470, Butaca 55, Origen Rosario Terminal - Destino Terminal El Talar de Pacheco, Pasajero ALMADA GUSTAVO DNI 35702559. Importe impreso: $29.719,20 abonado con Tarjeta de Crédito (157385119981); Identifier LA20-38840017-2634272. No discrimina IVA ni otros impuestos (corresponde a este tipo de comprobante). La fecha de emisión/venta consignada por el vendedor es 07/05/2026 11:45; la fecha de viaje/salida es lunes 11/05/2026 12:30. Se aclara que al pie figura aparte 'Las tasas establecidas por la empresa de transporte. TOTAL: $30.00' correspondiente a tasas, distinto del importe del pasaje transcripto en importe_total. Documento en buen estado de legibilidad."
   },
   "aritmetica": {
     "calculable": true,

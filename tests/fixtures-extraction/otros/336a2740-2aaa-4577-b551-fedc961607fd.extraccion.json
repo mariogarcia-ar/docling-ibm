@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/otros/336a2740-2aaa-4577-b551-fedc961607fd.jpg",
   "archivo_relativo": "otros/336a2740-2aaa-4577-b551-fedc961607fd.jpg",
-  "procesado_utc": "2026-09-15T13:48:09+00:00",
+  "procesado_utc": "2026-09-15T15:02:09+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,24 +16,22 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:49bf219ef6de34fc",
+  "prompt_hash": "sha256:f9c4a199f7c38725",
   "uso": {
-    "prompt_tokens": 8698,
-    "completion_tokens": 3366,
-    "total_tokens": 12064,
-    "prompt_cache_hit_tokens": 6784,
-    "prompt_cache_miss_tokens": 1914
+    "prompt_tokens": 4174,
+    "completion_tokens": 2621,
+    "total_tokens": 6795,
+    "prompt_cache_hit_tokens": 3072,
+    "prompt_cache_miss_tokens": 1102
   },
   "esquema_validado": true,
-  "reintentos_esquema": 1,
-  "avisos_esquema": [],
   "precios_usd_1m": {
     "entrada": 0.3,
     "salida": 1.2,
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.004654,
+  "costo_usd": 0.003494,
   "resultado": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
@@ -55,13 +53,13 @@
     "otros_impuestos": 1858.26,
     "importe_total": 90865.15,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / venta de combustibles (Axion Pilar)",
+    "rubro_emisor": "Estación de servicio / venta de combustible (bandera AXION)",
     "categoria_gasto_sugerida": "Combustible",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 35.7601,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique Factura \"A\" (Cód. 081) emitido por PAN AMERICAN ENERGY, S.L., Sucursal Arg (Axion Pilar), CUIT 30-69554247-6 (dígito verificador válido), Ing. Brutos 30695542476, Ruta 8 Km 50, Pilar, Buenos Aires. Receptor: CVC SOCIEDAD ANONIMA, CUIT 30-58221570-3, Av. Coronel Díaz 2717, CABA. Punto de venta 05193, número 00003191. Ítem único: 35,7601 (00) x 1732,1498 - E15 QUANTIUM (nafta premium), de ahí los 35,7601 litros. Aritmética: SUBTOT. IMP. NETO GRAVADO 61.941,85 + IVA 21% 13.007,79 + IMPORTE TOTAL OTROS TRIBUTOS 15.915,51 = TOTAL 90.865,15 (cierra). El bloque \"IMPORTE TOTAL OTROS TRIBUTOS\" 15.915,51 se compone de \"10 - Impuesto interno a nivel item\" 14.057,25 (cargado en impuestos_internos) y \"09 - IVA RI\" 1.858,26 (cargado en otros_impuestos). No hay percepciones de IIBB, no gravado ni exento discriminados. Sin leyenda de moneda impresa; se asume ARS por ser comprobante argentino. No figura centro de costo. Pago: PayStore, Nro Pago 000000798274, transacción 1498115, caja 12, cajero Luis Smith."
+    "observaciones": "Tique Factura \"A\" (Cód. 081 = Tique Factura A según tabla AFIP), emitido por PAN AMERICAN ENERGY, S.L. Sucursal Arg (estación de servicio AXION PILAR), CUIT 30-69554247-6 con dígito verificador válido. Punto de venta 05193, comprobante N° 00003191, fecha impresa 21/07/2026 18:01:55. Detalle: 35,7601 (cantidad, interpretable como litros de combustible) x 1732,1498 = 61941,85. Líneas de importes transcriptas: SUBTOT. IMP. NETO GRAVADO 61941,85; ALICUOTA 21,00% 13007,79; 10 - Impuesto interno a nivel ítem 14057,25; 09 - IVA RI 1858,26; IMPORTE TOTAL OTROS TRIBUTOS 15915,51 (suma de los dos anteriores); TOTAL 90865,15. La aritmética cierra: 61941,85 + 13007,79 + 15915,51 = 90865,15. El código 09 - IVA RI (percepción/retención de IVA) se transcribió en 'otros_impuestos' por no ser una percepción de Ingresos Brutos. No hay líneas de no gravado ni exento impresas. La moneda no tiene símbolo explícito pero por emisor, domicilio y formato de importes corresponde a ARS. Receptor: CVC SOCIEDAD ANONIMA, CUIT 30-58221570-3, IVA Responsable Inscripto, Av. Coronel Díaz CABA 2717, Aaron Castellanos, Santa Fe. Pago: PayStore, Nro Pago 000000798274, Total 90865,15, Su Vuelto 0,00. Transacción 1498115, Cajero Luis Smith, CAJA 12, REGISTRO EPEPAA0000025410. No hay datos de centro de costo en el comprobante."
   },
   "extraccion": {
     "es_comprobante": "comprobante",
@@ -84,13 +82,13 @@
     "otros_impuestos": 1858.26,
     "importe_total": 90865.15,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / venta de combustibles (Axion Pilar)",
+    "rubro_emisor": "Estación de servicio / venta de combustible (bandera AXION)",
     "categoria_gasto_sugerida": "Combustible",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 35.7601,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique Factura \"A\" (Cód. 081) emitido por PAN AMERICAN ENERGY, S.L., Sucursal Arg (Axion Pilar), CUIT 30-69554247-6 (dígito verificador válido), Ing. Brutos 30695542476, Ruta 8 Km 50, Pilar, Buenos Aires. Receptor: CVC SOCIEDAD ANONIMA, CUIT 30-58221570-3, Av. Coronel Díaz 2717, CABA. Punto de venta 05193, número 00003191. Ítem único: 35,7601 (00) x 1732,1498 - E15 QUANTIUM (nafta premium), de ahí los 35,7601 litros. Aritmética: SUBTOT. IMP. NETO GRAVADO 61.941,85 + IVA 21% 13.007,79 + IMPORTE TOTAL OTROS TRIBUTOS 15.915,51 = TOTAL 90.865,15 (cierra). El bloque \"IMPORTE TOTAL OTROS TRIBUTOS\" 15.915,51 se compone de \"10 - Impuesto interno a nivel item\" 14.057,25 (cargado en impuestos_internos) y \"09 - IVA RI\" 1.858,26 (cargado en otros_impuestos). No hay percepciones de IIBB, no gravado ni exento discriminados. Sin leyenda de moneda impresa; se asume ARS por ser comprobante argentino. No figura centro de costo. Pago: PayStore, Nro Pago 000000798274, transacción 1498115, caja 12, cajero Luis Smith."
+    "observaciones": "Tique Factura \"A\" (Cód. 081 = Tique Factura A según tabla AFIP), emitido por PAN AMERICAN ENERGY, S.L. Sucursal Arg (estación de servicio AXION PILAR), CUIT 30-69554247-6 con dígito verificador válido. Punto de venta 05193, comprobante N° 00003191, fecha impresa 21/07/2026 18:01:55. Detalle: 35,7601 (cantidad, interpretable como litros de combustible) x 1732,1498 = 61941,85. Líneas de importes transcriptas: SUBTOT. IMP. NETO GRAVADO 61941,85; ALICUOTA 21,00% 13007,79; 10 - Impuesto interno a nivel ítem 14057,25; 09 - IVA RI 1858,26; IMPORTE TOTAL OTROS TRIBUTOS 15915,51 (suma de los dos anteriores); TOTAL 90865,15. La aritmética cierra: 61941,85 + 13007,79 + 15915,51 = 90865,15. El código 09 - IVA RI (percepción/retención de IVA) se transcribió en 'otros_impuestos' por no ser una percepción de Ingresos Brutos. No hay líneas de no gravado ni exento impresas. La moneda no tiene símbolo explícito pero por emisor, domicilio y formato de importes corresponde a ARS. Receptor: CVC SOCIEDAD ANONIMA, CUIT 30-58221570-3, IVA Responsable Inscripto, Av. Coronel Díaz CABA 2717, Aaron Castellanos, Santa Fe. Pago: PayStore, Nro Pago 000000798274, Total 90865,15, Su Vuelto 0,00. Transacción 1498115, Cajero Luis Smith, CAJA 12, REGISTRO EPEPAA0000025410. No hay datos de centro de costo en el comprobante."
   },
   "aritmetica": {
     "calculable": true,

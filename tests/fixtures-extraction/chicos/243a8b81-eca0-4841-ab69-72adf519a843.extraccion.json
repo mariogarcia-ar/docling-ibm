@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/chicos/243a8b81-eca0-4841-ab69-72adf519a843.png",
   "archivo_relativo": "chicos/243a8b81-eca0-4841-ab69-72adf519a843.png",
-  "procesado_utc": "2026-09-15T13:44:13+00:00",
+  "procesado_utc": "2026-09-15T14:56:59+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:49bf219ef6de34fc",
+  "prompt_hash": "sha256:f9c4a199f7c38725",
   "uso": {
-    "prompt_tokens": 3503,
-    "completion_tokens": 374,
-    "total_tokens": 3877,
-    "prompt_cache_hit_tokens": 3328,
-    "prompt_cache_miss_tokens": 175
+    "prompt_tokens": 3678,
+    "completion_tokens": 398,
+    "total_tokens": 4076,
+    "prompt_cache_hit_tokens": 3072,
+    "prompt_cache_miss_tokens": 606
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,7 +31,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.000521,
+  "costo_usd": 0.000678,
   "resultado": {
     "es_comprobante": "no_comprobante",
     "legibilidad": "buena",
@@ -59,7 +59,7 @@
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "El documento no es un comprobante fiscal ni comercial: es una hoja/constancia que solo contiene la leyenda «GASTOS VARIOS, FALTA FACTURA.» No hay emisor, CUIT, fecha, número, moneda ni importes que transcribir. No se fuerza ningún tipo A/B/C. Se recomienda solicitar el comprobante válido (factura, ticket o recibo) que respalde el gasto."
+    "observaciones": "El documento no es un comprobante fiscal ni comercial: es una hoja que sólo contiene la leyenda 'GASTOS VARIOS, FALTA FACTURA.' No hay emisor, CUIT, fecha, número, moneda ni importes impresos, por lo que no hay datos que transcribir. No se fuerza letra A/B/C ni código AFIP inexistentes. El gasto queda sin respaldo de comprobante."
   },
   "extraccion": {
     "es_comprobante": "no_comprobante",
@@ -88,7 +88,7 @@
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "El documento no es un comprobante fiscal ni comercial: es una hoja/constancia que solo contiene la leyenda «GASTOS VARIOS, FALTA FACTURA.» No hay emisor, CUIT, fecha, número, moneda ni importes que transcribir. No se fuerza ningún tipo A/B/C. Se recomienda solicitar el comprobante válido (factura, ticket o recibo) que respalde el gasto."
+    "observaciones": "El documento no es un comprobante fiscal ni comercial: es una hoja que sólo contiene la leyenda 'GASTOS VARIOS, FALTA FACTURA.' No hay emisor, CUIT, fecha, número, moneda ni importes impresos, por lo que no hay datos que transcribir. No se fuerza letra A/B/C ni código AFIP inexistentes. El gasto queda sin respaldo de comprobante."
   },
   "aritmetica": {
     "calculable": false,

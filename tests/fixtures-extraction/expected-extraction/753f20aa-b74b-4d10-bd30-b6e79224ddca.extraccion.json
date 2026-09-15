@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/expected-extraction/753f20aa-b74b-4d10-bd30-b6e79224ddca.jpg",
   "archivo_relativo": "expected-extraction/753f20aa-b74b-4d10-bd30-b6e79224ddca.jpg",
-  "procesado_utc": "2026-09-15T13:45:12+00:00",
+  "procesado_utc": "2026-09-15T14:57:55+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:49bf219ef6de34fc",
+  "prompt_hash": "sha256:f9c4a199f7c38725",
   "uso": {
-    "prompt_tokens": 7877,
-    "completion_tokens": 7136,
-    "total_tokens": 15013,
-    "prompt_cache_hit_tokens": 6272,
-    "prompt_cache_miss_tokens": 1605
+    "prompt_tokens": 8334,
+    "completion_tokens": 6291,
+    "total_tokens": 14625,
+    "prompt_cache_hit_tokens": 6784,
+    "prompt_cache_miss_tokens": 1550
   },
   "esquema_validado": true,
   "reintentos_esquema": 1,
@@ -33,13 +33,13 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.009082,
+  "costo_usd": 0.008055,
   "resultado": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "001",
-    "razon_social_emisor": "PILAR WILO CLUB SRL",
+    "razon_social_emisor": "PILAR MILE CLUB SRL",
     "cuit_emisor": "30-71544083-7",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "04/05/2026",
@@ -55,22 +55,24 @@
     "otros_impuestos": 0,
     "importe_total": 39100.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Restaurante / gastronomía (club social con servicio de mesa)",
+    "rubro_emisor": "Restaurante / gastronómico (club con servicio de mesa)",
     "categoria_gasto_sugerida": "Restaurante",
     "cantidad_comensales_personas": 2,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [
-      "importes del detalle de ítems (columnas Monto y Total: Cubierto Menores, Cubierto, Tern MED Carne, Puré de papas, Limonada x 1000cc); renglón del SUBTOTAL poco nítido"
+      "detalle de ítems: importes unitarios y totales por línea (Cubierto Menores, Cubierto, Term MED Carne, Puré de papas, Limonada x 1000cc)",
+      "razón social del emisor (texto pequeño: se lee 'PILAR MILE CLUB SRL', con baja confianza)",
+      "domicilio del emisor ('...Shopping Torres del Sol, Buenos Aires': parcialmente ilegible)"
     ],
-    "observaciones": "Factura Electrónica A (COD. 001), Nro. 0006-00001232, emitida el 04/05/2026 por PILAR WILO CLUB SRL, CUIT 30-71544083-7 (dígito verificador validado: correcto), IIBB 30715440837, inicio de actividades 12-2016, Responsable Inscripto. Receptor: CUC SA AVENIDA CIRCUNVALACION 1245, CUIT 30582215703. Todos los ítems del detalle están gravados al 21%. El renglón del SUBTOTAL está poco nítido, pero la aritmética cierra de forma exacta: SUBTOTAL 32.314,05 + IVA 6.785,95 (21% exacto sobre el neto) = TOTAL 39.100,00, con DESCUENTO 0,00. No figuran no gravado, exento, percepciones de IIBB, impuestos internos ni otros tributos. Pie: AFIP - Comprobante Autorizado, CAE 86104178504827, Vto. 14/05/2026, Original, Mesa #26 - GERALDINE. Se registran 2 cubiertos facturados (1 Cubierto Menores + 1 Cubierto), de lo que se infiere cantidad de comensales = 2."
+    "observaciones": "Factura Electrónica A, COD. 001, Nro. 0006-00001232 del 04/05/2026. Emisor: PILAR MILE CLUB SRL, CUIT 30-71544083-7 (dígito verificador validado: correcto), Ingresos Brutos 30715440837, inicio de actividades 12-2016, Responsable Inscripto. Receptor: CUIT 30592215703 (CUC SA, Avenida Circunvalación 1245). Rubro: restaurante (ítems 'Cubierto', 'Term MED Carne', 'Puré de papas', 'Limonada', más 'Mesa #26 - GERALDINE'), por lo que la categoría sugerida es Restaurante. Discrimina IVA: SUBTOTAL (neto gravado) 32.314,05 + IVA 21% 6.785,95 = TOTAL 39.100,00; DESCUENTO 0,00. Los ítems figuran al 21,00%, lo que corrobora la lectura del subtotal (el trazo del primer dígito del subtotal es poco nítido, pero el 21% sobre 32.314,05 da exactamente 6.785,95). No hay líneas de NO GRAVADO, EXENTO, PERCEPCIONES ni OTROS TRIBUTOS impresas, por lo que esos campos van en cero. No se imprime leyenda explícita de moneda; se asume ARS por tratarse de comprobante fiscal argentino. Cantidad de comensales estimada en 2 a partir de los dos cubiertos facturados (dato impreso, no declarado por el empleado). No se observa centro de costo; 'Mesa #26 - GERALDINE' es una identificación de mesa/mozo, no un centro de costo. Comprobante autorizado, CAE 86104178504627, vencimiento 14/05/2026."
   },
   "extraccion": {
     "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "001",
-    "razon_social_emisor": "PILAR WILO CLUB SRL",
+    "razon_social_emisor": "PILAR MILE CLUB SRL",
     "cuit_emisor": "30-71544083-7",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "04/05/2026",
@@ -86,15 +88,17 @@
     "otros_impuestos": 0,
     "importe_total": 39100.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Restaurante / gastronomía (club social con servicio de mesa)",
+    "rubro_emisor": "Restaurante / gastronómico (club con servicio de mesa)",
     "categoria_gasto_sugerida": "Restaurante",
     "cantidad_comensales_personas": 2,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [
-      "importes del detalle de ítems (columnas Monto y Total: Cubierto Menores, Cubierto, Tern MED Carne, Puré de papas, Limonada x 1000cc); renglón del SUBTOTAL poco nítido"
+      "detalle de ítems: importes unitarios y totales por línea (Cubierto Menores, Cubierto, Term MED Carne, Puré de papas, Limonada x 1000cc)",
+      "razón social del emisor (texto pequeño: se lee 'PILAR MILE CLUB SRL', con baja confianza)",
+      "domicilio del emisor ('...Shopping Torres del Sol, Buenos Aires': parcialmente ilegible)"
     ],
-    "observaciones": "Factura Electrónica A (COD. 001), Nro. 0006-00001232, emitida el 04/05/2026 por PILAR WILO CLUB SRL, CUIT 30-71544083-7 (dígito verificador validado: correcto), IIBB 30715440837, inicio de actividades 12-2016, Responsable Inscripto. Receptor: CUC SA AVENIDA CIRCUNVALACION 1245, CUIT 30582215703. Todos los ítems del detalle están gravados al 21%. El renglón del SUBTOTAL está poco nítido, pero la aritmética cierra de forma exacta: SUBTOTAL 32.314,05 + IVA 6.785,95 (21% exacto sobre el neto) = TOTAL 39.100,00, con DESCUENTO 0,00. No figuran no gravado, exento, percepciones de IIBB, impuestos internos ni otros tributos. Pie: AFIP - Comprobante Autorizado, CAE 86104178504827, Vto. 14/05/2026, Original, Mesa #26 - GERALDINE. Se registran 2 cubiertos facturados (1 Cubierto Menores + 1 Cubierto), de lo que se infiere cantidad de comensales = 2."
+    "observaciones": "Factura Electrónica A, COD. 001, Nro. 0006-00001232 del 04/05/2026. Emisor: PILAR MILE CLUB SRL, CUIT 30-71544083-7 (dígito verificador validado: correcto), Ingresos Brutos 30715440837, inicio de actividades 12-2016, Responsable Inscripto. Receptor: CUIT 30592215703 (CUC SA, Avenida Circunvalación 1245). Rubro: restaurante (ítems 'Cubierto', 'Term MED Carne', 'Puré de papas', 'Limonada', más 'Mesa #26 - GERALDINE'), por lo que la categoría sugerida es Restaurante. Discrimina IVA: SUBTOTAL (neto gravado) 32.314,05 + IVA 21% 6.785,95 = TOTAL 39.100,00; DESCUENTO 0,00. Los ítems figuran al 21,00%, lo que corrobora la lectura del subtotal (el trazo del primer dígito del subtotal es poco nítido, pero el 21% sobre 32.314,05 da exactamente 6.785,95). No hay líneas de NO GRAVADO, EXENTO, PERCEPCIONES ni OTROS TRIBUTOS impresas, por lo que esos campos van en cero. No se imprime leyenda explícita de moneda; se asume ARS por tratarse de comprobante fiscal argentino. Cantidad de comensales estimada en 2 a partir de los dos cubiertos facturados (dato impreso, no declarado por el empleado). No se observa centro de costo; 'Mesa #26 - GERALDINE' es una identificación de mesa/mozo, no un centro de costo. Comprobante autorizado, CAE 86104178504627, vencimiento 14/05/2026."
   },
   "aritmetica": {
     "calculable": true,

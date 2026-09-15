@@ -390,6 +390,13 @@ son facturas ni notas («GASTOS VARIOS, FALTA FACTURA», un remito): sin este ca
 el modelo forzaba una letra A/B/C o dejaba todo en `null`, y la lectura —que era
 correcta— quedaba irrecuperable.
 
+⚠️ **`no_comprobante` no quiere decir que la lectura venga vacía.** Un voucher de
+posnet, un DNI o un resumen tienen importes y fechas impresos, y esos campos se
+transcriben igual: son el rastro de por qué el gasto no se acredita. Lo que no se
+transcribe es lo que el papel no dice (nadie inventa un CUIT). Si ves un
+`importe_total` con valor **y** `es_comprobante: "no_comprobante"`, es correcto:
+el dato está impreso y la conclusión es que no sirve como comprobante.
+
 ⚠️ **El pipeline publica el mismo campo** desde el gate (`validation/qween.py`),
 con el mismo vocabulario (`schemas.evidence.ClaseDocumento`). Es a propósito: si
 las dos puntas usaran vocabularios distintos, compararlas daría «difiere» en

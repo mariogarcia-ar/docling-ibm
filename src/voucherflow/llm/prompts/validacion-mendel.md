@@ -97,6 +97,38 @@ inválido) o forzando una letra A/B/C que el papel no tiene.
 | `no_comprobante` | No es un comprobante: DNI, memo, foto de pizarra, presupuesto, resumen de tarjeta, captura que solo muestra un pago |
 | `indeterminado` | La imagen no alcanza para decidirlo |
 
+⚠️ **`no_comprobante` NO significa «no transcribas nada».** La primera versión de
+esta guía decía que en un `no_comprobante` «los campos fiscales van en null: no hay
+emisor, CUIT, fecha ni importes que transcribir», y el modelo lo obedeció al pie de
+la letra: en el voucher de posnet `125cbe9f` **citó** «Imp. Total: $30.920,00» en
+`observaciones` y dejó `importe_total` en `null`. Leyó el dato y lo tiró — la peor
+pérdida posible, porque la lectura existía y ya no se podía recuperar.
+
+La confusión era mezclar dos cosas distintas:
+
+| | Qué se decide |
+|---|---|
+| **Qué es** el documento | `es_comprobante` — una lectura |
+| **Si sirve** para el gasto | otra etapa (la conclusión) — una decisión |
+
+Un DNI, un resumen de tarjeta o el voucher de un posnet **igual tienen datos
+impresos**, y esos datos son el rastro de por qué el gasto no se acredita. Lo que
+no se transcribe es lo que el papel **no dice**: no se inventa un emisor, un CUIT
+ni una letra A/B/C. La guía ahora pide transcribir lo impreso **sea o no** un
+comprobante, y explica el motivo en `observaciones`.
+
+⚠️ **Medido, porque la intuición acá engaña** (A/B sobre el mismo documento, mismo
+modelo):
+
+| prompt | `importe_total` |
+|---|---|
+| con la frase supresora | `null` en **4 de 5** corridas |
+| sin la frase | **30920.0 en 4 de 4** |
+
+La **clasificación** (`no_comprobante`) varía por su cuenta en las dos ramas: es
+varianza del modelo, no de la guía. Lo que la guía controla es la transcripción, y
+eso es lo que el test fija.
+
 ⚠️ **No es una decisión de negocio, es una lectura.** No dice si el comprobante
 *sirve* para el gasto (eso es `comprobante_valido`, que resuelve F5 y sigue
 fuera del contrato) ni qué comprobante es (eso es `tipo_comprobante`). Es la
