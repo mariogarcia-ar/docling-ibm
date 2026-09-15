@@ -75,6 +75,15 @@ def _leer_corrida(entrada: dict) -> dict:
     return _json(ARTEFACTO / entrada["ruta"])
 
 
+def _solo_digitos(valor: object) -> str:
+    """Dígitos de un valor, sin formato (el canon de **identidad** de un CUIT).
+
+    ⚠️ Es el canon que la comparación **no** aplica hoy (§12.5). Vive en el test
+    para poder afirmar «los dígitos son los mismos» sin depender del motor.
+    """
+    return "".join(c for c in str(valor or "") if c.isdigit())
+
+
 # --------------------------------------------------------------------------- #
 # Integridad del artefacto
 # --------------------------------------------------------------------------- #
@@ -632,3 +641,198 @@ class TestCoberturaDeclarada:
         for cuit in ("30-62221785-4", "30586221578", "30-71530218-5",
                      "30-71144495-3", "30-70715163-1"):
             assert cuit in texto, f"el README no lista el CUIT sospechoso {cuit}"
+
+
+# --------------------------------------------------------------------------- #
+# Nivel B: el reporte (lógica pura del script, sin Ollama ni Docling)
+# --------------------------------------------------------------------------- #
+
+
+def _nivel_b():
+    """Carga `scripts/verificacion/acuerdo-extraccion.py` **sin** ejecutar `main`.
+
+    El script es la única herramienta que necesita servicios reales, pero su
+    **clasificación** y su **preflight** son lógica pura y se pueden fijar con un
+    test. Cargarlo por `importlib` es el mismo patrón que usan los reportes de
+    `scripts/verificacion/` (T-305/T-405) para no pagar el costo de un `main`.
+    """
+    import importlib.util
+
+    ruta = RAIZ / "scripts" / "verificacion" / "acuerdo-extraccion.py"
+    spec = importlib.util.spec_from_file_location("acuerdo_extraccion", ruta)
+    modulo = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(modulo)
+    return modulo
+
+
+class TestNivelBClasificacionDeAusentes:
+    """⚠️ Los `ausente` son tres hechos distintos y no se pueden sumar.
+
+    Un `ausente` masivo se lee como «los dos están de acuerdo en que no está»
+    cuando en realidad puede ser «el pipeline no llegó a leerlo». El reporte los
+    separa por **valores**, no por el texto de la `nota` — si la causa se derivara
+    del mensaje, retocar una redacción cambiaría los números en silencio.
+    """
+
+    def test_las_tres_causas_se_distinguen(self):
+        nb = _nivel_b()
+        solo_ref = {"valor_referencia": "30-71144495-3", "valor_pipeline": None}
+        solo_pipe = {"valor_referencia": None, "valor_pipeline": "FACTURA"}
+        ambos = {"valor_referencia": None, "valor_pipeline": None}
+
+        assert nb.causa_de_ausente(solo_ref) == nb.AUSENTE_SOLO_REFERENCIA
+        assert nb.causa_de_ausente(solo_pipe) == nb.AUSENTE_SOLO_PIPELINE
+        assert nb.causa_de_ausente(ambos) == nb.AUSENTE_AMBOS
+
+    def test_la_causa_sale_de_los_valores_y_no_de_la_nota(self):
+        """Una nota mentirosa no cambia la clasificación (y al revés, tampoco)."""
+        nb = _nivel_b()
+        campo = {
+            "valor_referencia": "A",
+            "valor_pipeline": None,
+            "nota": "ninguna de las dos puntas lo declaró.",  # nota que contradice
+        }
+        assert nb.causa_de_ausente(campo) == nb.AUSENTE_SOLO_REFERENCIA
+
+    def test_un_valor_falsy_cuenta_como_leido(self):
+        """`0` y `""` son lecturas, no ausencias.
+
+        Si la clasificación usara `if campo.get(...)`, un monto `0` se contaría
+        como «no lo leyó» — justo el caso de la aritmética que no cierra (§2.1).
+        """
+        nb = _nivel_b()
+        assert nb.causa_de_ausente({"valor_referencia": 0, "valor_pipeline": None}) == (
+            nb.AUSENTE_SOLO_REFERENCIA
+        )
+        assert nb.causa_de_ausente({"valor_referencia": "", "valor_pipeline": None}) == (
+            nb.AUSENTE_SOLO_REFERENCIA
+        )
+
+
+class TestNivelBPreflight:
+    """El guard que impide publicar un piso como si fuera el pipeline.
+
+    ⚠️ **Medido: sin el rol `llm`, el pipeline resuelve 4 de 16 campos** (la
+    fuente textual no aporta nada). Correr igual y publicar el resultado mediría la
+    **ausencia de un modelo**, no la lectura — el mismo error que el plan combate
+    cuando prohíbe el «% único de acuerdo». Por eso el estado por defecto es
+    **rechazar**, y el sustituto exige una bandera explícita.
+    """
+
+    def test_sin_el_modelo_llm_el_preflight_rechaza(self, monkeypatch):
+        nb = _nivel_b()
+        monkeypatch.setattr(nb, "_modelos_instalados", lambda ajustes: {"qwen2.5vl:3b"})
+        monkeypatch.setattr(nb, "_artefacto_presente", lambda: True)
+        motivo = nb._preflight(sustituir_llm=False)
+        assert motivo and "qwen2.5:7b" in motivo
+        # El mensaje tiene que ofrecer la salida, no solo negarse.
+        assert "--sustituir-llm" in motivo
+
+    def test_con_el_sustituto_el_preflight_deja_pasar(self, monkeypatch):
+        nb = _nivel_b()
+        monkeypatch.setattr(nb, "_modelos_instalados", lambda ajustes: {"qwen2.5vl:3b"})
+        monkeypatch.setattr(nb, "_artefacto_presente", lambda: True)
+        assert nb._preflight(sustituir_llm=True) is None
+
+    def test_el_sustituto_no_descuenta_un_vlm_ausente(self, monkeypatch):
+        """El sustituto cubre el rol `llm`, no cualquier modelo que falte.
+
+        Sin el VLM no hay ninguna fuente posible: `--sustituir-llm` no puede
+        taparlo, así que el preflight tiene que seguir rechazando.
+        """
+        nb = _nivel_b()
+        monkeypatch.setattr(nb, "_modelos_instalados", lambda ajustes: set())
+        monkeypatch.setattr(nb, "_artefacto_presente", lambda: True)
+        motivo = nb._preflight(sustituir_llm=True)
+        assert motivo and "qwen2.5vl:3b" in motivo
+
+
+# --------------------------------------------------------------------------- #
+# Hallazgos del nivel B: se fijan para que no vuelvan a pasar inadvertidos
+# --------------------------------------------------------------------------- #
+
+
+class TestElCuitSeComparaSoloPorDigitos:
+    """🔴 Hallazgo del nivel B (§12.5): el CUIT da `difiere` por los guiones.
+
+    La corrida completa reportó un `difiere` en `cuit_emisor` con **el mismo dato
+    en otra forma** (`20-06044320-4` vs. `20060443204`). La causa **no** es un
+    normalizador roto: `NORM_CUIT` **preserva los guiones a propósito** (la regla
+    2b del sistema anterior toma los caracteres del número sin inventar formato,
+    para que la lectura sea auditable). El problema es que la **comparación**
+    reutiliza esa regla —pensada para la *lectura*— para responder la pregunta de
+    la *identidad*, donde el formato es irrelevante.
+
+    ⚠️ **Este test fija el COMPORTAMIENTO ACTUAL, no el deseado.** No es un test
+    de que esté bien: es el test de frontera que documenta el defecto y que fallará
+    (a propósito) el día que se corrija la comparación — para que el cambio sea
+    una decisión y no un accidente.
+    """
+
+    @pytest.fixture(scope="class")
+    def mapa(self):
+        return _json(MAPA)
+
+    def test_hoy_dan_difiere_aunque_son_el_mismo_cuit(self, mapa):
+        lectura = {"cuit_emisor": "20-06044320-4"}
+        evidencia = _evidencia_del_pipeline({"cuit_emisor": "20060443204"}, mapa)
+        resultado = cmp.comparar("doc", lectura, evidencia, mapa)
+        campo = next(c for c in resultado.campos if c.campo == "cuit_emisor")
+
+        assert campo.estado == cmp.DIFIERE, (
+            "cambió el comportamiento de la comparación del CUIT: si ahora da "
+            "`coincide_normalizado`, actualizá el plan §12.5 (el hallazgo se "
+            "corrigió) y este test."
+        )
+        # Y lo que prueba que es un falso positivo: los dígitos son idénticos.
+        assert _solo_digitos(campo.valor_referencia) == _solo_digitos(
+            campo.valor_pipeline
+        )
+
+    def test_la_pregunta_de_identidad_ya_tiene_respuesta_en_la_extraccion(self):
+        """`cuit_completo` ya declara que los guiones son formato.
+
+        Es lo que hace que el defecto sea de la comparación y no de la extracción:
+        el módulo del pipeline **ya sabe** que el guion no distingue dos CUIT.
+        """
+        from voucherflow.extraction.key_value import cuit_completo, normalizar_cuit
+
+        assert cuit_completo("20-06044320-4") is True
+        assert cuit_completo("20060443204") is True
+        # Los guiones se preservan (a propósito): no se "arregla" acá.
+        assert normalizar_cuit("20-06044320-4") == "20-06044320-4"
+
+
+class TestElAvisoDelCuitIncompleto:
+    """🔴 Hallazgo del nivel B (§12.4): el aviso existe y **no** frena el valor.
+
+    El caso `14f76410` publicó `cuit_emisor='0005'` leído de `'0005 - 00013948'`
+    (el punto de venta, no un CUIT). El diagnóstico fácil —«nada lo detectó»— es
+    **falso**: el pipeline **sí** lo detecta. Lo que no hace es **frenar** el valor.
+
+    ⚠️ Este test fija las **tres capas** que hoy avisan, y que ninguna impide que
+    `campo.valor` se consolide. Si algún día una de las capas pasa a bloquear, este
+    test tiene que cambiar: es el punto donde la decisión (D-6) se revisa.
+    """
+
+    CRUDO = "0005 - 00013948"
+
+    def test_el_normalizador_avisa_que_quedaron_4_digitos(self):
+        from voucherflow.extraction.key_value import normalizar_campo
+
+        resultado = normalizar_campo("cuit_emisor", self.CRUDO)
+        assert resultado.valor == "0005"
+        # El `AvisoNormalizacion` se emite con `debilidad=True` (no es silencioso).
+        assert resultado.avisos, "el normalizador dejó de avisar: revisá NORM_CUIT"
+        assert any("11" in a.motivo for a in resultado.avisos)
+
+    def test_la_regla_del_negocio_tambien_lo_declara_formato(self):
+        from voucherflow.extraction.key_value import cuit_completo
+
+        assert cuit_completo(self.CRUDO) is False
+
+    def test_el_crudo_se_conserva_para_auditar(self):
+        """La lectura cruda no se pierde: es lo que permite ver el error después."""
+        from voucherflow.extraction.key_value import normalizar_campo
+
+        assert normalizar_campo("cuit_emisor", self.CRUDO).valor_crudo == self.CRUDO

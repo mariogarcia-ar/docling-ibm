@@ -16,13 +16,30 @@ Docling real y sin red**.
 | `verificacion/etapa-clasificacion.py` | Exactitud de letra por categoría, alerta R7 y cruce negocio-vs-documento. |
 | `verificacion/etapa-extraccion.py` | Exactitud de las reglas de normalización, paridad estructural de los campos y % de campos con fragmento de sustento. |
 | `verificacion/etapa-conclusion.py` | Composición de los veredictos, certeza, cobertura HITL y desacuerdos VLM/LLM. |
+| `verificacion/acuerdo-extraccion.py` | **Nivel B**: corre el pipeline **de verdad** (Docling + Ollama) sobre las imágenes de `tests/expected-extraction/` y mide el **acuerdo** contra la referencia, campo por campo. ⚠️ **Es el único de esta tabla que necesita Ollama**; por eso no corre en la suite default. ⚠️ No publica un «% de acuerdo» (ver abajo). |
 | `verificacion/documentacion-usuario.py` | Cobertura y navegación de `docs/usuario/`: cada comando documentado, cada bandera en su sección, sin enlaces rotos. |
 
 ```bash
 python scripts/verificacion/etapa-clasificacion.py            # métricas del tramo determinista
 python scripts/verificacion/etapa-clasificacion.py --detalle  # + traza por caso
 python scripts/verificacion/etapa-conclusion.py --historico salida/cases  # sobre un lote real
+python scripts/verificacion/acuerdo-extraccion.py --listar    # qué se puede medir (sin correr nada)
+python scripts/verificacion/acuerdo-extraccion.py --limite 3  # medir los primeros 3 documentos
 ```
+
+### ⚠️ `acuerdo-extraccion.py` mide acuerdo, no exactitud
+
+La referencia es la lectura de **otro modelo** (DeepSeek), no la verdad: tiene
+errores medidos (5 de 28 CUIT con el dígito verificador inválido). **Un `difiere`
+puede ser un acierto del pipeline.** Por eso el reporte nunca publica un único
+«% de acuerdo»: publica el recuento por estado, separa los `ausente` por causa y
+**lista los desacuerdos**.
+
+⚠️ **El rol `llm` del repo (`qwen2.5:7b`) puede no estar instalado.** Sin él el
+pipeline resuelve **4 de 16 campos** (medido), así que el script **se niega a
+correr** en vez de publicar ese piso como si fuera el pipeline. La salida
+declarada es `--sustituir-llm`: corre las dos fuentes con el VLM (⚠️ las dos
+fuentes pasan a ser el mismo modelo; el reporte lo declara).
 
 > Estos reportes **no** reemplazan a `tests/`: la suite (`python -m pytest`) es
 > la verificación de referencia y corre en CI. Los de acá existen porque miden

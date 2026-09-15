@@ -48,7 +48,7 @@ justificar una clasificación ante una auditoría.
 | 04 | [`04-decisiones-abiertas-adr.md`](04-decisiones-abiertas-adr.md) | SA | Decisiones técnicas abiertas y ADR preliminares |
 | 05 | [`05-plan-ejecucion.md`](05-plan-ejecucion.md) · carpeta [`05-plan/`](05-plan/) ([F0](05-plan/F0.md) · [F1](05-plan/F1.md) · [F2](05-plan/F2.md) · [F3](05-plan/F3.md) · [F4](05-plan/F4.md) · [F5](05-plan/F5.md) · [F6](05-plan/F6.md)) | PM | WBS/fases, MoSCoW, estimaciones, riesgos, DoR/DoD + archivo de seguimiento (tracking) por fase |
 | 06 | [`06-estrategia-calidad.md`](06-estrategia-calidad.md) | BA/SA/PM→DEV/QA | Estrategia de pruebas, golden set, métricas y criterios de salida por fase |
-| 07 | [`07-extracciones-esperadas.md`](07-extracciones-esperadas.md) | BA/SA/QA | � **Nivel A implementado**: dataset versionado de lecturas de referencia en `tests/expected-extraction/` para comparar el pipeline local contra un modelo externo. ⚠️ Mide **acuerdo**, no exactitud: la referencia tiene 5 de 28 CUIT mal leídos. Nivel B (correr el pipeline) pendiente |
+| 07 | [`07-extracciones-esperadas.md`](07-extracciones-esperadas.md) | BA/SA/QA | 🟡 **Nivel A + B implementados**: dataset versionado de lecturas de referencia en `tests/expected-extraction/` para comparar el pipeline local contra un modelo externo. ⚠️ Mide **acuerdo**, no exactitud: la referencia tiene 5 de 28 CUIT mal leídos. El nivel B se corrió con el piso declarado (`--sustituir-llm`, §13) y destapó un `cuit_emisor` basura publicado como válido |
 
 ---
 

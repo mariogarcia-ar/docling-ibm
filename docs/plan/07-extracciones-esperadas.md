@@ -2,7 +2,7 @@
 
 > **Documento**: especificación del artefacto `tests/expected-extraction/`
 > **Rol**: BA (qué y por qué) + SA (cómo) + QA (cómo se verifica)
-> **Fecha**: 2026-09-14 · **Estado**: � **Nivel A implementado** — el nivel B (correr el pipeline con Ollama) está pendiente
+> **Fecha**: 2026-09-14 · **Estado**: 🟡 **Nivel A + B implementados** — corrido con el piso declarado (`--sustituir-llm`: el rol `llm` no está instalado, §12)
 > **Complementa**: [`06-estrategia-calidad.md`](06-estrategia-calidad.md) §3 (golden set)
 > **Versión**: v0.4 — implementado según §10. Ver el historial abajo.
 >
@@ -22,15 +22,16 @@
 > | 2 · Copiar las 26 imágenes | ✅ hecho (`tests/fixtures/expected-extraction/`, 2,4 MB) |
 > | 3 · Generador | ✅ `scripts/operacion/generar-extracciones-esperadas.py` |
 > | 4 · Manifiesto + mapa + README | ✅ hecho (30 corridas, 29 documentos, 30/30 con imagen) |
-> | 5 · Motor de comparación + nivel A | ✅ `src/voucherflow/llm/comparacion.py` + `tests/test_expected_extraction.py` (**35 tests**) |
-> | 6 · Nivel B + reporte | ⬜ **pendiente** (requiere Ollama y los modelos) |
-> | 7 · Correr y leer hallazgos | ⬜ pendiente (depende del 6) |
+> | 5 · Motor de comparación + nivel A | ✅ `src/voucherflow/llm/comparacion.py` + `tests/test_expected_extraction.py` (**46 tests**) |
+> | 6 · Nivel B + reporte | ✅ `scripts/verificacion/acuerdo-extraccion.py` (ver §12) |
+> | 7 · Correr y leer hallazgos | ✅ corrido **con `--sustituir-llm`** (el rol `llm` no está instalado). Hallazgos en §12.3 |
 > | 8 · Docs | ✅ README raíz, `scripts/readme.md`, `06-estrategia-calidad.md` §3.5 |
 >
-> ⚠️ **Sin el nivel B no hay medición de acuerdo**: lo implementado verifica la
-> **integridad** del artefacto y la **lógica** de la comparación, no la lectura del
-> pipeline local. Y el nivel B tiene el bloqueante ya declarado: `qwen2.5:7b` (el
-> rol `llm`) **no está instalado**.
+> ⚠️ **El nivel B se corrió, pero con el piso declarado**: `qwen2.5:7b` (rol `llm`)
+> **no está instalado**, así que las dos fuentes corrieron con `qwen2.5vl:3b`
+> (`--sustituir-llm`). Eso **no** es el acuerdo de dos lecturas independientes: es
+> un **piso medido con un modelo degradado**. Sin el piso, el pipeline resuelve
+> **4 de 16 campos** (§12.1), así que se midió igual y se declara.
 
 > ## ⚠️ Leer antes que nada
 >
@@ -720,14 +721,19 @@ Corre el pipeline **de verdad** sobre las fixtures y produce el reporte de
 acuerdo. Es el único nivel que responde la pregunta de §1.
 
 ⚠️ **Bloqueante medido:** `modelos.llm` es `qwen2.5:7b` y **no está instalado** en
-esta máquina (los instalados son `qwen2.5vl:3b`, `smollm2`, `deepseek-r1`). El
-nivel B corre hoy con el `qwen2.5vl` para las dos fuentes, o hay que bajar el otro
-modelo. Se declara en el reporte, no se disimula.
+esta máquina (los instalados son `qwen2.5vl:3b`, `smollm2`, `deepseek-r1`).
+
+⚠️ **Y no alcanza con «correr con el VLM en las dos fuentes», que es lo que esta
+sección proponía**: medido, **no sube la cobertura** (el pipeline resuelve 4 de 16
+campos igual, §12.1) y destapa lecturas inválidas — el mismo modelo forzado al modo
+texto razona peor. Por eso el script **se niega a correr** sin el rol `llm`, y el
+sustituto (`--sustituir-llm`) es una **bandera explícita** cuyo resultado es un
+**piso declarado**, no «el acuerdo del pipeline».
 
 | Nivel | Herramienta | Requiere |
 |---|---|---|
-| A | `tests/test_expected_extraction.py` | nada |
-| B | `scripts/verificacion/acuerdo-extraccion.py` | Ollama + modelos |
+| A | `tests/test_expected_extraction.py` (**46 tests**) | nada |
+| B | `scripts/verificacion/acuerdo-extraccion.py` | Ollama + modelos (⚠️ el rol `llm` es obligatorio) |
 
 ---
 
@@ -926,7 +932,234 @@ Si más adelante el nombre genera confusión en la práctica, la alternativa es
 
 ---
 
-## 12. Enlaces
+## 12. Nivel B implementado y corrido (2026-09-14)
+
+### 12.1 🔴 Hallazgo previo: sin el rol `llm` el pipeline resuelve **4 de 16 campos**
+
+Medido antes de correr nada, sobre **un** documento del artefacto:
+
+| Configuración | Campos en la combinación | Lecturas descartadas por inválidas | Fuentes |
+|---|---|---|---|
+| `llm` = `qwen2.5:7b` (rol roto, **no instalado**) | **4 de 16** | 0 | solo `vlm` |
+| `llm` = `qwen2.5vl:3b` (sustituto) | **4 de 16** | **6** | `vlm` + `llm` |
+
+**Consecuencia de diseño:** el script **se niega a correr** sin el rol `llm`. Un
+reporte en ese estado mediría la **ausencia de un modelo**, no la lectura — el
+mismo error que este plan combate al prohibir el «% único de acuerdo». Publicarlo
+habría sido peor que no medir.
+
+⚠️ **Y el sustituto NO es un equivalente**: medido en un documento, **no sube la
+cobertura** (4 campos igual) y además **destapa 6 lecturas inválidas** — el mismo
+modelo, forzado al modo texto, razona peor. (En la corrida de 3 documentos fueron
+**8** en total.) Por eso el sustituto exige la bandera `--sustituir-llm` y el
+reporte lo declara arriba.
+
+### 12.2 Lo que se agregó al nivel B
+
+| Agregado | Por qué |
+|---|---|
+| **`ausente` separado por causa** (`ninguna` / `solo_referencia` / `solo_pipeline`) | Sumarlos confunde «los dos acordan que no está» con «el pipeline no llegó a leerlo». La causa se deriva de los **valores**, no del texto de la `nota`: retocar una redacción no puede cambiar los números en silencio. |
+| **`--sustituir-llm`** con el aviso de que las dos fuentes son el mismo modelo | La salida declarada del bloqueante, sin disfrazarla de medición completa. |
+| **Bloque de contexto de la corrida** (modelos, sustituto, workers) | Un reporte hecho con el sustituto no puede leerse como si fuera el pipeline completo. |
+| **`--workers` ahora paraleliza de verdad** | Estaba declarado y **no leído** (el `_medir` recibía el número como si fuera un límite de hilos). ⚠️ Y la ganancia está **medida**: 2 documentos **55,8 s → 46,1 s (1,2x)**, porque **Ollama serializa la inferencia**. |
+| **8 tests de la lógica del reporte** (`TestNivelBClasificacionDeAusentes`, `TestNivelBPreflight`) | El script es el único que necesita servicios reales, pero su clasificación y su preflight son puros. Se cargan por `importlib`, sin ejecutar `main`. |
+
+### 12.3 Hallazgos de la corrida (⚠️ piso, con el sustituto)
+
+Reporte crudo: `var/acuerdo-extraccion.json` (gitignored). **30/30 corridas**
+medidas, 0 no medibles, `--workers 2`, `--sustituir-llm`.
+
+| Estado | N |
+|---|---|
+| `coincide` | 25 |
+| `coincide_normalizado` | **0** |
+| `difiere` | 58 |
+| `ausente` | 307 |
+| `no_comparable` | 60 |
+| **campos comparables** | **83** |
+
+⚠️ **`coincide_normalizado` = 0 es un dato, no un detalle.** El plan §5.1 midió que
+**9 de 10 fechas** necesitarían normalizarse; en la corrida no hubo **ni una**. La
+lectura: **la mayoría de los campos ni llegaron a compararse** (299 `ausente` son
+`solo_referencia`), y **no queda documentado el caso que el motor existe para
+resolver**. Que ese contador sea 0 no valida ni invalida el normalizador: dice que
+este piso no lo ejercitó.
+
+⚠️ **La lectura honesta del piso**: **299 de 307 `ausente` son `solo_referencia`** —
+la referencia leyó el campo y el pipeline no. Eso **no** mide la calidad de la
+lectura (el modelo textual está degradado): mide **cuánto falta** para poder
+medirla. Y el desglose por causa es justamente lo que evita leer ese 307 como «los
+dos acordaron que no está».
+
+⚠️ **Otra señal de la degradación del sustituto**: **122 lecturas descartadas por
+inválidas** y **25 de 29 documentos donde las dos fuentes del pipeline no
+coinciden**. Con un rol `llm` sano, la fuente textual debería coincidir con la
+visual en la mayoría de los campos.
+
+Los tres campos que concentran **los 58 `difiere`**:
+
+| Campo | Casos | Qué es |
+|---|---|---|
+| `tipo_comprobante` | **28 de 30** | ⚠️ **Mezcla dos cosas**: vocabularios distintos a propósito (el lab acepta códigos de tique 083/090; R1-R7 los deja fuera por D-13) **y** desacuerdo **dentro** del pipeline (VLM `TICKET DE VENTA` vs. LLM `FACTURA` en el mismo documento). El propio reporte declara que **no puede distinguir cuál aplica**. |
+| `razon_social_emisor` | **20 de 30** | Texto libre: las dos puntas transcriben distinta porción del rótulo (`LUIS LARUMBE S.R.L. (PUMA - RUTA 18)` vs. `PUMA - RUTA 18`; `José Genna…` vs. `JOSE GEMNA…`). **No hay normalizador** que lo salve: exigiría distancia de edición, que el plan no contempla. |
+| `cuit_emisor` | **10 de 30** | 🔴 **Uno es un defecto del pipeline** (§12.4); **8 son errores de lectura reales** (abajo). |
+
+#### Los 10 `cuit_emisor`: barrido del tier 1 (§1.3) sobre las dos puntas
+
+⚠️ **Esto es un análisis, no una feature**: D-6 dejó el auto-chequeo fuera de
+alcance, así que nada de esto está en el código ni marca el dato. Se calculó a
+mano, con el mismo módulo 11 del generador, para poder decir **quién tiene razón**.
+
+| Documento | Referencia | Pipeline | Referencia | Pipeline |
+|---|---|---|---|---|
+| `14f76410` | `30-71144495-3` | **`0005`** | DV inválido | **NO-CUIT (4 díg.)** |
+| `4293c2ff` | `30586221578` | **`CU.LI.`** | DV inválido | **NO-CUIT (0 díg.)** |
+| `7259b2ac` | `30-70715163-1` | `3058219705` | DV inválido | NO-CUIT (10 díg.) |
+| `5263d096` | `30-70719828-8` | `30-70719826-8` | ok | DV inválido (un dígito cambiado) |
+| `8fc6425d` | `20060443204` | `20064433204` | ok | DV inválido (un dígito) |
+| `da93d57e` | `30711946140` | `30532215703` | ok | DV inválido (**dos** dígitos) |
+| `55b39d02` | `30-51808998-2` | `30-5180998-2` | ok | NO-CUIT (10 díg.) |
+| `bacd76fe` | `30-63700712-9` | `0928215763` | ok | NO-CUIT (10 díg.) |
+| `cfde829a` | `30-70941587-1` | `30582215703` | ok | **ok — los dos válidos y distintos** |
+| `d44551e5` | `20-06044320-4` | `20060443204` | ok | ok (⚠️ **mismo dato, otra forma**: §12.5) |
+
+| Resumen | |
+|---|---|
+| Referencia con DV inválido | **3 / 10** (los tres ya conocidos de §2.3) |
+| Pipeline con DV inválido | **3 / 10** |
+| Pipeline con **una lectura que no puede ser un CUIT** (≠ 11 dígitos) | **5 / 10** |
+| Mismo dato, otra forma (falso `difiere`) | **1 / 10** |
+| Los dos válidos y distintos (desacuerdo real, sin ganador) | **1 / 10** |
+
+⚠️ **Lo que esto significa para el reporte**: el `difiere` de `cuit_emisor` **no se
+lee igual en los 10 casos**. En 3 la referencia está mal (y el pipeline puede estar
+mejor); en 5 el pipeline publicó algo que no es un CUIT; en 1 no hay desacuerdo de
+fondo. **Hoy el reporte los presenta idénticos**, y es exactamente el escenario que
+§1.3 anticipó: `difiere` queda **ciego**.
+
+### 12.4 🔴 Caso `14f76410`: el pipeline publica una advertencia y consolida el valor igual
+
+| | |
+|---|---|
+| Valor **crudo** que leyó el VLM | `'0005 - 00013948'` |
+| Sostén declarado | «Encabezado superior derecho con el CUIT del emisor» |
+| Valor **publicado** | **`'0005'`** |
+| Estado en la combinación | **válido** (no se descartó; `fuente=vlm`, `PREC_1`) |
+
+**Qué es en realidad**: `0005 - 00013948` es el **punto de venta + número de
+comprobante**, no un CUIT (11 dígitos). El modelo se equivocó de campo.
+
+⚠️ **Corrección al diagnóstico fácil**: **no es cierto que «nada lo frenó»**. El
+pipeline **sí lo detectó** y lo dejó registrado:
+
+```
+'avisos_normalizacion': ['quedó 4 dígitos, no los 11 del CUIT completo
+  (NN-NNNNNNNN-N); el OCR pudo truncar o pegar el campo siguiente — se corta
+  como pide la regla 2b de el crudo y se conserva lo leído (T-402)']
+'meta['raw_valida']: False   ·   'raw_gravedad': 'invalida'
+```
+
+| ✅ Lo que ya existe | 🔴 Lo que el caso muestra |
+|---|---|
+| El normalizador **cuenta los 11 dígitos** y avisa (`debilidad=True`) que quedó con 4. | El aviso queda **dentro de `meta`** de la lectura de una fuente. |
+| El veredicto raw marcó esa lectura como **inválida**. | Aun así, **`campo.valor` se consolidó como `'0005'`** con `fuente=vlm`, y el `difiere` del reporte es lo único que lo expone. |
+
+⇒ El dato **no viaja limpio**, pero **tampoco hay una alerta de caso**: el aviso vive
+donde un consumidor del veredicto (F5, el CLI, la API) no lo mira. **La pregunta que
+abre este caso no es «¿por qué nadie avisó?», sino «¿por qué un aviso que existe no
+bloquea la publicación del valor?»**.
+
+⚠️ **No se corrige acá**: D-6 dejó el auto-chequeo fuera de alcance y §10.1 prohíbe
+reintroducirlo por la puerta de atrás. **Pero este caso es más fuerte que los 5 CUIT
+de §2.3**: aquellos son lecturas *de la referencia* que el pipeline puede leer
+mejor; **este es el pipeline publicando un valor que no puede ser un CUIT,
+teniendo la advertencia en la mano**.
+
+| Opción | Costo | Qué implicaría |
+|---|---|---|
+| Reabrir D-6 (auto-chequeo del DV) | 0,3 dh | Detecta **este** caso y los de §2.3. Mejor relación costo/beneficio. |
+| **Ascender el aviso que ya existe** a alerta del caso | **bajo** | No hace falta lógica nueva: el aviso `debilidad=True` ya se emite. Solo hay que **decidir quién lo lee**, en vez de dejarlo en `meta`. Es la opción más barata y la que el caso pide. |
+| Rechazar `cuit_emisor` con < 11 dígitos | bajo | Chequeo **estructural** (no de DV): más débil, pero agarraría este caso sin tabla de referencia. |
+| Declararlo y no tocarlo | 0 | Honesto, pero el próximo comprobante con un `cuit_emisor` basura vuelve a pasar. |
+
+⚠️ **Evidencia de que no es un artefacto del sustituto**: el valor crudo y el sostén
+son del **VLM**, la fuente que sí está en su rol correcto.
+
+### 12.5 🔴 Hallazgo en el motor de comparación: el CUIT no se compara normalizado
+
+El caso `d44551e5` reporta `difiere` con **el mismo dato en otra forma**:
+
+| | |
+|---|---|
+| Referencia | `20-06044320-4` |
+| Pipeline | `20060443204` |
+| Dígitos | **idénticos** |
+
+⚠️ **Es un falso `difiere`, y contradice la promesa del módulo.** `comparacion.py`
+abre su docstring diciendo que «se compara el **valor canónico de las dos puntas**»,
+y §5.1 midió que sin normalizar el 90 % de las fechas daría un `difiere` falso. Para
+`fecha_emision` funciona:
+
+```
+normalizar_referencia({'fecha_emision': '29/08/2025'})  →  {'fecha_emision': '2025-08-29'}  ✅
+```
+
+Pero para `cuit_emisor` **no normaliza los guiones**, y el pipeline sí los publica:
+
+| Entrada | `normalizar_campo` (el pipeline) | `normalizar_referencia` (la comparación) |
+|---|---|---|
+| `20-06044320-4` | `20-06044320-4` | `20-06044320-4` |
+| `20060443204` | `20060443204` | `20060443204` |
+
+⇒ `'20-06044320-4' != '20060443204'` y sale `difiere`, aunque los 11 dígitos sean
+los mismos.
+
+⚠️ **La causa no es un normalizador «apagado»: son dos preguntas distintas que hoy
+comparten una sola regla.** `NORM_CUIT` **conserva los guiones tal como se
+leyeron**, y eso es **deliberado**: la regla 2b del sistema anterior toma los
+caracteres que pertenecen al número y no inventa formato, para que la lectura sea
+auditable. Lo dice el propio módulo:
+
+```python
+cuit_completo(valor):  # «Solo cuenta dígitos (los guiones son formato)»
+```
+
+O sea: **el pipeline publica `20060443204` o `20-06044320-4` según cómo lo leyó, y
+las dos son correctas.** El artefacto conserva lo mismo del lado de la referencia
+(`20060443204` en `8fc6425d`, `30711946140` en `da93d57e` también sin guiones).
+
+⇒ **El defecto está en la comparación, no en la extracción**: `_equivalente()`
+compara los dos strings literalmente, y para **identidad** de un CUIT el formato es
+basura. Se está usando la regla de la *lectura* (preservar lo leído) para responder
+la pregunta de la *comparación* («¿es el mismo CUIT?»). Para las fechas no pasa
+porque `NORM_FECHA` **sí** cambia la forma a ISO; para los CUIT, por diseño, no.
+
+| Corregir | Costo | Efecto medido |
+|---|---|---|
+| Dar a la comparación un **canon de identidad** para los campos numéricos (dígitos, sin formato), en vez de reutilizar la regla de la extracción | bajo | Este caso pasa de `difiere` a `coincide_normalizado`. ⚠️ **Y haría que `coincide_normalizado` deje de ser 0**: el contador pasaría a documentar el caso que el motor existe para resolver. |
+
+⚠️ **No se corrige acá**: el alcance de esta tarea era **implementar y correr** el
+nivel B. Cambiar el motor de comparación (41 tests, contrato del artefacto) merece
+su propia tarea, con el test de frontera que fije el caso de los guiones. **Queda
+declarado como el hallazgo que más barato se arregla, y el único que es un defecto
+del código de la comparación** (los otros son hallazgos sobre las lecturas).
+
+### 12.6 Lo que el piso **no** dejó medir
+
+| Quedó sin medir | Por qué |
+|---|---|
+| El acuerdo VLM↔LLM real | Las dos fuentes fueron el mismo modelo. ⚠️ Y en **25 de 29** documentos **no coincidieron entre sí**: con el modelo textual degradado, ese número mide el sustituto, no el pipeline. |
+| El caso que la normalización existe para resolver | `coincide_normalizado` = 0 (§12.3). |
+| La lectura "buena" del pipeline | 299 de 307 `ausente` son `solo_referencia`: casi no hay campos comparables. |
+
+**Lo que sí quedó medido y es accionable**: un `cuit_emisor` basura que se consolida
+con la advertencia en la mano (§12.4), un falso `difiere` por formato (§12.5), y el
+barrido del tier 1 sobre los 10 CUIT (§12.3), que muestra que **el `difiere` de ese
+campo no se lee igual en los 10 casos**.
+
+---
+
+## 13. Enlaces
 
 - [`06-estrategia-calidad.md`](06-estrategia-calidad.md) §3 — golden set (el tier 3).
 - [`tests/golden/F4/README.md`](../../tests/golden/F4/README.md) — el precedente de

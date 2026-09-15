@@ -114,10 +114,31 @@ modelo*, con errores medidos (5 de 28 CUIT con el dígito verificador inválido)
 sirve para medir **acuerdo** y detectar divergencias, no para declarar que el
 pipeline es correcto. Ver el plan [`07-extracciones-esperadas.md`](07-extracciones-esperadas.md).
 
+⚠️ **El tier 2 tiene dos niveles, y solo uno corre en la suite default.**
+
+| Nivel | Herramienta | Requiere | Qué verifica |
+|---|---|---|---|
+| A | `tests/test_expected_extraction.py` (41) | nada | La **integridad** del artefacto y la **lógica** de la comparación. |
+| B | `scripts/verificacion/acuerdo-extraccion.py` | Ollama + Docling | La **lectura real** del pipeline. Es el único que responde la pregunta del tier. |
+
+⚠️ **Y el nivel B se corrió con un piso declarado, no con el pipeline completo**:
+el rol `llm` del repo (`qwen2.5:7b`) **no está instalado**, y sin él el pipeline
+resuelve **4 de 16 campos** (medido). El script **se niega a correr** en ese estado
+en vez de publicar ese piso como si fuera el pipeline; la salida es el sustituto
+`--sustituir-llm` (las dos fuentes pasan a ser el mismo modelo). Los resultados y
+el hallazgo del `cuit_emisor` basura están en §13 del doc 07.
+
 **Precedente del tier 1 en el repo** (por qué el concepto no es nuevo): el
 evaluador **no le cree el `cierra_aritmetica` al modelo** — lo recalcula en Python
 (`llm/evaluador.py::verificar_aritmetica`, aplicado en `llm/corrida.py:281`). Es la
 misma idea: lo que se puede calcular, se calcula en código y se audita.
+
+⚠️ **Y el nivel B le dio un caso concreto al tier 1**: el pipeline publicó
+`cuit_emisor = "0005"` —el **punto de venta**, no un CUIT— leído de un crudo
+`'0005 - 00013948'`, y **nada lo frenó** (normalizó, no tiene 11 dígitos, y el
+veredicto raw no lo marcó). Es el argumento más fuerte que tiene hoy la reapertura
+de D-6: no es que la referencia esté mal, es que **el pipeline publicó un valor
+imposible sin alerta**.
 
 ---
 

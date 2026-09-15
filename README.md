@@ -373,7 +373,15 @@ explica los cinco estados del reporte.
 
 ```bash
 python -m pytest tests/test_expected_extraction.py    # integridad y lógica (sin red)
+python scripts/verificacion/acuerdo-extraccion.py --listar   # nivel B: qué se puede medir
+python scripts/verificacion/acuerdo-extraccion.py           # nivel B: correr el pipeline
 ```
+
+⚠️ **El nivel B necesita Ollama** con los modelos del pipeline. El rol `llm`
+(`qwen2.5:7b`) **puede no estar instalado**, y sin él el pipeline resuelve **4 de
+16 campos**: el script **se niega a correr** en vez de publicar ese resultado como
+si fuera el pipeline. La salida declarada es `--sustituir-llm` (⚠️ las dos fuentes
+pasan a ser el mismo modelo: mide un piso).
 
 ## Documentación
 

@@ -190,8 +190,75 @@ diferencia más interesante: **una punta dice "no lo leí" y la otra dice un val
 | `coincide` | Los dos leyeron lo mismo. |
 | `coincide_normalizado` | Lo mismo tras normalizar (la fecha). **Se cuenta aparte.** |
 | `difiere` | Valores distintos. ⚠️ **Puede ser un acierto del pipeline** (ver los 5 CUIT). |
-| `ausente` | Una o las dos puntas no lo leyeron. |
+| `ausente` | Una o las dos puntas no lo leyeron. **Se separa por causa** (ver abajo). |
 | `no_comparable` | Sin contraparte, fuera del contrato, o sin puntuar (la prosa). |
+
+#### ⚠️ Los `ausente` son tres hechos distintos
+
+Sumarlos confunde «los dos están de acuerdo en que no está» con «el pipeline no
+llegó a leerlo». El reporte los separa por **valores**, no por el texto del motivo:
+
+| Causa | Qué significa |
+|---|---|
+| `ninguna` | Ni la referencia ni el pipeline lo leyeron. **Es un acuerdo**, no un desacuerdo. |
+| `solo_referencia` | La referencia lo leyó y el pipeline no → **cobertura del pipeline**. |
+| `solo_pipeline` | El pipeline lo leyó y la referencia no → puede ser el pipeline leyendo más. |
+
+---
+
+## Nivel B — correr el pipeline de verdad
+
+`tests/test_expected_extraction.py` verifica la **integridad** del artefacto y la
+**lógica** de la comparación, pero **no mide la lectura del pipeline local**: eso
+necesita Docling y Ollama, así que vive en un script que se invoca a mano.
+
+```bash
+python scripts/verificacion/acuerdo-extraccion.py --listar   # qué se puede medir
+python scripts/verificacion/acuerdo-extraccion.py --limite 3 # medir 3 documentos
+python scripts/verificacion/acuerdo-extraccion.py            # los 30
+```
+
+### ⚠️ El bloqueante del rol `llm`, y qué implica
+
+El default del repo para el rol `llm` es `qwen2.5:7b`, y **puede no estar
+instalado**. Medido: sin ese modelo, la fuente textual no aporta nada y el
+pipeline resuelve **4 de 16 campos** — el reporte mediría la *ausencia de un
+modelo*, no la lectura.
+
+Por eso el script **se niega a correr** en ese estado. La salida declarada es:
+
+```bash
+ollama pull qwen2.5:7b                                  # la buena
+python scripts/verificacion/acuerdo-extraccion.py --sustituir-llm   # el piso
+```
+
+⚠️ **`--sustituir-llm` no es un equivalente.** Corre las dos fuentes con el mismo
+VLM, así que:
+
+- ✅ El pipeline se ejercita entero (gate → 2 flujos → combinación).
+- ⚠️ **Las dos fuentes son el mismo modelo**: el «acuerdo VLM/LLM» pasa a ser *un
+  modelo contra sí mismo* y **no mide dos lecturas independientes**.
+- ⛔ El resultado es un **piso** medido con un modelo degradado, no «el acuerdo del
+  pipeline». El reporte lo declara arriba, y no publica un % único.
+
+### Lo que el piso destapó (corrida 2026-09-14, 30/30)
+
+Con el sustituto, **299 de 307 `ausente` fueron `solo_referencia`**: la referencia
+leyó el campo y el pipeline no. La conclusión **no** es «el pipeline lee poco»: es
+que **un modelo textual que no es el suyo no alcanza para medir la lectura**. Los
+campos comparables fueron **83** y `coincide_normalizado` quedó en **0** — o sea, la
+corrida **no ejercitó el caso que el normalizador existe para resolver** (las
+fechas de §5.1).
+
+⚠️ El detalle completo, con las tablas y los casos, está en
+[`docs/plan/07-extracciones-esperadas.md`](../../docs/plan/07-extracciones-esperadas.md) §12.
+
+### ⚠️ Dos hallazgos que la corrida dejó abiertos
+
+| Hallazgo | Dónde se ve | Estado |
+|---|---|---|
+| **El CUIT se compara por formato, no por identidad.** `20-06044320-4` (referencia) vs. `20060443204` (pipeline) da `difiere` con los **mismos 11 dígitos**. | `cuit_emisor` de `d44551e5-fc66-4897-a51d-a0a182d2cf91` | 🔴 **Defecto del motor de comparación** (no de la extracción: `NORM_CUIT` preserva los guiones a propósito). Fijado por test; corregirlo merece su propia tarea. |
+| **Un `cuit_emisor` que no puede ser un CUIT se consolida igual.** En `14f76410` el crudo fue `'0005 - 00013948'` (punto de venta + número) y se publicó `'0005'`. | `cuit_emisor` de `14f76410-658d-4f86-bfb2-c8084be5ba25` | ⚠️ El pipeline **sí lo detecta** (avisa que quedaron 4 dígitos y marca la lectura raw como inválida), pero **el aviso no bloquea el valor**: queda en `meta`. No se corrige por D-6. |
 
 ---
 
