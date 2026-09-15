@@ -265,6 +265,69 @@ class TestTodosLosConsumidoresUsanLoMismo:
             "(usar `voucherflow.persistencia`)"
         )
 
+    def test_ningun_modulo_hace_el_replace_a_mano(self):
+        """⚠️ El chequeo de arriba tiene un punto ciego: busca ``mkstemp``.
+
+        Una copia puede escribir su temporal de otra forma —``with_suffix(".tmp")``,
+        un ``.tmp`` literal— y renombrarlo con ``Path.replace()`` sin nombrar
+        ``mkstemp`` nunca. Pasó de verdad: ``classification/contable.py`` reescribía
+        el patrón con un temporal de nombre **fijo** y el guard no lo veía (medido:
+        65 de 120 escrituras perdidas con 3 escritores, porque uno renombraba el
+        temporal del otro).
+
+        La regla es ``.replace(...)`` con **un solo argumento posicional**: esa es la
+        firma de ``Path.replace``/``os.replace``. Y no da falsos positivos porque
+        ``str.replace`` y ``datetime.replace`` no aceptan un solo argumento (se
+        verificó sobre todo ``src/``: los 24 usos legítimos tienen 0 o 2). Se mira el
+        **código ejecutable**, no el texto: los docstrings de ``trace/recorder`` y
+        ``pdf/corrida`` mencionan ``os.replace`` para explicar que delegan en este
+        módulo, y castigarlos sería castigar la documentación correcta.
+        """
+        import ast
+        from pathlib import Path
+
+        raiz = Path(__file__).resolve().parents[1] / "src" / "voucherflow"
+        culpables: list[str] = []
+        for archivo in raiz.rglob("*.py"):
+            if archivo.name == "persistencia.py":
+                continue
+            arbol = ast.parse(archivo.read_text(encoding="utf-8"))
+            for nodo in ast.walk(arbol):
+                if not isinstance(nodo, ast.Call):
+                    continue
+                if not (isinstance(nodo.func, ast.Attribute) and nodo.func.attr == "replace"):
+                    continue
+                receptor = nodo.func.value
+                es_os_replace = isinstance(receptor, ast.Name) and receptor.id == "os"
+                if es_os_replace or len(nodo.args) == 1:
+                    culpables.append(
+                        f"{archivo.name}:{nodo.lineno} {ast.unparse(nodo)}"
+                    )
+        assert not culpables, (
+            f"estos módulos renombran a mano fuera de `persistencia.py`: "
+            f"{culpables}. Usar `escribir_atomico` / `escribir_json_atomico` / "
+            "`escribir_bytes_atomico`."
+        )
+
+    def test_el_checkpoint_de_clasificacion_usa_el_helper(self):
+        """⚠️ La quinta copia, que el guard viejo no veía (2026-09-15).
+
+        `escribir_checkpoint` armaba su propio temporal de nombre fijo. Ahora
+        delega: el módulo no hace `replace` ni crea temporales.
+        """
+        from pathlib import Path
+
+        import voucherflow.classification.contable as contable
+        import voucherflow.persistencia as p
+
+        fuente = Path(contable.__file__).read_text(encoding="utf-8")
+        assert "with_suffix(destino.suffix" not in fuente, (
+            "volvió el temporal de nombre fijo: dos escritores se pisan"
+        )
+        assert contable._escribir_atomico is p.escribir_atomico, (
+            "el checkpoint tiene que delegar en el helper compartido"
+        )
+
     def test_el_render_de_pdf_usa_el_helper_compartido(self):
         """⚠️ El render escribía su propio `mkstemp` + `replace` (y el test de
         arriba lo destapó). Ahora delega: el módulo del render no crea temporales.

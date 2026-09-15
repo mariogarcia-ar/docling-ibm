@@ -41,6 +41,7 @@ from .contable import (
     primary_centro_costo,
     primary_macro_categoria,
     ruta_checkpoint,
+    ruta_checkpoint_unica,
 )
 from .evidencia import (
     CAMPO_EXPLICACION,
@@ -152,6 +153,7 @@ __all__ = [
     "paso_concepto_codigo",
     "clasificar_pasos_contables",
     "ruta_checkpoint",
+    "ruta_checkpoint_unica",
     "escribir_checkpoint",
     "leer_checkpoint",
     "ejecutar_paso",

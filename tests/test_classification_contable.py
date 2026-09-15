@@ -72,6 +72,7 @@ from voucherflow.classification import (
     primary_macro_categoria,
     renderizar_user,
     ruta_checkpoint,
+    ruta_checkpoint_unica,
 )
 from voucherflow.classification.contable import ejecutar_paso
 from voucherflow.models.ollama import RespuestaOllama
@@ -507,6 +508,130 @@ class TestCheckpoints:
         cliente = FakeOllamaClient({"01": PASO_01, "02": PASO_02, "03": PASO_03})
         ejecutar_cadena(cliente, descripcion="x")
         assert list(tmp_path.glob("*_classification.json")) == []
+
+    def test_la_escritura_es_atomica_de_verdad(self, tmp_path: Path, monkeypatch):
+        """⚠️ El temporal de nombre FIJO (``<destino>.tmp``) perdía escrituras.
+
+        Con dos escritores sobre el mismo checkpoint, uno renombraba el temporal
+        del otro y el ``replace`` fallaba con ``FileNotFoundError`` (medido: 65 de
+        120 escrituras perdidas con 3 escritores). El arreglo es delegar en
+        ``persistencia``, que usa ``mkstemp`` (nombre único) + ``fsync``.
+        """
+        import voucherflow.classification.contable as contable
+        import voucherflow.persistencia as p
+
+        assert contable._escribir_atomico is p.escribir_atomico, (
+            "el checkpoint tiene que usar el helper compartido, no una copia"
+        )
+
+        llamadas: list[dict] = []
+        original = p.tempfile.mkstemp
+
+        def espia(*args, **kwargs):
+            llamadas.append(kwargs)
+            return original(*args, **kwargs)
+
+        monkeypatch.setattr(p.tempfile, "mkstemp", espia)
+        documento = tmp_path / "doc.md"
+        escribir_checkpoint(ruta_checkpoint(documento), {"01_centro_costo": PASO_01})
+        assert llamadas, "el temporal tiene que crearse con mkstemp"
+        # Y con sufijo único: un nombre fijo es el bug que se está fijando.
+        assert llamadas[0].get("suffix") == ".tmp"
+        assert llamadas[0].get("prefix", "").startswith("."), (
+            "mkstemp agrega aleatoriedad al nombre; el prefijo lo hace reconocible"
+        )
+
+    def test_dos_escritores_no_pierden_escrituras(self, tmp_path: Path):
+        """La contracara del test anterior, con concurrencia real."""
+        import threading
+
+        destino = ruta_checkpoint(tmp_path / "doc.md")
+        errores: list[str] = []
+
+        def escritor(n: int) -> None:
+            for i in range(30):
+                try:
+                    escribir_checkpoint(destino, {f"paso_{n}": {"i": i}}, "doc")
+                except BaseException as exc:  # noqa: BLE001 - es lo que se mide
+                    errores.append(f"{type(exc).__name__}: {exc}")
+
+        hilos = [threading.Thread(target=escritor, args=(n,)) for n in (1, 2, 3)]
+        for hilo in hilos:
+            hilo.start()
+        for hilo in hilos:
+            hilo.join()
+
+        assert errores == [], f"se perdieron escrituras: {sorted(set(errores))}"
+        assert not list(tmp_path.glob("*.tmp")), "no debe quedar ningún temporal"
+
+    def test_un_checkpoint_de_otro_documento_no_se_reutiliza(self, tmp_path: Path):
+        """⚠️ El checkpoint guarda ``archivo`` justamente para esto.
+
+        Escribir con ``ruta_checkpoint(documento)`` directo (el caso que la cadena
+        tiene que soportar: un checkpoint viejo del sistema anterior) y leerlo desde
+        OTRO documento no puede devolver los pasos ajenos: el shape ya traía el
+        campo, pero se descartaba al leer.
+        """
+        pdf, md = tmp_path / "factura.pdf", tmp_path / "factura.md"
+        escribir_checkpoint(
+            ruta_checkpoint(pdf), {"01_centro_costo": PASO_01}, str(pdf)
+        )
+
+        assert leer_checkpoint(ruta_checkpoint(md)) != {}, (
+            "sin `documento` se lee el shape crudo (compatibilidad)"
+        )
+        assert leer_checkpoint(ruta_checkpoint(md), md) == {}, (
+            "con `documento` se descarta: es el checkpoint de OTRO archivo"
+        )
+        assert leer_checkpoint(ruta_checkpoint(pdf), pdf) != {}, (
+            "y el del documento correcto sí se reutiliza"
+        )
+
+    def test_dos_homonimos_en_la_misma_carpeta_no_comparten_checkpoint(
+        self, tmp_path: Path
+    ):
+        """⚠️ `factura.pdf` y el `factura.md` que escribe `process` son DOS documentos.
+
+        Con el nombre por ``stem`` los dos apuntaban a
+        ``factura_classification.json``: el segundo clasificado heredaba los pasos
+        contables del primero (y esos pasos son los que el checkpoint existe para no
+        volver a pagar).
+        """
+        pdf = tmp_path / "factura.pdf"
+        md = tmp_path / "factura.md"
+        md.write_text("FACTURA A\nTotal: 121,00\n", encoding="utf-8")
+
+        # El PDF se clasifica primero y deja su checkpoint.
+        cliente_pdf = FakeOllamaClient({"01": PASO_01, "02": PASO_02, "03": PASO_03})
+        ejecutar_cadena(cliente_pdf, descripcion="pdf", documento=pdf)
+        assert len(cliente_pdf.llamadas) == 3
+
+        # El markdown NO puede reutilizar esos pasos: son de otro documento.
+        cliente_md = FakeOllamaClient({"01": PASO_01, "02": PASO_02, "03": PASO_03})
+        ejecutar_cadena(cliente_md, descripcion="md", documento=md)
+        assert len(cliente_md.llamadas) == 3, (
+            "los pasos del PDF no son del markdown: tiene que volver a preguntar"
+        )
+        # Y ninguno de los dos sidecars se pisó.
+        assert ruta_checkpoint(pdf).is_file()
+        assert ruta_checkpoint_unica(md) != ruta_checkpoint(pdf)
+        assert ruta_checkpoint_unica(md).is_file()
+
+    def test_ruta_checkpoint_unica_conserva_el_nombre_sin_ambiguedad(self, tmp_path: Path):
+        """La paridad de nombres (T-305) se preserva en el caso normal."""
+        documento = tmp_path / "factura.pdf"
+        assert ruta_checkpoint_unica(documento) == ruta_checkpoint(documento)
+        # Y tambien cuando el sidecar existente es del MISMO documento.
+        escribir_checkpoint(
+            ruta_checkpoint(documento), {"01_centro_costo": PASO_01}, str(documento)
+        )
+        assert ruta_checkpoint_unica(documento) == ruta_checkpoint(documento)
+
+    def test_ruta_checkpoint_unica_se_aparta_solo_si_hay_conflicto(self, tmp_path: Path):
+        pdf = tmp_path / "factura.pdf"
+        md = tmp_path / "factura.md"
+        escribir_checkpoint(ruta_checkpoint(pdf), {"01_centro_costo": PASO_01}, str(pdf))
+        assert ruta_checkpoint_unica(md) == tmp_path / "factura.md_classification.json"
 
 
 # ---------------------------------------------------------------------------

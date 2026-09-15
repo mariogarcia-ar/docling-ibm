@@ -36,6 +36,14 @@ se guarda ``<doc>_classification.json`` **después de cada paso**, con la clave
 nombre y el shape (``{"archivo": ..., "pasos": {...}}``): T-305 compara contra
 esos sidecar y la paridad de nombres es parte del contrato.
 
+⚠️ **El nombre sale del ``stem``**, así que dos documentos de la misma carpeta que
+solo difieren en la extensión (``factura.pdf`` y el ``factura.md`` que escribe
+``process``) apuntan al MISMO sidecar. La clasificación escribe con
+:func:`ruta_checkpoint_unica`, que se aparta del nombre por ``stem`` solo cuando
+detecta esa ambigüedad — y :func:`leer_checkpoint` verifica el campo ``archivo``
+antes de reutilizar pasos, así que un checkpoint de otro documento **no cuenta como
+paso completado** (antes se heredaba en silencio).
+
 Valores base (provisional documentado)
 --------------------------------------
 ``proveedor`` y ``monto`` se pasan como :data:`VALOR_NO_INFORMADO` porque F4
@@ -47,12 +55,14 @@ el sistema anterior, que volcaba ``load_document_text()``).
 
 from __future__ import annotations
 
+import json
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
 from ..models.ollama import OllamaClient
+from ..persistencia import escribir_atomico as _escribir_atomico
 from ..settings.config import Settings, cargar_settings
 from .prompts_contable import (
     CONDICION_IMPOSITIVA_DEFAULT,
@@ -420,43 +430,94 @@ def ruta_checkpoint(documento: str | Path) -> Path:
 
     ``document_path.with_name(f"{document_path.stem}_classification.json")``.
     Se conserva el nombre exacto porque T-305 compara contra esos sidecar.
+
+    ⚠️ **El nombre sale del ``stem``, así que dos documentos de la MISMA carpeta que
+    solo difieren en la extensión comparten archivo** (``factura.pdf`` y
+    ``factura.md`` → ``factura_classification.json``). Eso ya era una colisión de
+    T-305 y no se cambia acá: el nombre es parte del contrato de paridad. Para
+    escribir de forma segura en un lote que pueda tener esos dos documentos, usar
+    :func:`ruta_checkpoint_unica`.
     """
     ruta = Path(documento)
     return ruta.with_name(f"{ruta.stem}_classification.json")
+
+
+def ruta_checkpoint_unica(documento: str | Path) -> Path:
+    """Checkpoint que **no** colisiona entre documentos homónimos de una carpeta.
+
+    ``factura.pdf`` → ``factura.pdf_classification.json`` (el nombre real del
+    documento, no solo su ``stem``). Es la variante para escribir: preserva el
+    nombre de :func:`ruta_checkpoint` para el caso normal (``factura.pdf`` con
+    ``factura_classification.json``) y solo se aparta cuando hay ambigüedad, así
+    que un documento homónimo de OTRA carpeta sigue escribiendo lo de siempre.
+
+    ⚠️ **La ambigüedad es real desde que `process` escribe el markdown al lado del
+    PDF**: ``factura.pdf`` y ``factura.md`` son dos documentos de entrada VÁLIDOS
+    (``.md`` es un formato aceptado) en la misma carpeta, y con el nombre por
+    ``stem`` los dos escriben el mismo sidecar: el segundo clasificado heredaba los
+    pasos contables del primero.
+    """
+    ruta = Path(documento)
+    candidata = ruta_checkpoint(ruta)
+    if not candidata.exists():
+        return candidata
+    # ⚠️ Se re-lee el checkpoint para saber de QUIÉN es, en vez de comparar rutas:
+    # el ``archivo`` guardado viene de la corrida que lo escribió y puede ser
+    # relativo, así que una comparación textual daría falsos positivos.
+    if _archivo_del_checkpoint(candidata) == str(ruta):
+        return candidata
+    return ruta.with_name(f"{ruta.name}_classification.json")
+
+
+def _archivo_del_checkpoint(ruta: Path) -> str:
+    """El campo ``archivo`` de un checkpoint, o ``""`` si no se puede leer."""
+    try:
+        datos = json.loads(ruta.read_text(encoding="utf-8"))
+    except (ValueError, OSError):
+        return ""
+    archivo = datos.get("archivo") if isinstance(datos, Mapping) else None
+    return archivo if isinstance(archivo, str) else ""
 
 
 def escribir_checkpoint(ruta: str | Path, pasos: Mapping[str, Any], archivo: str = "") -> Path:
     """Escribe el checkpoint de la cadena de forma **atómica** (T-304).
 
     Shape portado (``write_checkpoint``): ``{"archivo": ..., "pasos": {...}}``.
-    La escritura es atómica (tmp + ``replace``) porque el sistema anterior escribía **después de
-    cada paso** y una interrupción a mitad de escritura dejaría un sidecar
-    ilegible que rompería la reanudación.
+    La escritura es atómica porque el sistema anterior escribía **después de cada paso**
+    y una interrupción a mitad de escritura dejaría un sidecar ilegible que
+    rompería la reanudación.
+
+    ⚠️ **Delega en** :func:`voucherflow.persistencia.escribir_atomico` en vez de
+    armar su propio temporal. La versión anterior usaba un temporal de nombre
+    **fijo** (``<destino>.tmp``): con dos escritores sobre el mismo checkpoint uno
+    renombraba el temporal del otro y el ``replace`` fallaba con
+    ``FileNotFoundError`` (medido: 65 de 120 escrituras perdidas con 3 escritores),
+    y le faltaba el ``fsync``. El helper compartido usa ``mkstemp`` (nombre único) +
+    ``fsync`` + ``os.replace``.
 
     Devuelve la ruta escrita.
     """
-    import json
-
     destino = Path(ruta)
-    destino.parent.mkdir(parents=True, exist_ok=True)
     carga = {"archivo": archivo or str(destino), "pasos": dict(pasos)}
-    temporal = destino.with_suffix(destino.suffix + ".tmp")
-    temporal.write_text(
-        json.dumps(carga, ensure_ascii=False, indent=2), encoding="utf-8"
+    _escribir_atomico(
+        destino, json.dumps(carga, ensure_ascii=False, indent=2)
     )
-    temporal.replace(destino)
     return destino
 
 
-def leer_checkpoint(ruta: str | Path) -> dict[str, Any]:
+def leer_checkpoint(ruta: str | Path, documento: str | Path | None = None) -> dict[str, Any]:
     """Lee los pasos ya resueltos de un checkpoint (T-304).
 
     Devuelve el dict ``pasos`` (vacío si el archivo no existe o está corrupto:
     un checkpoint ilegible debe **degradar a re-ejecutar**, nunca romper la
     corrida). Portado del patrón de reanudación del sistema anterior.
-    """
-    import json
 
+    Con ``documento``, además se exige que el checkpoint sea **de ese documento**:
+    el shape guarda ``archivo`` justamamente para eso, y cuando los dos caminos
+    coinciden en la ruta (dos homónimos de una carpeta) la única forma de no
+    heredar los pasos del otro es mirar de quién es. Un checkpoint ajeno **no es un
+    paso completado**: se re-ejecuta.
+    """
     camino = Path(ruta)
     if not camino.exists():
         return {}
@@ -464,6 +525,13 @@ def leer_checkpoint(ruta: str | Path) -> dict[str, Any]:
         datos = json.loads(camino.read_text(encoding="utf-8"))
     except (ValueError, OSError):
         return {}
+    if documento is not None:
+        # ``""`` (checkpoint viejo sin el campo) NO invalida: se acepta igual que
+        # un campo ausente, porque perder la reanudación es peor que el riesgo que
+        # este chequeo cubre — y la escritura siempre pone el campo.
+        guardado = datos.get("archivo") if isinstance(datos, Mapping) else None
+        if isinstance(guardado, str) and guardado and guardado != str(documento):
+            return {}
     pasos = datos.get("pasos") if isinstance(datos, Mapping) else None
     return dict(pasos) if isinstance(pasos, Mapping) else {}
 
@@ -713,11 +781,14 @@ def ejecutar_cadena(
     if checkpoint is not None:
         destino_checkpoint = Path(checkpoint)
     elif documento is not None:
-        destino_checkpoint = ruta_checkpoint(documento)
+        # ``ruta_checkpoint_unica`` y no ``ruta_checkpoint``: si en la carpeta hay
+        # otro documento con el mismo ``stem``, el nombre por ``stem`` haría que los
+        # dos compartieran sidecar (y el segundo heredara los pasos del primero).
+        destino_checkpoint = ruta_checkpoint_unica(documento)
 
     pasos: dict[str, Any] = {}
     if destino_checkpoint is not None:
-        pasos.update(leer_checkpoint(destino_checkpoint))
+        pasos.update(leer_checkpoint(destino_checkpoint, documento))
 
     archivo = str(documento) if documento is not None else ""
     clave_01 = PASOS_CONTABLES["01"]["clave"]
