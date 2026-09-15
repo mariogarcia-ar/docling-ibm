@@ -37,6 +37,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, TextIO
 
+from ..corpus.recorrido import esta_dentro, raiz_espejado, salida_de
 from ..orchestrator import (
     PipelineOrchestrator,
     PipelineResult,
@@ -172,9 +173,38 @@ def construir_parser() -> argparse.ArgumentParser:
     parser.add_argument("--version", action="version", version=f"voucherflow {VERSION_CLI}")
     sub = parser.add_subparsers(dest="comando", metavar="COMANDO")
 
-    p = sub.add_parser("process", help="Procesa un archivo o carpeta a Markdown (F1).")
+    p = sub.add_parser(
+        "process",
+        help="Procesa un archivo o carpeta a Markdown (F1).",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=(
+            "Con -o, la salida ESPEJA el árbol desde la raíz de la entrada (sin\n"
+            "repetir el nombre de la carpeta de entrada), igual que `corpus` y\n"
+            "`pdf`:\n"
+            "  var/fixtures/chicos/x.pdf  →  salida/chicos/x.md\n\n"
+            "Sin -o el markdown va junto al documento de origen."
+        ),
+    )
     p.add_argument("origen", help="Archivo o carpeta a procesar.")
-    p.add_argument("-o", "--output", default=None, help="Directorio de salida (default: junto al archivo).")
+    p.add_argument(
+        "-o",
+        "--output",
+        default=None,
+        metavar="DIR",
+        help=(
+            "Directorio de salida (default: junto al archivo). El árbol se "
+            "espeja desde --raiz (o desde el nivel que no sea un mes)."
+        ),
+    )
+    p.add_argument(
+        "--raiz",
+        type=Path,
+        help=(
+            "Raíz desde la cual se espeja el árbol en la salida. Si se omite, se "
+            "sube hasta el nivel que no sea un mes, así la MISMA entrada escribe "
+            "siempre los MISMOS archivos."
+        ),
+    )
     p.add_argument("--raw", action="store_true", help="Markdown crudo de Docling (equivale a el modo crudo).")
     _agregar_comunes(p)
 
@@ -358,6 +388,15 @@ def _cmd_process(args: argparse.Namespace, entorno: EntornoCLI) -> int:
     Docling y va a ``<doc>.raw.md`` — nunca encima del documento de entrada. Es el
     nombre heredado y evita el peor desenlace posible: pisar el archivo de
     origen de la corrida (T-604).
+
+    Con ``-o`` la salida **espeja el árbol** desde una raíz estable, con la misma
+    regla que ``corpus`` y ``pdf`` (:func:`corpus.recorrido.salida_de`). Sin el
+    espejado, procesar ``var/fixtures`` con ``-o`` aplanaba todos los ``.md`` en el
+    nivel raíz de la salida: dos documentos homónimos de carpetas distintas
+    escribían el MISMO archivo y uno se perdía en silencio, y no había forma de
+    saber de qué documento era cada markdown. La regla **no se reimplementa acá**:
+    una segunda copia de dónde va cada archivo es exactamente lo que divergencea y
+    hace pagar dos veces (ver ``corpus/recorrido.py``).
     """
     raiz = entorno.ruta(args.origen)
     documentos = iterar_documentos(raiz, extensiones=_extensiones_de_proceso())
@@ -366,15 +405,57 @@ def _cmd_process(args: argparse.Namespace, entorno: EntornoCLI) -> int:
             f"No hay documentos procesables en {raiz}. Formatos soportados: "
             "pdf/imagen/office/texto."
         )
+
+    salida = entorno.ruta(args.output) if args.output else None
+    if salida is not None:
+        # La salida no puede ser su propia entrada: si ``-o`` cae dentro de la
+        # entrada, un ``.md`` recién escrito sería un documento procesable en la
+        # corrida siguiente (misma guarda que ``corpus``, que la aplica siempre).
+        documentos = [d for d in documentos if not esta_dentro(d, salida)]
+        if not documentos:
+            raise ErrorCLI(
+                f"Todos los documentos de {raiz} están dentro de la salida "
+                f"({salida}): no hay nada que procesar fuera de ella."
+            )
+
+    raiz_explicita = entorno.ruta(str(args.raiz)) if args.raiz else None
+    raiz_efectiva, motivo = raiz_espejado([raiz], raiz_explicita, salida)
+    if salida is not None:
+        entorno.log(f"raíz de espejado : {raiz_efectiva}   [{motivo}]")
+        entorno.log(f"salida           : {salida}")
+        _declarar_fuera_de_la_raiz(documentos, raiz_efectiva, motivo, entorno)
+
     for ruta in documentos:
         documento = entorno.orch().procesar(
             ruta, docling_raw=args.raw, orientation=args.orientation
         )[0]
-        destino = _destino_markdown(ruta, args.output, entorno, raw=args.raw)
+        destino = _destino_markdown(ruta, salida, raiz_efectiva, raw=args.raw)
         destino.parent.mkdir(parents=True, exist_ok=True)
         destino.write_text(documento.markdown or "", encoding="utf-8")
         entorno.log(f"OK: {destino} (orientación={documento.orientacion})")
     return 0
+
+
+def _declarar_fuera_de_la_raiz(
+    documentos: Sequence[Path], raiz: Path, motivo: str, entorno: EntornoCLI
+) -> None:
+    """Avisa si ``--raiz`` no contiene a los documentos: el destino sale PLANO.
+
+    ``salida_de`` cae al nombre suelto cuando la raíz no es ancestro del archivo,
+    así que un ``--raiz`` mal puesto produce el mismo síntoma que el bug que este
+    cambio arregla (todo en el nivel raíz). Se declara en vez de dejarlo silencioso:
+    un espejado que no espeja y no lo dice es lo que hace perder tiempo buscando la
+    causa. Solo aplica a ``--raiz`` explícita: cuando la raíz se **asciende** desde
+    las rutas, la contención está garantizada por construcción.
+    """
+    if not motivo.startswith("--raiz"):
+        return
+    fuera = [d for d in documentos if not esta_dentro(d, raiz)]
+    if fuera:
+        entorno.log(
+            f"⚠  {len(fuera)} documento(s) no están bajo --raiz {raiz}: su salida "
+            "queda plana (sin el nivel de carpetas)."
+        )
 
 
 def _extensiones_de_proceso() -> set[str]:
@@ -384,19 +465,30 @@ def _extensiones_de_proceso() -> set[str]:
     return set(EXTENSIONES_SOPORTADAS) | {".txt", ".csv", ".log"}
 
 
+# El espejado **no** se reimplementa acá: ``esta_dentro``/``raiz_espejado``/
+# ``salida_de`` son las mismas funciones que usan ``corpus`` y ``pdf``, así que
+# los tres comandos no pueden divergir en dónde escriben (una segunda copia de
+# esa regla es exactamente lo que hace pagar dos veces; ver `corpus/recorrido.py`).
+
+
 def _destino_markdown(
     ruta: Path,
-    output: str | None,
-    entorno: EntornoCLI,
+    salida: Path | None,
+    raiz: Path,
     *,
     raw: bool = False,
 ) -> Path:
-    """Resuelve el markdown de salida (junto al archivo o en ``-o DIR``).
+    """Resuelve el markdown de salida (junto al archivo o espejando en ``-o DIR``).
 
     Con ``raw=True`` el sufijo es ``.raw.md`` (la convención de el modo crudo):
     el crudo y el markdown ordenado son **dos artefactos distintos** y no pueden
     compartir archivo — escribirlos en el mismo lugar haría que la segunda corrida
     pisara a la primera (T-604).
+
+    Con ``salida``, el destino sale de :func:`corpus.recorrido.salida_de` (la
+    función única del espejado, compartida con ``corpus`` y ``pdf``) y solo se le
+    cambia la extensión: así ``var/fixtures/chicos/x.pdf`` escribe
+    ``salida/chicos/x.md`` y dos homónimos de carpetas distintas no colisionan.
 
     **Nunca devuelve la ruta de entrada.** ``process`` acepta documentos que ya son
     texto (``.md``/``.txt``), y para esos el sufijo coincide con el del archivo: sin
@@ -406,15 +498,27 @@ def _destino_markdown(
     en el log: un nombre distinto es infinitamente mejor que perder el original.
     """
     sufijo = ".raw.md" if raw else ".md"
-    if output:
-        return entorno.ruta(output) / f"{ruta.stem}{sufijo}"
+    if salida is not None:
+        destino = salida_de(ruta, raiz, salida, "").with_suffix(sufijo)
+    else:
+        destino = ruta.with_suffix(sufijo)
 
-    destino = ruta.with_suffix(sufijo)
-    if destino == ruta:
-        destino = ruta.with_name(
-            f"{ruta.stem}.processed{sufijo}"
-        )
+    if _es_la_entrada(destino, ruta):
+        destino = ruta.with_name(f"{ruta.stem}.processed{sufijo}")
     return destino
+
+
+def _es_la_entrada(destino: Path, ruta: Path) -> bool:
+    """True si el destino es el **mismo archivo** que la entrada.
+
+    Se comparan las rutas resueltas: con ``-o`` el destino se arma con una raíz
+    distinta de la que trajo el recorrido, así que un ``==`` textual puede no
+    detectar la colisión (y el desenlace de no detectarla es perder el original).
+    """
+    try:
+        return destino.resolve() == ruta.resolve()
+    except OSError:  # pragma: no cover - rutas raras del sistema
+        return destino == ruta
 
 
 def _cmd_validate(args: argparse.Namespace, entorno: EntornoCLI) -> int:

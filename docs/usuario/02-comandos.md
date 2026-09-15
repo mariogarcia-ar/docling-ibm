@@ -70,6 +70,7 @@ Convierte un documento (o una carpeta) a Markdown, ordenado por posición.
 voucherflow process factura.pdf                    # → factura.md
 voucherflow process factura.pdf -o salida/         # → salida/factura.md
 voucherflow process var/files/2025-08                  # toda la carpeta
+voucherflow process var/files -o var/procesados    # espejando el árbol
 voucherflow process factura.pdf --raw              # → factura.raw.md (crudo de Docling)
 voucherflow process factura.pdf --orientation vertical
 ```
@@ -78,7 +79,29 @@ voucherflow process factura.pdf --orientation vertical
 |---|---|
 | `origen` | Archivo o carpeta (recursiva) |
 | `-o, --output DIR` | Directorio de salida (default: junto al archivo) |
+| `--raiz DIR` | Raíz desde la cual se espeja el árbol **con `-o`** (sin `-o` no aplica: la salida va junto al archivo) |
 | `--raw` | El **crudo** de Docling, sin reordenar por posición |
+
+**Con `-o`, la salida espeja el árbol** desde la raíz de la entrada, sin repetir
+el nombre de la carpeta de entrada:
+
+| Entrada | Salida (`-o var/procesados`) |
+|---|---|
+| `var/files/2025-08/2D2C9343/factura.pdf` | `var/procesados/2025-08/2D2C9343/factura.md` |
+| `var/files/2025-08` | `var/procesados/2025-08/2D2C9343/factura.md` |
+| `var/files/2025-08/2D2C9343` | `var/procesados/2025-08/2D2C9343/factura.md` |
+
+La raíz se **sube** automáticamente salteando los niveles de mes (`2025-08`) y de
+lote, así que **el mismo documento escribe siempre el mismo archivo** sin importar
+desde qué subcarpeta invoques la corrida: los tres casos de la tabla escriben los
+mismos archivos. Es la misma regla que usan [`corpus`](#corpus--pre-reducir-las-imágenes)
+y [`pdf`](#pdf--convertir-pdf-a-imágenes), a propósito: un solo criterio para los
+tres comandos.
+
+Sin el espejado, todos los `.md` caían en el nivel raíz de la salida: dos
+documentos homónimos de carpetas distintas escribían **el mismo archivo** (uno se
+perdía sin que nada lo dijera) y no había forma de saber de qué documento era cada
+markdown.
 
 **Qué genera**: un `.md` por documento (o `<doc>.raw.md` con `--raw`). Ver
 [qué archivos genera](04-salidas.md).
@@ -87,7 +110,11 @@ voucherflow process factura.pdf --orientation vertical
 documentos procesables.
 
 > **Nunca sobrescribe el documento de entrada.** Si el archivo de origen es un
-> `.md` y el destino sería el mismo archivo, se escribe `<doc>.processed.md`.
+> `.md` y el destino sería el mismo archivo, se escribe `<doc>.processed.md`. Por
+> eso `-o` apuntando a la carpeta de los documentos es un **error de uso**
+> (código `2`): escribir ahí sería pisar los originales. Usá un directorio
+> aparte — o una subcarpeta, que se excluye del recorrido para que la corrida no
+> reprocese su propia salida.
 
 ---
 
@@ -460,6 +487,8 @@ ese es el objetivo real de la herramienta.
 | `--sin-alinear` | No alinear a múltiplos de 28 (solo si el destino no es Qwen2.5-VL). |
 | `--backend {pillow,ffmpeg}` | Motor de reencode (default: `pillow`). |
 | `--formato {mismo,jpg}` | `mismo` conserva la extensión; `jpg` fuerza JPEG. |
+| `--incluir-pdf` | Incluye los PDF del corpus, renderizando una imagen por página. |
+| `--dpi-pdf DPI` | Resolución del render de PDF a imagen (default: `300`). |
 
 ⚠️ **`--formato jpg` reescribe la extensión de todo el lote**, así que dos
 originales con el mismo nombre base (`factura.jpg` y `factura.png`) apuntarían al

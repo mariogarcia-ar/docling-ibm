@@ -312,6 +312,23 @@ def documento(tmp_path: Path) -> Path:
     return ruta
 
 
+@pytest.fixture
+def corpus_proceso(tmp_path: Path) -> Path:
+    """Corpus con la forma real y **dos homónimos**: ``files/AAAA-MM/<hash8>/``.
+
+    El segundo homónimo es el que destapa el aplanado: con `-o` los dos
+    ``factura.md`` calculaban el mismo destino y uno se perdía.
+    """
+    raiz = tmp_path / "files"
+    for mes, lote in (("2025-08", "2D2C9343"), ("2025-08", "AABBCCDD")):
+        carpeta = raiz / mes / lote
+        carpeta.mkdir(parents=True, exist_ok=True)
+        (carpeta / "factura.md").write_text(
+            f"FACTURA A\nTotal: 121,00\n{lote}\n", encoding="utf-8"
+        )
+    return raiz
+
+
 def _salida(entorno: EntornoCLI) -> str:
     return entorno.stdout.getvalue()
 
@@ -651,6 +668,112 @@ class TestComandos:
         (tmp_path / "a" / "b" / "uno.md").write_text("texto", encoding="utf-8")
         assert main(["process", str(tmp_path)], entorno=entorno) == 0
         assert (tmp_path / "a" / "b" / "uno.md").is_file()
+
+    def test_process_con_output_espeja_el_arbol(
+        self, entorno: EntornoCLI, corpus_proceso: Path, tmp_path: Path
+    ):
+        """⚠️ El bug: sin espejar, `-o` aplanaba todos los `.md` en el nivel raíz.
+
+        Dos consecuencias, y la segunda es la grave: no se podía saber de qué
+        documento era cada markdown, y dos homónimos de carpetas distintas
+        escribían el MISMO archivo (uno se perdía sin que nada lo dijera). La
+        salida ahora espeja desde la raíz, igual que `corpus` y `pdf`.
+        """
+        salida = tmp_path / "out"
+        assert main(["process", str(corpus_proceso), "-o", str(salida)], entorno=entorno) == 0
+        assert (salida / "2025-08" / "2D2C9343" / "factura.md").is_file()
+        assert (salida / "2025-08" / "AABBCCDD" / "factura.md").is_file()
+        assert not (salida / "factura.md").exists(), "el nivel de carpeta se conserva"
+
+    def test_process_dos_homonimos_no_se_pisan(
+        self, entorno: EntornoCLI, corpus_proceso: Path, tmp_path: Path
+    ):
+        salida = tmp_path / "out"
+        main(["process", str(corpus_proceso), "-o", str(salida)], entorno=entorno)
+        assert len(list(salida.rglob("*.md"))) == 2, (
+            "dos `factura.md` de carpetas distintas: dos salidas, no una"
+        )
+
+    def test_process_la_raiz_no_depende_de_la_ruta_pasada(
+        self, entorno: EntornoCLI, corpus_proceso: Path, tmp_path: Path
+    ):
+        """Procesar `files` o `files/2025-08` escribe los MISMOS archivos.
+
+        Es la propiedad que hace reanudable la corrida (misma regla que
+        `corpus`/`pdf`: la raíz sube hasta el nivel que no sea un mes).
+        """
+        main(["process", str(corpus_proceso), "-o", str(tmp_path / "a")], entorno=entorno)
+        main(
+            ["process", str(corpus_proceso / "2025-08"), "-o", str(tmp_path / "b")],
+            entorno=entorno,
+        )
+        primera = sorted(p.relative_to(tmp_path / "a") for p in (tmp_path / "a").rglob("*.md"))
+        segunda = sorted(p.relative_to(tmp_path / "b") for p in (tmp_path / "b").rglob("*.md"))
+        assert primera == segunda
+
+    def test_process_una_raiz_mal_puesta_lo_declara(
+        self, entorno: EntornoCLI, corpus_proceso: Path, tmp_path: Path
+    ):
+        """Un `--raiz` que no contiene a los documentos deja la salida PLANA.
+
+        Ese es el mismo síntoma que el bug que este cambio arregla, así que se
+        declara en vez de dejarlo silencioso: un espejado que no espeja y no lo
+        dice es lo que hace perder tiempo buscando la causa.
+        """
+        codigo = main(
+            [
+                "process",
+                str(corpus_proceso),
+                "-o",
+                str(tmp_path / "out"),
+                "--raiz",
+                str(tmp_path / "otra"),
+            ],
+            entorno=entorno,
+        )
+        assert codigo == 0
+        assert "queda plana" in _log(entorno)
+
+    def test_process_no_reprocesa_su_propia_salida(
+        self, entorno: EntornoCLI, tmp_path: Path
+    ):
+        """Con `-o` dentro de la entrada, lo ya escrito no cuenta como entrada.
+
+        Sin esta guarda, la segunda corrida descubriría los `.md` de la primera
+        (son documentos procesables) y el lote crecería solo.
+        """
+        entrada = tmp_path / "entrada"
+        salida = entrada / "salida"
+        salida.mkdir(parents=True)
+        (entrada / "doc.md").write_text("FACTURA A\nTotal: 121,00\n", encoding="utf-8")
+        (salida / "viejo.md").write_text("salida de una corrida anterior", encoding="utf-8")
+
+        assert main(["process", str(entrada), "-o", str(salida)], entorno=entorno) == 0
+        assert _log(entorno).count("OK:") == 1, "solo el documento de la entrada"
+        assert (salida / "doc.md").is_file(), "el árbol se espeja desde la entrada"
+
+    def test_process_con_la_salida_sobre_la_entrada_lo_declara(
+        self, entorno: EntornoCLI, tmp_path: Path
+    ):
+        """`-o` apuntando al directorio de los documentos: se declara, no se escribe.
+
+        Antes este caso **pisaba la entrada**: el destino se armaba por `stem`
+        (`<origen>/doc.md` para el origen `<origen>/doc.md`), y el chequeo de
+        colisión solo existía en la rama sin `-o`. El sistema anterior no corría
+        el riesgo porque su lista de extensiones no incluía texto plano; para
+        `process` (que sí acepta `.md`) era una pérdida de datos silenciosa.
+        """
+        entrada = tmp_path / "entrada"
+        entrada.mkdir()
+        original = entrada / "doc.md"
+        original.write_text("FACTURA A\nTotal: 121,00\n", encoding="utf-8")
+
+        codigo = main(["process", str(entrada), "-o", str(entrada)], entorno=entorno)
+        assert codigo == 1
+        assert "están dentro de la salida" in _log(entorno)
+        assert original.read_text(encoding="utf-8").startswith("FACTURA A"), (
+            "el documento de entrada quedó intacto"
+        )
 
     def test_process_excluye_artefactos_derivados(self, entorno: EntornoCLI, tmp_path: Path):
         # La carpeta files/ real está llena de sidecars y checkpoints: no son

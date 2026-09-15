@@ -1,12 +1,22 @@
 # Flujo 
 
 - preparar los archivos
-  - convertir pdf a imagenes : oucherflow pdf
+  - convertir pdf a imagenes : voucherflow pdf
   - reducir imagenes grandes : voucherflow corpus
 - invocar llm frontier (deepseek):  voucherflow-lab
 - invocar llm local 
 - evaluar y corregir
 - publicar
+
+
+
+
+Capacidad	Pregunta que responde	Módulo
+- processing	    ¿Cómo se lee este archivo?	      processing/
+- validation	    ¿Esto es un comprobante?	        validation/
+- classification	¿Qué tipo es y cómo se imputa?	  classification/
+- extraction	    ¿Qué dice el documento?	          extraction/
+- conclusion	    ¿Cuál es el veredicto?	          conclusion/
 
 # cmd 
 
@@ -14,6 +24,20 @@
 1 - corpus.md (reducir las imagenes)
 3 - pdf.md (exportar el pdf a imagenes)
 2 - llm.md (invocar a deepseek para extraer informacion)
+
+
+
+voucherflow corpus  tests/fixtures -o var/fixtures --workers 4
+voucherflow pdf     tests/fixtures -o var/fixtures 
+voucherflow process var/fixtures -o var/fixtures-extracted
+
+
+voucherflow corpus var/files -o var/processed --workers 4
+voucherflow pdf var/files -o var/processed
+
+
+
+
 
 
  voucherflow-lab tests/fixtures/expected-extraction -M extraer -p deepseek --workers 4 -o tests/expected-extraction --dry-run\n

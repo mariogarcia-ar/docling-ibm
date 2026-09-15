@@ -34,7 +34,9 @@ indique). Es el insumo de las etapas que leen texto.
 
 Se escribe:
 - junto al documento original, o
-- en el directorio de `-o`, si se pasó.
+- en el directorio de `-o`, si se pasó — **espejando el árbol** de la entrada
+  (`var/files/2025-08/2D2C9343/x.pdf` → `salida/2025-08/2D2C9343/x.md`), con la
+  misma regla que `corpus` y `pdf`.
 
 ### `<doc>.raw.md` — el crudo de Docling
 
