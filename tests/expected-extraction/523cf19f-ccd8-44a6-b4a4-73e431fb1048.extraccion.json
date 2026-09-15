@@ -1,0 +1,109 @@
+{
+  "origen": "tests/fixtures/expected-extraction/523cf19f-ccd8-44a6-b4a4-73e431fb1048.jpg",
+  "archivo_relativo": "523cf19f-ccd8-44a6-b4a4-73e431fb1048.jpg",
+  "procesado_utc": "2026-09-15T02:05:40+00:00",
+  "modelo": "deepseek-flash",
+  "modo": "extraer",
+  "version_prompt": "mendel-validacion@1",
+  "fuente": "api",
+  "imagen": {
+    "bytes": 88501,
+    "mime": "image/jpeg",
+    "detalle": "high",
+    "dimensiones": [
+      840,
+      1036
+    ],
+    "tokens_estimados": 1024
+  },
+  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "uso": {
+    "prompt_tokens": 3017,
+    "completion_tokens": 3247,
+    "total_tokens": 6264,
+    "prompt_cache_hit_tokens": 2816,
+    "prompt_cache_miss_tokens": 201
+  },
+  "esquema_validado": true,
+  "precios_usd_1m": {
+    "entrada": 0.3,
+    "salida": 1.2,
+    "entrada_cache": 0.006,
+    "origen": "referencia"
+  },
+  "costo_usd": 0.003974,
+  "resultado": {
+    "legibilidad": "buena",
+    "tipo_comprobante": "A",
+    "codigo_afip": "001",
+    "razon_social_emisor": "DOSMASTRES S.R.L. (CAMELIA)",
+    "cuit_emisor": "30-71845835-4",
+    "digito_verificador_cuit_valido": true,
+    "fecha_emision": "08/28/26",
+    "nro_factura": "00003-00000399",
+    "moneda": "ARS",
+    "subtotal": 25123.96,
+    "no_gravado": 0,
+    "exento": 0,
+    "discrimina_impuestos": true,
+    "iva": 5276.04,
+    "impuestos_internos": 0,
+    "percepciones_iibb": 0,
+    "otros_impuestos": 0,
+    "importe_total": 30400.0,
+    "cierra_aritmetica": true,
+    "rubro_emisor": "Restaurante / gastronomía (emite cubiertos, menú del día, platos)",
+    "categoria_gasto_sugerida": "Restaurante",
+    "cantidad_comensales_personas": 2,
+    "cantidad_litros": 0,
+    "centro_de_costo": null,
+    "campos_no_legibles": [
+      "Importe de la línea 'CUBIERTOS' (columna Total cortada en el margen derecho: se lee '2909...')",
+      "Importe de la línea 'Tarta DEL DIA' (columna Total cortada: se lee '1057...')",
+      "Importe de la línea 'MENU PESCADO' (columna Total cortada: se lee '1454...')",
+      "Importe de la línea 'Descuento' (se imprime el rótulo pero el valor no es visible)"
+    ],
+    "observaciones": "Factura A electrónica, COD. 001, impresa en ticket de controlador fiscal. Emisor DOSMASTRES S.R.L. (nombre de fantasía CAMELIA), Juan Pablo II 1740, Rosario, Santa Fe; Responsable Inscripto, CUIT 30-71845835-4 (dígito verificador válido). N° 00003-00000399, Mesa/Pedido SALON 14. Receptor: CVC S A, Circunvalación 1245 BIS, CUIT 30-58221570-3 (dato del cliente, no del emisor). Fecha impresa '08/28/26', que sugiere formato MM/DD/AA (28/08/2026); el CAE vence 09/07/25 según lo impreso, dato que no resulta coherente con la fecha de emisión y conviene revisar. Aritmética verificada: Neto 25.123,96 + IVA 5.276,04 (21%) = TOTAL 30.400,00. No se discrimina ningún otro tributo (sin percepciones, internos ni exentos). La suma de las líneas de detalle no puede comprobarse porque los importes de la columna 'Total' están cortados en el margen derecho de la foto; además hay una línea 'Descuento' sin importe legible que podría explicar la diferencia entre el detalle y el neto declarado. La línea 'PROM. VASO AGUA' no muestra precio (posible cortesía/promoción). Se leen 2 cubiertos en el detalle, lo que sostiene cantidad de comensales = 2. No se imprime símbolo de moneda explícito; se asume ARS por tratarse de comprobante fiscal argentino. No hay campo de centro de costo en el comprobante."
+  },
+  "extraccion": {
+    "legibilidad": "buena",
+    "tipo_comprobante": "A",
+    "codigo_afip": "001",
+    "razon_social_emisor": "DOSMASTRES S.R.L. (CAMELIA)",
+    "cuit_emisor": "30-71845835-4",
+    "digito_verificador_cuit_valido": true,
+    "fecha_emision": "08/28/26",
+    "nro_factura": "00003-00000399",
+    "moneda": "ARS",
+    "subtotal": 25123.96,
+    "no_gravado": 0,
+    "exento": 0,
+    "discrimina_impuestos": true,
+    "iva": 5276.04,
+    "impuestos_internos": 0,
+    "percepciones_iibb": 0,
+    "otros_impuestos": 0,
+    "importe_total": 30400.0,
+    "cierra_aritmetica": true,
+    "rubro_emisor": "Restaurante / gastronomía (emite cubiertos, menú del día, platos)",
+    "categoria_gasto_sugerida": "Restaurante",
+    "cantidad_comensales_personas": 2,
+    "cantidad_litros": 0,
+    "centro_de_costo": null,
+    "campos_no_legibles": [
+      "Importe de la línea 'CUBIERTOS' (columna Total cortada en el margen derecho: se lee '2909...')",
+      "Importe de la línea 'Tarta DEL DIA' (columna Total cortada: se lee '1057...')",
+      "Importe de la línea 'MENU PESCADO' (columna Total cortada: se lee '1454...')",
+      "Importe de la línea 'Descuento' (se imprime el rótulo pero el valor no es visible)"
+    ],
+    "observaciones": "Factura A electrónica, COD. 001, impresa en ticket de controlador fiscal. Emisor DOSMASTRES S.R.L. (nombre de fantasía CAMELIA), Juan Pablo II 1740, Rosario, Santa Fe; Responsable Inscripto, CUIT 30-71845835-4 (dígito verificador válido). N° 00003-00000399, Mesa/Pedido SALON 14. Receptor: CVC S A, Circunvalación 1245 BIS, CUIT 30-58221570-3 (dato del cliente, no del emisor). Fecha impresa '08/28/26', que sugiere formato MM/DD/AA (28/08/2026); el CAE vence 09/07/25 según lo impreso, dato que no resulta coherente con la fecha de emisión y conviene revisar. Aritmética verificada: Neto 25.123,96 + IVA 5.276,04 (21%) = TOTAL 30.400,00. No se discrimina ningún otro tributo (sin percepciones, internos ni exentos). La suma de las líneas de detalle no puede comprobarse porque los importes de la columna 'Total' están cortados en el margen derecho de la foto; además hay una línea 'Descuento' sin importe legible que podría explicar la diferencia entre el detalle y el neto declarado. La línea 'PROM. VASO AGUA' no muestra precio (posible cortesía/promoción). Se leen 2 cubiertos en el detalle, lo que sostiene cantidad de comensales = 2. No se imprime símbolo de moneda explícito; se asume ARS por tratarse de comprobante fiscal argentino. No hay campo de centro de costo en el comprobante."
+  },
+  "aritmetica": {
+    "calculable": true,
+    "suma": 30400.0,
+    "total": 30400.0,
+    "diferencia": 0.0,
+    "cierra": true,
+    "faltantes": []
+  }
+}

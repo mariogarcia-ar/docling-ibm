@@ -1,0 +1,107 @@
+{
+  "origen": "tests/fixtures/expected-extraction/bacd76fe-7264-4bc5-9171-1ace6e125287.jpg",
+  "archivo_relativo": "bacd76fe-7264-4bc5-9171-1ace6e125287.jpg",
+  "procesado_utc": "2026-09-15T02:06:13+00:00",
+  "modelo": "deepseek-flash",
+  "modo": "extraer",
+  "version_prompt": "mendel-validacion@1",
+  "fuente": "api",
+  "imagen": {
+    "bytes": 136355,
+    "mime": "image/jpeg",
+    "detalle": "high",
+    "dimensiones": [
+      840,
+      1036
+    ],
+    "tokens_estimados": 1024
+  },
+  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "uso": {
+    "prompt_tokens": 3017,
+    "completion_tokens": 13694,
+    "total_tokens": 16711,
+    "prompt_cache_hit_tokens": 2816,
+    "prompt_cache_miss_tokens": 201
+  },
+  "esquema_validado": true,
+  "precios_usd_1m": {
+    "entrada": 0.3,
+    "salida": 1.2,
+    "entrada_cache": 0.006,
+    "origen": "referencia"
+  },
+  "costo_usd": 0.01651,
+  "resultado": {
+    "legibilidad": "buena",
+    "tipo_comprobante": "A",
+    "codigo_afip": "001",
+    "razon_social_emisor": "FECO S.A. (nombre de fantasía impreso: LUBEN)",
+    "cuit_emisor": "30-71071972-8",
+    "digito_verificador_cuit_valido": true,
+    "fecha_emision": "01/04/2026",
+    "nro_factura": "00005-00003047",
+    "moneda": "ARS",
+    "subtotal": 52694.22,
+    "no_gravado": 0,
+    "exento": 0,
+    "discrimina_impuestos": true,
+    "iva": 11065.78,
+    "impuestos_internos": 0,
+    "percepciones_iibb": 0,
+    "otros_impuestos": 0,
+    "importe_total": 63760,
+    "cierra_aritmetica": true,
+    "rubro_emisor": "Comercio minorista (rubro específico no determinable con certeza desde la imagen)",
+    "categoria_gasto_sugerida": "no verificable",
+    "cantidad_comensales_personas": null,
+    "cantidad_litros": null,
+    "centro_de_costo": null,
+    "campos_no_legibles": [
+      "Número de C.A.E. (solo parcialmente legible)",
+      "Nombre y CUIT del receptor (encabezado borroso; no forman parte del formato solicitado)",
+      "Encabezado del emisor en cuerpo muy pequeño y desenfocado (domicilio, inicio de actividades y último dígito del CUIT)"
+    ],
+    "observaciones": "Factura A (Cod. 001), punto de venta 00005, nro 00003047, emitida el 01/04/2026 a las 12:40. Emisor cuyo encabezado muestra el nombre de fantasía LUBEN y la razón social FECO S.A. Discrimina IVA: SUBTOTAL IMPORTE NETO GRAVADO 52.694,22 + IVA 21% 11.065,78 = 63.760,00, coincidente con el TOTAL y con el importe de pago impresos; SUBTOTAL IMPORTE NETO NO GRAVADO y SUBTOTAL IMPORTE EXENTO figuran en 0,00, por lo que la aritmética cierra. El CUIT del emisor se lee 30-71071972-8 y su dígito verificador calculado (8) coincide, aunque el último dígito está impreso en cuerpo muy pequeño. No hay leyenda ni símbolo de moneda impreso: se asume ARS por el contexto (importes en pesos, línea CAMBIO 0,00). El detalle lista 3 artículos con descuentos (CABLE MILENIO 6 M-L, JABON SIP LINE TI, FABRETTO PLI ALFA 8-L) y cantidad total 5,00 unidades; los renglones de detalle se leen con dificultad por la calidad de la imagen, por lo que no se transcriben aquí. Rubro del emisor no inferible con certeza (los artículos no permiten identificar una actividad única), por lo que la categoría de gasto queda como no verificable."
+  },
+  "extraccion": {
+    "legibilidad": "buena",
+    "tipo_comprobante": "A",
+    "codigo_afip": "001",
+    "razon_social_emisor": "FECO S.A. (nombre de fantasía impreso: LUBEN)",
+    "cuit_emisor": "30-71071972-8",
+    "digito_verificador_cuit_valido": true,
+    "fecha_emision": "01/04/2026",
+    "nro_factura": "00005-00003047",
+    "moneda": "ARS",
+    "subtotal": 52694.22,
+    "no_gravado": 0,
+    "exento": 0,
+    "discrimina_impuestos": true,
+    "iva": 11065.78,
+    "impuestos_internos": 0,
+    "percepciones_iibb": 0,
+    "otros_impuestos": 0,
+    "importe_total": 63760,
+    "cierra_aritmetica": true,
+    "rubro_emisor": "Comercio minorista (rubro específico no determinable con certeza desde la imagen)",
+    "categoria_gasto_sugerida": "no verificable",
+    "cantidad_comensales_personas": null,
+    "cantidad_litros": null,
+    "centro_de_costo": null,
+    "campos_no_legibles": [
+      "Número de C.A.E. (solo parcialmente legible)",
+      "Nombre y CUIT del receptor (encabezado borroso; no forman parte del formato solicitado)",
+      "Encabezado del emisor en cuerpo muy pequeño y desenfocado (domicilio, inicio de actividades y último dígito del CUIT)"
+    ],
+    "observaciones": "Factura A (Cod. 001), punto de venta 00005, nro 00003047, emitida el 01/04/2026 a las 12:40. Emisor cuyo encabezado muestra el nombre de fantasía LUBEN y la razón social FECO S.A. Discrimina IVA: SUBTOTAL IMPORTE NETO GRAVADO 52.694,22 + IVA 21% 11.065,78 = 63.760,00, coincidente con el TOTAL y con el importe de pago impresos; SUBTOTAL IMPORTE NETO NO GRAVADO y SUBTOTAL IMPORTE EXENTO figuran en 0,00, por lo que la aritmética cierra. El CUIT del emisor se lee 30-71071972-8 y su dígito verificador calculado (8) coincide, aunque el último dígito está impreso en cuerpo muy pequeño. No hay leyenda ni símbolo de moneda impreso: se asume ARS por el contexto (importes en pesos, línea CAMBIO 0,00). El detalle lista 3 artículos con descuentos (CABLE MILENIO 6 M-L, JABON SIP LINE TI, FABRETTO PLI ALFA 8-L) y cantidad total 5,00 unidades; los renglones de detalle se leen con dificultad por la calidad de la imagen, por lo que no se transcriben aquí. Rubro del emisor no inferible con certeza (los artículos no permiten identificar una actividad única), por lo que la categoría de gasto queda como no verificable."
+  },
+  "aritmetica": {
+    "calculable": true,
+    "suma": 63760.0,
+    "total": 63760.0,
+    "diferencia": 0.0,
+    "cierra": true,
+    "faltantes": []
+  }
+}

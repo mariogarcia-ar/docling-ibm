@@ -1,0 +1,108 @@
+{
+  "origen": "tests/fixtures/expected-extraction/14f76410-658d-4f86-bfb2-c8084be5ba25.jpg",
+  "archivo_relativo": "14f76410-658d-4f86-bfb2-c8084be5ba25.jpg",
+  "procesado_utc": "2026-09-15T02:05:15+00:00",
+  "modelo": "deepseek-flash",
+  "modo": "extraer",
+  "version_prompt": "mendel-validacion@1",
+  "fuente": "api",
+  "imagen": {
+    "bytes": 38517,
+    "mime": "image/jpeg",
+    "detalle": "high",
+    "dimensiones": [
+      840,
+      1036
+    ],
+    "tokens_estimados": 1024
+  },
+  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "uso": {
+    "prompt_tokens": 3017,
+    "completion_tokens": 3351,
+    "total_tokens": 6368,
+    "prompt_cache_hit_tokens": 2816,
+    "prompt_cache_miss_tokens": 201
+  },
+  "esquema_validado": true,
+  "precios_usd_1m": {
+    "entrada": 0.3,
+    "salida": 1.2,
+    "entrada_cache": 0.006,
+    "origen": "referencia"
+  },
+  "costo_usd": 0.004098,
+  "resultado": {
+    "legibilidad": "buena",
+    "tipo_comprobante": "A",
+    "codigo_afip": "001",
+    "razon_social_emisor": "José Genina Repuestos S.R.L.",
+    "cuit_emisor": "30-71164845-3",
+    "digito_verificador_cuit_valido": false,
+    "fecha_emision": "24/06/2025",
+    "nro_factura": "0005-00013948",
+    "moneda": "ARS",
+    "subtotal": 9048.11,
+    "no_gravado": 0,
+    "exento": 0,
+    "discrimina_impuestos": true,
+    "iva": 1899.89,
+    "impuestos_internos": 0,
+    "percepciones_iibb": 0,
+    "otros_impuestos": 0,
+    "importe_total": 10948.79,
+    "cierra_aritmetica": false,
+    "rubro_emisor": "Venta de repuestos de automotor",
+    "categoria_gasto_sugerida": "Repuestos / Mantenimiento de vehículos",
+    "cantidad_comensales_personas": 0,
+    "cantidad_litros": 0,
+    "centro_de_costo": null,
+    "campos_no_legibles": [
+      "cae",
+      "fecha_vencimiento_cae",
+      "precio_unitario_detalle"
+    ],
+    "observaciones": "Factura A (COD. 001), emisor José Genina Repuestos S.R.L., CUIT 30-71164845-3, domicilio Av. Cnel. Díaz 2117 PB 08, Capital Federal. Fecha de emisión 24/06/2025. Punto de venta 0005, comprobante 00013948. Detalle: 'SERVICIO DE SUCCION LINE ESM' cant. 0,25 a $36.246,43 con IVA 21%, subtotal línea $9.048,11. Se discrimina IVA: NETO GRAVADO 21% $9.048,11 + IVA 21% $1.899,89, TOTAL $10.948,79. La aritmética no cierra exactamente (9.048,11 + 1.899,89 = 10.948,00 vs. total impreso 10.948,79; diferencia de $0,79), posible error de lectura/redondeo en el IVA o en el total: conviene reverificar contra el original. No hay percepciones, impuestos internos ni otros tributos. El dígito verificador calculado para el CUIT leído (30-71164845) sería 9, distinto del 3 impreso; podría tratarse de un error de lectura del comprobante. CAE y fecha de vencimiento impresos al pie no resultan legibles con certeza. Rubro: repuestos de automotor."
+  },
+  "extraccion": {
+    "legibilidad": "buena",
+    "tipo_comprobante": "A",
+    "codigo_afip": "001",
+    "razon_social_emisor": "José Genina Repuestos S.R.L.",
+    "cuit_emisor": "30-71164845-3",
+    "digito_verificador_cuit_valido": false,
+    "fecha_emision": "24/06/2025",
+    "nro_factura": "0005-00013948",
+    "moneda": "ARS",
+    "subtotal": 9048.11,
+    "no_gravado": 0,
+    "exento": 0,
+    "discrimina_impuestos": true,
+    "iva": 1899.89,
+    "impuestos_internos": 0,
+    "percepciones_iibb": 0,
+    "otros_impuestos": 0,
+    "importe_total": 10948.79,
+    "cierra_aritmetica": false,
+    "rubro_emisor": "Venta de repuestos de automotor",
+    "categoria_gasto_sugerida": "Repuestos / Mantenimiento de vehículos",
+    "cantidad_comensales_personas": 0,
+    "cantidad_litros": 0,
+    "centro_de_costo": null,
+    "campos_no_legibles": [
+      "cae",
+      "fecha_vencimiento_cae",
+      "precio_unitario_detalle"
+    ],
+    "observaciones": "Factura A (COD. 001), emisor José Genina Repuestos S.R.L., CUIT 30-71164845-3, domicilio Av. Cnel. Díaz 2117 PB 08, Capital Federal. Fecha de emisión 24/06/2025. Punto de venta 0005, comprobante 00013948. Detalle: 'SERVICIO DE SUCCION LINE ESM' cant. 0,25 a $36.246,43 con IVA 21%, subtotal línea $9.048,11. Se discrimina IVA: NETO GRAVADO 21% $9.048,11 + IVA 21% $1.899,89, TOTAL $10.948,79. La aritmética no cierra exactamente (9.048,11 + 1.899,89 = 10.948,00 vs. total impreso 10.948,79; diferencia de $0,79), posible error de lectura/redondeo en el IVA o en el total: conviene reverificar contra el original. No hay percepciones, impuestos internos ni otros tributos. El dígito verificador calculado para el CUIT leído (30-71164845) sería 9, distinto del 3 impreso; podría tratarse de un error de lectura del comprobante. CAE y fecha de vencimiento impresos al pie no resultan legibles con certeza. Rubro: repuestos de automotor."
+  },
+  "aritmetica": {
+    "calculable": true,
+    "suma": 10948.0,
+    "total": 10948.79,
+    "diferencia": 0.79,
+    "cierra": false,
+    "faltantes": [],
+    "aviso": "Los importes leídos suman 10,948.00 y el total impreso es 10,948.79 (diferencia 0.79)."
+  }
+}

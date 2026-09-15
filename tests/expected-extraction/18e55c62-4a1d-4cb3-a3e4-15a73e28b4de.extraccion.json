@@ -1,0 +1,106 @@
+{
+  "origen": "tests/fixtures/expected-extraction/18e55c62-4a1d-4cb3-a3e4-15a73e28b4de.jpg",
+  "archivo_relativo": "18e55c62-4a1d-4cb3-a3e4-15a73e28b4de.jpg",
+  "procesado_utc": "2026-09-15T02:05:15+00:00",
+  "modelo": "deepseek-flash",
+  "modo": "extraer",
+  "version_prompt": "mendel-validacion@1",
+  "fuente": "api",
+  "imagen": {
+    "bytes": 52857,
+    "mime": "image/jpeg",
+    "detalle": "high",
+    "dimensiones": [
+      840,
+      1036
+    ],
+    "tokens_estimados": 1024
+  },
+  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "uso": {
+    "prompt_tokens": 3017,
+    "completion_tokens": 2769,
+    "total_tokens": 5786,
+    "prompt_cache_hit_tokens": 2816,
+    "prompt_cache_miss_tokens": 201
+  },
+  "esquema_validado": true,
+  "precios_usd_1m": {
+    "entrada": 0.3,
+    "salida": 1.2,
+    "entrada_cache": 0.006,
+    "origen": "referencia"
+  },
+  "costo_usd": 0.0034,
+  "resultado": {
+    "legibilidad": "buena",
+    "tipo_comprobante": null,
+    "codigo_afip": null,
+    "razon_social_emisor": "ROCK & FELLERS",
+    "cuit_emisor": "30-71530218-5",
+    "digito_verificador_cuit_valido": false,
+    "fecha_emision": "27/11/25 00:41 h",
+    "nro_factura": null,
+    "moneda": "ARS",
+    "subtotal": null,
+    "no_gravado": 0,
+    "exento": 0,
+    "discrimina_impuestos": false,
+    "iva": 0,
+    "impuestos_internos": 0,
+    "percepciones_iibb": 0,
+    "otros_impuestos": 0,
+    "importe_total": 8933.33,
+    "cierra_aritmetica": false,
+    "rubro_emisor": "Gastronómico / restaurante (cadena Rock & Fellers)",
+    "categoria_gasto_sugerida": "Restaurante",
+    "cantidad_comensales_personas": 0,
+    "cantidad_litros": 0,
+    "centro_de_costo": null,
+    "campos_no_legibles": [
+      "último dígito del CUIT (borroso: se lee 5, pero el DV calculado para 30-71530218 daría 3)"
+    ],
+    "observaciones": "El documento NO es una factura AFIP (A/B/C) ni un Otro Comprobante 090/099: es un cupón de pago con tarjeta emitido por Sistema FISCAL / Payway (copia cliente), por lo que no tiene tipo de comprobante, código AFIP ni número de factura (PPPP-NNNNNNNN); sólo se identifican Nro. cupón 8555, Nro. lote 035 y Nro. autorización 312952. Único importe impreso: Total $ 8.933,33 (se asume ARS por el símbolo $). No hay desglose fiscal: no figuran neto gravado, no gravado, exento, IVA ni percepciones, por lo que subtotal queda en null y no puede validarse la aritmética (cierra_aritmetica = false por ausencia de desglose, no por error de suma). CUIT emisor leído: 30-71530218-5; el dígito verificador calculado para 30-71530218 es 3, por lo que el dígito impreso (5) no valida — posible error de lectura por borrosidad o error de impresión del emisor. Fecha/hora impresa: 27/11/25 00:41 h. Tarjeta VISA terminada en 7064, COMPRA (00) APROBADA, terminal 3.3.0.15-newland. No se detallan comensales ni litros."
+  },
+  "extraccion": {
+    "legibilidad": "buena",
+    "tipo_comprobante": null,
+    "codigo_afip": null,
+    "razon_social_emisor": "ROCK & FELLERS",
+    "cuit_emisor": "30-71530218-5",
+    "digito_verificador_cuit_valido": false,
+    "fecha_emision": "27/11/25 00:41 h",
+    "nro_factura": null,
+    "moneda": "ARS",
+    "subtotal": null,
+    "no_gravado": 0,
+    "exento": 0,
+    "discrimina_impuestos": false,
+    "iva": 0,
+    "impuestos_internos": 0,
+    "percepciones_iibb": 0,
+    "otros_impuestos": 0,
+    "importe_total": 8933.33,
+    "cierra_aritmetica": false,
+    "rubro_emisor": "Gastronómico / restaurante (cadena Rock & Fellers)",
+    "categoria_gasto_sugerida": "Restaurante",
+    "cantidad_comensales_personas": 0,
+    "cantidad_litros": 0,
+    "centro_de_costo": null,
+    "campos_no_legibles": [
+      "último dígito del CUIT (borroso: se lee 5, pero el DV calculado para 30-71530218 daría 3)"
+    ],
+    "observaciones": "El documento NO es una factura AFIP (A/B/C) ni un Otro Comprobante 090/099: es un cupón de pago con tarjeta emitido por Sistema FISCAL / Payway (copia cliente), por lo que no tiene tipo de comprobante, código AFIP ni número de factura (PPPP-NNNNNNNN); sólo se identifican Nro. cupón 8555, Nro. lote 035 y Nro. autorización 312952. Único importe impreso: Total $ 8.933,33 (se asume ARS por el símbolo $). No hay desglose fiscal: no figuran neto gravado, no gravado, exento, IVA ni percepciones, por lo que subtotal queda en null y no puede validarse la aritmética (cierra_aritmetica = false por ausencia de desglose, no por error de suma). CUIT emisor leído: 30-71530218-5; el dígito verificador calculado para 30-71530218 es 3, por lo que el dígito impreso (5) no valida — posible error de lectura por borrosidad o error de impresión del emisor. Fecha/hora impresa: 27/11/25 00:41 h. Tarjeta VISA terminada en 7064, COMPRA (00) APROBADA, terminal 3.3.0.15-newland. No se detallan comensales ni litros."
+  },
+  "aritmetica": {
+    "calculable": true,
+    "suma": 0.0,
+    "total": 8933.33,
+    "diferencia": 8933.33,
+    "cierra": false,
+    "faltantes": [
+      "subtotal"
+    ],
+    "aviso": "Los importes leídos suman 0.00 y el total impreso es 8,933.33 (diferencia 8,933.33). Puede faltar alguno de: subtotal."
+  }
+}

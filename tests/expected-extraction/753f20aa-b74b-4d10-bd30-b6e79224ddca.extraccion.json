@@ -1,0 +1,105 @@
+{
+  "origen": "tests/fixtures/expected-extraction/753f20aa-b74b-4d10-bd30-b6e79224ddca.jpg",
+  "archivo_relativo": "753f20aa-b74b-4d10-bd30-b6e79224ddca.jpg",
+  "procesado_utc": "2026-09-15T02:05:55+00:00",
+  "modelo": "deepseek-flash",
+  "modo": "extraer",
+  "version_prompt": "mendel-validacion@1",
+  "fuente": "api",
+  "imagen": {
+    "bytes": 84515,
+    "mime": "image/jpeg",
+    "detalle": "high",
+    "dimensiones": [
+      840,
+      1036
+    ],
+    "tokens_estimados": 1024
+  },
+  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "uso": {
+    "prompt_tokens": 3017,
+    "completion_tokens": 3304,
+    "total_tokens": 6321,
+    "prompt_cache_hit_tokens": 2816,
+    "prompt_cache_miss_tokens": 201
+  },
+  "esquema_validado": true,
+  "precios_usd_1m": {
+    "entrada": 0.3,
+    "salida": 1.2,
+    "entrada_cache": 0.006,
+    "origen": "referencia"
+  },
+  "costo_usd": 0.004042,
+  "resultado": {
+    "legibilidad": "buena",
+    "tipo_comprobante": "A",
+    "codigo_afip": "001",
+    "razon_social_emisor": "PILAR WILD CLUB SRL",
+    "cuit_emisor": "30-71544083-7",
+    "digito_verificador_cuit_valido": true,
+    "fecha_emision": "04/05/2026",
+    "nro_factura": "0006-00001232",
+    "moneda": "ARS",
+    "subtotal": 32314.05,
+    "no_gravado": 0,
+    "exento": 0,
+    "discrimina_impuestos": true,
+    "iva": 6785.95,
+    "impuestos_internos": 0,
+    "percepciones_iibb": 0,
+    "otros_impuestos": 0,
+    "importe_total": 39100.0,
+    "cierra_aritmetica": true,
+    "rubro_emisor": "Gastronómico / restaurante (emisor PILAR WILD CLUB SRL, 50m Shopping Torres del Sol, Buenos Aires; detalle de cubiertos, platos y bebidas)",
+    "categoria_gasto_sugerida": "Restaurante",
+    "cantidad_comensales_personas": 0,
+    "cantidad_litros": 0,
+    "centro_de_costo": null,
+    "campos_no_legibles": [
+      "importes unitarios y totales de las líneas de detalle (columna 'Monto'/'Total' de los ítems)",
+      "importe de descuento (se lee 0,00 pero con baja certeza)"
+    ],
+    "observaciones": "Factura Electrónica A (COD. 001). Encabezado: PILAR WILD CLUB SRL, 50m Shopping Torres del Sol, Buenos Aires; CUIT 30-71544083-7 (dígito verificador válido); IIBB 30715440837; inicio de actividades 12-2016; condición IVA: Responsable Inscripto. Nro. 0006-00001232, fecha 04/05/2026. Detalle: 1.00 Cubierto Menores 21,00%, 1.00 Cubierto 21,00%, 1.00 Tern MED Carpa 21,00%, 1.00 Pura de papas CH 21,00%, 1.00 Limonada x 1000cc 21,00%. Pie: SUBTOTAL 32.314,05 / DESCUENTO 0,00 / IVA 6.785,95 / TOTAL 39.100,00. La aritmética cierra: 32.314,05 + 6.785,95 = 39.100,00 (alícuota 21%). Los importes unitarios/totales de las líneas de detalle no se leen con claridad y no reconcilian visualmente con el subtotal, por lo que se listan como no legibles y se priorizó la transcripción de los totales impresos. Receptor declarado en el comprobante: CUIT 30592215703 – CUC SA, AVENIDA CIRCUNVALACION 1245. Pie de página: 'Comprobante Autorizado', CAE 86104178504827, VTO 14/05/2026, ORIGINAL, Mesa #26 - GERALDINE. No se informa cantidad de litros ni de comensales; el dato 'Mesa #26' no permite inferir cubiertos. Centro de costo no figura en el comprobante (dato sólo informativo)."
+  },
+  "extraccion": {
+    "legibilidad": "buena",
+    "tipo_comprobante": "A",
+    "codigo_afip": "001",
+    "razon_social_emisor": "PILAR WILD CLUB SRL",
+    "cuit_emisor": "30-71544083-7",
+    "digito_verificador_cuit_valido": true,
+    "fecha_emision": "04/05/2026",
+    "nro_factura": "0006-00001232",
+    "moneda": "ARS",
+    "subtotal": 32314.05,
+    "no_gravado": 0,
+    "exento": 0,
+    "discrimina_impuestos": true,
+    "iva": 6785.95,
+    "impuestos_internos": 0,
+    "percepciones_iibb": 0,
+    "otros_impuestos": 0,
+    "importe_total": 39100.0,
+    "cierra_aritmetica": true,
+    "rubro_emisor": "Gastronómico / restaurante (emisor PILAR WILD CLUB SRL, 50m Shopping Torres del Sol, Buenos Aires; detalle de cubiertos, platos y bebidas)",
+    "categoria_gasto_sugerida": "Restaurante",
+    "cantidad_comensales_personas": 0,
+    "cantidad_litros": 0,
+    "centro_de_costo": null,
+    "campos_no_legibles": [
+      "importes unitarios y totales de las líneas de detalle (columna 'Monto'/'Total' de los ítems)",
+      "importe de descuento (se lee 0,00 pero con baja certeza)"
+    ],
+    "observaciones": "Factura Electrónica A (COD. 001). Encabezado: PILAR WILD CLUB SRL, 50m Shopping Torres del Sol, Buenos Aires; CUIT 30-71544083-7 (dígito verificador válido); IIBB 30715440837; inicio de actividades 12-2016; condición IVA: Responsable Inscripto. Nro. 0006-00001232, fecha 04/05/2026. Detalle: 1.00 Cubierto Menores 21,00%, 1.00 Cubierto 21,00%, 1.00 Tern MED Carpa 21,00%, 1.00 Pura de papas CH 21,00%, 1.00 Limonada x 1000cc 21,00%. Pie: SUBTOTAL 32.314,05 / DESCUENTO 0,00 / IVA 6.785,95 / TOTAL 39.100,00. La aritmética cierra: 32.314,05 + 6.785,95 = 39.100,00 (alícuota 21%). Los importes unitarios/totales de las líneas de detalle no se leen con claridad y no reconcilian visualmente con el subtotal, por lo que se listan como no legibles y se priorizó la transcripción de los totales impresos. Receptor declarado en el comprobante: CUIT 30592215703 – CUC SA, AVENIDA CIRCUNVALACION 1245. Pie de página: 'Comprobante Autorizado', CAE 86104178504827, VTO 14/05/2026, ORIGINAL, Mesa #26 - GERALDINE. No se informa cantidad de litros ni de comensales; el dato 'Mesa #26' no permite inferir cubiertos. Centro de costo no figura en el comprobante (dato sólo informativo)."
+  },
+  "aritmetica": {
+    "calculable": true,
+    "suma": 39100.0,
+    "total": 39100.0,
+    "diferencia": 0.0,
+    "cierra": true,
+    "faltantes": []
+  }
+}
