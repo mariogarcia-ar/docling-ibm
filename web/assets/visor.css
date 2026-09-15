@@ -335,16 +335,25 @@ code, pre, .ruta { font-family: var(--mono); }
    primera fila. `clip` recorta igual (mantiene el redondeo) sin crear el
    contenedor de scroll, así que el sticky vuelve a enganchar. Medido: `hidden`
    rompe el sticky, `auto` también, `clip` no.
-   ⚠️ El desborde horizontal de la TABLA (en pantallas angostas) no se resuelve
-   acá. Darle scroll propio (`overflow-x: auto`) volvería a crear el contenedor y
-   rompería el sticky otra vez — es la trampa que hay que no volver a pisar. El
-   desborde se evita achicando las columnas con `min-width: 0` más abajo. */
+   ⚠️ El desborde horizontal de la TABLA (en pantallas angostas) tampoco se
+   resuelve acá: darle scroll propio (`overflow-x: auto`) volvería a crear el
+   contenedor y rompería el sticky otra vez — es la trampa que hay que no volver a
+   pisar. El desborde se elimina con `table-layout: fixed` más abajo. */
 .tabla-scroll { border: 1px solid var(--borde); border-radius: 8px; overflow: clip; }
-.tabla-campos { width: 100%; }
-/* `min-width: 0`: sin esto, las celdas no bajan de su ancho de contenido y la
-   tabla desborda el contenedor en pantallas angostas (medido: 36px de sobra a
-   500px y 156px a 380px), dejando la columna «Clave del JSON» cortada y sin
-   forma de alcanzarla porque el contenedor recorta en vez de scrollear. */
+
+/* ⚠️ `table-layout: fixed` es lo que hace que la tabla ENTRE en su contenedor a
+   cualquier ancho. Con el layout automático, el ancho de contenido preferido de
+   cada celda actúa como piso y ningún piso se puede negociar: en 500px la tabla
+   pedía más de lo que había y desbordaba 36px (156px a 380px).
+   ⚠️ Con `fixed`, un `min-width` en `em` o un `width: max-content` dentro de una
+   celda NO se respeta: la única forma de que una columna no se aplaste es un
+   ancho en PORCENTAJE. Medido a 320/340/380/420/520/700/1000/1400px: sin
+   desborde en los ocho. */
+.tabla-campos { width: 100%; table-layout: fixed; }
+/* `overflow-wrap: anywhere` es lo que permite que un token sin espacios
+   (`digito_verificador_cuit_valido`, 30 caracteres) se parta en vez de desbordar
+   su celda. Acá sí hace falta en todas las celdas: con `fixed`, un valor largo
+   sin puntos de corte empujaría el texto fuera de su columna. */
 .tabla-campos th, .tabla-campos td { min-width: 0; overflow-wrap: anywhere; }
 .tabla-campos th[scope="row"] {
   width: 34%;
@@ -352,14 +361,11 @@ code, pre, .ruta { font-family: var(--mono); }
   font-weight: 500;
   font-size: 13px;
 }
-/* `width: 1%` NO es un ancho chico: en una tabla es «encogete al mínimo», y con
-   `nowrap` ese mínimo pasa a ser el ancho del contenido MÁS LARGO de la columna
-   —el nombre más largo de campo—, que es un piso rígido de ~232px. En una
-   pantalla angosta eso solo ya desborda la tabla: medido, la clave más larga es
-   `digito_verificador_cuit_valido` (30 caracteres) y con el `nowrap` no podía
-   partirse ni encogerse. Sin el `nowrap` la clave se parte en dos líneas y la
-   tabla entra. */
-.tabla-campos .col-clave { width: 1%; }
+/* La clave del JSON es un identificador: en pantallas anchas se le da lugar para
+   que entre en una línea, y en angostas se parte (por `overflow-wrap`) en vez de
+   empujar la tabla afuera. El ancho va en PORCENTAJE porque con
+   `table-layout: fixed` es lo único que se respeta. */
+.tabla-campos .col-clave { width: 30%; }
 .tabla-campos .col-clave code { font-size: 11.5px; color: var(--texto-tenue); }
 .tabla-campos tbody tr:last-child td, .tabla-campos tbody tr:last-child th { border-bottom: 0; }
 

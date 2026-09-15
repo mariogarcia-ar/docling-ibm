@@ -186,7 +186,28 @@ Medido con las tres opciones: `hidden` rompe el sticky, `auto` también, `clip` 
 
 ⚠️ **No «arreglar» el desborde horizontal de la tabla** dándole `overflow-x: auto`
 a ese contenedor: vuelve a crear el contenedor de scroll y rompe el sticky otra
-vez. El desborde se evita en las columnas (`min-width: 0`).
+vez.
+
+### El ancho de la tabla de campos
+
+La tabla entra en su contenedor a **cualquier ancho** gracias a
+`table-layout: fixed` con anchos en **porcentaje**. Sin eso, el layout automático
+toma el ancho de contenido de cada celda como piso, los pisos no se negocian y en
+500px la tabla desbordaba 36px (156px a 380px) — un desborde que además era
+**inalcanzable**, porque el contenedor recorta en vez de scrollear.
+
+⚠️ Con `table-layout: fixed` **un `min-width` en `em` o un `width: max-content`
+dentro de una celda no se respeta**: la única forma de que una columna no se
+aplaste es un ancho en porcentaje. Probé los dos caminos por separado (un `em` de
+piso, `max-content`) y los dos dejaban desborde en algún ancho; el reparto por
+porcentaje no deja ninguno en los 11 anchos medidos (320px a 1400px).
+
+⚠️ **La trampa que causó el bug reportado** («los campos están todos rotos»):
+`overflow-wrap: anywhere` en una celda cuyo ancho depende de su contenido. Combinado
+con quitarle el `white-space: nowrap` a la columna de la clave, esa columna colapsó
+a **7px** y cada fila se estiró a 247px —y una a 645px, 32 líneas de una letra—.
+Con `table-layout: fixed` el `overflow-wrap` es necesario y seguro: el ancho ya no
+depende del contenido, así que partir un token largo no aplasta la columna.
 
 ---
 
