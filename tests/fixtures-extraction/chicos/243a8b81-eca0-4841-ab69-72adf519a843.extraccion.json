@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/chicos/243a8b81-eca0-4841-ab69-72adf519a843.png",
-  "archivo_relativo": "chicos/243a8b81-eca0-4841-ab69-72adf519a843.png",
-  "procesado_utc": "2026-09-15T11:58:51+00:00",
+  "archivo_relativo": "243a8b81-eca0-4841-ab69-72adf519a843.png",
+  "procesado_utc": "2026-09-15T13:36:59+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:62f07862b9dd7d4c",
+  "prompt_hash": "sha256:49bf219ef6de34fc",
   "uso": {
-    "prompt_tokens": 3164,
-    "completion_tokens": 995,
-    "total_tokens": 4159,
-    "prompt_cache_hit_tokens": 2560,
-    "prompt_cache_miss_tokens": 604
+    "prompt_tokens": 3503,
+    "completion_tokens": 331,
+    "total_tokens": 3834,
+    "prompt_cache_hit_tokens": 1664,
+    "prompt_cache_miss_tokens": 1839
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,8 +31,9 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.001391,
+  "costo_usd": 0.000959,
   "resultado": {
+    "es_comprobante": "no_comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": null,
     "codigo_afip": null,
@@ -53,34 +54,15 @@
     "importe_total": null,
     "cierra_aritmetica": false,
     "rubro_emisor": null,
-    "categoria_gasto_sugerida": "Gastos varios",
+    "categoria_gasto_sugerida": null,
     "cantidad_comensales_personas": null,
     "cantidad_litros": null,
     "centro_de_costo": null,
-    "campos_no_legibles": [
-      "tipo_comprobante",
-      "codigo_afip",
-      "razon_social_emisor",
-      "cuit_emisor",
-      "fecha_emision",
-      "nro_factura",
-      "moneda",
-      "subtotal",
-      "no_gravado",
-      "exento",
-      "iva",
-      "impuestos_internos",
-      "percepciones_iibb",
-      "otros_impuestos",
-      "importe_total",
-      "rubro_emisor",
-      "cantidad_comensales_personas",
-      "cantidad_litros",
-      "centro_de_costo"
-    ],
-    "observaciones": "La imagen no contiene un comprobante fiscal: es una hoja en blanco con la única leyenda 'GASTOS VARIOS, FALTA FACTURA.'. No hay encabezado, emisor, CUIT, fecha, número, moneda ni líneas de importes que transcribir; todos los campos del comprobante quedan en null. No se puede validar aritmética ni determinar tipo de comprobante, rubro del emisor o categoría de gasto. Se sugiere solicitar el comprobante respaldatorio (factura o ticket) o, en su caso, encuadrar el gasto como 'Otros Comprobantes' (090/099) si corresponde a un boleto/pasaje, dado que la leyenda indica explícitamente la falta de factura."
+    "campos_no_legibles": [],
+    "observaciones": "La imagen contiene únicamente la leyenda «GASTOS VARIOS, FALTA FACTURA.» sobre fondo blanco. No es un comprobante fiscal ni comercial: no hay emisor, CUIT, fecha, número ni importes que transcribir. Se trata de una hoja/captura interna que declara la ausencia de factura, por lo que todos los campos fiscales van en null."
   },
   "extraccion": {
+    "es_comprobante": "no_comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": null,
     "codigo_afip": null,
@@ -101,32 +83,12 @@
     "importe_total": null,
     "cierra_aritmetica": false,
     "rubro_emisor": null,
-    "categoria_gasto_sugerida": "Gastos varios",
+    "categoria_gasto_sugerida": null,
     "cantidad_comensales_personas": null,
     "cantidad_litros": null,
     "centro_de_costo": null,
-    "campos_no_legibles": [
-      "tipo_comprobante",
-      "codigo_afip",
-      "razon_social_emisor",
-      "cuit_emisor",
-      "fecha_emision",
-      "nro_factura",
-      "moneda",
-      "subtotal",
-      "no_gravado",
-      "exento",
-      "iva",
-      "impuestos_internos",
-      "percepciones_iibb",
-      "otros_impuestos",
-      "importe_total",
-      "rubro_emisor",
-      "cantidad_comensales_personas",
-      "cantidad_litros",
-      "centro_de_costo"
-    ],
-    "observaciones": "La imagen no contiene un comprobante fiscal: es una hoja en blanco con la única leyenda 'GASTOS VARIOS, FALTA FACTURA.'. No hay encabezado, emisor, CUIT, fecha, número, moneda ni líneas de importes que transcribir; todos los campos del comprobante quedan en null. No se puede validar aritmética ni determinar tipo de comprobante, rubro del emisor o categoría de gasto. Se sugiere solicitar el comprobante respaldatorio (factura o ticket) o, en su caso, encuadrar el gasto como 'Otros Comprobantes' (090/099) si corresponde a un boleto/pasaje, dado que la leyenda indica explícitamente la falta de factura."
+    "campos_no_legibles": [],
+    "observaciones": "La imagen contiene únicamente la leyenda «GASTOS VARIOS, FALTA FACTURA.» sobre fondo blanco. No es un comprobante fiscal ni comercial: no hay emisor, CUIT, fecha, número ni importes que transcribir. Se trata de una hoja/captura interna que declara la ausencia de factura, por lo que todos los campos fiscales van en null."
   },
   "aritmetica": {
     "calculable": false,
