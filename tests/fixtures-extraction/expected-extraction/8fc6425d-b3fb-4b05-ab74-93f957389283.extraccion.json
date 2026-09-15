@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/expected-extraction/8fc6425d-b3fb-4b05-ab74-93f957389283.jpg",
   "archivo_relativo": "expected-extraction/8fc6425d-b3fb-4b05-ab74-93f957389283.jpg",
-  "procesado_utc": "2026-09-15T12:00:44+00:00",
+  "procesado_utc": "2026-09-15T13:45:18+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:62f07862b9dd7d4c",
+  "prompt_hash": "sha256:49bf219ef6de34fc",
   "uso": {
-    "prompt_tokens": 3225,
-    "completion_tokens": 6813,
-    "total_tokens": 10038,
-    "prompt_cache_hit_tokens": 2560,
-    "prompt_cache_miss_tokens": 665
+    "prompt_tokens": 3564,
+    "completion_tokens": 6846,
+    "total_tokens": 10410,
+    "prompt_cache_hit_tokens": 2816,
+    "prompt_cache_miss_tokens": 748
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,12 +31,13 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.00839,
+  "costo_usd": 0.008456,
   "resultado": {
+    "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "001",
-    "razon_social_emisor": "MALAGUARNERA ROBERTO (SHELL EL PASO)",
+    "razon_social_emisor": "SHELL EL PASO (titular: MALAGUARNERA ROBERTO)",
     "cuit_emisor": "20-06044320-4",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "28/08/2025",
@@ -46,25 +47,26 @@
     "no_gravado": 0,
     "exento": 0,
     "discrimina_impuestos": true,
-    "iva": 9696.86,
+    "iva": 9696.9,
     "impuestos_internos": 9803.1,
     "percepciones_iibb": 0,
     "otros_impuestos": 1349.2,
     "importe_total": 67024.93,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / expendio de combustibles (Shell)",
+    "rubro_emisor": "Estación de servicio / venta de combustible al por menor",
     "categoria_gasto_sugerida": "Combustible",
     "cantidad_comensales_personas": 0,
-    "cantidad_litros": 44.2701,
+    "cantidad_litros": 44.27,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A (COD. 001), PV 00048, Nº 00033855, emitida 28/08/2025 14:25:24. Emisor: MALAGUARNERA ROBERTO (Shell El Paso), CUIT 20-06044320-4 (dígito verificador válido), IIBB 02109679333, IVA Responsable Inscripto. Receptor: CVC SA, CUIT 30-58221570-3 (dígito verificador válido). Línea de detalle: 44.2701 (columna cantidad, interpretable como litros) x 1043.0451 neto + 1514.000 final; ajuste por redondeo 0.15; AJUSTE B.I. -0.01. Desglose: SUBTOTAL IMPORTE NETO NO GRAVADO 0.00; SUBTOTAL IMPORTE EXENTO 0.00; SUBTOTAL IMPORTE NETO GRAVADO 46175.75; IVA 21,00% 9696.86; otros tributos: 10-IMPUESTOS INTERNOS ITEMS 9803.10, 99-IDC 600.49 y 99-TASA VIAL 748.71 (TOTAL OTROS TRIBUTOS 11152.30). No cierra exacto: 46175.75 + 0 + 0 + 9696.86 + 11152.30 = 67024.91 contra TOTAL impreso 67024.93 (diferencia de 0,02 que atribuyo a redondeo/lectura). Además, el 21% sobre el neto gravado daría 9696.91 (0,05 de diferencia con el IVA impreso). El pie muestra 'Precio s/imp: 46175.71 - IVA cont: 9696.90', levemente distinto a los valores del cuerpo (46175.75 / 9696.86); consigno las dos versiones por posible redondeo. La línea 'IDC' (600.49) no tiene rótulo explícito de percepción: la incluí en 'otros_impuestos' junto con TASA VIAL (total 1349.20) y dejé percepciones_iibb en 0 por no poder confirmar que IDC sea Ingresos Brutos. Cantidad de litros (44.2701) surge de la columna cantidad del detalle, no de un renglón 'litros' rotulado. Sin datos de centro de costo en el comprobante. Pago: Tarjeta UTSA-ELPASO 67024.93, CAMBIO 0.00. Leyenda: Reg. de Transp. Fiscal al Cons. (Ley 27.743) / Otros impuestos nacionales indirectos."
+    "observaciones": "Tique Factura A - Cód. 001, Nro 00048-00033855, emitido 28/08/2025 14:25:24 por la boca de expendio SHELL EL PASO (titular MALAGUARNERA ROBERTO, CUIT 20-06044320-4, Ing. Brutos 0210967933, Av. de Circunvalación 25 de Mayo 721 bis, Rosario, Santa Fe), IVA Responsable Inscripto, inicio de actividades 10/02/1969. Receptor: CVC SA, CUIT 30-58221570-3, IVA Responsable Inscripto, Av. Circunvalación 1245 bis, Rosario (137), Contado (comprobante a nombre de un tercero). Detalle: 44,270 litros de nafta SUPER a $1.043,0451 neto/litro (precio final $1.514,00/litro), con ajuste por redondeo y ajuste de B.I. El CUIT del emisor tiene dígito verificador válido. Líneas de importes transcriptas: SUBTOTAL IMPORTE NETO NO GRAVADO 0,00; SUBTOTAL IMPORTE EXENTO 0,00; SUBTOTAL IMPORTE NETO GRAVADO 46.175,75; AJUSTE B.I. -0,01; IVA 21% $9.696,90; IMPUESTOS INTERNOS (10) $9.803,10; 99-IDC $600,49 y 99-TASA VIAL $748,71 (sumados como otros_impuestos 1.349,20); IMPORTE TOTAL OTROS TRIBUTOS impreso 11.152,30; TOTAL 67.024,93; pago con Tarjeta UTSA-ELPASO 67.024,93, CAMBIO 0,00. La suma neto gravado + IVA + otros tributos (46.175,75 + 9.696,90 + 11.152,30 = 67.024,95) difiere en $0,02 del total impreso, atribuible a redondeo. Advertencias de lectura: el primer renglón del encabezado se lee 'SBELL EL PASO' pero corresponde a la marca 'SHELL EL PASO'; el importe del renglón '99 - IDC' tiene lectura dudosa (600,49 según cierre aritmético vs 800,49 en una lectura alternativa), aunque con 600,49 el total de otros tributos coincide exactamente con el impreso (11.152,30). La moneda no está rotulada expresamente; se asume ARS por el formato de importes. No se observan percepciones de IIBB."
   },
   "extraccion": {
+    "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "001",
-    "razon_social_emisor": "MALAGUARNERA ROBERTO (SHELL EL PASO)",
+    "razon_social_emisor": "SHELL EL PASO (titular: MALAGUARNERA ROBERTO)",
     "cuit_emisor": "20-06044320-4",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "28/08/2025",
@@ -74,25 +76,25 @@
     "no_gravado": 0,
     "exento": 0,
     "discrimina_impuestos": true,
-    "iva": 9696.86,
+    "iva": 9696.9,
     "impuestos_internos": 9803.1,
     "percepciones_iibb": 0,
     "otros_impuestos": 1349.2,
     "importe_total": 67024.93,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / expendio de combustibles (Shell)",
+    "rubro_emisor": "Estación de servicio / venta de combustible al por menor",
     "categoria_gasto_sugerida": "Combustible",
     "cantidad_comensales_personas": 0,
-    "cantidad_litros": 44.2701,
+    "cantidad_litros": 44.27,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A (COD. 001), PV 00048, Nº 00033855, emitida 28/08/2025 14:25:24. Emisor: MALAGUARNERA ROBERTO (Shell El Paso), CUIT 20-06044320-4 (dígito verificador válido), IIBB 02109679333, IVA Responsable Inscripto. Receptor: CVC SA, CUIT 30-58221570-3 (dígito verificador válido). Línea de detalle: 44.2701 (columna cantidad, interpretable como litros) x 1043.0451 neto + 1514.000 final; ajuste por redondeo 0.15; AJUSTE B.I. -0.01. Desglose: SUBTOTAL IMPORTE NETO NO GRAVADO 0.00; SUBTOTAL IMPORTE EXENTO 0.00; SUBTOTAL IMPORTE NETO GRAVADO 46175.75; IVA 21,00% 9696.86; otros tributos: 10-IMPUESTOS INTERNOS ITEMS 9803.10, 99-IDC 600.49 y 99-TASA VIAL 748.71 (TOTAL OTROS TRIBUTOS 11152.30). No cierra exacto: 46175.75 + 0 + 0 + 9696.86 + 11152.30 = 67024.91 contra TOTAL impreso 67024.93 (diferencia de 0,02 que atribuyo a redondeo/lectura). Además, el 21% sobre el neto gravado daría 9696.91 (0,05 de diferencia con el IVA impreso). El pie muestra 'Precio s/imp: 46175.71 - IVA cont: 9696.90', levemente distinto a los valores del cuerpo (46175.75 / 9696.86); consigno las dos versiones por posible redondeo. La línea 'IDC' (600.49) no tiene rótulo explícito de percepción: la incluí en 'otros_impuestos' junto con TASA VIAL (total 1349.20) y dejé percepciones_iibb en 0 por no poder confirmar que IDC sea Ingresos Brutos. Cantidad de litros (44.2701) surge de la columna cantidad del detalle, no de un renglón 'litros' rotulado. Sin datos de centro de costo en el comprobante. Pago: Tarjeta UTSA-ELPASO 67024.93, CAMBIO 0.00. Leyenda: Reg. de Transp. Fiscal al Cons. (Ley 27.743) / Otros impuestos nacionales indirectos."
+    "observaciones": "Tique Factura A - Cód. 001, Nro 00048-00033855, emitido 28/08/2025 14:25:24 por la boca de expendio SHELL EL PASO (titular MALAGUARNERA ROBERTO, CUIT 20-06044320-4, Ing. Brutos 0210967933, Av. de Circunvalación 25 de Mayo 721 bis, Rosario, Santa Fe), IVA Responsable Inscripto, inicio de actividades 10/02/1969. Receptor: CVC SA, CUIT 30-58221570-3, IVA Responsable Inscripto, Av. Circunvalación 1245 bis, Rosario (137), Contado (comprobante a nombre de un tercero). Detalle: 44,270 litros de nafta SUPER a $1.043,0451 neto/litro (precio final $1.514,00/litro), con ajuste por redondeo y ajuste de B.I. El CUIT del emisor tiene dígito verificador válido. Líneas de importes transcriptas: SUBTOTAL IMPORTE NETO NO GRAVADO 0,00; SUBTOTAL IMPORTE EXENTO 0,00; SUBTOTAL IMPORTE NETO GRAVADO 46.175,75; AJUSTE B.I. -0,01; IVA 21% $9.696,90; IMPUESTOS INTERNOS (10) $9.803,10; 99-IDC $600,49 y 99-TASA VIAL $748,71 (sumados como otros_impuestos 1.349,20); IMPORTE TOTAL OTROS TRIBUTOS impreso 11.152,30; TOTAL 67.024,93; pago con Tarjeta UTSA-ELPASO 67.024,93, CAMBIO 0,00. La suma neto gravado + IVA + otros tributos (46.175,75 + 9.696,90 + 11.152,30 = 67.024,95) difiere en $0,02 del total impreso, atribuible a redondeo. Advertencias de lectura: el primer renglón del encabezado se lee 'SBELL EL PASO' pero corresponde a la marca 'SHELL EL PASO'; el importe del renglón '99 - IDC' tiene lectura dudosa (600,49 según cierre aritmético vs 800,49 en una lectura alternativa), aunque con 600,49 el total de otros tributos coincide exactamente con el impreso (11.152,30). La moneda no está rotulada expresamente; se asume ARS por el formato de importes. No se observan percepciones de IIBB."
   },
   "aritmetica": {
     "calculable": true,
-    "suma": 67024.91,
+    "suma": 67024.95,
     "total": 67024.93,
-    "diferencia": 0.02,
+    "diferencia": -0.02,
     "cierra": true,
     "faltantes": []
   }

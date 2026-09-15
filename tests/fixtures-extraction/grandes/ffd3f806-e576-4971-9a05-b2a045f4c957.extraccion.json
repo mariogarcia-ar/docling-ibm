@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/grandes/ffd3f806-e576-4971-9a05-b2a045f4c957.jpg",
   "archivo_relativo": "grandes/ffd3f806-e576-4971-9a05-b2a045f4c957.jpg",
-  "procesado_utc": "2026-09-15T12:03:13+00:00",
+  "procesado_utc": "2026-09-15T13:47:38+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:62f07862b9dd7d4c",
+  "prompt_hash": "sha256:49bf219ef6de34fc",
   "uso": {
-    "prompt_tokens": 3686,
-    "completion_tokens": 2900,
-    "total_tokens": 6586,
-    "prompt_cache_hit_tokens": 2560,
-    "prompt_cache_miss_tokens": 1126
+    "prompt_tokens": 4025,
+    "completion_tokens": 2740,
+    "total_tokens": 6765,
+    "prompt_cache_hit_tokens": 2816,
+    "prompt_cache_miss_tokens": 1209
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,12 +31,13 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.003833,
+  "costo_usd": 0.003668,
   "resultado": {
+    "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "001",
-    "razon_social_emisor": "MALAGUARNERA ROBERTO",
+    "razon_social_emisor": "SHELL EL PASO - MALAGUARNERA ROBERTO",
     "cuit_emisor": "20-06044320-4",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "05/11/2025",
@@ -52,19 +53,20 @@
     "otros_impuestos": 982.74,
     "importe_total": 42012.91,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / venta de combustible (Shell)",
+    "rubro_emisor": "Estación de servicio / expendio de combustibles",
     "categoria_gasto_sugerida": "Combustible",
-    "cantidad_comensales_personas": null,
-    "cantidad_litros": 22.2762,
+    "cantidad_comensales_personas": 0,
+    "cantidad_litros": 22.276,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Cód. 001 - TIQUE FACTURA \"A\" Nº 00048-00035704, emitida 05/11/2025 16:52:33. Emisor: MALAGUARNERA ROBERTO (Shell El Paso), CUIT 20-06044320-4, dígito verificador válido. Combustible: 22,2762 litros de UV-POWER DIESEL (precio neto unit. 1362,5263 / precio c/imp. 1886,000). Neto gravado 30352.01 (incluye ajuste por redondeo de 0.37). IVA 21% = 6373.84. No gravado y exento en 0.00. Otros tributos = 5287.06, compuesto por ICL/Impuestos Internos 4304.32, IDC 490.61 y Tasa Vial 492.13; se cargaron 4304.32 en impuestos_internos y el resto (982.74) en otros_impuestos; percepciones IIBB 0.00. Aritmética: 30352.01 + 0 + 0 + 6373.84 + 5287.06 = 42012.91, coincide con el TOTAL impreso. Observación menor: el cuerpo muestra '10 - IMPUESTOS INTERNOS ITEMS' 4304.32 mientras el pie indica 'ICL: 4304.36' (diferencia de 0.04, probablemente redondeo); el pie también muestra 'Precio s/imp: 30351.91 - IVA cont: 6373.90', levemente distinto del cuerpo. Pago en efectivo 42012.91, cambio 0.00."
+    "observaciones": "Tique Factura 'A' - Cód. 001, Nº 00048-00035704, emitido por SHELL EL PASO (Malaguarnera Roberto), CUIT 20-06044320-4 (dígito verificador válido), IVA Responsable Inscripto, Av. de Circunvalación 25 de Mayo 721 bis, Rosario, Santa Fe. Fecha 05/11/2025 16:52:33. Cliente: CVC SA, CUIT 90582215703, Contado. Detalle: UV-POWER DIESEL por 22.276 litros a $1362,5263 (neto $30.351,64) + ajuste por redondeo $0,37. Subtotales: Neto No Gravado $0,00, Exento $0,00, Neto Gravado $30.352,01. IVA 21%: base $30.352,01, IVA $6.373,84. Otros tributos: Impuestos Internos (10 - IIC) $4.304,32 (IIC unit. x lt. $193,2269), IDC $490,61, Tasa Vial $492,13; total otros tributos $5.287,06. TOTAL $42.012,91, abonado en efectivo, cambio $0,00. La aritmética cierra: 30.352,01 + 6.373,84 + 5.287,06 = 42.012,91 (dentro de los $5.287,06, los tres conceptos suman exacto). ATENCIÓN - pie del ticket con leyenda Res. transp. fiscal (Ley 27.743) muestra importes levemente distintos a los del cuerpo: Precio s/imp. $30.351,91 (vs. $30.352,01), IVA cont. $6.373,90 (vs. $6.373,84), ICL $4.304,36 (vs. $4.304,32); IDC $490,61 e Imp. Muni. $492,13 coinciden. Son diferencias de centavos atribuibles a redondeo, no a un faltante de importe. Empleado interviniente: AGUS GUARDIA. Combustible: cantidad de litros legible (22,276 lts). No se informa centro de costo."
   },
   "extraccion": {
+    "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "001",
-    "razon_social_emisor": "MALAGUARNERA ROBERTO",
+    "razon_social_emisor": "SHELL EL PASO - MALAGUARNERA ROBERTO",
     "cuit_emisor": "20-06044320-4",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "05/11/2025",
@@ -80,13 +82,13 @@
     "otros_impuestos": 982.74,
     "importe_total": 42012.91,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / venta de combustible (Shell)",
+    "rubro_emisor": "Estación de servicio / expendio de combustibles",
     "categoria_gasto_sugerida": "Combustible",
-    "cantidad_comensales_personas": null,
-    "cantidad_litros": 22.2762,
+    "cantidad_comensales_personas": 0,
+    "cantidad_litros": 22.276,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Cód. 001 - TIQUE FACTURA \"A\" Nº 00048-00035704, emitida 05/11/2025 16:52:33. Emisor: MALAGUARNERA ROBERTO (Shell El Paso), CUIT 20-06044320-4, dígito verificador válido. Combustible: 22,2762 litros de UV-POWER DIESEL (precio neto unit. 1362,5263 / precio c/imp. 1886,000). Neto gravado 30352.01 (incluye ajuste por redondeo de 0.37). IVA 21% = 6373.84. No gravado y exento en 0.00. Otros tributos = 5287.06, compuesto por ICL/Impuestos Internos 4304.32, IDC 490.61 y Tasa Vial 492.13; se cargaron 4304.32 en impuestos_internos y el resto (982.74) en otros_impuestos; percepciones IIBB 0.00. Aritmética: 30352.01 + 0 + 0 + 6373.84 + 5287.06 = 42012.91, coincide con el TOTAL impreso. Observación menor: el cuerpo muestra '10 - IMPUESTOS INTERNOS ITEMS' 4304.32 mientras el pie indica 'ICL: 4304.36' (diferencia de 0.04, probablemente redondeo); el pie también muestra 'Precio s/imp: 30351.91 - IVA cont: 6373.90', levemente distinto del cuerpo. Pago en efectivo 42012.91, cambio 0.00."
+    "observaciones": "Tique Factura 'A' - Cód. 001, Nº 00048-00035704, emitido por SHELL EL PASO (Malaguarnera Roberto), CUIT 20-06044320-4 (dígito verificador válido), IVA Responsable Inscripto, Av. de Circunvalación 25 de Mayo 721 bis, Rosario, Santa Fe. Fecha 05/11/2025 16:52:33. Cliente: CVC SA, CUIT 90582215703, Contado. Detalle: UV-POWER DIESEL por 22.276 litros a $1362,5263 (neto $30.351,64) + ajuste por redondeo $0,37. Subtotales: Neto No Gravado $0,00, Exento $0,00, Neto Gravado $30.352,01. IVA 21%: base $30.352,01, IVA $6.373,84. Otros tributos: Impuestos Internos (10 - IIC) $4.304,32 (IIC unit. x lt. $193,2269), IDC $490,61, Tasa Vial $492,13; total otros tributos $5.287,06. TOTAL $42.012,91, abonado en efectivo, cambio $0,00. La aritmética cierra: 30.352,01 + 6.373,84 + 5.287,06 = 42.012,91 (dentro de los $5.287,06, los tres conceptos suman exacto). ATENCIÓN - pie del ticket con leyenda Res. transp. fiscal (Ley 27.743) muestra importes levemente distintos a los del cuerpo: Precio s/imp. $30.351,91 (vs. $30.352,01), IVA cont. $6.373,90 (vs. $6.373,84), ICL $4.304,36 (vs. $4.304,32); IDC $490,61 e Imp. Muni. $492,13 coinciden. Son diferencias de centavos atribuibles a redondeo, no a un faltante de importe. Empleado interviniente: AGUS GUARDIA. Combustible: cantidad de litros legible (22,276 lts). No se informa centro de costo."
   },
   "aritmetica": {
     "calculable": true,

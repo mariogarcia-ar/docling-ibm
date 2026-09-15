@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/golden/2991f57d-c143-4b23-9f87-4dfb1214ef53.jpg",
   "archivo_relativo": "golden/2991f57d-c143-4b23-9f87-4dfb1214ef53.jpg",
-  "procesado_utc": "2026-09-15T12:01:57+00:00",
+  "procesado_utc": "2026-09-15T13:46:27+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,29 +16,28 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:62f07862b9dd7d4c",
+  "prompt_hash": "sha256:49bf219ef6de34fc",
   "uso": {
-    "prompt_tokens": 8259,
-    "completion_tokens": 2827,
-    "total_tokens": 11086,
-    "prompt_cache_hit_tokens": 6144,
-    "prompt_cache_miss_tokens": 2115
+    "prompt_tokens": 4025,
+    "completion_tokens": 2865,
+    "total_tokens": 6890,
+    "prompt_cache_hit_tokens": 2816,
+    "prompt_cache_miss_tokens": 1209
   },
   "esquema_validado": true,
-  "reintentos_esquema": 1,
-  "avisos_esquema": [],
   "precios_usd_1m": {
     "entrada": 0.3,
     "salida": 1.2,
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.004064,
+  "costo_usd": 0.003818,
   "resultado": {
+    "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "081",
-    "razon_social_emisor": "FARMACIA SILVA",
+    "razon_social_emisor": "SILVA GERMAN DANIEL (FARMACIA SILVA)",
     "cuit_emisor": null,
     "digito_verificador_cuit_valido": false,
     "fecha_emision": "29/08/2025",
@@ -54,24 +53,22 @@
     "otros_impuestos": 0,
     "importe_total": 73122.64,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Farmacia / perfumería (venta de medicamentos y productos de higiene)",
+    "rubro_emisor": "Farmacia",
     "categoria_gasto_sugerida": "Farmacia",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [
-      "cuit_emisor (tapado por cinta adhesiva; sólo se lee el prefijo '20-1')",
-      "domicilio del emisor (parcialmente cubierto por cinta adhesiva)",
-      "inicio de actividad del emisor",
-      "ingresos brutos del emisor (201641, lectura parcialmente dudosa por la cinta)"
+      "cuit_emisor"
     ],
-    "observaciones": "Tique Factura A (Cód. 081) emitido por FARMACIA SILVA, OP.00086577, fecha 29/08/2025 09:53, punto de venta 00010 - nro 00000025. El CUIT del emisor está cubierto por cinta adhesiva: sólo se distingue '20-1', por lo que no se puede transcribir completo ni validar el dígito verificador. Receptor: CVC S.A., CUIT 30-58221570-3, IVA Responsable Inscripto, Ruta 7 Km 262, Junín, Buenos Aires. Detalle: 3,0000 x 14997,0496 Vaselina sólida 1000gr (21%) 44991,15; 1,0000 x 8218,1200 Povibac sol. x 60 ml (0%) 8218,12; 1,0000 x 4190,7851 Band-Aid variados x 30 (21%) 4190,79; 1,0000 x 2887,9091 Curitas tela elástica (21%) 2887,91; 1,0000 x 1900,0000 Gasas (0%) 1900,00. Subtotal neto gravado 52069,85; subtotal exento 10118,12; IVA alícuota 21% 10934,67 (alícuota 0% 0,00); TOTAL 73122,64. Aritmética verificada: 52069,85 + 10118,12 + 10934,67 = 73122,64. No se observan no gravado, percepciones de IIBB, impuestos internos ni otros tributos. Pago en efectivo $73122,63 más $0,01, suma de pagos 73122,64, vuelto 0,00. Registro: EPEPAA000036552, V: 1.03 Neptune. No se discrimina cantidad de personas ni litros; no figura centro de costo."
+    "observaciones": "Tique Factura A (Cód. 081) emitido por FARMACIA SILVA (responsable: SILVA GERMAN DANIEL), N° 00010-00000025, fecha 29/08/2025 09:53 hs. Receptor: CUC S.A., CUIT 30-58221570-3, IVA Responsable Inscripto. El CUIT del emisor está parcialmente tapado por un trozo de cinta/etiqueta adherida al ticket: sólo se lee '20-1…', por lo que no se puede transcribir completo ni validar su dígito verificador. Comprobante con discriminación de IVA: SUBTOT. IMP. EXENTO 10.118,12 + SUBTOT. IMP. NETO GRAVADO 52.069,85 + IVA 21% 10.934,67 = TOTAL 73.122,64 (la aritmética cierra). Sin líneas de no gravado, percepciones ni otros tributos. Ítems: VASELINA SÓLIDA 1000GR, POVIBAC SOL.X60ML (alícuota 0%), BAND-AID, CURITAS TELA ELÁSTICA, GASAS. Pago en efectivo $73.122,63 con ajuste de $0,01, suma de pagos 73.122,64. Emitido con sistema Neptuno V1.03, registro EPEPAA0000036552. Rubro del emisor: farmacia/comercio de perfumería y productos de higiene."
   },
   "extraccion": {
+    "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "081",
-    "razon_social_emisor": "FARMACIA SILVA",
+    "razon_social_emisor": "SILVA GERMAN DANIEL (FARMACIA SILVA)",
     "cuit_emisor": null,
     "digito_verificador_cuit_valido": false,
     "fecha_emision": "29/08/2025",
@@ -87,18 +84,15 @@
     "otros_impuestos": 0,
     "importe_total": 73122.64,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Farmacia / perfumería (venta de medicamentos y productos de higiene)",
+    "rubro_emisor": "Farmacia",
     "categoria_gasto_sugerida": "Farmacia",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [
-      "cuit_emisor (tapado por cinta adhesiva; sólo se lee el prefijo '20-1')",
-      "domicilio del emisor (parcialmente cubierto por cinta adhesiva)",
-      "inicio de actividad del emisor",
-      "ingresos brutos del emisor (201641, lectura parcialmente dudosa por la cinta)"
+      "cuit_emisor"
     ],
-    "observaciones": "Tique Factura A (Cód. 081) emitido por FARMACIA SILVA, OP.00086577, fecha 29/08/2025 09:53, punto de venta 00010 - nro 00000025. El CUIT del emisor está cubierto por cinta adhesiva: sólo se distingue '20-1', por lo que no se puede transcribir completo ni validar el dígito verificador. Receptor: CVC S.A., CUIT 30-58221570-3, IVA Responsable Inscripto, Ruta 7 Km 262, Junín, Buenos Aires. Detalle: 3,0000 x 14997,0496 Vaselina sólida 1000gr (21%) 44991,15; 1,0000 x 8218,1200 Povibac sol. x 60 ml (0%) 8218,12; 1,0000 x 4190,7851 Band-Aid variados x 30 (21%) 4190,79; 1,0000 x 2887,9091 Curitas tela elástica (21%) 2887,91; 1,0000 x 1900,0000 Gasas (0%) 1900,00. Subtotal neto gravado 52069,85; subtotal exento 10118,12; IVA alícuota 21% 10934,67 (alícuota 0% 0,00); TOTAL 73122,64. Aritmética verificada: 52069,85 + 10118,12 + 10934,67 = 73122,64. No se observan no gravado, percepciones de IIBB, impuestos internos ni otros tributos. Pago en efectivo $73122,63 más $0,01, suma de pagos 73122,64, vuelto 0,00. Registro: EPEPAA000036552, V: 1.03 Neptune. No se discrimina cantidad de personas ni litros; no figura centro de costo."
+    "observaciones": "Tique Factura A (Cód. 081) emitido por FARMACIA SILVA (responsable: SILVA GERMAN DANIEL), N° 00010-00000025, fecha 29/08/2025 09:53 hs. Receptor: CUC S.A., CUIT 30-58221570-3, IVA Responsable Inscripto. El CUIT del emisor está parcialmente tapado por un trozo de cinta/etiqueta adherida al ticket: sólo se lee '20-1…', por lo que no se puede transcribir completo ni validar su dígito verificador. Comprobante con discriminación de IVA: SUBTOT. IMP. EXENTO 10.118,12 + SUBTOT. IMP. NETO GRAVADO 52.069,85 + IVA 21% 10.934,67 = TOTAL 73.122,64 (la aritmética cierra). Sin líneas de no gravado, percepciones ni otros tributos. Ítems: VASELINA SÓLIDA 1000GR, POVIBAC SOL.X60ML (alícuota 0%), BAND-AID, CURITAS TELA ELÁSTICA, GASAS. Pago en efectivo $73.122,63 con ajuste de $0,01, suma de pagos 73.122,64. Emitido con sistema Neptuno V1.03, registro EPEPAA0000036552. Rubro del emisor: farmacia/comercio de perfumería y productos de higiene."
   },
   "aritmetica": {
     "calculable": true,

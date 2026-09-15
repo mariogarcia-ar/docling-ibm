@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/negativos/neg_2026-05_chat_pago.png",
   "archivo_relativo": "negativos/neg_2026-05_chat_pago.png",
-  "procesado_utc": "2026-09-15T12:03:30+00:00",
+  "procesado_utc": "2026-09-15T13:47:48+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:62f07862b9dd7d4c",
+  "prompt_hash": "sha256:49bf219ef6de34fc",
   "uso": {
-    "prompt_tokens": 2928,
-    "completion_tokens": 474,
-    "total_tokens": 3402,
-    "prompt_cache_hit_tokens": 2560,
-    "prompt_cache_miss_tokens": 368
+    "prompt_tokens": 3267,
+    "completion_tokens": 457,
+    "total_tokens": 3724,
+    "prompt_cache_hit_tokens": 2816,
+    "prompt_cache_miss_tokens": 451
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,8 +31,9 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.000695,
+  "costo_usd": 0.000701,
   "resultado": {
+    "es_comprobante": "no_comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": null,
     "codigo_afip": null,
@@ -58,9 +59,10 @@
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "La imagen NO es un comprobante fiscal: es una captura de un chat de pagos que dice 'CHAT DE PAGOS', 'Pagaste $ 0,00 - operacion enviada', 'Adjunta la factura por separado' y explicitamente 'NO ES COMPROBANTE'. No hay emisor, CUIT, fecha, numero de factura, moneda ni importes que transcribir; el unico importe visible es $ 0,00 correspondiente a la operacion de pago, no a una factura. No se puede validar tipo de comprobante, emisor, IVA ni total. Se debe solicitar al empleado la factura correspondiente adjunta por separado."
+    "observaciones": "La imagen no es un comprobante fiscal ni comercial: es una captura/nota interna titulada 'CHAT DE PAGOS' que indica 'Pagaste $ 0,00 - operacion enviada' y 'Adjunta la factura por separado', con la leyenda explícita 'NO ES COMPROBANTE'. No hay emisor, CUIT, fecha, número ni importes fiscales que transcribir; el único monto visible es $ 0,00 correspondiente al estado del pago, no a un total facturado. Se debe adjuntar la factura correspondiente."
   },
   "extraccion": {
+    "es_comprobante": "no_comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": null,
     "codigo_afip": null,
@@ -86,7 +88,7 @@
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "La imagen NO es un comprobante fiscal: es una captura de un chat de pagos que dice 'CHAT DE PAGOS', 'Pagaste $ 0,00 - operacion enviada', 'Adjunta la factura por separado' y explicitamente 'NO ES COMPROBANTE'. No hay emisor, CUIT, fecha, numero de factura, moneda ni importes que transcribir; el unico importe visible es $ 0,00 correspondiente a la operacion de pago, no a una factura. No se puede validar tipo de comprobante, emisor, IVA ni total. Se debe solicitar al empleado la factura correspondiente adjunta por separado."
+    "observaciones": "La imagen no es un comprobante fiscal ni comercial: es una captura/nota interna titulada 'CHAT DE PAGOS' que indica 'Pagaste $ 0,00 - operacion enviada' y 'Adjunta la factura por separado', con la leyenda explícita 'NO ES COMPROBANTE'. No hay emisor, CUIT, fecha, número ni importes fiscales que transcribir; el único monto visible es $ 0,00 correspondiente al estado del pago, no a un total facturado. Se debe adjuntar la factura correspondiente."
   },
   "aritmetica": {
     "calculable": false,

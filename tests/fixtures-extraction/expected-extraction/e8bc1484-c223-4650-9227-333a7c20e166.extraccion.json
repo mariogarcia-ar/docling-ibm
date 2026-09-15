@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/expected-extraction/e8bc1484-c223-4650-9227-333a7c20e166.jpg",
   "archivo_relativo": "expected-extraction/e8bc1484-c223-4650-9227-333a7c20e166.jpg",
-  "procesado_utc": "2026-09-15T12:01:48+00:00",
+  "procesado_utc": "2026-09-15T13:46:12+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:62f07862b9dd7d4c",
+  "prompt_hash": "sha256:49bf219ef6de34fc",
   "uso": {
-    "prompt_tokens": 3225,
-    "completion_tokens": 1828,
-    "total_tokens": 5053,
-    "prompt_cache_hit_tokens": 2560,
-    "prompt_cache_miss_tokens": 665
+    "prompt_tokens": 3564,
+    "completion_tokens": 1670,
+    "total_tokens": 5234,
+    "prompt_cache_hit_tokens": 2816,
+    "prompt_cache_miss_tokens": 748
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,12 +31,13 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.002408,
+  "costo_usd": 0.002245,
   "resultado": {
+    "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "001",
-    "razon_social_emisor": "CIF Soluciones Informáticas - Baer Augusto Pablo",
+    "razon_social_emisor": "Baer Augusto Pablo",
     "cuit_emisor": "20-21523455-0",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "12/12/2025",
@@ -52,19 +53,20 @@
     "otros_impuestos": 0,
     "importe_total": 12018.57,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Soluciones informáticas / venta de insumos de computación",
-    "categoria_gasto_sugerida": "Informática / Insumos de oficina",
+    "rubro_emisor": "Comercio de insumos informáticos / venta de pilas y accesorios (CIF Soluciones Informáticas, Donado 249, Rosario)",
+    "categoria_gasto_sugerida": "Insumos de oficina",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A, Cod. 001, N° 0010-00038497, Original, fecha 12/12/2025. Emisor: CIF Soluciones Informáticas, Baer Augusto Pablo, Donado 249, Rosario (2000), CUIT 20-21523455-0, IVA Responsable Inscripto, IIBB 9710172931, inicio de actividades 01/09/1996. Receptor: CVC S.A. (901), CUIT 30-58221570-3, Circunvalación 1245 Bis, Rosario, condición de venta Contado, pago Efectivo/Débito. Detalle: 6,00 x 10220 PILAS ALCALINAS AA X UNIDAD, S/G, alícuota 21,00%, unitario 1.655,45, importe 9.932,70. Resumen: Neto gravado 9.932,70 (tasa 21%) + IVA 2.085,87 = Total 12.018,57. Son pesos: doce mil dieciocho con 57/00. No hay líneas de no gravado, exento, percepciones ni otros tributos (columna Impuestos en 0,00); la aritmética cierra (9.932,70 + 2.085,87 = 12.018,57). El precio unitario de 1.655,45 parece estar expresado sin IVA ya que el renglón coincide exactamente con el neto gravado. El rubro del emisor es informático y el ítem facturado son pilas alcalinas: la categoría de gasto es una sugerencia aproximada, no verificable con certeza desde la imagen. No hay campos de comedores/litros ni centro de costo en el comprobante (Mendel no envió datos cargados en esta pasada)."
+    "observaciones": "Factura A, Cód. 001, N° 0010-00038497, Original, fecha 12/12/2025. Emisor: Baer Augusto Pablo (nombre comercial 'CIF Soluciones Informáticas'), CUIT 20-21523455-0 (dígito verificador válido), IVA Responsable Inscripto, Ingresos Brutos 9710172931, inicio de actividades 01/09/1996. Receptor: CVC S.A. (901), CUIT 30-58221570-3, Circunvalación 1245 BIS, Rosario, condición de venta contado. Único ítem: 6.00 x '10220 PILAS ALCALINAS AA X UNIDAD', alícuota 21,00%, unitario 1.655,45, importe 9.932,70 (S/G = sin garantía). Líneas de importes: Sub-Total 9.932,70; Descuento 0,00; Neto 9.932,70; Impuestos 0,00; IVA 2.085,87; Total 12.018,57. Tabla Tasa IVA 21,00% con Neto 9.932,70 e IVA 2.085,87. Aritmética verificada: 9.932,70 + 2.085,87 = 12.018,57 (cierra). No hay percepciones, impuestos internos ni otros tributos. Importe en letras: 'Son Pesos: doce mil dieciocho con 57/00'. Pie con leyenda ARCA 'Comprobante Autorizado', CAE 75068470871523, vto. 22/12/2025, y código QR. No se discrimina monto no gravado ni exento. No se observan datos de centro de costo ni detalle de comensales/litros."
   },
   "extraccion": {
+    "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "001",
-    "razon_social_emisor": "CIF Soluciones Informáticas - Baer Augusto Pablo",
+    "razon_social_emisor": "Baer Augusto Pablo",
     "cuit_emisor": "20-21523455-0",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "12/12/2025",
@@ -80,13 +82,13 @@
     "otros_impuestos": 0,
     "importe_total": 12018.57,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Soluciones informáticas / venta de insumos de computación",
-    "categoria_gasto_sugerida": "Informática / Insumos de oficina",
+    "rubro_emisor": "Comercio de insumos informáticos / venta de pilas y accesorios (CIF Soluciones Informáticas, Donado 249, Rosario)",
+    "categoria_gasto_sugerida": "Insumos de oficina",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A, Cod. 001, N° 0010-00038497, Original, fecha 12/12/2025. Emisor: CIF Soluciones Informáticas, Baer Augusto Pablo, Donado 249, Rosario (2000), CUIT 20-21523455-0, IVA Responsable Inscripto, IIBB 9710172931, inicio de actividades 01/09/1996. Receptor: CVC S.A. (901), CUIT 30-58221570-3, Circunvalación 1245 Bis, Rosario, condición de venta Contado, pago Efectivo/Débito. Detalle: 6,00 x 10220 PILAS ALCALINAS AA X UNIDAD, S/G, alícuota 21,00%, unitario 1.655,45, importe 9.932,70. Resumen: Neto gravado 9.932,70 (tasa 21%) + IVA 2.085,87 = Total 12.018,57. Son pesos: doce mil dieciocho con 57/00. No hay líneas de no gravado, exento, percepciones ni otros tributos (columna Impuestos en 0,00); la aritmética cierra (9.932,70 + 2.085,87 = 12.018,57). El precio unitario de 1.655,45 parece estar expresado sin IVA ya que el renglón coincide exactamente con el neto gravado. El rubro del emisor es informático y el ítem facturado son pilas alcalinas: la categoría de gasto es una sugerencia aproximada, no verificable con certeza desde la imagen. No hay campos de comedores/litros ni centro de costo en el comprobante (Mendel no envió datos cargados en esta pasada)."
+    "observaciones": "Factura A, Cód. 001, N° 0010-00038497, Original, fecha 12/12/2025. Emisor: Baer Augusto Pablo (nombre comercial 'CIF Soluciones Informáticas'), CUIT 20-21523455-0 (dígito verificador válido), IVA Responsable Inscripto, Ingresos Brutos 9710172931, inicio de actividades 01/09/1996. Receptor: CVC S.A. (901), CUIT 30-58221570-3, Circunvalación 1245 BIS, Rosario, condición de venta contado. Único ítem: 6.00 x '10220 PILAS ALCALINAS AA X UNIDAD', alícuota 21,00%, unitario 1.655,45, importe 9.932,70 (S/G = sin garantía). Líneas de importes: Sub-Total 9.932,70; Descuento 0,00; Neto 9.932,70; Impuestos 0,00; IVA 2.085,87; Total 12.018,57. Tabla Tasa IVA 21,00% con Neto 9.932,70 e IVA 2.085,87. Aritmética verificada: 9.932,70 + 2.085,87 = 12.018,57 (cierra). No hay percepciones, impuestos internos ni otros tributos. Importe en letras: 'Son Pesos: doce mil dieciocho con 57/00'. Pie con leyenda ARCA 'Comprobante Autorizado', CAE 75068470871523, vto. 22/12/2025, y código QR. No se discrimina monto no gravado ni exento. No se observan datos de centro de costo ni detalle de comensales/litros."
   },
   "aritmetica": {
     "calculable": true,

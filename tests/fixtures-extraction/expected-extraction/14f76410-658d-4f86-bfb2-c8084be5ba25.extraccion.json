@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/expected-extraction/14f76410-658d-4f86-bfb2-c8084be5ba25.jpg",
   "archivo_relativo": "expected-extraction/14f76410-658d-4f86-bfb2-c8084be5ba25.jpg",
-  "procesado_utc": "2026-09-15T11:59:03+00:00",
+  "procesado_utc": "2026-09-15T13:44:22+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,30 +16,29 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:62f07862b9dd7d4c",
+  "prompt_hash": "sha256:49bf219ef6de34fc",
   "uso": {
-    "prompt_tokens": 7232,
-    "completion_tokens": 4950,
-    "total_tokens": 12182,
-    "prompt_cache_hit_tokens": 5760,
-    "prompt_cache_miss_tokens": 1472
+    "prompt_tokens": 3564,
+    "completion_tokens": 2503,
+    "total_tokens": 6067,
+    "prompt_cache_hit_tokens": 2816,
+    "prompt_cache_miss_tokens": 748
   },
   "esquema_validado": true,
-  "reintentos_esquema": 1,
-  "avisos_esquema": [],
   "precios_usd_1m": {
     "entrada": 0.3,
     "salida": 1.2,
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.006416,
+  "costo_usd": 0.003245,
   "resultado": {
+    "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "001",
-    "razon_social_emisor": "JOSÉ CENINA REPUESTOS S.R.L.",
-    "cuit_emisor": "30-70844978-2",
+    "razon_social_emisor": "José Genina Repuestos S.R.L.",
+    "cuit_emisor": "30-71144695-2",
     "digito_verificador_cuit_valido": false,
     "fecha_emision": "24/10/2025",
     "nro_factura": "0005-00013948",
@@ -54,25 +53,26 @@
     "otros_impuestos": 0,
     "importe_total": 10945.79,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Repuestos y accesorios (logo de tractor; ítem 'señalador de succión / freno')",
-    "categoria_gasto_sugerida": "Repuestos",
+    "rubro_emisor": "Repuestos y reparación de maquinaria agrícola / autopartes",
+    "categoria_gasto_sugerida": "Repuestos y mantenimiento (rubro inferido del emisor: repuestos de maquinaria agrícola; no encaja en las categorías típicas de gastronomía/hospedaje/combustible)",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [
-      "Último dígito del CUIT del emisor",
-      "Renglón de Ing. Brutos / Inicio de actividades del emisor",
-      "Descripción completa del ítem facturado",
-      "Importe de IVA del pie (se lee 1.899,68 ó 1.899,69; se transcribe el valor que cierra con el total)"
+      "Domicilio del emisor (línea 'Av. ... (105) ...')",
+      "N° de Ingresos Brutos del emisor",
+      "Inicio de actividades del emisor",
+      "Domicilio del receptor (parcial: 'AV. CNEL. DIAZ 2117 PB 08')"
     ],
-    "observaciones": "Factura A, COD. 001, Nº 0005-00013948, emitida el 24/10/2025 por José Cenina Repuestos S.R.L. (CUIT 30-70844978-2), domicilio Av. Cnel. Díaz 2117 PB 08, Capital Federal. Receptor: (T1886)-CVC S.A., CUIT 30-68223793-3, misma dirección, IVA Responsable Inscripto, condición de venta CONTADO. Discrimina IVA: SUBTOT. IMP. NETO GRAVADO 21% = 9.046,11; I.V.A. 21% = 1.899,68; TOTAL = 10.945,79. Cierra aritmética: 9.046,11 + 1.899,68 = 10.945,79. No hay no gravado, exento, percepciones ni otros tributos. Detalle: 1 línea, cantidad 0,25, %IVA 21%. Se advierte que el dígito verificador del CUIT del emisor no valida según módulo 11 (posible error de lectura del último dígito); no se usa como motivo de rechazo. C.A.E. 75433160566626, vto. 03/11/2025. Comprobante ORIGINAL. No hay campo de centro de costo ni cantidad de comensales/litros aplicable."
+    "observaciones": "Factura A (COD. 001) de José Genina Repuestos S.R.L., N° 0005-00013948, emitida el 24/10/2025. Receptor: Servicios (Yeno) C.V.C. S.A., CUIT 30-68213749-3, IVA Responsable Inscripto, condición de venta contado. Único ítem: 'REPAR. PALA DEL SUBSOLADOR HOSE CON RUEDA', cantidad 0,25, precio unitario 36.184,43, alícuota 21,00%. Aritmética verificada: neto gravado 9.046,11 + IVA 21% 1.899,68 = total 10.945,79 (cierra correctamente). Discrimina IVA. No se observan percepciones de IIBB, impuestos internos, exentos ni no gravados. CAE 75433160588625, vencimiento 03/11/2025, ORIGINAL. Sobre el CUIT del emisor: transcrito como 30-71144695-2; el dígito verificador calculado sobre los 10 primeros dígitos daría 4, por lo que el dígito impreso (2) no validaría, aunque la lectura del número es de baja confianza por el tamaño/calidad de la impresión, por lo que podría tratarse de un error de lectura. No hay símbolo de moneda explícito impreso; se asume ARS por tratarse de un comprobante fiscal argentino con formato de importes es-AR. Categoría de gasto no verificable con precisión desde la imagen: el emisor se dedica a repuestos de maquinaria agrícola y el detalle corresponde a una reparación, por lo que se sugiere una categoría de repuestos/mantenimiento."
   },
   "extraccion": {
+    "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "001",
-    "razon_social_emisor": "JOSÉ CENINA REPUESTOS S.R.L.",
-    "cuit_emisor": "30-70844978-2",
+    "razon_social_emisor": "José Genina Repuestos S.R.L.",
+    "cuit_emisor": "30-71144695-2",
     "digito_verificador_cuit_valido": false,
     "fecha_emision": "24/10/2025",
     "nro_factura": "0005-00013948",
@@ -87,18 +87,18 @@
     "otros_impuestos": 0,
     "importe_total": 10945.79,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Repuestos y accesorios (logo de tractor; ítem 'señalador de succión / freno')",
-    "categoria_gasto_sugerida": "Repuestos",
+    "rubro_emisor": "Repuestos y reparación de maquinaria agrícola / autopartes",
+    "categoria_gasto_sugerida": "Repuestos y mantenimiento (rubro inferido del emisor: repuestos de maquinaria agrícola; no encaja en las categorías típicas de gastronomía/hospedaje/combustible)",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [
-      "Último dígito del CUIT del emisor",
-      "Renglón de Ing. Brutos / Inicio de actividades del emisor",
-      "Descripción completa del ítem facturado",
-      "Importe de IVA del pie (se lee 1.899,68 ó 1.899,69; se transcribe el valor que cierra con el total)"
+      "Domicilio del emisor (línea 'Av. ... (105) ...')",
+      "N° de Ingresos Brutos del emisor",
+      "Inicio de actividades del emisor",
+      "Domicilio del receptor (parcial: 'AV. CNEL. DIAZ 2117 PB 08')"
     ],
-    "observaciones": "Factura A, COD. 001, Nº 0005-00013948, emitida el 24/10/2025 por José Cenina Repuestos S.R.L. (CUIT 30-70844978-2), domicilio Av. Cnel. Díaz 2117 PB 08, Capital Federal. Receptor: (T1886)-CVC S.A., CUIT 30-68223793-3, misma dirección, IVA Responsable Inscripto, condición de venta CONTADO. Discrimina IVA: SUBTOT. IMP. NETO GRAVADO 21% = 9.046,11; I.V.A. 21% = 1.899,68; TOTAL = 10.945,79. Cierra aritmética: 9.046,11 + 1.899,68 = 10.945,79. No hay no gravado, exento, percepciones ni otros tributos. Detalle: 1 línea, cantidad 0,25, %IVA 21%. Se advierte que el dígito verificador del CUIT del emisor no valida según módulo 11 (posible error de lectura del último dígito); no se usa como motivo de rechazo. C.A.E. 75433160566626, vto. 03/11/2025. Comprobante ORIGINAL. No hay campo de centro de costo ni cantidad de comensales/litros aplicable."
+    "observaciones": "Factura A (COD. 001) de José Genina Repuestos S.R.L., N° 0005-00013948, emitida el 24/10/2025. Receptor: Servicios (Yeno) C.V.C. S.A., CUIT 30-68213749-3, IVA Responsable Inscripto, condición de venta contado. Único ítem: 'REPAR. PALA DEL SUBSOLADOR HOSE CON RUEDA', cantidad 0,25, precio unitario 36.184,43, alícuota 21,00%. Aritmética verificada: neto gravado 9.046,11 + IVA 21% 1.899,68 = total 10.945,79 (cierra correctamente). Discrimina IVA. No se observan percepciones de IIBB, impuestos internos, exentos ni no gravados. CAE 75433160588625, vencimiento 03/11/2025, ORIGINAL. Sobre el CUIT del emisor: transcrito como 30-71144695-2; el dígito verificador calculado sobre los 10 primeros dígitos daría 4, por lo que el dígito impreso (2) no validaría, aunque la lectura del número es de baja confianza por el tamaño/calidad de la impresión, por lo que podría tratarse de un error de lectura. No hay símbolo de moneda explícito impreso; se asume ARS por tratarse de un comprobante fiscal argentino con formato de importes es-AR. Categoría de gasto no verificable con precisión desde la imagen: el emisor se dedica a repuestos de maquinaria agrícola y el detalle corresponde a una reparación, por lo que se sugiere una categoría de repuestos/mantenimiento."
   },
   "aritmetica": {
     "calculable": true,

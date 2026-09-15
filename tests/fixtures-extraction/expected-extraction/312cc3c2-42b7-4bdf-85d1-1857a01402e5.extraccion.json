@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/expected-extraction/312cc3c2-42b7-4bdf-85d1-1857a01402e5.jpg",
   "archivo_relativo": "expected-extraction/312cc3c2-42b7-4bdf-85d1-1857a01402e5.jpg",
-  "procesado_utc": "2026-09-15T11:59:17+00:00",
+  "procesado_utc": "2026-09-15T13:44:34+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:62f07862b9dd7d4c",
+  "prompt_hash": "sha256:49bf219ef6de34fc",
   "uso": {
-    "prompt_tokens": 3225,
-    "completion_tokens": 17180,
-    "total_tokens": 20405,
-    "prompt_cache_hit_tokens": 2560,
-    "prompt_cache_miss_tokens": 665
+    "prompt_tokens": 3564,
+    "completion_tokens": 6526,
+    "total_tokens": 10090,
+    "prompt_cache_hit_tokens": 2816,
+    "prompt_cache_miss_tokens": 748
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,8 +31,9 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.020831,
+  "costo_usd": 0.008072,
   "resultado": {
+    "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "B",
     "codigo_afip": "083",
@@ -42,7 +43,7 @@
     "fecha_emision": "03/12/2025",
     "nro_factura": "00007-00079492",
     "moneda": "ARS",
-    "subtotal": 24600,
+    "subtotal": 24600.0,
     "no_gravado": 0,
     "exento": 0,
     "discrimina_impuestos": false,
@@ -50,17 +51,20 @@
     "impuestos_internos": 0,
     "percepciones_iibb": 0,
     "otros_impuestos": 0,
-    "importe_total": 24600,
+    "importe_total": 24600.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Panadería / elaboración y venta de productos de panificación",
-    "categoria_gasto_sugerida": "Supermercado (compra de productos de panadería)",
+    "rubro_emisor": "Panadería / elaboración y venta de panificados (único ítem: PANADERIA)",
+    "categoria_gasto_sugerida": "Panadería",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
-    "campos_no_legibles": [],
-    "observaciones": "Tique de controlador fiscal (impreso como 'Cod. 083 - TIQUE') emitido por LUCIE SABORES S.R.L. (fantasía 'SANTA LUCIA VGG'), CUIT 30-71816388-5 (dígito verificador válido: 5), Ing. Brutos 0215194259, domicilio CHUBUT 705, (2124) VILLA GOBERNADOR GALVEZ, inicio de actividades 01/08/2023, IVA RESPONSABLE INSCRIPTO, 'A CONSUMIDOR FINAL'. P.V. Nro. 00007 - Nro. T. 00079492. Fecha 03/12/2025, hora 12:49:59. Única línea: 'PANADERIA' con alícuota 10,50% por $24.600,00; TOTAL $24.600,00 abonado en EFECTIVO. El comprobante NO discrimina neto ni IVA (por eso subtotal = total, sin desglose de impuestos). Se imprime por régimen de transparencia fiscal 'IVA contenido: $2.337,56' (que corresponde exactamente a la alícuota 10,50% incluida en el total) y 'Otros Impuestos Nacionales Indirectos: $0,00'; ambos son informativos e incluidos, no se suman al total. Aclaración de auditoría: el código impreso '083' figura en el nomenclador AFIP como 'Tique Factura C', pero el emisor es Responsable Inscripto que factura a Consumidor Final con IVA contenido (propio de un comprobante clase B), por lo que se transcribe como B y se sugiere verificar el mapeo del código. Rubro del emisor: panadería (coherente con la alícuota reducida 10,5%). No se imprimen datos de comensales, litros ni centro de costo."
+    "campos_no_legibles": [
+      "importe_recibido_efectivo (línea 'RECIBI(MOS) EFECTIVO' parcialmente cortada por el pliegue del papel: se lee '$2460q,3(')"
+    ],
+    "observaciones": "Tique emitido por controlador fiscal (Cod. 083 - TIQUE), P.V. 00007 / Nro. T. 00079492, Fecha 03/12/2025 12:49:59. Emisor LUCIE SABORES S.R.L., CUIT 30-71816388-5 (dígito verificador 5 validado: correcto), Ing. Brutos 0215194259, Chubut 705, (2124) Villa Gobernador Gálvez, inicio de actividades 01/08/2023, IVA Responsable Inscripto, 'A CONSUMIDOR FINAL': por ello se mapea el código 083 al tipo B (no imprime letra A/B/C). Único ítem: PANADERIA (10,50) $24.600,00 y TOTAL $24.600,00. No hay línea de 'Subtot. Imp. Neto Gravado' ni de no gravado/exento: el único importe es el total, por lo que subtotal = total (sin discriminación de impuestos) y la aritmética cierra. En 'TRANSPARENCIA FISCAL' se informa IVA contenido $2.337,56 (equivalente a la alícuota reducida del 10,5% incluida en el precio) y 'Otros Impuestos Nacionales Indirectos $0,00'; al ser contenido y no discriminado como impuesto adicional, no se lo suma aparte (neto implícito ~$22.262,44, no impreso en el ticket). Forma de pago: efectivo por $24.600,00 (renglón parcialmente cortado por el pliegue). Código de barras/QR SES HRA0000013673 - V: 1.02. Sin datos de comensales ni litros (no aplica). No hay centro de costo impreso."
   },
   "extraccion": {
+    "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "B",
     "codigo_afip": "083",
@@ -70,7 +74,7 @@
     "fecha_emision": "03/12/2025",
     "nro_factura": "00007-00079492",
     "moneda": "ARS",
-    "subtotal": 24600,
+    "subtotal": 24600.0,
     "no_gravado": 0,
     "exento": 0,
     "discrimina_impuestos": false,
@@ -78,15 +82,17 @@
     "impuestos_internos": 0,
     "percepciones_iibb": 0,
     "otros_impuestos": 0,
-    "importe_total": 24600,
+    "importe_total": 24600.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Panadería / elaboración y venta de productos de panificación",
-    "categoria_gasto_sugerida": "Supermercado (compra de productos de panadería)",
+    "rubro_emisor": "Panadería / elaboración y venta de panificados (único ítem: PANADERIA)",
+    "categoria_gasto_sugerida": "Panadería",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
-    "campos_no_legibles": [],
-    "observaciones": "Tique de controlador fiscal (impreso como 'Cod. 083 - TIQUE') emitido por LUCIE SABORES S.R.L. (fantasía 'SANTA LUCIA VGG'), CUIT 30-71816388-5 (dígito verificador válido: 5), Ing. Brutos 0215194259, domicilio CHUBUT 705, (2124) VILLA GOBERNADOR GALVEZ, inicio de actividades 01/08/2023, IVA RESPONSABLE INSCRIPTO, 'A CONSUMIDOR FINAL'. P.V. Nro. 00007 - Nro. T. 00079492. Fecha 03/12/2025, hora 12:49:59. Única línea: 'PANADERIA' con alícuota 10,50% por $24.600,00; TOTAL $24.600,00 abonado en EFECTIVO. El comprobante NO discrimina neto ni IVA (por eso subtotal = total, sin desglose de impuestos). Se imprime por régimen de transparencia fiscal 'IVA contenido: $2.337,56' (que corresponde exactamente a la alícuota 10,50% incluida en el total) y 'Otros Impuestos Nacionales Indirectos: $0,00'; ambos son informativos e incluidos, no se suman al total. Aclaración de auditoría: el código impreso '083' figura en el nomenclador AFIP como 'Tique Factura C', pero el emisor es Responsable Inscripto que factura a Consumidor Final con IVA contenido (propio de un comprobante clase B), por lo que se transcribe como B y se sugiere verificar el mapeo del código. Rubro del emisor: panadería (coherente con la alícuota reducida 10,5%). No se imprimen datos de comensales, litros ni centro de costo."
+    "campos_no_legibles": [
+      "importe_recibido_efectivo (línea 'RECIBI(MOS) EFECTIVO' parcialmente cortada por el pliegue del papel: se lee '$2460q,3(')"
+    ],
+    "observaciones": "Tique emitido por controlador fiscal (Cod. 083 - TIQUE), P.V. 00007 / Nro. T. 00079492, Fecha 03/12/2025 12:49:59. Emisor LUCIE SABORES S.R.L., CUIT 30-71816388-5 (dígito verificador 5 validado: correcto), Ing. Brutos 0215194259, Chubut 705, (2124) Villa Gobernador Gálvez, inicio de actividades 01/08/2023, IVA Responsable Inscripto, 'A CONSUMIDOR FINAL': por ello se mapea el código 083 al tipo B (no imprime letra A/B/C). Único ítem: PANADERIA (10,50) $24.600,00 y TOTAL $24.600,00. No hay línea de 'Subtot. Imp. Neto Gravado' ni de no gravado/exento: el único importe es el total, por lo que subtotal = total (sin discriminación de impuestos) y la aritmética cierra. En 'TRANSPARENCIA FISCAL' se informa IVA contenido $2.337,56 (equivalente a la alícuota reducida del 10,5% incluida en el precio) y 'Otros Impuestos Nacionales Indirectos $0,00'; al ser contenido y no discriminado como impuesto adicional, no se lo suma aparte (neto implícito ~$22.262,44, no impreso en el ticket). Forma de pago: efectivo por $24.600,00 (renglón parcialmente cortado por el pliegue). Código de barras/QR SES HRA0000013673 - V: 1.02. Sin datos de comensales ni litros (no aplica). No hay centro de costo impreso."
   },
   "aritmetica": {
     "calculable": true,

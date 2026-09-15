@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/negativos/neg_2026-10_pantalla_aprobacion.png",
   "archivo_relativo": "negativos/neg_2026-10_pantalla_aprobacion.png",
-  "procesado_utc": "2026-09-15T12:03:33+00:00",
+  "procesado_utc": "2026-09-15T13:47:51+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:62f07862b9dd7d4c",
+  "prompt_hash": "sha256:49bf219ef6de34fc",
   "uso": {
-    "prompt_tokens": 2928,
-    "completion_tokens": 440,
-    "total_tokens": 3368,
-    "prompt_cache_hit_tokens": 2560,
-    "prompt_cache_miss_tokens": 368
+    "prompt_tokens": 3267,
+    "completion_tokens": 594,
+    "total_tokens": 3861,
+    "prompt_cache_hit_tokens": 2816,
+    "prompt_cache_miss_tokens": 451
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,8 +31,9 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.000654,
+  "costo_usd": 0.000865,
   "resultado": {
+    "es_comprobante": "no_comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": null,
     "codigo_afip": null,
@@ -58,9 +59,10 @@
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "La imagen NO es un comprobante fiscal: es una pantalla de confirmación de un sistema de pagos. Contiene únicamente los textos «SISTEMA DE PAGOS», «OPERACION APROBADA», «Pantalla de confirmación del sistema» y «NO ES COMPROBANTE». No hay emisor, CUIT, fecha, número de factura, moneda ni importes que transcribir, por lo que todos los campos de datos van en null. No corresponde asignar tipo de comprobante AFIP (A/B/C/090/099) ni categoría de gasto. Se sugiere solicitar al empleado el comprobante fiscal válido (factura o ticket) que respalde el gasto."
+    "observaciones": "La imagen es una pantalla de confirmación de un sistema de pagos: muestra los textos 'SISTEMA DE PAGOS', 'OPERACION APROBADA', 'Pantalla de confirmación del sistema' y 'NO ES COMPROBANTE'. No es un comprobante fiscal ni comercial (no hay emisor, CUIT, fecha, número ni importes). No corresponde transcribir datos fiscales."
   },
   "extraccion": {
+    "es_comprobante": "no_comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": null,
     "codigo_afip": null,
@@ -86,7 +88,7 @@
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "La imagen NO es un comprobante fiscal: es una pantalla de confirmación de un sistema de pagos. Contiene únicamente los textos «SISTEMA DE PAGOS», «OPERACION APROBADA», «Pantalla de confirmación del sistema» y «NO ES COMPROBANTE». No hay emisor, CUIT, fecha, número de factura, moneda ni importes que transcribir, por lo que todos los campos de datos van en null. No corresponde asignar tipo de comprobante AFIP (A/B/C/090/099) ni categoría de gasto. Se sugiere solicitar al empleado el comprobante fiscal válido (factura o ticket) que respalde el gasto."
+    "observaciones": "La imagen es una pantalla de confirmación de un sistema de pagos: muestra los textos 'SISTEMA DE PAGOS', 'OPERACION APROBADA', 'Pantalla de confirmación del sistema' y 'NO ES COMPROBANTE'. No es un comprobante fiscal ni comercial (no hay emisor, CUIT, fecha, número ni importes). No corresponde transcribir datos fiscales."
   },
   "aritmetica": {
     "calculable": false,

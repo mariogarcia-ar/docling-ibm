@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/otros/125cbe9f-dda5-4f99-9fb3-407230294e07.jpeg",
   "archivo_relativo": "otros/125cbe9f-dda5-4f99-9fb3-407230294e07.jpeg",
-  "procesado_utc": "2026-09-15T12:03:37+00:00",
+  "procesado_utc": "2026-09-15T13:47:53+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:62f07862b9dd7d4c",
+  "prompt_hash": "sha256:49bf219ef6de34fc",
   "uso": {
-    "prompt_tokens": 3597,
-    "completion_tokens": 1470,
-    "total_tokens": 5067,
-    "prompt_cache_hit_tokens": 2560,
-    "prompt_cache_miss_tokens": 1037
+    "prompt_tokens": 3936,
+    "completion_tokens": 2608,
+    "total_tokens": 6544,
+    "prompt_cache_hit_tokens": 2816,
+    "prompt_cache_miss_tokens": 1120
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,76 +31,71 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.00209,
+  "costo_usd": 0.003482,
   "resultado": {
+    "es_comprobante": "no_comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": null,
     "codigo_afip": null,
     "razon_social_emisor": null,
     "cuit_emisor": null,
     "digito_verificador_cuit_valido": false,
-    "fecha_emision": "22/05/26",
+    "fecha_emision": null,
     "nro_factura": null,
-    "moneda": "ARS",
+    "moneda": null,
     "subtotal": null,
-    "no_gravado": 0,
-    "exento": 0,
+    "no_gravado": null,
+    "exento": null,
     "discrimina_impuestos": false,
-    "iva": 0,
-    "impuestos_internos": 0,
-    "percepciones_iibb": 0,
-    "otros_impuestos": 0,
-    "importe_total": 30920.0,
+    "iva": null,
+    "impuestos_internos": null,
+    "percepciones_iibb": null,
+    "otros_impuestos": null,
+    "importe_total": null,
     "cierra_aritmetica": false,
     "rubro_emisor": null,
     "categoria_gasto_sugerida": null,
     "cantidad_comensales_personas": null,
     "cantidad_litros": null,
     "centro_de_costo": null,
-    "campos_no_legibles": [
-      "hora de emisión (último dígito cortado al borde del papel)"
-    ],
-    "observaciones": "El documento NO es un comprobante fiscal AFIP (no es Factura A/B/C ni Otro Comprobante 090/099): es un cupón/ticket de pago con tarjeta (VISA) emitido por el posnet/terminal. Transcripción: COB-04217890; 22/05/26 18:01:3x; COMPRA - VISA_DEBITO; Nro.Com.: 67708131; Term.: 78103516; Nro.de Lote.: 382; Nro.de Cupon: 1284; Nro.Tarj: ************2052 (L) **/**; Nro. Cta.: 000000002857; Auto: 592716 - ONL; VISA CREDITO; A000000031010; Imp.Total: $30920.00; Cuotas: 01; Tipo de Plan: 0; Ref:2478 V.Soft:PRI301; (00 APROBADA)(00 APROBADA); Nro. de Factura: 0. No se informa razón social ni CUIT del emisor/comercio, ni punto de venta, ni discriminación de IVA u otros tributos. No hay desglose de neto gravado, no gravado ni exento (los campos se consignan en 0 por ausencia de discriminación). El único importe impreso es el total $30.920,00. La validación aritmética no puede realizarse por falta de líneas de desglose. El rubro del emisor no es inferible desde la imagen. Nota: aparece 'Nro. de Factura: 0', que no constituye un número de factura válido; se consigna como null."
+    "campos_no_legibles": [],
+    "observaciones": "El documento NO es un comprobante fiscal ni comercial: es una constancia/voucher de pago con tarjeta emitida por un terminal POS (posnet). Muestra: COB-04217890, fecha 22/05/26 18:01:31, operación 'COMPRA - VISA DEBITO' (luego figura 'VISA CREDITO'), Nro.Com. 67708131, Term. 78103516, Nro. de Lote 382, Nro. de Cupon 1284, tarjeta ************2052, Autorización 592716-ONL, Imp. Total: $30920.00, Cuotas: 01, Referencia 2478, '(00 APROBADA)' y 'Nro. de Factura: 0'. No identifica comercio/emisor, no tiene CUIT, ni letra A/B/C, ni código AFIP, ni discriminación de IVA ni detalle de bienes/servicios; tampoco es un ticket fiscal. Por eso no se transcriben campos fiscales (emisor, CUIT, tipo, fecha e importes van en null). Se recomienda solicitar la factura o ticket fiscal correspondiente al gasto."
   },
   "extraccion": {
+    "es_comprobante": "no_comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": null,
     "codigo_afip": null,
     "razon_social_emisor": null,
     "cuit_emisor": null,
     "digito_verificador_cuit_valido": false,
-    "fecha_emision": "22/05/26",
+    "fecha_emision": null,
     "nro_factura": null,
-    "moneda": "ARS",
+    "moneda": null,
     "subtotal": null,
-    "no_gravado": 0,
-    "exento": 0,
+    "no_gravado": null,
+    "exento": null,
     "discrimina_impuestos": false,
-    "iva": 0,
-    "impuestos_internos": 0,
-    "percepciones_iibb": 0,
-    "otros_impuestos": 0,
-    "importe_total": 30920.0,
+    "iva": null,
+    "impuestos_internos": null,
+    "percepciones_iibb": null,
+    "otros_impuestos": null,
+    "importe_total": null,
     "cierra_aritmetica": false,
     "rubro_emisor": null,
     "categoria_gasto_sugerida": null,
     "cantidad_comensales_personas": null,
     "cantidad_litros": null,
     "centro_de_costo": null,
-    "campos_no_legibles": [
-      "hora de emisión (último dígito cortado al borde del papel)"
-    ],
-    "observaciones": "El documento NO es un comprobante fiscal AFIP (no es Factura A/B/C ni Otro Comprobante 090/099): es un cupón/ticket de pago con tarjeta (VISA) emitido por el posnet/terminal. Transcripción: COB-04217890; 22/05/26 18:01:3x; COMPRA - VISA_DEBITO; Nro.Com.: 67708131; Term.: 78103516; Nro.de Lote.: 382; Nro.de Cupon: 1284; Nro.Tarj: ************2052 (L) **/**; Nro. Cta.: 000000002857; Auto: 592716 - ONL; VISA CREDITO; A000000031010; Imp.Total: $30920.00; Cuotas: 01; Tipo de Plan: 0; Ref:2478 V.Soft:PRI301; (00 APROBADA)(00 APROBADA); Nro. de Factura: 0. No se informa razón social ni CUIT del emisor/comercio, ni punto de venta, ni discriminación de IVA u otros tributos. No hay desglose de neto gravado, no gravado ni exento (los campos se consignan en 0 por ausencia de discriminación). El único importe impreso es el total $30.920,00. La validación aritmética no puede realizarse por falta de líneas de desglose. El rubro del emisor no es inferible desde la imagen. Nota: aparece 'Nro. de Factura: 0', que no constituye un número de factura válido; se consigna como null."
+    "campos_no_legibles": [],
+    "observaciones": "El documento NO es un comprobante fiscal ni comercial: es una constancia/voucher de pago con tarjeta emitida por un terminal POS (posnet). Muestra: COB-04217890, fecha 22/05/26 18:01:31, operación 'COMPRA - VISA DEBITO' (luego figura 'VISA CREDITO'), Nro.Com. 67708131, Term. 78103516, Nro. de Lote 382, Nro. de Cupon 1284, tarjeta ************2052, Autorización 592716-ONL, Imp. Total: $30920.00, Cuotas: 01, Referencia 2478, '(00 APROBADA)' y 'Nro. de Factura: 0'. No identifica comercio/emisor, no tiene CUIT, ni letra A/B/C, ni código AFIP, ni discriminación de IVA ni detalle de bienes/servicios; tampoco es un ticket fiscal. Por eso no se transcriben campos fiscales (emisor, CUIT, tipo, fecha e importes van en null). Se recomienda solicitar la factura o ticket fiscal correspondiente al gasto."
   },
   "aritmetica": {
-    "calculable": true,
-    "suma": 0.0,
-    "total": 30920.0,
-    "diferencia": 30920.0,
-    "cierra": false,
-    "faltantes": [
-      "subtotal"
-    ],
-    "aviso": "Los importes leídos suman 0.00 y el total impreso es 30,920.00 (diferencia 30,920.00). Puede faltar alguno de: subtotal."
+    "calculable": false,
+    "suma": null,
+    "total": null,
+    "diferencia": null,
+    "cierra": null,
+    "faltantes": []
   }
 }

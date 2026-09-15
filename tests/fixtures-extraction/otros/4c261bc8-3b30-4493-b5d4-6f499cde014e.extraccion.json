@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/otros/4c261bc8-3b30-4493-b5d4-6f499cde014e.jpeg",
   "archivo_relativo": "otros/4c261bc8-3b30-4493-b5d4-6f499cde014e.jpeg",
-  "procesado_utc": "2026-09-15T12:04:02+00:00",
+  "procesado_utc": "2026-09-15T13:48:20+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:62f07862b9dd7d4c",
+  "prompt_hash": "sha256:49bf219ef6de34fc",
   "uso": {
-    "prompt_tokens": 3699,
-    "completion_tokens": 4293,
-    "total_tokens": 7992,
-    "prompt_cache_hit_tokens": 2560,
-    "prompt_cache_miss_tokens": 1139
+    "prompt_tokens": 4038,
+    "completion_tokens": 4599,
+    "total_tokens": 8637,
+    "prompt_cache_hit_tokens": 2816,
+    "prompt_cache_miss_tokens": 1222
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,15 +31,16 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.005509,
+  "costo_usd": 0.005902,
   "resultado": {
+    "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "B",
     "codigo_afip": "002",
-    "razon_social_emisor": "Ariel y Jorge Tomasone S.R.L. (nombre de fantasía: Los Eucaliptus)",
-    "cuit_emisor": "30-71895228-6",
-    "digito_verificador_cuit_valido": true,
-    "fecha_emision": null,
+    "razon_social_emisor": "Ariel y Jorge Tomassoni S.R.L. (nombre de fantasía: Los Eucaliptus)",
+    "cuit_emisor": "30-71885228-6",
+    "digito_verificador_cuit_valido": false,
+    "fecha_emision": "02/02/26",
     "nro_factura": "00002-00001856",
     "moneda": "ARS",
     "subtotal": 25500.0,
@@ -52,24 +53,23 @@
     "otros_impuestos": 0,
     "importe_total": 25500.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Gastronómico (restaurante/salón de comidas)",
+    "rubro_emisor": "Gastronómico (restaurante / salón, ítem \"ALMUERZO\", Mesa/Pedido 39 - SALÓN)",
     "categoria_gasto_sugerida": "Restaurante",
-    "cantidad_comensales_personas": 0,
-    "cantidad_litros": 0,
+    "cantidad_comensales_personas": null,
+    "cantidad_litros": null,
     "centro_de_costo": null,
-    "campos_no_legibles": [
-      "fecha_emision (solo se distingue mes/año 02/2026; el día no es legible)"
-    ],
-    "observaciones": "Factura B Electrónica - COD. 002, N° 00002-00001856, emitida por Ariel y Jorge Tomasone S.R.L. (Los Eucaliptus), CUIT 30-71895228-6 (dígito verificador 6 válido). Emisor Responsable Inscripto, IIBB 091-032191-6, Ini. Act. 21-11-2020. Hora 14:49:38. Mesa/Pedido 39 - SALON. Detalle: 1 x ALMUERZO, Precio 25.500,00, Total 25.500,00. Subtotal $ 25.500,00; sin descuento; TOTAL $ 25.500,00. No hay discriminación de impuestos (comprobante tipo B): la leyenda 'IVA contenido: $ 4.425,62' es informativa (IVA incluido en el precio, alícuota 21%), por lo que los campos de impuestos quedan en cero y la aritmética cierra: 25.500,00 = 25.500,00. 'Otros Impuestos Nac. indirectos: $ 0,00'. Régimen de Transparencia Fiscal al Consumidor (ley 27.743). CAI N° 851840111676343, Vto. 03/02/26. Dato informativo adicional: 'Comentario: 781 - ROLDAN' (posible sede/sucursal, no rotulado como centro de costo). La fecha de emisión no es legible con certeza (se lee '02/2026'); el día queda pendiente de verificación, aunque el vencimiento del CAI (03/02/26) es consistente con una emisión de comienzos de febrero. Cantidad de comensales no surge del ticket (solo se indica 'Mesa/Pedido 39')."
+    "campos_no_legibles": [],
+    "observaciones": "Factura B Electrónica (COD. 002), N° 00002-00001856, emitida por Ariel y Jorge Tomassoni S.R.L. (nombre de fantasía \"Los Eucaliptus\"), ROLDAN, SANTA FE, Responsable Inscripto, IIBB 091-032191-6, Ini. Act. 21-11-2020. Detalle: 1 x ALMUERZO $25.500,00. Subtotal $25.500,00 = TOTAL $25.500,00 (Factura B sin discriminación de IVA en el precio). Por el Régimen de Transparencia Fiscal al Consumidor (Ley 27.743) figura \"IVA contenido: $4.425,62\" y \"Otros impuestos Nac. indirectos: $0,00\": ese IVA contenido NO está discriminado como impuesto sumado, por lo que no se carga en la columna de IVA ni afecta la aritmética (subtotal + impuestos = total, cierra). La fecha impresa se lee con dígitos superpuestos («02/20126»), interpretada como 02/02/26; el C.A.E. es 85184031827943 con vencimiento 03/02/26, coherente con emisión 02/02/26. No se imprimen cantidad de comensales ni litros (ítem único de almuerzo). El dígito verificador del CUIT leído (30-71885228-6) no valida: calculado sobre 3071885228 daría 1; puede tratarse de un error de impresión/lectura del propio comprobante."
   },
   "extraccion": {
+    "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "B",
     "codigo_afip": "002",
-    "razon_social_emisor": "Ariel y Jorge Tomasone S.R.L. (nombre de fantasía: Los Eucaliptus)",
-    "cuit_emisor": "30-71895228-6",
-    "digito_verificador_cuit_valido": true,
-    "fecha_emision": null,
+    "razon_social_emisor": "Ariel y Jorge Tomassoni S.R.L. (nombre de fantasía: Los Eucaliptus)",
+    "cuit_emisor": "30-71885228-6",
+    "digito_verificador_cuit_valido": false,
+    "fecha_emision": "02/02/26",
     "nro_factura": "00002-00001856",
     "moneda": "ARS",
     "subtotal": 25500.0,
@@ -82,15 +82,13 @@
     "otros_impuestos": 0,
     "importe_total": 25500.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Gastronómico (restaurante/salón de comidas)",
+    "rubro_emisor": "Gastronómico (restaurante / salón, ítem \"ALMUERZO\", Mesa/Pedido 39 - SALÓN)",
     "categoria_gasto_sugerida": "Restaurante",
-    "cantidad_comensales_personas": 0,
-    "cantidad_litros": 0,
+    "cantidad_comensales_personas": null,
+    "cantidad_litros": null,
     "centro_de_costo": null,
-    "campos_no_legibles": [
-      "fecha_emision (solo se distingue mes/año 02/2026; el día no es legible)"
-    ],
-    "observaciones": "Factura B Electrónica - COD. 002, N° 00002-00001856, emitida por Ariel y Jorge Tomasone S.R.L. (Los Eucaliptus), CUIT 30-71895228-6 (dígito verificador 6 válido). Emisor Responsable Inscripto, IIBB 091-032191-6, Ini. Act. 21-11-2020. Hora 14:49:38. Mesa/Pedido 39 - SALON. Detalle: 1 x ALMUERZO, Precio 25.500,00, Total 25.500,00. Subtotal $ 25.500,00; sin descuento; TOTAL $ 25.500,00. No hay discriminación de impuestos (comprobante tipo B): la leyenda 'IVA contenido: $ 4.425,62' es informativa (IVA incluido en el precio, alícuota 21%), por lo que los campos de impuestos quedan en cero y la aritmética cierra: 25.500,00 = 25.500,00. 'Otros Impuestos Nac. indirectos: $ 0,00'. Régimen de Transparencia Fiscal al Consumidor (ley 27.743). CAI N° 851840111676343, Vto. 03/02/26. Dato informativo adicional: 'Comentario: 781 - ROLDAN' (posible sede/sucursal, no rotulado como centro de costo). La fecha de emisión no es legible con certeza (se lee '02/2026'); el día queda pendiente de verificación, aunque el vencimiento del CAI (03/02/26) es consistente con una emisión de comienzos de febrero. Cantidad de comensales no surge del ticket (solo se indica 'Mesa/Pedido 39')."
+    "campos_no_legibles": [],
+    "observaciones": "Factura B Electrónica (COD. 002), N° 00002-00001856, emitida por Ariel y Jorge Tomassoni S.R.L. (nombre de fantasía \"Los Eucaliptus\"), ROLDAN, SANTA FE, Responsable Inscripto, IIBB 091-032191-6, Ini. Act. 21-11-2020. Detalle: 1 x ALMUERZO $25.500,00. Subtotal $25.500,00 = TOTAL $25.500,00 (Factura B sin discriminación de IVA en el precio). Por el Régimen de Transparencia Fiscal al Consumidor (Ley 27.743) figura \"IVA contenido: $4.425,62\" y \"Otros impuestos Nac. indirectos: $0,00\": ese IVA contenido NO está discriminado como impuesto sumado, por lo que no se carga en la columna de IVA ni afecta la aritmética (subtotal + impuestos = total, cierra). La fecha impresa se lee con dígitos superpuestos («02/20126»), interpretada como 02/02/26; el C.A.E. es 85184031827943 con vencimiento 03/02/26, coherente con emisión 02/02/26. No se imprimen cantidad de comensales ni litros (ítem único de almuerzo). El dígito verificador del CUIT leído (30-71885228-6) no valida: calculado sobre 3071885228 daría 1; puede tratarse de un error de impresión/lectura del propio comprobante."
   },
   "aritmetica": {
     "calculable": true,

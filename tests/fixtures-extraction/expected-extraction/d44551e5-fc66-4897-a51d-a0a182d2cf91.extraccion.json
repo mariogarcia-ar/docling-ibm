@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/expected-extraction/d44551e5-fc66-4897-a51d-a0a182d2cf91.jpg",
   "archivo_relativo": "expected-extraction/d44551e5-fc66-4897-a51d-a0a182d2cf91.jpg",
-  "procesado_utc": "2026-09-15T12:01:28+00:00",
+  "procesado_utc": "2026-09-15T13:45:59+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:62f07862b9dd7d4c",
+  "prompt_hash": "sha256:49bf219ef6de34fc",
   "uso": {
-    "prompt_tokens": 3225,
-    "completion_tokens": 5098,
-    "total_tokens": 8323,
-    "prompt_cache_hit_tokens": 2560,
-    "prompt_cache_miss_tokens": 665
+    "prompt_tokens": 3564,
+    "completion_tokens": 6217,
+    "total_tokens": 9781,
+    "prompt_cache_hit_tokens": 2816,
+    "prompt_cache_miss_tokens": 748
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,16 +31,17 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.006332,
+  "costo_usd": 0.007702,
   "resultado": {
+    "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "001",
-    "razon_social_emisor": "SHELL EL PASO (M.A. Gonzalez Roberto)",
+    "razon_social_emisor": "SHELL EL PASO (MALABRIGO ROBERTO)",
     "cuit_emisor": "20-06044320-4",
     "digito_verificador_cuit_valido": true,
-    "fecha_emision": "14/06/2025",
-    "nro_factura": "00049-000035274",
+    "fecha_emision": "14/08/2025",
+    "nro_factura": "00049-00035274",
     "moneda": "ARS",
     "subtotal": 14848.32,
     "no_gravado": 0,
@@ -52,23 +53,24 @@
     "otros_impuestos": 401.01,
     "importe_total": 21000.97,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / venta de combustible (nafta V-Power)",
+    "rubro_emisor": "Estación de servicio / venta de combustibles (nafta U-POWER)",
     "categoria_gasto_sugerida": "Combustible",
-    "cantidad_comensales_personas": 0,
+    "cantidad_comensales_personas": null,
     "cantidad_litros": 12.231,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique Factura A (Cód. 001) de Shell El Paso, CUIT 20-06044320-4 (dígito verificador válido), fecha 14/06/2025 17:55. Emisor con domicilio en Av. de Circunvalación 25 de Mayo, tel. 0341-4516829. Detalle: (11U-POWER NAFTA, 12,2312 litros a $1.717,000 = $14.847,98 + ajuste por redondeo $0,34). Neto gravado $14.848,32 (subtotal), no gravado y exento en $0,00; IVA 21% $3.118,07; Impuestos Internos (TIC Unit x Lt. $215,3193) $2.633,57; otros tributos: IDC $161,32 y Tasa Vial $239,69 (total otros tributos $3.034,58). Percepciones IIBB $0,00. TOTAL $21.000,97, abonado en efectivo, cambio $0,00. La aritmética cierra: 14.848,32 + 3.118,07 + 3.034,58 = 21.000,97. Nota: el pie imprime 'Precio s/imp: 14.848,22 - IVA cont: 3.118,13' con diferencias de centavos por redondeo respecto de las líneas del cuerpo. Empleado/cajero: LAUTARO. No figura centro de costo."
+    "observaciones": "TiQUE FACTURA \"A\" - COD. 001, Nro 00049-00035274, emitida 14/08/2025 17:55:46 por SHELL EL PASO (MALABRIGO ROBERTO), CUIT 20-06044320-4 (dígito verificador válido), Ing. Brutos 02109867913, Av. de Circunvalación 25 de Mayo, Tel. 0341-4516829. Cliente: CUIT 30582215703, Circunvalación 1245 bis, Rosario, CONTADO. Detalle: 12.231 L de U-POWER NAFTA (TIC Unit.x Lt: 215.3193), Precio Neto 14847.98 + AJUSTE por redondeo 0.34 = 14848.32. Líneas de importes transcriptas: SUBTOTAL IMPORTE NETO NO GRAVADO 0.00; SUBTOTAL IMPORTE EXENTO 0.00; SUBTOTAL IMPORTE NETO GRAVADO 14848.32; IVA 21% (base 14848.32) 3118.07; IMPUESTOS INTERNOS ITEMS 2633.57 (ICL); IDC 161.32; TASA VIAL 239.69; IMPUESTOS INTERNOS 2716.54; TOTAL OTROS TRIBUTOS 3034.58; TOTAL 21000.97; RECIBIDO Efectivo 21000.97; CAMBIO 0.00. En 'otros_impuestos' se agruparon los tributos no desglosados en el formulario (IDC 161.32 + Tasa Vial 239.69 = 401.01); no hay percepciones de IIBB. Verificación aritmética: 14848.32 + 3118.07 + 2633.57 + 401.01 = 21000.97 (cierra). Observación menor: la leyenda inferior 'Precio s/imp: 14848.22 - IVA cont: 3118.13 / ICL 2633.61' difiere en centavos por redondeo respecto de los subtotales impresos. Pie: CAE 7HSHSAB0000022190 (parcialmente legible), U: 01.00, Surt:3-Ma:17 (CQ) 14/08/2025 18:10:18, Empleado LAUTARO. No se discrimina moneda con símbolo, pero por emisor y formato corresponde a pesos (ARS). No figura centro de costo."
   },
   "extraccion": {
+    "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "001",
-    "razon_social_emisor": "SHELL EL PASO (M.A. Gonzalez Roberto)",
+    "razon_social_emisor": "SHELL EL PASO (MALABRIGO ROBERTO)",
     "cuit_emisor": "20-06044320-4",
     "digito_verificador_cuit_valido": true,
-    "fecha_emision": "14/06/2025",
-    "nro_factura": "00049-000035274",
+    "fecha_emision": "14/08/2025",
+    "nro_factura": "00049-00035274",
     "moneda": "ARS",
     "subtotal": 14848.32,
     "no_gravado": 0,
@@ -80,13 +82,13 @@
     "otros_impuestos": 401.01,
     "importe_total": 21000.97,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / venta de combustible (nafta V-Power)",
+    "rubro_emisor": "Estación de servicio / venta de combustibles (nafta U-POWER)",
     "categoria_gasto_sugerida": "Combustible",
-    "cantidad_comensales_personas": 0,
+    "cantidad_comensales_personas": null,
     "cantidad_litros": 12.231,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique Factura A (Cód. 001) de Shell El Paso, CUIT 20-06044320-4 (dígito verificador válido), fecha 14/06/2025 17:55. Emisor con domicilio en Av. de Circunvalación 25 de Mayo, tel. 0341-4516829. Detalle: (11U-POWER NAFTA, 12,2312 litros a $1.717,000 = $14.847,98 + ajuste por redondeo $0,34). Neto gravado $14.848,32 (subtotal), no gravado y exento en $0,00; IVA 21% $3.118,07; Impuestos Internos (TIC Unit x Lt. $215,3193) $2.633,57; otros tributos: IDC $161,32 y Tasa Vial $239,69 (total otros tributos $3.034,58). Percepciones IIBB $0,00. TOTAL $21.000,97, abonado en efectivo, cambio $0,00. La aritmética cierra: 14.848,32 + 3.118,07 + 3.034,58 = 21.000,97. Nota: el pie imprime 'Precio s/imp: 14.848,22 - IVA cont: 3.118,13' con diferencias de centavos por redondeo respecto de las líneas del cuerpo. Empleado/cajero: LAUTARO. No figura centro de costo."
+    "observaciones": "TiQUE FACTURA \"A\" - COD. 001, Nro 00049-00035274, emitida 14/08/2025 17:55:46 por SHELL EL PASO (MALABRIGO ROBERTO), CUIT 20-06044320-4 (dígito verificador válido), Ing. Brutos 02109867913, Av. de Circunvalación 25 de Mayo, Tel. 0341-4516829. Cliente: CUIT 30582215703, Circunvalación 1245 bis, Rosario, CONTADO. Detalle: 12.231 L de U-POWER NAFTA (TIC Unit.x Lt: 215.3193), Precio Neto 14847.98 + AJUSTE por redondeo 0.34 = 14848.32. Líneas de importes transcriptas: SUBTOTAL IMPORTE NETO NO GRAVADO 0.00; SUBTOTAL IMPORTE EXENTO 0.00; SUBTOTAL IMPORTE NETO GRAVADO 14848.32; IVA 21% (base 14848.32) 3118.07; IMPUESTOS INTERNOS ITEMS 2633.57 (ICL); IDC 161.32; TASA VIAL 239.69; IMPUESTOS INTERNOS 2716.54; TOTAL OTROS TRIBUTOS 3034.58; TOTAL 21000.97; RECIBIDO Efectivo 21000.97; CAMBIO 0.00. En 'otros_impuestos' se agruparon los tributos no desglosados en el formulario (IDC 161.32 + Tasa Vial 239.69 = 401.01); no hay percepciones de IIBB. Verificación aritmética: 14848.32 + 3118.07 + 2633.57 + 401.01 = 21000.97 (cierra). Observación menor: la leyenda inferior 'Precio s/imp: 14848.22 - IVA cont: 3118.13 / ICL 2633.61' difiere en centavos por redondeo respecto de los subtotales impresos. Pie: CAE 7HSHSAB0000022190 (parcialmente legible), U: 01.00, Surt:3-Ma:17 (CQ) 14/08/2025 18:10:18, Empleado LAUTARO. No se discrimina moneda con símbolo, pero por emisor y formato corresponde a pesos (ARS). No figura centro de costo."
   },
   "aritmetica": {
     "calculable": true,

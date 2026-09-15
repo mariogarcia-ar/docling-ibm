@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/expected-extraction/0fc44015-8d00-4bf0-bdac-ce41f695d8c6.jpg",
   "archivo_relativo": "expected-extraction/0fc44015-8d00-4bf0-bdac-ce41f695d8c6.jpg",
-  "procesado_utc": "2026-09-15T11:59:01+00:00",
+  "procesado_utc": "2026-09-15T13:44:19+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:62f07862b9dd7d4c",
+  "prompt_hash": "sha256:49bf219ef6de34fc",
   "uso": {
-    "prompt_tokens": 3025,
-    "completion_tokens": 5099,
-    "total_tokens": 8124,
-    "prompt_cache_hit_tokens": 2560,
-    "prompt_cache_miss_tokens": 465
+    "prompt_tokens": 3364,
+    "completion_tokens": 3426,
+    "total_tokens": 6790,
+    "prompt_cache_hit_tokens": 2816,
+    "prompt_cache_miss_tokens": 548
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,10 +31,11 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.006274,
+  "costo_usd": 0.004292,
   "resultado": {
+    "es_comprobante": "comprobante",
     "legibilidad": "buena",
-    "tipo_comprobante": "Otros Comprobantes (Tique - no es Factura A/B/C)",
+    "tipo_comprobante": "B",
     "codigo_afip": "083",
     "razon_social_emisor": "LUCIE SABORES S.R.L. (SANTA LUCIA VGG)",
     "cuit_emisor": "30-71816388-5",
@@ -46,23 +47,24 @@
     "no_gravado": 0,
     "exento": 0,
     "discrimina_impuestos": false,
-    "iva": 855.2,
+    "iva": 0,
     "impuestos_internos": 0,
     "percepciones_iibb": 0,
     "otros_impuestos": 0,
     "importe_total": 9000.0,
-    "cierra_aritmetica": false,
-    "rubro_emisor": "Panadería / comercio minorista de panificados (detalle: 'PANADERIA'; fantasía SANTA LUCIA VGG)",
-    "categoria_gasto_sugerida": "Supermercado / Panadería (compra de alimentos) - rubro gastronómico-comercial, admite también 'Restaurante'",
-    "cantidad_comensales_personas": 0,
-    "cantidad_litros": 0,
+    "cierra_aritmetica": true,
+    "rubro_emisor": "Panadería / panificados (comercio minorista de panificación)",
+    "categoria_gasto_sugerida": "Panadería",
+    "cantidad_comensales_personas": null,
+    "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique de controlador fiscal (Cod. 083 - TIQUE), no es Factura A/B/C; corresponde a la familia de 'Otros Comprobantes' (ante discrepancia, el empleado debería cargar 090/099 o el tipo que corresponda a tique, no A/B/C). Emisor: LUCIE SABORES S.R.L., fantasía SANTA LUCIA VGG, CUIT 30-71816388-5 (dígito verificador 5 calculado y CORRECTO), Ing. Brutos 0215194259, Chubut 705, (2124) Villa Gobernador Gálvez, inicio de actividades 01/08/2023, IVA Responsable Inscripto, a Consumidor Final. Punto de venta 00007, Nro. T. 00102635, fecha 04/08/2026 08:19:39 hs, cajero 01. Detalle: un único ítem 'PANADERIA (10,50) $9.000,00' (10,50 podría ser kg o unidades, no está explicitado). Pago: RECIBI(MOS) EFECTIVO $9.000,00. IMPORTES: no hay línea de Subtotal/Neto Gravado impresa; el único importe es TOTAL $9.000,00. Por 'Transparencia Fiscal' se informa IVA contenido $855,20 y Otros Impuestos Nacionales Indirectos $0,00, es decir el IVA está INCLUIDO en el precio (no se suma aparte): el neto implícito sería ~$8.144,80 (alícuota ~10,5%), pero ese neto no está impreso, por lo que no se transcribe como subtotal. Se cargó subtotal = 9.000,00 por coincidir con el total, criterio aplicable a comprobantes sin discriminación de IVA como ítem sumado. cierra_aritmetica = true: 9.000,00 (subtotal/total) + 0 no gravado + 0 exento = 9.000,00, dado que el IVA es 'contenido' y no se adiciona. Sin percepciones de IIBB ni impuestos internos (el número de Ing. Brutos es la inscripción del emisor, no una percepción). Línea de CAE/aut. al pie poco nítida (aparenta 'SESHR A0000001 3673'), no se transcribe con certeza; no afecta los importes. No figura cantidad de comensales ni litros en el comprobante."
+    "observaciones": "Ticket de controlador fiscal (Cod. 083 - TIQUE), P.V. 00007 - Nro. T. 00102635, emitido por emisor IVA Responsable Inscripto a Consumidor Final; por la condición del emisor se corresponde con una Factura clase B. No hay discriminación de IVA: única línea de venta PANADERIA (10,50 unidades) $9.000,00 = TOTAL, por lo que el subtotal transcrito coincide con el total. En 'Transparencia Fiscal' se informa IVA contenido $855,20 (equivalente a alícuota 10,5% sobre el total) y Otros Impuestos Nacionales Indirectos $0,00; al ser IVA contenido y no discriminado no se carga en el campo iva. RECIBI(MOS) EFECTIVO $9.000,00. CUIT 30-71816388-5 con dígito verificador válido (cálculo: 5). Ingresos Brutos 0215194259, Dirección CHUBUT 705, (2124) VILLA GOBERNADOR GALVEZ, Inicio de Actividades 01/08/2023. Código QR y leyenda SESHKA00000013673 / V: 1.02. Atención: la fecha impresa (04/08/2026) es posterior a la fecha habitual de carga; se transcribe tal como figura en el comprobante. No figura detalle de comensales ni litros (no aplica). Sin centro de costo informado."
   },
   "extraccion": {
+    "es_comprobante": "comprobante",
     "legibilidad": "buena",
-    "tipo_comprobante": "Otros Comprobantes (Tique - no es Factura A/B/C)",
+    "tipo_comprobante": "B",
     "codigo_afip": "083",
     "razon_social_emisor": "LUCIE SABORES S.R.L. (SANTA LUCIA VGG)",
     "cuit_emisor": "30-71816388-5",
@@ -74,27 +76,26 @@
     "no_gravado": 0,
     "exento": 0,
     "discrimina_impuestos": false,
-    "iva": 855.2,
+    "iva": 0,
     "impuestos_internos": 0,
     "percepciones_iibb": 0,
     "otros_impuestos": 0,
     "importe_total": 9000.0,
-    "cierra_aritmetica": false,
-    "rubro_emisor": "Panadería / comercio minorista de panificados (detalle: 'PANADERIA'; fantasía SANTA LUCIA VGG)",
-    "categoria_gasto_sugerida": "Supermercado / Panadería (compra de alimentos) - rubro gastronómico-comercial, admite también 'Restaurante'",
-    "cantidad_comensales_personas": 0,
-    "cantidad_litros": 0,
+    "cierra_aritmetica": true,
+    "rubro_emisor": "Panadería / panificados (comercio minorista de panificación)",
+    "categoria_gasto_sugerida": "Panadería",
+    "cantidad_comensales_personas": null,
+    "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique de controlador fiscal (Cod. 083 - TIQUE), no es Factura A/B/C; corresponde a la familia de 'Otros Comprobantes' (ante discrepancia, el empleado debería cargar 090/099 o el tipo que corresponda a tique, no A/B/C). Emisor: LUCIE SABORES S.R.L., fantasía SANTA LUCIA VGG, CUIT 30-71816388-5 (dígito verificador 5 calculado y CORRECTO), Ing. Brutos 0215194259, Chubut 705, (2124) Villa Gobernador Gálvez, inicio de actividades 01/08/2023, IVA Responsable Inscripto, a Consumidor Final. Punto de venta 00007, Nro. T. 00102635, fecha 04/08/2026 08:19:39 hs, cajero 01. Detalle: un único ítem 'PANADERIA (10,50) $9.000,00' (10,50 podría ser kg o unidades, no está explicitado). Pago: RECIBI(MOS) EFECTIVO $9.000,00. IMPORTES: no hay línea de Subtotal/Neto Gravado impresa; el único importe es TOTAL $9.000,00. Por 'Transparencia Fiscal' se informa IVA contenido $855,20 y Otros Impuestos Nacionales Indirectos $0,00, es decir el IVA está INCLUIDO en el precio (no se suma aparte): el neto implícito sería ~$8.144,80 (alícuota ~10,5%), pero ese neto no está impreso, por lo que no se transcribe como subtotal. Se cargó subtotal = 9.000,00 por coincidir con el total, criterio aplicable a comprobantes sin discriminación de IVA como ítem sumado. cierra_aritmetica = true: 9.000,00 (subtotal/total) + 0 no gravado + 0 exento = 9.000,00, dado que el IVA es 'contenido' y no se adiciona. Sin percepciones de IIBB ni impuestos internos (el número de Ing. Brutos es la inscripción del emisor, no una percepción). Línea de CAE/aut. al pie poco nítida (aparenta 'SESHR A0000001 3673'), no se transcribe con certeza; no afecta los importes. No figura cantidad de comensales ni litros en el comprobante."
+    "observaciones": "Ticket de controlador fiscal (Cod. 083 - TIQUE), P.V. 00007 - Nro. T. 00102635, emitido por emisor IVA Responsable Inscripto a Consumidor Final; por la condición del emisor se corresponde con una Factura clase B. No hay discriminación de IVA: única línea de venta PANADERIA (10,50 unidades) $9.000,00 = TOTAL, por lo que el subtotal transcrito coincide con el total. En 'Transparencia Fiscal' se informa IVA contenido $855,20 (equivalente a alícuota 10,5% sobre el total) y Otros Impuestos Nacionales Indirectos $0,00; al ser IVA contenido y no discriminado no se carga en el campo iva. RECIBI(MOS) EFECTIVO $9.000,00. CUIT 30-71816388-5 con dígito verificador válido (cálculo: 5). Ingresos Brutos 0215194259, Dirección CHUBUT 705, (2124) VILLA GOBERNADOR GALVEZ, Inicio de Actividades 01/08/2023. Código QR y leyenda SESHKA00000013673 / V: 1.02. Atención: la fecha impresa (04/08/2026) es posterior a la fecha habitual de carga; se transcribe tal como figura en el comprobante. No figura detalle de comensales ni litros (no aplica). Sin centro de costo informado."
   },
   "aritmetica": {
     "calculable": true,
-    "suma": 9855.2,
+    "suma": 9000.0,
     "total": 9000.0,
-    "diferencia": -855.2,
-    "cierra": false,
-    "faltantes": [],
-    "aviso": "Los importes leídos suman 9,855.20 y el total impreso es 9,000.00 (diferencia -855.20)."
+    "diferencia": 0.0,
+    "cierra": true,
+    "faltantes": []
   }
 }

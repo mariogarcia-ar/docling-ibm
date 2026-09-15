@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/grandes/8c343f49-3266-4bea-8341-cc83d0574db4.jpg",
   "archivo_relativo": "grandes/8c343f49-3266-4bea-8341-cc83d0574db4.jpg",
-  "procesado_utc": "2026-09-15T12:02:43+00:00",
+  "procesado_utc": "2026-09-15T13:47:10+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:62f07862b9dd7d4c",
+  "prompt_hash": "sha256:49bf219ef6de34fc",
   "uso": {
-    "prompt_tokens": 3686,
-    "completion_tokens": 1422,
-    "total_tokens": 5108,
-    "prompt_cache_hit_tokens": 2560,
-    "prompt_cache_miss_tokens": 1126
+    "prompt_tokens": 4025,
+    "completion_tokens": 1959,
+    "total_tokens": 5984,
+    "prompt_cache_hit_tokens": 2816,
+    "prompt_cache_miss_tokens": 1209
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,15 +31,16 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.00206,
+  "costo_usd": 0.00273,
   "resultado": {
+    "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "001",
-    "razon_social_emisor": "LOFAT SOCIEDAD ANONIMA",
+    "razon_social_emisor": "LOFAT SOCIEDAD ANONIMA (BUFFET)",
     "cuit_emisor": "30-70718504-6",
     "digito_verificador_cuit_valido": true,
-    "fecha_emision": "15/10/25",
+    "fecha_emision": "15/10/2025",
     "nro_factura": "00004-00009478",
     "moneda": "ARS",
     "subtotal": 75206.6,
@@ -52,22 +53,23 @@
     "otros_impuestos": 0,
     "importe_total": 91000.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Restaurante / buffet (servicio de almuerzos)",
+    "rubro_emisor": "Gastronómico / Buffet (servicio de comidas en ruta)",
     "categoria_gasto_sugerida": "Restaurante",
     "cantidad_comensales_personas": 4,
-    "cantidad_litros": 0,
+    "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A (COD. 001) emitida por LOFAT SOCIEDAD ANONIMA (CUIT 30-70718504-6, dígito verificador válido), IVA Responsable Inscripto, Ruta 7 Km 261, Junín. Fecha de emisión 15/10/25 14:28. Punto de venta 00004, número 00009478. Cliente: CVC SOCIEDAD ANONIMA, CUIT 30582215703, Responsable Inscripto. Detalle: 4,00 ALMUERZOS a 18801,65 unitario (21,00% IVA) = 75206,61. Líneas de importes: NETO SIN IVA 75206,60; IVA 21,00% 15793,40; TOTAL ARS 91000,00. La aritmética cierra (75206,60 + 15793,40 = 91000,00). No hay otras líneas de impuestos (internos, percepciones IIBB, otros), ni no gravado ni exento. La cantidad de comensales (4) se infiere del detalle 'CUATRO ALMUERZOS' / '4,00 ALMUERZOS'. Nota: la leyenda 'EXCEPCIÓN COMPUTO IVA CREDITO FISCAL - Motivo Excep.: confer./congresos/eventos' indica que el IVA no es computable como crédito fiscal. CAE 75426015524007, vencimiento 25/10/2025. Mesa 40, Mozo 8."
+    "observaciones": "Factura A (COD. 001) emitida por LOFAT S.A. (BUFFET), Ruta 7 Km 261, Junín, IVA Responsable Inscripto. CUIT 30-70718504-6: dígito verificador válido. Fecha impresa en formato DD/MM/AA: 15/10/25 (14:28). Nro. 00004-00009478. Receptor: CVC SOCIEDAD ANONIMA, Av. de Circunvalación Bis 124, CUIT 30582215703. Detalle: 4,00 ALMUERZOS, unitario 18.801,65, alícuota 21,00%, importe 75.206,61 (4 comensales). Neto sin IVA 75.206,60 + IVA 21% 15.793,40 = TOTAL ARS 91.000,00: la aritmética cierra. Se observa una diferencia de $0,01 entre el importe de la línea de detalle (75.206,61) y el NETO SIN IVA impreso (75.206,60), atribuible a redondeo y sin efecto sobre el total. Leyenda 'ORIENTACIÓN AL CONSUMIDOR - PCIA. DE BUENOS AIRES 0-800-222-9042'. Figura 'EXCEPCIÓN CÓMPUTO IVA CRÉDITO FISCAL', motivo 'confer./congresos/eventos'. CAE 75426015524007, vencimiento 25/10/2025. Incluye código QR y logo 'BRÜLER'. No hay descuentos, percepciones, impuestos internos, exentos ni no gravados. Cantidad de comensales inferida de 'CUATRO ALMUERZOS' (4). No aplica cantidad de litros. Categoría de gasto sugerida: Restaurante. Centro de costo no informado en el comprobante."
   },
   "extraccion": {
+    "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "001",
-    "razon_social_emisor": "LOFAT SOCIEDAD ANONIMA",
+    "razon_social_emisor": "LOFAT SOCIEDAD ANONIMA (BUFFET)",
     "cuit_emisor": "30-70718504-6",
     "digito_verificador_cuit_valido": true,
-    "fecha_emision": "15/10/25",
+    "fecha_emision": "15/10/2025",
     "nro_factura": "00004-00009478",
     "moneda": "ARS",
     "subtotal": 75206.6,
@@ -80,13 +82,13 @@
     "otros_impuestos": 0,
     "importe_total": 91000.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Restaurante / buffet (servicio de almuerzos)",
+    "rubro_emisor": "Gastronómico / Buffet (servicio de comidas en ruta)",
     "categoria_gasto_sugerida": "Restaurante",
     "cantidad_comensales_personas": 4,
-    "cantidad_litros": 0,
+    "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A (COD. 001) emitida por LOFAT SOCIEDAD ANONIMA (CUIT 30-70718504-6, dígito verificador válido), IVA Responsable Inscripto, Ruta 7 Km 261, Junín. Fecha de emisión 15/10/25 14:28. Punto de venta 00004, número 00009478. Cliente: CVC SOCIEDAD ANONIMA, CUIT 30582215703, Responsable Inscripto. Detalle: 4,00 ALMUERZOS a 18801,65 unitario (21,00% IVA) = 75206,61. Líneas de importes: NETO SIN IVA 75206,60; IVA 21,00% 15793,40; TOTAL ARS 91000,00. La aritmética cierra (75206,60 + 15793,40 = 91000,00). No hay otras líneas de impuestos (internos, percepciones IIBB, otros), ni no gravado ni exento. La cantidad de comensales (4) se infiere del detalle 'CUATRO ALMUERZOS' / '4,00 ALMUERZOS'. Nota: la leyenda 'EXCEPCIÓN COMPUTO IVA CREDITO FISCAL - Motivo Excep.: confer./congresos/eventos' indica que el IVA no es computable como crédito fiscal. CAE 75426015524007, vencimiento 25/10/2025. Mesa 40, Mozo 8."
+    "observaciones": "Factura A (COD. 001) emitida por LOFAT S.A. (BUFFET), Ruta 7 Km 261, Junín, IVA Responsable Inscripto. CUIT 30-70718504-6: dígito verificador válido. Fecha impresa en formato DD/MM/AA: 15/10/25 (14:28). Nro. 00004-00009478. Receptor: CVC SOCIEDAD ANONIMA, Av. de Circunvalación Bis 124, CUIT 30582215703. Detalle: 4,00 ALMUERZOS, unitario 18.801,65, alícuota 21,00%, importe 75.206,61 (4 comensales). Neto sin IVA 75.206,60 + IVA 21% 15.793,40 = TOTAL ARS 91.000,00: la aritmética cierra. Se observa una diferencia de $0,01 entre el importe de la línea de detalle (75.206,61) y el NETO SIN IVA impreso (75.206,60), atribuible a redondeo y sin efecto sobre el total. Leyenda 'ORIENTACIÓN AL CONSUMIDOR - PCIA. DE BUENOS AIRES 0-800-222-9042'. Figura 'EXCEPCIÓN CÓMPUTO IVA CRÉDITO FISCAL', motivo 'confer./congresos/eventos'. CAE 75426015524007, vencimiento 25/10/2025. Incluye código QR y logo 'BRÜLER'. No hay descuentos, percepciones, impuestos internos, exentos ni no gravados. Cantidad de comensales inferida de 'CUATRO ALMUERZOS' (4). No aplica cantidad de litros. Categoría de gasto sugerida: Restaurante. Centro de costo no informado en el comprobante."
   },
   "aritmetica": {
     "calculable": true,

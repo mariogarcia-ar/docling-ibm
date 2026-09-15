@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/otros/336a2740-2aaa-4577-b551-fedc961607fd.jpg",
   "archivo_relativo": "otros/336a2740-2aaa-4577-b551-fedc961607fd.jpg",
-  "procesado_utc": "2026-09-15T12:03:52+00:00",
+  "procesado_utc": "2026-09-15T13:48:09+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,23 +16,26 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:62f07862b9dd7d4c",
+  "prompt_hash": "sha256:49bf219ef6de34fc",
   "uso": {
-    "prompt_tokens": 3660,
-    "completion_tokens": 2053,
-    "total_tokens": 5713,
-    "prompt_cache_hit_tokens": 2560,
-    "prompt_cache_miss_tokens": 1100
+    "prompt_tokens": 8698,
+    "completion_tokens": 3366,
+    "total_tokens": 12064,
+    "prompt_cache_hit_tokens": 6784,
+    "prompt_cache_miss_tokens": 1914
   },
   "esquema_validado": true,
+  "reintentos_esquema": 1,
+  "avisos_esquema": [],
   "precios_usd_1m": {
     "entrada": 0.3,
     "salida": 1.2,
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.002809,
+  "costo_usd": 0.004654,
   "resultado": {
+    "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "081",
@@ -52,15 +55,16 @@
     "otros_impuestos": 1858.26,
     "importe_total": 90865.15,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / expendio de combustible (bandera AXION)",
+    "rubro_emisor": "Estación de servicio / venta de combustibles (Axion Pilar)",
     "categoria_gasto_sugerida": "Combustible",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 35.7601,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique Factura A (Cód. 081) emitido por Axion Pilar (PAN AMERICAN ENERGY S.L. Sucursal Arg). Detalle: 35,7601 unidades x 1732,1498 - E15 QUANTIUM = 61.941,85 (alícuota 21%). Se transcribe SUBTOT. IMP. NETO GRAVADO 61.941,85; IVA 21% 13.007,79; '10 - Impuesto interno a nivel ítem' 14.057,25; '09 - IVA RI' 1.858,26, ambos agrupados bajo 'IMPORTE TOTAL OTROS TRIBUTOS' 15.915,51. TOTAL 90.865,15. Aritmética verificada: 61.941,85 + 13.007,79 + 14.057,25 + 1.858,26 = 90.865,15. No hay línea de no gravado ni de exento. La fecha impresa (21/07/2026) es posterior a la actual, posible error de reloj/impresión del equipo; se transcribe tal cual figura. Pago: PayStore, Nro Pago 000000798274, otros medios de pago 90.865,15, vuelto 0,00. Caja 12, cajero Luis Smith, transacción 1498115, registro EPEPAA000025410. CUIT del emisor con dígito verificador válido. Receptor: CVC SOCIEDAD ANONIMA, CUIT 30-58221570-3."
+    "observaciones": "Tique Factura \"A\" (Cód. 081) emitido por PAN AMERICAN ENERGY, S.L., Sucursal Arg (Axion Pilar), CUIT 30-69554247-6 (dígito verificador válido), Ing. Brutos 30695542476, Ruta 8 Km 50, Pilar, Buenos Aires. Receptor: CVC SOCIEDAD ANONIMA, CUIT 30-58221570-3, Av. Coronel Díaz 2717, CABA. Punto de venta 05193, número 00003191. Ítem único: 35,7601 (00) x 1732,1498 - E15 QUANTIUM (nafta premium), de ahí los 35,7601 litros. Aritmética: SUBTOT. IMP. NETO GRAVADO 61.941,85 + IVA 21% 13.007,79 + IMPORTE TOTAL OTROS TRIBUTOS 15.915,51 = TOTAL 90.865,15 (cierra). El bloque \"IMPORTE TOTAL OTROS TRIBUTOS\" 15.915,51 se compone de \"10 - Impuesto interno a nivel item\" 14.057,25 (cargado en impuestos_internos) y \"09 - IVA RI\" 1.858,26 (cargado en otros_impuestos). No hay percepciones de IIBB, no gravado ni exento discriminados. Sin leyenda de moneda impresa; se asume ARS por ser comprobante argentino. No figura centro de costo. Pago: PayStore, Nro Pago 000000798274, transacción 1498115, caja 12, cajero Luis Smith."
   },
   "extraccion": {
+    "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "081",
@@ -80,13 +84,13 @@
     "otros_impuestos": 1858.26,
     "importe_total": 90865.15,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / expendio de combustible (bandera AXION)",
+    "rubro_emisor": "Estación de servicio / venta de combustibles (Axion Pilar)",
     "categoria_gasto_sugerida": "Combustible",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 35.7601,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique Factura A (Cód. 081) emitido por Axion Pilar (PAN AMERICAN ENERGY S.L. Sucursal Arg). Detalle: 35,7601 unidades x 1732,1498 - E15 QUANTIUM = 61.941,85 (alícuota 21%). Se transcribe SUBTOT. IMP. NETO GRAVADO 61.941,85; IVA 21% 13.007,79; '10 - Impuesto interno a nivel ítem' 14.057,25; '09 - IVA RI' 1.858,26, ambos agrupados bajo 'IMPORTE TOTAL OTROS TRIBUTOS' 15.915,51. TOTAL 90.865,15. Aritmética verificada: 61.941,85 + 13.007,79 + 14.057,25 + 1.858,26 = 90.865,15. No hay línea de no gravado ni de exento. La fecha impresa (21/07/2026) es posterior a la actual, posible error de reloj/impresión del equipo; se transcribe tal cual figura. Pago: PayStore, Nro Pago 000000798274, otros medios de pago 90.865,15, vuelto 0,00. Caja 12, cajero Luis Smith, transacción 1498115, registro EPEPAA000025410. CUIT del emisor con dígito verificador válido. Receptor: CVC SOCIEDAD ANONIMA, CUIT 30-58221570-3."
+    "observaciones": "Tique Factura \"A\" (Cód. 081) emitido por PAN AMERICAN ENERGY, S.L., Sucursal Arg (Axion Pilar), CUIT 30-69554247-6 (dígito verificador válido), Ing. Brutos 30695542476, Ruta 8 Km 50, Pilar, Buenos Aires. Receptor: CVC SOCIEDAD ANONIMA, CUIT 30-58221570-3, Av. Coronel Díaz 2717, CABA. Punto de venta 05193, número 00003191. Ítem único: 35,7601 (00) x 1732,1498 - E15 QUANTIUM (nafta premium), de ahí los 35,7601 litros. Aritmética: SUBTOT. IMP. NETO GRAVADO 61.941,85 + IVA 21% 13.007,79 + IMPORTE TOTAL OTROS TRIBUTOS 15.915,51 = TOTAL 90.865,15 (cierra). El bloque \"IMPORTE TOTAL OTROS TRIBUTOS\" 15.915,51 se compone de \"10 - Impuesto interno a nivel item\" 14.057,25 (cargado en impuestos_internos) y \"09 - IVA RI\" 1.858,26 (cargado en otros_impuestos). No hay percepciones de IIBB, no gravado ni exento discriminados. Sin leyenda de moneda impresa; se asume ARS por ser comprobante argentino. No figura centro de costo. Pago: PayStore, Nro Pago 000000798274, transacción 1498115, caja 12, cajero Luis Smith."
   },
   "aritmetica": {
     "calculable": true,

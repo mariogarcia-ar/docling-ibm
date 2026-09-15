@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/golden/66e6e0ea-e910-41f4-9037-13f0309812c1.jpg",
   "archivo_relativo": "golden/66e6e0ea-e910-41f4-9037-13f0309812c1.jpg",
-  "procesado_utc": "2026-09-15T12:01:57+00:00",
+  "procesado_utc": "2026-09-15T13:46:32+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:62f07862b9dd7d4c",
+  "prompt_hash": "sha256:49bf219ef6de34fc",
   "uso": {
-    "prompt_tokens": 3686,
-    "completion_tokens": 5541,
-    "total_tokens": 9227,
-    "prompt_cache_hit_tokens": 2560,
-    "prompt_cache_miss_tokens": 1126
+    "prompt_tokens": 4025,
+    "completion_tokens": 2491,
+    "total_tokens": 6516,
+    "prompt_cache_hit_tokens": 2816,
+    "prompt_cache_miss_tokens": 1209
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,8 +31,9 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.007002,
+  "costo_usd": 0.003369,
   "resultado": {
+    "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "081",
@@ -52,15 +53,16 @@
     "otros_impuestos": 0,
     "importe_total": 70299.04,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio",
+    "rubro_emisor": "Estación de servicio / combustible (venta de Nafta Súper)",
     "categoria_gasto_sugerida": "Combustible",
-    "cantidad_comensales_personas": 0,
+    "cantidad_comensales_personas": null,
     "cantidad_litros": 33.7187,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Ticket Factura A (Cód. 081). Emisor KALPA GROUP S.A., CUIT 30-71548265-3 (dígito verificador válido). Fecha 18/06/2026. N° 00059-00003856. Neto gravado 48552,68; IVA 21% 10196,06; Impuesto interno a nivel ítem 11251,28; IIBB ARBA 299,02; Total otros tributos 11550,30; Total 70299,04. La suma cierra. Cantidad de litros 33,7187. Rubro: estación de servicio. No hay datos cargados para comparar."
+    "observaciones": "Tique Factura 'A' (Cód. 081) emitido por KALPA GROUP S.A., CUIT 30-71548265-3 (DV 3 verificado: válido), Ruta 7 Km 261.5, Junín, Bs. As., IVA Responsable Inscripto, inicio de actividades 01/03/2017. Receptor: CVC SA (100134), CUIT 30-58221570-3, condición Contado. N° 00059-00003856, fecha 18/06/2026, hora 08:39:24 (se transcribe tal cual figura; la fecha impresa es posterior a la fecha de emisión habitual, se reporta como anomalía formal del comprobante). Comprobante asociado: Cód. 081 - Tique Factura A 00059-00003856. Detalle: 33,7187 l x 1439,9334 de Nafta Súper. Líneas de importes: SUBTOT. IMP. NETO GRAVADO 48.552,68; IVA ALÍCUOTA 21,00% 10.196,06; '10 - Impuesto interno a nivel ítem' 11.251,28; '07 - IIBB Bs.As. ARBA General' 299,02; IMPORTE TOTAL OTROS TRIBUTOS 11.550,30; TOTAL 70.299,04. Verificación aritmética: 48.552,68 + 10.196,06 + 11.550,30 = 70.299,04 → cierra. Dentro del detalle del ítem aparecen leyendas internas 'Impuestos I - 321,08' y 'Otros Impue - 12.600 (21)[81,18]' que no constituyen líneas de importe a nivel comprobante; no se transcriben como campos por no ser subtotales discriminados. Medio de pago: VISA ELEC. 783, Cant. Cuotas: 1, 783-00979. Sin discriminar exento ni no gravado. No se observa leyenda de moneda explícita; por emisor y domicilio argentinos se asume ARS."
   },
   "extraccion": {
+    "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "081",
@@ -80,13 +82,13 @@
     "otros_impuestos": 0,
     "importe_total": 70299.04,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio",
+    "rubro_emisor": "Estación de servicio / combustible (venta de Nafta Súper)",
     "categoria_gasto_sugerida": "Combustible",
-    "cantidad_comensales_personas": 0,
+    "cantidad_comensales_personas": null,
     "cantidad_litros": 33.7187,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Ticket Factura A (Cód. 081). Emisor KALPA GROUP S.A., CUIT 30-71548265-3 (dígito verificador válido). Fecha 18/06/2026. N° 00059-00003856. Neto gravado 48552,68; IVA 21% 10196,06; Impuesto interno a nivel ítem 11251,28; IIBB ARBA 299,02; Total otros tributos 11550,30; Total 70299,04. La suma cierra. Cantidad de litros 33,7187. Rubro: estación de servicio. No hay datos cargados para comparar."
+    "observaciones": "Tique Factura 'A' (Cód. 081) emitido por KALPA GROUP S.A., CUIT 30-71548265-3 (DV 3 verificado: válido), Ruta 7 Km 261.5, Junín, Bs. As., IVA Responsable Inscripto, inicio de actividades 01/03/2017. Receptor: CVC SA (100134), CUIT 30-58221570-3, condición Contado. N° 00059-00003856, fecha 18/06/2026, hora 08:39:24 (se transcribe tal cual figura; la fecha impresa es posterior a la fecha de emisión habitual, se reporta como anomalía formal del comprobante). Comprobante asociado: Cód. 081 - Tique Factura A 00059-00003856. Detalle: 33,7187 l x 1439,9334 de Nafta Súper. Líneas de importes: SUBTOT. IMP. NETO GRAVADO 48.552,68; IVA ALÍCUOTA 21,00% 10.196,06; '10 - Impuesto interno a nivel ítem' 11.251,28; '07 - IIBB Bs.As. ARBA General' 299,02; IMPORTE TOTAL OTROS TRIBUTOS 11.550,30; TOTAL 70.299,04. Verificación aritmética: 48.552,68 + 10.196,06 + 11.550,30 = 70.299,04 → cierra. Dentro del detalle del ítem aparecen leyendas internas 'Impuestos I - 321,08' y 'Otros Impue - 12.600 (21)[81,18]' que no constituyen líneas de importe a nivel comprobante; no se transcriben como campos por no ser subtotales discriminados. Medio de pago: VISA ELEC. 783, Cant. Cuotas: 1, 783-00979. Sin discriminar exento ni no gravado. No se observa leyenda de moneda explícita; por emisor y domicilio argentinos se asume ARS."
   },
   "aritmetica": {
     "calculable": true,

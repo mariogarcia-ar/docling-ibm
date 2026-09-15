@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/expected-extraction/757f0acc-59c9-4830-932e-a4db7b2376fb.jpg",
   "archivo_relativo": "expected-extraction/757f0acc-59c9-4830-932e-a4db7b2376fb.jpg",
-  "procesado_utc": "2026-09-15T12:00:39+00:00",
+  "procesado_utc": "2026-09-15T13:45:13+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:62f07862b9dd7d4c",
+  "prompt_hash": "sha256:49bf219ef6de34fc",
   "uso": {
-    "prompt_tokens": 3225,
-    "completion_tokens": 1107,
-    "total_tokens": 4332,
-    "prompt_cache_hit_tokens": 2560,
-    "prompt_cache_miss_tokens": 665
+    "prompt_tokens": 3564,
+    "completion_tokens": 1396,
+    "total_tokens": 4960,
+    "prompt_cache_hit_tokens": 2816,
+    "prompt_cache_miss_tokens": 748
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,8 +31,9 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.001543,
+  "costo_usd": 0.001916,
   "resultado": {
+    "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "01",
@@ -52,15 +53,16 @@
     "otros_impuestos": 0,
     "importe_total": 66550.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Cartelería / Publicidad (venta de carteles publicitarios)",
-    "categoria_gasto_sugerida": "Publicidad / Marketing",
+    "rubro_emisor": "Cartelería / señalización (fabricación o venta de carteles)",
+    "categoria_gasto_sugerida": "Publicidad / Cartelería",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A, Código 01, N° 0008-00031820. Emisor MOLAR SRL, CUIT 30-66561976-8, IVA Responsable Inscripto, domicilio Bto. de Miguel 280, (6000) Junín (BS AS), inicio de actividades 05/1997. Receptor: CVC SA, RUTA 7 KM 262, CUIT 30-58221570-3 (dígito verificador no controlado por estar fuera de alcance). Detalle: '5 CARTELES DE 40CMX40CM', P.Unit $55.000,00 x Cant 1 = $55.000,00. Líneas de importes: Subtotal $55.000,00; IVA 21% $11.550,00; IVA 10,5% $0,00; Total $66.550,00. La aritmética cierra: 55.000,00 + 11.550,00 = 66.550,00. Dígito verificador del CUIT del emisor validado (módulo 11: correcto). CAE 75388481916621, vencimiento CAE 27/09/2025. Comprobante Original. No figura centro de costo ni cantidad de personas/litros en el ticket."
+    "observaciones": "Factura A, Código N° 01, Original, con CAE 75388481916621 (vto. 27/09/2025). Emisor MOLAR SRL, CUIT 30-66561976-8 (dígito verificador válido), Ingresos Brutos 30-66561976-8, domicilio Bto. de Miguel 280, CP (6000) Junín (Bs As), inicio de actividades 05/1997, IVA Responsable Inscripto. Receptor: CVC SA, RUTA 7 KM 262, CUIT 30-58221570-3, Responsable Inscripto. Detalle: '5 CARTELES DE 40CMX40CM', P.Unit $55.000,00, Cant. 1, P.Total $55.000,00. Línea de importes: 'Bruto' $55.000,00 (neto gravado, transcripto como subtotal), 'Iva 21' $11.550,00, 'Iva 10,5' $0,00, Total $66.550,00. La aritmética cierra: 55.000,00 + 11.550,00 = 66.550,00. No se imprimen percepciones, impuestos internos ni otros tributos. No hay leyenda de moneda explícita, pero el símbolo '$' y el tipo de comprobante AFIP indican ARS. El rubro del emisor se infiere del detalle (carteles), aunque la razón social no permite confirmar la actividad; no hay datos de comensales, litros ni centro de costo en el comprobante."
   },
   "extraccion": {
+    "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "01",
@@ -80,13 +82,13 @@
     "otros_impuestos": 0,
     "importe_total": 66550.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Cartelería / Publicidad (venta de carteles publicitarios)",
-    "categoria_gasto_sugerida": "Publicidad / Marketing",
+    "rubro_emisor": "Cartelería / señalización (fabricación o venta de carteles)",
+    "categoria_gasto_sugerida": "Publicidad / Cartelería",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A, Código 01, N° 0008-00031820. Emisor MOLAR SRL, CUIT 30-66561976-8, IVA Responsable Inscripto, domicilio Bto. de Miguel 280, (6000) Junín (BS AS), inicio de actividades 05/1997. Receptor: CVC SA, RUTA 7 KM 262, CUIT 30-58221570-3 (dígito verificador no controlado por estar fuera de alcance). Detalle: '5 CARTELES DE 40CMX40CM', P.Unit $55.000,00 x Cant 1 = $55.000,00. Líneas de importes: Subtotal $55.000,00; IVA 21% $11.550,00; IVA 10,5% $0,00; Total $66.550,00. La aritmética cierra: 55.000,00 + 11.550,00 = 66.550,00. Dígito verificador del CUIT del emisor validado (módulo 11: correcto). CAE 75388481916621, vencimiento CAE 27/09/2025. Comprobante Original. No figura centro de costo ni cantidad de personas/litros en el ticket."
+    "observaciones": "Factura A, Código N° 01, Original, con CAE 75388481916621 (vto. 27/09/2025). Emisor MOLAR SRL, CUIT 30-66561976-8 (dígito verificador válido), Ingresos Brutos 30-66561976-8, domicilio Bto. de Miguel 280, CP (6000) Junín (Bs As), inicio de actividades 05/1997, IVA Responsable Inscripto. Receptor: CVC SA, RUTA 7 KM 262, CUIT 30-58221570-3, Responsable Inscripto. Detalle: '5 CARTELES DE 40CMX40CM', P.Unit $55.000,00, Cant. 1, P.Total $55.000,00. Línea de importes: 'Bruto' $55.000,00 (neto gravado, transcripto como subtotal), 'Iva 21' $11.550,00, 'Iva 10,5' $0,00, Total $66.550,00. La aritmética cierra: 55.000,00 + 11.550,00 = 66.550,00. No se imprimen percepciones, impuestos internos ni otros tributos. No hay leyenda de moneda explícita, pero el símbolo '$' y el tipo de comprobante AFIP indican ARS. El rubro del emisor se infiere del detalle (carteles), aunque la razón social no permite confirmar la actividad; no hay datos de comensales, litros ni centro de costo en el comprobante."
   },
   "aritmetica": {
     "calculable": true,

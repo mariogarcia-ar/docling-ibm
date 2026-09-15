@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/golden/a6d79e19-8ddf-45b2-8dfe-4a056c7ca5c3.png",
   "archivo_relativo": "golden/a6d79e19-8ddf-45b2-8dfe-4a056c7ca5c3.png",
-  "procesado_utc": "2026-09-15T12:01:58+00:00",
+  "procesado_utc": "2026-09-15T13:46:40+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,25 +16,24 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:62f07862b9dd7d4c",
+  "prompt_hash": "sha256:49bf219ef6de34fc",
   "uso": {
-    "prompt_tokens": 6720,
-    "completion_tokens": 1127,
-    "total_tokens": 7847,
-    "prompt_cache_hit_tokens": 6144,
-    "prompt_cache_miss_tokens": 576
+    "prompt_tokens": 3503,
+    "completion_tokens": 434,
+    "total_tokens": 3937,
+    "prompt_cache_hit_tokens": 3328,
+    "prompt_cache_miss_tokens": 175
   },
   "esquema_validado": true,
-  "reintentos_esquema": 1,
-  "avisos_esquema": [],
   "precios_usd_1m": {
     "entrada": 0.3,
     "salida": 1.2,
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.001562,
+  "costo_usd": 0.000593,
   "resultado": {
+    "es_comprobante": "no_comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": null,
     "codigo_afip": null,
@@ -60,9 +59,10 @@
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "La imagen no contiene un comprobante fiscal: es una hoja en blanco con la leyenda NO EXISTE COMPROBANTE PARA LA RENDICION DEL GASTO. SE CARGA A NOMBRE DE CVC. No hay emisor, CUIT, fecha, numeracion, moneda ni importes que transcribir, por lo que todos los campos del comprobante quedan en null y no hay aritmetica que verificar. Se trata de un gasto sin respaldo documental, imputado a CVC."
+    "observaciones": "El documento no es un comprobante fiscal ni comercial: es una hoja con la leyenda 'NO EXISTE COMPROBANTE PARA LA RENDICION DEL GASTO. SE CARGA A NOMBRE DE CVC.' No hay emisor, CUIT, fecha, número ni importes que transcribir. No se fuerza ningún tipo A/B/C."
   },
   "extraccion": {
+    "es_comprobante": "no_comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": null,
     "codigo_afip": null,
@@ -88,7 +88,7 @@
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "La imagen no contiene un comprobante fiscal: es una hoja en blanco con la leyenda NO EXISTE COMPROBANTE PARA LA RENDICION DEL GASTO. SE CARGA A NOMBRE DE CVC. No hay emisor, CUIT, fecha, numeracion, moneda ni importes que transcribir, por lo que todos los campos del comprobante quedan en null y no hay aritmetica que verificar. Se trata de un gasto sin respaldo documental, imputado a CVC."
+    "observaciones": "El documento no es un comprobante fiscal ni comercial: es una hoja con la leyenda 'NO EXISTE COMPROBANTE PARA LA RENDICION DEL GASTO. SE CARGA A NOMBRE DE CVC.' No hay emisor, CUIT, fecha, número ni importes que transcribir. No se fuerza ningún tipo A/B/C."
   },
   "aritmetica": {
     "calculable": false,

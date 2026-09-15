@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/negativos/neg_2026-08_memo_interno.png",
   "archivo_relativo": "negativos/neg_2026-08_memo_interno.png",
-  "procesado_utc": "2026-09-15T12:03:33+00:00",
+  "procesado_utc": "2026-09-15T13:47:51+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:62f07862b9dd7d4c",
+  "prompt_hash": "sha256:49bf219ef6de34fc",
   "uso": {
-    "prompt_tokens": 2928,
-    "completion_tokens": 753,
-    "total_tokens": 3681,
-    "prompt_cache_hit_tokens": 2560,
-    "prompt_cache_miss_tokens": 368
+    "prompt_tokens": 3267,
+    "completion_tokens": 369,
+    "total_tokens": 3636,
+    "prompt_cache_hit_tokens": 2816,
+    "prompt_cache_miss_tokens": 451
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,8 +31,9 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.001029,
+  "costo_usd": 0.000595,
   "resultado": {
+    "es_comprobante": "no_comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": null,
     "codigo_afip": null,
@@ -58,9 +59,10 @@
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "La imagen NO es un comprobante fiscal: es un MEMORANDUM INTERNO con el asunto 'novedades administrativas' y la leyenda explicita 'Sin datos fiscales del emisor - no es comprobante'. No hay encabezado de emisor, CUIT, punto de venta, numero de factura, fecha, moneda ni ninguna linea de importes (subtotal, neto gravado, no gravado, exento, IVA, percepciones, total). Por lo tanto no hay datos fiscales que transcribir y todos los campos del comprobante quedan en null/vacio. No se puede determinar tipo de comprobante, emisor, rubro ni categoria de gasto sugerida. Se recomienda solicitar al empleado el comprobante fiscal valido (factura A/B/C, ticket o comprobante 090/099 segun corresponda) antes de continuar con la aprobacion."
+    "observaciones": "El documento es un MEMORANDUM INTERNO con asunto 'novedades administrativas' y la leyenda explícita 'Sin datos fiscales del emisor - no es comprobante'. No es un comprobante fiscal ni comercial: no hay emisor, CUIT, fecha, número ni importes que transcribir, por lo que todos los campos fiscales quedan en null."
   },
   "extraccion": {
+    "es_comprobante": "no_comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": null,
     "codigo_afip": null,
@@ -86,7 +88,7 @@
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "La imagen NO es un comprobante fiscal: es un MEMORANDUM INTERNO con el asunto 'novedades administrativas' y la leyenda explicita 'Sin datos fiscales del emisor - no es comprobante'. No hay encabezado de emisor, CUIT, punto de venta, numero de factura, fecha, moneda ni ninguna linea de importes (subtotal, neto gravado, no gravado, exento, IVA, percepciones, total). Por lo tanto no hay datos fiscales que transcribir y todos los campos del comprobante quedan en null/vacio. No se puede determinar tipo de comprobante, emisor, rubro ni categoria de gasto sugerida. Se recomienda solicitar al empleado el comprobante fiscal valido (factura A/B/C, ticket o comprobante 090/099 segun corresponda) antes de continuar con la aprobacion."
+    "observaciones": "El documento es un MEMORANDUM INTERNO con asunto 'novedades administrativas' y la leyenda explícita 'Sin datos fiscales del emisor - no es comprobante'. No es un comprobante fiscal ni comercial: no hay emisor, CUIT, fecha, número ni importes que transcribir, por lo que todos los campos fiscales quedan en null."
   },
   "aritmetica": {
     "calculable": false,

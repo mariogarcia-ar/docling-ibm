@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/grandes/1f28e080-d797-4453-96fb-f7ea27b6621d.jpg",
   "archivo_relativo": "grandes/1f28e080-d797-4453-96fb-f7ea27b6621d.jpg",
-  "procesado_utc": "2026-09-15T12:02:14+00:00",
+  "procesado_utc": "2026-09-15T13:46:43+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:62f07862b9dd7d4c",
+  "prompt_hash": "sha256:49bf219ef6de34fc",
   "uso": {
-    "prompt_tokens": 3686,
-    "completion_tokens": 4888,
-    "total_tokens": 8574,
-    "prompt_cache_hit_tokens": 2560,
-    "prompt_cache_miss_tokens": 1126
+    "prompt_tokens": 4025,
+    "completion_tokens": 2537,
+    "total_tokens": 6562,
+    "prompt_cache_hit_tokens": 2816,
+    "prompt_cache_miss_tokens": 1209
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,8 +31,9 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.006219,
+  "costo_usd": 0.003424,
   "resultado": {
+    "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "001",
@@ -52,15 +53,16 @@
     "otros_impuestos": 0,
     "importe_total": 55117.59,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / venta de combustible (Nafta Super)",
+    "rubro_emisor": "Estación de servicio / venta de combustibles",
     "categoria_gasto_sugerida": "Combustible",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 36.7349,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A Original (COD. 001) de estación de servicio. Emisor Operadora de Estaciones de Servicios S.A., CUIT 30-67877449-5 (dígito verificador válido). Receptor CUC SOCIEDAD ANONIMA, CUIT 30582215703. NRO.COMP 07246-00053120, fecha 10/09/2025 09:50:05, terminal 06. Detalle: Nafta Super XXI (21%) 36,7349 L x 1004,7793 = 36910,47 (1 ITC: 262,1580). El neto gravado (36910,47) coincide con 'SUBTOTAL 21%'. IVA 21% = 7751,20 discriminado. 'CONCEPTOS NO GRAVADOS' = 10220,27, que coincide con el desglose informativo 'OTROS IMPUESTOS NACIONALES' (Imp. Diox. Carb 589,93 + Imp. Comb. Liq 9630,35 = 10220,28, diferencia de 0,01 por redondeo); se registra una sola vez dentro de no_gravado para no duplicar en la aritmética. Percepciones IIBB Bs As 0,5% Part. = 235,65. Verificación: 36910,47 + 10220,27 + 7751,20 + 235,65 = 55117,59 = TOTAL. Pago con Visa 55117,59. CAE 75375584534237, vto. 20250920. Nota al pie: 'Venta combustible por cuenta y orden YPF'."
+    "observaciones": "Factura A Original (COD. 001) emitida por Operadora de Estaciones de Servicios S.A. (CUIT 30-67877449-5, dígito verificador válido), Ruta Nacional 7 KM 246 (Descendente), Junín, PBA. Adquirente: CUC Sociedad Anónima, CUIT 30582215703. Fecha 10/09/2025 09:50:05, Nro. comp. 07246-00053120, Terminal 06. Detalle: Nafta Super XXI, 36,7349 x 1004,7793 = 36910,47. Aritmética: neto gravado 36910,47 + IVA 21% 7751,20 + conceptos no gravados 10220,27 + percepción IIBB Bs As 0,5% 235,65 = 55117,59 = TOTAL impreso; cierra correctamente. Aclaración importante: la sección 'OTROS IMPUESTOS NACIONALES' (Imp. Dicx. Carb 589,93 + Imp. Comb. Liq 9630,35 = 10220,28) es el desglose de los 'CONCEPTOS NO GRAVADOS' (10220,27), por lo que NO se cargó como impuestos_internos para evitar doble cómputo; ambos rótulos refieren al mismo monto. No hay línea de exento. Pago: Visa Vto1 55117,59. C.A.E. 75375584534237, Vto. CAE 20250920. Sin línea de centro de costo."
   },
   "extraccion": {
+    "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "001",
@@ -80,13 +82,13 @@
     "otros_impuestos": 0,
     "importe_total": 55117.59,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / venta de combustible (Nafta Super)",
+    "rubro_emisor": "Estación de servicio / venta de combustibles",
     "categoria_gasto_sugerida": "Combustible",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 36.7349,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A Original (COD. 001) de estación de servicio. Emisor Operadora de Estaciones de Servicios S.A., CUIT 30-67877449-5 (dígito verificador válido). Receptor CUC SOCIEDAD ANONIMA, CUIT 30582215703. NRO.COMP 07246-00053120, fecha 10/09/2025 09:50:05, terminal 06. Detalle: Nafta Super XXI (21%) 36,7349 L x 1004,7793 = 36910,47 (1 ITC: 262,1580). El neto gravado (36910,47) coincide con 'SUBTOTAL 21%'. IVA 21% = 7751,20 discriminado. 'CONCEPTOS NO GRAVADOS' = 10220,27, que coincide con el desglose informativo 'OTROS IMPUESTOS NACIONALES' (Imp. Diox. Carb 589,93 + Imp. Comb. Liq 9630,35 = 10220,28, diferencia de 0,01 por redondeo); se registra una sola vez dentro de no_gravado para no duplicar en la aritmética. Percepciones IIBB Bs As 0,5% Part. = 235,65. Verificación: 36910,47 + 10220,27 + 7751,20 + 235,65 = 55117,59 = TOTAL. Pago con Visa 55117,59. CAE 75375584534237, vto. 20250920. Nota al pie: 'Venta combustible por cuenta y orden YPF'."
+    "observaciones": "Factura A Original (COD. 001) emitida por Operadora de Estaciones de Servicios S.A. (CUIT 30-67877449-5, dígito verificador válido), Ruta Nacional 7 KM 246 (Descendente), Junín, PBA. Adquirente: CUC Sociedad Anónima, CUIT 30582215703. Fecha 10/09/2025 09:50:05, Nro. comp. 07246-00053120, Terminal 06. Detalle: Nafta Super XXI, 36,7349 x 1004,7793 = 36910,47. Aritmética: neto gravado 36910,47 + IVA 21% 7751,20 + conceptos no gravados 10220,27 + percepción IIBB Bs As 0,5% 235,65 = 55117,59 = TOTAL impreso; cierra correctamente. Aclaración importante: la sección 'OTROS IMPUESTOS NACIONALES' (Imp. Dicx. Carb 589,93 + Imp. Comb. Liq 9630,35 = 10220,28) es el desglose de los 'CONCEPTOS NO GRAVADOS' (10220,27), por lo que NO se cargó como impuestos_internos para evitar doble cómputo; ambos rótulos refieren al mismo monto. No hay línea de exento. Pago: Visa Vto1 55117,59. C.A.E. 75375584534237, Vto. CAE 20250920. Sin línea de centro de costo."
   },
   "aritmetica": {
     "calculable": true,

@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/otros/87bae382-ff1e-46b0-9b55-117d34d71117.jpg",
   "archivo_relativo": "otros/87bae382-ff1e-46b0-9b55-117d34d71117.jpg",
-  "procesado_utc": "2026-09-15T12:04:16+00:00",
+  "procesado_utc": "2026-09-15T13:48:28+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:62f07862b9dd7d4c",
+  "prompt_hash": "sha256:49bf219ef6de34fc",
   "uso": {
-    "prompt_tokens": 3686,
-    "completion_tokens": 1751,
-    "total_tokens": 5437,
-    "prompt_cache_hit_tokens": 2560,
-    "prompt_cache_miss_tokens": 1126
+    "prompt_tokens": 4025,
+    "completion_tokens": 2090,
+    "total_tokens": 6115,
+    "prompt_cache_hit_tokens": 2816,
+    "prompt_cache_miss_tokens": 1209
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,12 +31,13 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.002454,
+  "costo_usd": 0.002888,
   "resultado": {
+    "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "001",
-    "razon_social_emisor": "Fleximax SRL (Accesorios Hidráulicos)",
+    "razon_social_emisor": "Fleximax SRL",
     "cuit_emisor": "33-68947275-9",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "16/04/2026",
@@ -52,19 +53,20 @@
     "otros_impuestos": 0,
     "importe_total": 6259.6,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Accesorios y repuestos hidráulicos (industria/ferretería)",
-    "categoria_gasto_sugerida": "Insumos / Ferretería (no gastronómico ni combustible)",
+    "rubro_emisor": "Accesorios hidráulicos / ferretería industrial",
+    "categoria_gasto_sugerida": "Insumos / Ferretería",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A ORIGINAL, COD. 01, punto de venta 0004, nro 00034219. Emisor Fleximax SRL, CUIT 33-68947275-9 (dígito verificador válido), IVA Responsable Inscripto, Ingresos Brutos 032-027205-5, inicio de actividades 01/04/2009. Cliente: CVC SOCIEDAD ANONIMA, CUIT 30-59221570-3, condición de venta contado. Ítems: 321M1204 ADAP MF VIR M12 T06 - MF CON 1/4 (1,00 x 2.037,000, 30% dto, alíc. 21%, total 1.425,90) y RHD814 CONECTOR RECTO TUBO 8mm x ROSCA HEMBRA 1/4 (1,00 x 5.353,310, 30% dto, alíc. 21%, total 3.747,32). El pie muestra SUBTOTAL 5.173,22 (= SUBCONJUNTO/RENGLONES), IVA 21% 1.086,38, IVA 10,5% 0,00 y TOTAL 6.259,60; la aritmética cierra (5.173,22 + 1.086,38 = 6.259,60). El comprobante discrimina IVA, por lo que el subtotal cargado corresponde al neto gravado. No hay no gravado, exento, percepciones ni otros tributos. CAE 86161852383187, vencimiento CAE 26/04/2026. No se registran campos ilegibles."
+    "observaciones": "Factura A, Cód. 001, ORIGINAL, punto de venta 0004 - N° 00034219, fecha 16/04/2026. Emisor Fleximax SRL, CUIT 33-68947275-9 (dígito verificador 9 válido por cálculo). Cliente: CVC SOCIEDAD ANONIMA, CUIT 30-59221570-3, Responsable Inscripto. Dos ítems: 321M1204 ADAP MF VIR M12 T06-MF CON 1/4 (1,00 x 2.037,000 con 30% dto, alíc. 21%) = 1.425,90; y RHD814 CONECTOR RECTO TUBO 8mm x ROSCA HEMBRA 1/4 (1,00 x 5.353,310 con 30% dto, alíc. 21%) = 3.747,32. Neto gravado 5.173,22; IVA 21% 1.086,38; IVA 10,5% 0,00; Total 6.259,60. La aritmética cierra (5.173,22 + 1.086,38 = 6.259,60) y la suma de ítems coincide con el neto. Moneda en pesos (ARS). CAE: 6616185238187 (impreso junto al código QR), Vto CAE 26/04/2026, parcialmente legible pero consistente. Rubro del emisor: accesorios hidráulicos (no encaja en categorías típicas de restaurante/hospedaje/combustible). Sin datos de comensales ni litros (no aplica)."
   },
   "extraccion": {
+    "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "001",
-    "razon_social_emisor": "Fleximax SRL (Accesorios Hidráulicos)",
+    "razon_social_emisor": "Fleximax SRL",
     "cuit_emisor": "33-68947275-9",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "16/04/2026",
@@ -80,13 +82,13 @@
     "otros_impuestos": 0,
     "importe_total": 6259.6,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Accesorios y repuestos hidráulicos (industria/ferretería)",
-    "categoria_gasto_sugerida": "Insumos / Ferretería (no gastronómico ni combustible)",
+    "rubro_emisor": "Accesorios hidráulicos / ferretería industrial",
+    "categoria_gasto_sugerida": "Insumos / Ferretería",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A ORIGINAL, COD. 01, punto de venta 0004, nro 00034219. Emisor Fleximax SRL, CUIT 33-68947275-9 (dígito verificador válido), IVA Responsable Inscripto, Ingresos Brutos 032-027205-5, inicio de actividades 01/04/2009. Cliente: CVC SOCIEDAD ANONIMA, CUIT 30-59221570-3, condición de venta contado. Ítems: 321M1204 ADAP MF VIR M12 T06 - MF CON 1/4 (1,00 x 2.037,000, 30% dto, alíc. 21%, total 1.425,90) y RHD814 CONECTOR RECTO TUBO 8mm x ROSCA HEMBRA 1/4 (1,00 x 5.353,310, 30% dto, alíc. 21%, total 3.747,32). El pie muestra SUBTOTAL 5.173,22 (= SUBCONJUNTO/RENGLONES), IVA 21% 1.086,38, IVA 10,5% 0,00 y TOTAL 6.259,60; la aritmética cierra (5.173,22 + 1.086,38 = 6.259,60). El comprobante discrimina IVA, por lo que el subtotal cargado corresponde al neto gravado. No hay no gravado, exento, percepciones ni otros tributos. CAE 86161852383187, vencimiento CAE 26/04/2026. No se registran campos ilegibles."
+    "observaciones": "Factura A, Cód. 001, ORIGINAL, punto de venta 0004 - N° 00034219, fecha 16/04/2026. Emisor Fleximax SRL, CUIT 33-68947275-9 (dígito verificador 9 válido por cálculo). Cliente: CVC SOCIEDAD ANONIMA, CUIT 30-59221570-3, Responsable Inscripto. Dos ítems: 321M1204 ADAP MF VIR M12 T06-MF CON 1/4 (1,00 x 2.037,000 con 30% dto, alíc. 21%) = 1.425,90; y RHD814 CONECTOR RECTO TUBO 8mm x ROSCA HEMBRA 1/4 (1,00 x 5.353,310 con 30% dto, alíc. 21%) = 3.747,32. Neto gravado 5.173,22; IVA 21% 1.086,38; IVA 10,5% 0,00; Total 6.259,60. La aritmética cierra (5.173,22 + 1.086,38 = 6.259,60) y la suma de ítems coincide con el neto. Moneda en pesos (ARS). CAE: 6616185238187 (impreso junto al código QR), Vto CAE 26/04/2026, parcialmente legible pero consistente. Rubro del emisor: accesorios hidráulicos (no encaja en categorías típicas de restaurante/hospedaje/combustible). Sin datos de comensales ni litros (no aplica)."
   },
   "aritmetica": {
     "calculable": true,

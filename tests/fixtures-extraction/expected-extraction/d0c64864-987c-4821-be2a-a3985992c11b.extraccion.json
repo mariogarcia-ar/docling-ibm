@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/expected-extraction/d0c64864-987c-4821-be2a-a3985992c11b.jpg",
   "archivo_relativo": "expected-extraction/d0c64864-987c-4821-be2a-a3985992c11b.jpg",
-  "procesado_utc": "2026-09-15T12:01:26+00:00",
+  "procesado_utc": "2026-09-15T13:45:48+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:62f07862b9dd7d4c",
+  "prompt_hash": "sha256:49bf219ef6de34fc",
   "uso": {
-    "prompt_tokens": 3025,
-    "completion_tokens": 3082,
-    "total_tokens": 6107,
-    "prompt_cache_hit_tokens": 2560,
-    "prompt_cache_miss_tokens": 465
+    "prompt_tokens": 3364,
+    "completion_tokens": 2650,
+    "total_tokens": 6014,
+    "prompt_cache_hit_tokens": 2816,
+    "prompt_cache_miss_tokens": 548
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,12 +31,13 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.003853,
+  "costo_usd": 0.003361,
   "resultado": {
+    "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "081",
-    "razon_social_emisor": "YPF DEL VASCO - ARAMENDI JUAN RAMON",
+    "razon_social_emisor": "YPF DEL VASCO",
     "cuit_emisor": "20-12175732-0",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "19/04/2026",
@@ -52,19 +53,20 @@
     "otros_impuestos": 0,
     "importe_total": 125023.99,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / expendio de combustible (YPF)",
+    "rubro_emisor": "Estación de servicio / venta de combustibles (YPF)",
     "categoria_gasto_sugerida": "Combustible",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 60.515,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique de controlador fiscal de estación de servicio YPF (emisor: ARAMENDI JUAN RAMON, CUIT 20-12175732-0, IVA Responsable Inscripto). Factura A, Cod. 081, N° 00011-00040705, fecha 19/04/2026 16:21:43. Detalle: 60,5150 u x 1440,7420 NAFTA SUPER = 87.186,50 (Subtot. Imp. Neto Gravado). Alícuota 21,00% = 18.309,17. Impuesto interno a nivel ítem = 19.528,32, que coincide con el renglón 'IMPORTE TOTAL OTROS TRIBUTOS' (19.528,32), por lo que no se duplica. Verificación aritmética: 87.186,50 + 18.309,17 + 19.528,32 = 125.023,99 = TOTAL impreso (cierra). Receptor: 1274, CVC S.A., CUIT 30-58221570-3, IVA Responsable Inscripto. Pago: Efectivo 125.023,99, vuelto 0,00. Dígito verificador del CUIT del emisor validado correctamente. No se observan campos ilegibles."
+    "observaciones": "Ticket impreso por controlador fiscal YPF DEL VASCO (CUIT 20-12175732-0, dígito verificador válido; Ing. Brutos 20-12175732-0; dom. San Eduardo 21 - O'Brien, CP 6646, Buenos Aires; inicio de actividades 01/02/1990; IVA Responsable Inscripto). 'TIQUE FACTURA A (Cod.081)' N° 00011-00040705, fecha 19/04/2026, hora 16:21:43 (la fecha impresa es posterior a la fecha de emisión habitual: verificar con el empleado). Cliente: 1274, CVC S. A., CUIT 30-58221570-3, contado. Detalle: 60,5150 u x 1440,7420 = NAFTA SUPER (21)[81,70] por 87.186,50. Importes: SUBTOT. IMP. NETO GRAVADO 87.186,50 + ALICUOTA 21,00% 18.309,17 + '10 - Impuesto interno a nivel item' 19.528,32 (= IMPORTE TOTAL OTROS TRIBUTOS 19.528,32) = TOTAL 125.023,99; la aritmética cierra exactamente. No hay línea de exento ni de no gravado ni percepciones de IIBB. Pago: efectivo 125.023,99, su vuelto 0,00. Vencimiento: a los 10-20-30 días; VIA DE COMB POR CTA Y ORDEN DE YPF SA. La moneda no está rotulada con símbolo ($/USD) en forma explícita: se asume ARS por tratarse de comprobante fiscal argentino con IVA en pesos. No se imprime centro de costo."
   },
   "extraccion": {
+    "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "081",
-    "razon_social_emisor": "YPF DEL VASCO - ARAMENDI JUAN RAMON",
+    "razon_social_emisor": "YPF DEL VASCO",
     "cuit_emisor": "20-12175732-0",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "19/04/2026",
@@ -80,13 +82,13 @@
     "otros_impuestos": 0,
     "importe_total": 125023.99,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / expendio de combustible (YPF)",
+    "rubro_emisor": "Estación de servicio / venta de combustibles (YPF)",
     "categoria_gasto_sugerida": "Combustible",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 60.515,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique de controlador fiscal de estación de servicio YPF (emisor: ARAMENDI JUAN RAMON, CUIT 20-12175732-0, IVA Responsable Inscripto). Factura A, Cod. 081, N° 00011-00040705, fecha 19/04/2026 16:21:43. Detalle: 60,5150 u x 1440,7420 NAFTA SUPER = 87.186,50 (Subtot. Imp. Neto Gravado). Alícuota 21,00% = 18.309,17. Impuesto interno a nivel ítem = 19.528,32, que coincide con el renglón 'IMPORTE TOTAL OTROS TRIBUTOS' (19.528,32), por lo que no se duplica. Verificación aritmética: 87.186,50 + 18.309,17 + 19.528,32 = 125.023,99 = TOTAL impreso (cierra). Receptor: 1274, CVC S.A., CUIT 30-58221570-3, IVA Responsable Inscripto. Pago: Efectivo 125.023,99, vuelto 0,00. Dígito verificador del CUIT del emisor validado correctamente. No se observan campos ilegibles."
+    "observaciones": "Ticket impreso por controlador fiscal YPF DEL VASCO (CUIT 20-12175732-0, dígito verificador válido; Ing. Brutos 20-12175732-0; dom. San Eduardo 21 - O'Brien, CP 6646, Buenos Aires; inicio de actividades 01/02/1990; IVA Responsable Inscripto). 'TIQUE FACTURA A (Cod.081)' N° 00011-00040705, fecha 19/04/2026, hora 16:21:43 (la fecha impresa es posterior a la fecha de emisión habitual: verificar con el empleado). Cliente: 1274, CVC S. A., CUIT 30-58221570-3, contado. Detalle: 60,5150 u x 1440,7420 = NAFTA SUPER (21)[81,70] por 87.186,50. Importes: SUBTOT. IMP. NETO GRAVADO 87.186,50 + ALICUOTA 21,00% 18.309,17 + '10 - Impuesto interno a nivel item' 19.528,32 (= IMPORTE TOTAL OTROS TRIBUTOS 19.528,32) = TOTAL 125.023,99; la aritmética cierra exactamente. No hay línea de exento ni de no gravado ni percepciones de IIBB. Pago: efectivo 125.023,99, su vuelto 0,00. Vencimiento: a los 10-20-30 días; VIA DE COMB POR CTA Y ORDEN DE YPF SA. La moneda no está rotulada con símbolo ($/USD) en forma explícita: se asume ARS por tratarse de comprobante fiscal argentino con IVA en pesos. No se imprime centro de costo."
   },
   "aritmetica": {
     "calculable": true,

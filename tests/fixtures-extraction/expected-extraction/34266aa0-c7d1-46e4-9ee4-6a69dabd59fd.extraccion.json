@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/expected-extraction/34266aa0-c7d1-46e4-9ee4-6a69dabd59fd.jpg",
   "archivo_relativo": "expected-extraction/34266aa0-c7d1-46e4-9ee4-6a69dabd59fd.jpg",
-  "procesado_utc": "2026-09-15T11:59:26+00:00",
+  "procesado_utc": "2026-09-15T13:44:34+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:62f07862b9dd7d4c",
+  "prompt_hash": "sha256:49bf219ef6de34fc",
   "uso": {
-    "prompt_tokens": 3225,
-    "completion_tokens": 4741,
-    "total_tokens": 7966,
-    "prompt_cache_hit_tokens": 2560,
-    "prompt_cache_miss_tokens": 665
+    "prompt_tokens": 3564,
+    "completion_tokens": 8393,
+    "total_tokens": 11957,
+    "prompt_cache_hit_tokens": 2816,
+    "prompt_cache_miss_tokens": 748
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,8 +31,9 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.005904,
+  "costo_usd": 0.010313,
   "resultado": {
+    "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "B",
     "codigo_afip": "083",
@@ -52,15 +53,16 @@
     "otros_impuestos": 0,
     "importe_total": 12300.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Gastronomía / cafetería-bar (ítems: Latte 415 cc + 2 facturas y galletitas surtidas)",
+    "rubro_emisor": "Gastronómico (cafetería/bar - desayuno y snacks)",
     "categoria_gasto_sugerida": "Restaurante",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique (Cód. 083) de HERRERO SRL, IVA Responsable Inscripto, emitido 'A CONSUMIDOR FINAL': se transcribe como tipo 'B' por no discriminar IVA (codigo AFIP 083). Punto de venta 00026, número 00038429, fecha 23/01/2026 08:34:59, hora no incluida en el campo de fecha. CUIT 30-51808998-2: 11 dígitos y dígito verificador válido. Detalle: 1,0000 x 7700,0000 = 7700,00 (Latte 415 cc + 2 facturas) y 1,0000 x 4600,0000 = 4600,00 (Gall Surtido Bagley); 'Subtotal' impreso 12.300,00, que coincide con el TOTAL 12.300,00 (no hay apertura de neto gravado, no gravado ni exento). No discrimina impuestos: los 2.134,71 de 'IVA Contenido' y 0,00 de 'Otros Impuestos Nac. Indirectos' figuran solo en el bloque 'Transparencia Fiscal al Consumidor Ley 27743' (informativo, incluido en el total), por lo que se cargan IVA y demás impuestos en 0. La aritmética cierra (12.300,00 + 0 + 0 + 0 = 12.300,00). Medios de pago: tarjeta de crédito (57KKJHZ0MJ), 'Suma de sus pagos' 12.300,00 y 'Su Vuelto' 0,00; el renglón 'Otros medios de Pago' no se lee con total claridad. Cantidad de comensales y litros no figuran en el comprobante (no verificables). No se observa centro de costo. Pie: 'INCLUYE TASA VIAL', REGISTRO EPEPAA0000051486, V 1.03 Neptuno, vendedor HERNANDORENA JENIFER, Turno 30. Rubro inferido de los ítems (cafetería/bar), sin plena certeza."
+    "observaciones": "Tique de controlador fiscal (TIQUE Cód. 083), equivalente a un comprobante clase B: emisor Responsable Inscripto a CONSUMIDOR FINAL, sin discriminación de IVA. Encabezado: HERRERO SRL, CUIT 30-51808998-2 (dígito verificador válido), Ing. Brutos 021-093598-9, Av. Eva Perón 7898, Rosario, Santa Fe, CP 2000, Tel. 341-4515008, inicio de actividades 11/11/1966. P.V. N° 00026 - Nro. T. 00038429, fecha 23/01/2026 08:34:59. Detalle: 1,0000 x 7700,0000 'Latte 415 cc + 2 fact' = 7.700,00 y 1,0000 x 4600,0000 'Gall Surtido Bagley' = 4.600,00; Subtotal 12.300,00 y TOTAL 12.300,00. Pagos: Tarjeta de crédito 12.300,00; Otros medios de pago 0,00; Suma de sus pagos 12.300,00; Su Vuelto 0,00. Transparencia Fiscal al Consumidor Ley 27743: 'IVA Contenido 2.134,71' (21%, incluido en el precio, no adicionado: por eso NO se carga como IVA discriminado y subtotal = total, sin desglose de impuestos) y 'Otros Impuestos Nac. Indirectos 0,00'. No hay percepciones de Ingresos Brutos (el 021-093598-9 es el número de inscripción, no una percepción). No se imprime símbolo de moneda; se asume ARS por ser comprobante fiscal argentino con importes en pesos. Pie: INCLUYE TASA VIAL, REGISTRO EPEPAA0000051486, V: 1.03 Neptuno, Vendedor HERNANDORENA JENIFER, Turno 30. El ítem '2 fact' sugiere consumo de dos personas, pero el ticket no detalla cubiertos: si la categoría es Restaurante, corresponde indicar la cantidad de comensales/personas. Rubro gastronómico (cafetería/bar) consistente con la categoría Restaurante. No hay litros de combustible ni centro de costo en el comprobante."
   },
   "extraccion": {
+    "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "B",
     "codigo_afip": "083",
@@ -80,13 +82,13 @@
     "otros_impuestos": 0,
     "importe_total": 12300.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Gastronomía / cafetería-bar (ítems: Latte 415 cc + 2 facturas y galletitas surtidas)",
+    "rubro_emisor": "Gastronómico (cafetería/bar - desayuno y snacks)",
     "categoria_gasto_sugerida": "Restaurante",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique (Cód. 083) de HERRERO SRL, IVA Responsable Inscripto, emitido 'A CONSUMIDOR FINAL': se transcribe como tipo 'B' por no discriminar IVA (codigo AFIP 083). Punto de venta 00026, número 00038429, fecha 23/01/2026 08:34:59, hora no incluida en el campo de fecha. CUIT 30-51808998-2: 11 dígitos y dígito verificador válido. Detalle: 1,0000 x 7700,0000 = 7700,00 (Latte 415 cc + 2 facturas) y 1,0000 x 4600,0000 = 4600,00 (Gall Surtido Bagley); 'Subtotal' impreso 12.300,00, que coincide con el TOTAL 12.300,00 (no hay apertura de neto gravado, no gravado ni exento). No discrimina impuestos: los 2.134,71 de 'IVA Contenido' y 0,00 de 'Otros Impuestos Nac. Indirectos' figuran solo en el bloque 'Transparencia Fiscal al Consumidor Ley 27743' (informativo, incluido en el total), por lo que se cargan IVA y demás impuestos en 0. La aritmética cierra (12.300,00 + 0 + 0 + 0 = 12.300,00). Medios de pago: tarjeta de crédito (57KKJHZ0MJ), 'Suma de sus pagos' 12.300,00 y 'Su Vuelto' 0,00; el renglón 'Otros medios de Pago' no se lee con total claridad. Cantidad de comensales y litros no figuran en el comprobante (no verificables). No se observa centro de costo. Pie: 'INCLUYE TASA VIAL', REGISTRO EPEPAA0000051486, V 1.03 Neptuno, vendedor HERNANDORENA JENIFER, Turno 30. Rubro inferido de los ítems (cafetería/bar), sin plena certeza."
+    "observaciones": "Tique de controlador fiscal (TIQUE Cód. 083), equivalente a un comprobante clase B: emisor Responsable Inscripto a CONSUMIDOR FINAL, sin discriminación de IVA. Encabezado: HERRERO SRL, CUIT 30-51808998-2 (dígito verificador válido), Ing. Brutos 021-093598-9, Av. Eva Perón 7898, Rosario, Santa Fe, CP 2000, Tel. 341-4515008, inicio de actividades 11/11/1966. P.V. N° 00026 - Nro. T. 00038429, fecha 23/01/2026 08:34:59. Detalle: 1,0000 x 7700,0000 'Latte 415 cc + 2 fact' = 7.700,00 y 1,0000 x 4600,0000 'Gall Surtido Bagley' = 4.600,00; Subtotal 12.300,00 y TOTAL 12.300,00. Pagos: Tarjeta de crédito 12.300,00; Otros medios de pago 0,00; Suma de sus pagos 12.300,00; Su Vuelto 0,00. Transparencia Fiscal al Consumidor Ley 27743: 'IVA Contenido 2.134,71' (21%, incluido en el precio, no adicionado: por eso NO se carga como IVA discriminado y subtotal = total, sin desglose de impuestos) y 'Otros Impuestos Nac. Indirectos 0,00'. No hay percepciones de Ingresos Brutos (el 021-093598-9 es el número de inscripción, no una percepción). No se imprime símbolo de moneda; se asume ARS por ser comprobante fiscal argentino con importes en pesos. Pie: INCLUYE TASA VIAL, REGISTRO EPEPAA0000051486, V: 1.03 Neptuno, Vendedor HERNANDORENA JENIFER, Turno 30. El ítem '2 fact' sugiere consumo de dos personas, pero el ticket no detalla cubiertos: si la categoría es Restaurante, corresponde indicar la cantidad de comensales/personas. Rubro gastronómico (cafetería/bar) consistente con la categoría Restaurante. No hay litros de combustible ni centro de costo en el comprobante."
   },
   "aritmetica": {
     "calculable": true,

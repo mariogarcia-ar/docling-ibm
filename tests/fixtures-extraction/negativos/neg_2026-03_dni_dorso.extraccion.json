@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/negativos/neg_2026-03_dni_dorso.jpg",
   "archivo_relativo": "negativos/neg_2026-03_dni_dorso.jpg",
-  "procesado_utc": "2026-09-15T12:03:27+00:00",
+  "procesado_utc": "2026-09-15T13:47:42+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:62f07862b9dd7d4c",
+  "prompt_hash": "sha256:49bf219ef6de34fc",
   "uso": {
-    "prompt_tokens": 2928,
-    "completion_tokens": 679,
-    "total_tokens": 3607,
-    "prompt_cache_hit_tokens": 2560,
-    "prompt_cache_miss_tokens": 368
+    "prompt_tokens": 3267,
+    "completion_tokens": 659,
+    "total_tokens": 3926,
+    "prompt_cache_hit_tokens": 2816,
+    "prompt_cache_miss_tokens": 451
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,8 +31,9 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.000941,
+  "costo_usd": 0.000943,
   "resultado": {
+    "es_comprobante": "no_comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": null,
     "codigo_afip": null,
@@ -58,9 +59,10 @@
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "La imagen NO es un comprobante fiscal: muestra únicamente el encabezado de un Documento Nacional de Identidad argentino (leyendas 'REPUBLICA ARGENTINA / DOCUMENTO NACIONAL DE IDENTIDAD' y 'Documento personal - no es comprobante fiscal'). No hay emisor, CUIT, fecha, numeración, moneda ni importes que transcribir; tampoco discrimina impuestos. No corresponde encuadrarlo en ningún tipo A/B/C/090/099 ni internacional, y no hay rubro del emisor inferible, por lo que no puede sugerirse categoría de gasto."
+    "observaciones": "El documento es un DNI (Documento Nacional de Identidad) de la REPÚBLICA ARGENTINA, que declara expresamente 'Documento personal - no es comprobante fiscal'. No es un comprobante fiscal ni comercial: no hay emisor, CUIT, fecha, número ni importes que transcribir. No se fuerzan datos fiscales."
   },
   "extraccion": {
+    "es_comprobante": "no_comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": null,
     "codigo_afip": null,
@@ -86,7 +88,7 @@
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "La imagen NO es un comprobante fiscal: muestra únicamente el encabezado de un Documento Nacional de Identidad argentino (leyendas 'REPUBLICA ARGENTINA / DOCUMENTO NACIONAL DE IDENTIDAD' y 'Documento personal - no es comprobante fiscal'). No hay emisor, CUIT, fecha, numeración, moneda ni importes que transcribir; tampoco discrimina impuestos. No corresponde encuadrarlo en ningún tipo A/B/C/090/099 ni internacional, y no hay rubro del emisor inferible, por lo que no puede sugerirse categoría de gasto."
+    "observaciones": "El documento es un DNI (Documento Nacional de Identidad) de la REPÚBLICA ARGENTINA, que declara expresamente 'Documento personal - no es comprobante fiscal'. No es un comprobante fiscal ni comercial: no hay emisor, CUIT, fecha, número ni importes que transcribir. No se fuerzan datos fiscales."
   },
   "aritmetica": {
     "calculable": false,

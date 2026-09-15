@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/chicos/243a8b81-eca0-4841-ab69-72adf519a843.png",
-  "archivo_relativo": "243a8b81-eca0-4841-ab69-72adf519a843.png",
-  "procesado_utc": "2026-09-15T13:36:59+00:00",
+  "archivo_relativo": "chicos/243a8b81-eca0-4841-ab69-72adf519a843.png",
+  "procesado_utc": "2026-09-15T13:44:13+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -19,10 +19,10 @@
   "prompt_hash": "sha256:49bf219ef6de34fc",
   "uso": {
     "prompt_tokens": 3503,
-    "completion_tokens": 331,
-    "total_tokens": 3834,
-    "prompt_cache_hit_tokens": 1664,
-    "prompt_cache_miss_tokens": 1839
+    "completion_tokens": 374,
+    "total_tokens": 3877,
+    "prompt_cache_hit_tokens": 3328,
+    "prompt_cache_miss_tokens": 175
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,7 +31,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.000959,
+  "costo_usd": 0.000521,
   "resultado": {
     "es_comprobante": "no_comprobante",
     "legibilidad": "buena",
@@ -59,7 +59,7 @@
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "La imagen contiene únicamente la leyenda «GASTOS VARIOS, FALTA FACTURA.» sobre fondo blanco. No es un comprobante fiscal ni comercial: no hay emisor, CUIT, fecha, número ni importes que transcribir. Se trata de una hoja/captura interna que declara la ausencia de factura, por lo que todos los campos fiscales van en null."
+    "observaciones": "El documento no es un comprobante fiscal ni comercial: es una hoja/constancia que solo contiene la leyenda «GASTOS VARIOS, FALTA FACTURA.» No hay emisor, CUIT, fecha, número, moneda ni importes que transcribir. No se fuerza ningún tipo A/B/C. Se recomienda solicitar el comprobante válido (factura, ticket o recibo) que respalde el gasto."
   },
   "extraccion": {
     "es_comprobante": "no_comprobante",
@@ -88,7 +88,7 @@
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "La imagen contiene únicamente la leyenda «GASTOS VARIOS, FALTA FACTURA.» sobre fondo blanco. No es un comprobante fiscal ni comercial: no hay emisor, CUIT, fecha, número ni importes que transcribir. Se trata de una hoja/captura interna que declara la ausencia de factura, por lo que todos los campos fiscales van en null."
+    "observaciones": "El documento no es un comprobante fiscal ni comercial: es una hoja/constancia que solo contiene la leyenda «GASTOS VARIOS, FALTA FACTURA.» No hay emisor, CUIT, fecha, número, moneda ni importes que transcribir. No se fuerza ningún tipo A/B/C. Se recomienda solicitar el comprobante válido (factura, ticket o recibo) que respalde el gasto."
   },
   "aritmetica": {
     "calculable": false,

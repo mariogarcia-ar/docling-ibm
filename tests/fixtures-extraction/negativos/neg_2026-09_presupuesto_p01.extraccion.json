@@ -1,12 +1,12 @@
 {
   "origen": "tests/fixtures/negativos/neg_2026-09_presupuesto_p01.pdf",
   "archivo_relativo": "negativos/neg_2026-09_presupuesto_p01.pdf",
-  "procesado_utc": "2026-09-15T11:58:20+00:00",
+  "procesado_utc": "2026-09-15T13:43:43+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
   "fuente": "api",
-  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_gpiw991f/negativos/neg_2026-09_presupuesto_p01.jpg",
+  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_2gxv7ghk/negativos/neg_2026-09_presupuesto_p01.jpg",
   "pagina": 1,
   "imagen": {
     "bytes": 115139,
@@ -18,13 +18,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:62f07862b9dd7d4c",
+  "prompt_hash": "sha256:49bf219ef6de34fc",
   "uso": {
-    "prompt_tokens": 3699,
-    "completion_tokens": 833,
-    "total_tokens": 4532,
-    "prompt_cache_hit_tokens": 2560,
-    "prompt_cache_miss_tokens": 1139
+    "prompt_tokens": 4038,
+    "completion_tokens": 331,
+    "total_tokens": 4369,
+    "prompt_cache_hit_tokens": 2816,
+    "prompt_cache_miss_tokens": 1222
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -33,8 +33,9 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.001357,
+  "costo_usd": 0.000781,
   "resultado": {
+    "es_comprobante": "no_comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": null,
     "codigo_afip": null,
@@ -60,9 +61,10 @@
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "El documento NO es un comprobante fiscal: es un PRESUPUESTO. Texto visible: 'PRESUPUESTO - Detalle de trabajos estimados a realizar. Presupuesto no acredita la operación - no es comprobante.' No contiene CUIT, razón social del emisor, fecha de emisión, número de factura, moneda, ni ningún importe (subtotal, IVA, percepciones, total), ni sello/CAE de AFIP-ARCA. No corresponde asignarle tipo de comprobante A/B/C/090/099/INTERNACIONAL ni categoría de gasto inferible. Todos los campos de importes quedan en null por no estar impresos. Se recomienda no aprobar como comprobante de gasto hasta contar con la factura correspondiente."
+    "observaciones": "El documento es un PRESUPUESTO ('Detalle de trabajos estimados a realizar'), no un comprobante fiscal. El propio texto indica 'Presupuesto no acredita la operación - no es comprobante'. No contiene emisor, CUIT, fecha, número ni importes fiscales transcribibles."
   },
   "extraccion": {
+    "es_comprobante": "no_comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": null,
     "codigo_afip": null,
@@ -88,7 +90,7 @@
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "El documento NO es un comprobante fiscal: es un PRESUPUESTO. Texto visible: 'PRESUPUESTO - Detalle de trabajos estimados a realizar. Presupuesto no acredita la operación - no es comprobante.' No contiene CUIT, razón social del emisor, fecha de emisión, número de factura, moneda, ni ningún importe (subtotal, IVA, percepciones, total), ni sello/CAE de AFIP-ARCA. No corresponde asignarle tipo de comprobante A/B/C/090/099/INTERNACIONAL ni categoría de gasto inferible. Todos los campos de importes quedan en null por no estar impresos. Se recomienda no aprobar como comprobante de gasto hasta contar con la factura correspondiente."
+    "observaciones": "El documento es un PRESUPUESTO ('Detalle de trabajos estimados a realizar'), no un comprobante fiscal. El propio texto indica 'Presupuesto no acredita la operación - no es comprobante'. No contiene emisor, CUIT, fecha, número ni importes fiscales transcribibles."
   },
   "aritmetica": {
     "calculable": false,

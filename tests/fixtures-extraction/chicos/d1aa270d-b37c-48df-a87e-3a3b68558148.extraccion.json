@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/chicos/d1aa270d-b37c-48df-a87e-3a3b68558148.png",
-  "archivo_relativo": "d1aa270d-b37c-48df-a87e-3a3b68558148.png",
-  "procesado_utc": "2026-09-15T13:36:59+00:00",
+  "archivo_relativo": "chicos/d1aa270d-b37c-48df-a87e-3a3b68558148.png",
+  "procesado_utc": "2026-09-15T13:44:17+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -19,10 +19,10 @@
   "prompt_hash": "sha256:49bf219ef6de34fc",
   "uso": {
     "prompt_tokens": 3503,
-    "completion_tokens": 421,
-    "total_tokens": 3924,
-    "prompt_cache_hit_tokens": 1664,
-    "prompt_cache_miss_tokens": 1839
+    "completion_tokens": 829,
+    "total_tokens": 4332,
+    "prompt_cache_hit_tokens": 3328,
+    "prompt_cache_miss_tokens": 175
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -57,9 +57,9 @@
     "categoria_gasto_sugerida": null,
     "cantidad_comensales_personas": null,
     "cantidad_litros": null,
-    "centro_de_costo": null,
+    "centro_de_costo": "CVC",
     "campos_no_legibles": [],
-    "observaciones": "El documento no es un comprobante fiscal ni comercial: es una hoja con la leyenda 'NO EXISTE COMPROBANTE PARA LA RENDICION DEL GASTO. SE CARGA A NOMBRE DE CVC.' No hay emisor, CUIT, fecha, número ni importes que transcribir; todos los campos fiscales van en null."
+    "observaciones": "El documento no es un comprobante fiscal ni comercial: es una hoja con la leyenda 'NO EXISTE COMPROBANTE PARA LA RENDICION DEL GASTO. SE CARGA A NOMBRE DE CVC.' No hay emisor, CUIT, fecha, número ni importes que transcribir. Se trata de una declaración de ausencia de comprobante (tipo 'falta factura'), por lo que no puede validarse fiscalmente y todos los campos fiscales quedan en null. La mención 'CVC' figura como dato informativo de imputación."
   },
   "extraccion": {
     "es_comprobante": "no_comprobante",
@@ -86,9 +86,9 @@
     "categoria_gasto_sugerida": null,
     "cantidad_comensales_personas": null,
     "cantidad_litros": null,
-    "centro_de_costo": null,
+    "centro_de_costo": "CVC",
     "campos_no_legibles": [],
-    "observaciones": "El documento no es un comprobante fiscal ni comercial: es una hoja con la leyenda 'NO EXISTE COMPROBANTE PARA LA RENDICION DEL GASTO. SE CARGA A NOMBRE DE CVC.' No hay emisor, CUIT, fecha, número ni importes que transcribir; todos los campos fiscales van en null."
+    "observaciones": "El documento no es un comprobante fiscal ni comercial: es una hoja con la leyenda 'NO EXISTE COMPROBANTE PARA LA RENDICION DEL GASTO. SE CARGA A NOMBRE DE CVC.' No hay emisor, CUIT, fecha, número ni importes que transcribir. Se trata de una declaración de ausencia de comprobante (tipo 'falta factura'), por lo que no puede validarse fiscalmente y todos los campos fiscales quedan en null. La mención 'CVC' figura como dato informativo de imputación."
   },
   "aritmetica": {
     "calculable": false,

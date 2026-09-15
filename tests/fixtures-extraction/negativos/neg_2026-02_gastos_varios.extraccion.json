@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/negativos/neg_2026-02_gastos_varios.png",
   "archivo_relativo": "negativos/neg_2026-02_gastos_varios.png",
-  "procesado_utc": "2026-09-15T12:03:21+00:00",
+  "procesado_utc": "2026-09-15T13:47:40+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:62f07862b9dd7d4c",
+  "prompt_hash": "sha256:49bf219ef6de34fc",
   "uso": {
-    "prompt_tokens": 2928,
-    "completion_tokens": 1098,
-    "total_tokens": 4026,
-    "prompt_cache_hit_tokens": 2560,
-    "prompt_cache_miss_tokens": 368
+    "prompt_tokens": 3267,
+    "completion_tokens": 413,
+    "total_tokens": 3680,
+    "prompt_cache_hit_tokens": 2816,
+    "prompt_cache_miss_tokens": 451
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,8 +31,9 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.001443,
+  "costo_usd": 0.000648,
   "resultado": {
+    "es_comprobante": "no_comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": null,
     "codigo_afip": null,
@@ -53,14 +54,15 @@
     "importe_total": null,
     "cierra_aritmetica": false,
     "rubro_emisor": null,
-    "categoria_gasto_sugerida": "Gastos varios",
+    "categoria_gasto_sugerida": null,
     "cantidad_comensales_personas": null,
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "La imagen NO es un comprobante fiscal: es una constancia/hoja interna con los textos 'GASTOS VARIOS', 'Comprobante: FALTA FACTURA', 'Detalle: sin documento respaldatorio' y la leyenda 'NO ES COMPROBANTE'. No hay emisor, CUIT, fecha de emisión, número de factura, moneda, importes, IVA ni ningún otro tributo que transcribir, por lo que todos los campos de datos quedan en null. No corresponde asignar tipo A/B/C ni código AFIP, ni validar categoría o cantidad de comensales/litros. Se sugiere al empleado adjuntar el comprobante respaldatorio correspondiente."
+    "observaciones": "El documento no es un comprobante fiscal ni comercial: es una hoja interna que dice «GASTOS VARIOS», «Comprobante: FALTA FACTURA», «Detalle: sin documento respaldatorio» y «NO ES COMPROBANTE». No hay emisor, CUIT, fecha, número ni importes que transcribir, por lo que los campos fiscales quedan en null."
   },
   "extraccion": {
+    "es_comprobante": "no_comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": null,
     "codigo_afip": null,
@@ -81,12 +83,12 @@
     "importe_total": null,
     "cierra_aritmetica": false,
     "rubro_emisor": null,
-    "categoria_gasto_sugerida": "Gastos varios",
+    "categoria_gasto_sugerida": null,
     "cantidad_comensales_personas": null,
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "La imagen NO es un comprobante fiscal: es una constancia/hoja interna con los textos 'GASTOS VARIOS', 'Comprobante: FALTA FACTURA', 'Detalle: sin documento respaldatorio' y la leyenda 'NO ES COMPROBANTE'. No hay emisor, CUIT, fecha de emisión, número de factura, moneda, importes, IVA ni ningún otro tributo que transcribir, por lo que todos los campos de datos quedan en null. No corresponde asignar tipo A/B/C ni código AFIP, ni validar categoría o cantidad de comensales/litros. Se sugiere al empleado adjuntar el comprobante respaldatorio correspondiente."
+    "observaciones": "El documento no es un comprobante fiscal ni comercial: es una hoja interna que dice «GASTOS VARIOS», «Comprobante: FALTA FACTURA», «Detalle: sin documento respaldatorio» y «NO ES COMPROBANTE». No hay emisor, CUIT, fecha, número ni importes que transcribir, por lo que los campos fiscales quedan en null."
   },
   "aritmetica": {
     "calculable": false,

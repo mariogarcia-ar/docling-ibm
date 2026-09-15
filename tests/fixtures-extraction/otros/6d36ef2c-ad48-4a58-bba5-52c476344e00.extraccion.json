@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/otros/6d36ef2c-ad48-4a58-bba5-52c476344e00.jpg",
   "archivo_relativo": "otros/6d36ef2c-ad48-4a58-bba5-52c476344e00.jpg",
-  "procesado_utc": "2026-09-15T12:04:09+00:00",
+  "procesado_utc": "2026-09-15T13:48:26+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:62f07862b9dd7d4c",
+  "prompt_hash": "sha256:49bf219ef6de34fc",
   "uso": {
-    "prompt_tokens": 3686,
-    "completion_tokens": 1513,
-    "total_tokens": 5199,
-    "prompt_cache_hit_tokens": 2560,
-    "prompt_cache_miss_tokens": 1126
+    "prompt_tokens": 4025,
+    "completion_tokens": 2059,
+    "total_tokens": 6084,
+    "prompt_cache_hit_tokens": 2816,
+    "prompt_cache_miss_tokens": 1209
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,8 +31,9 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.002169,
+  "costo_usd": 0.00285,
   "resultado": {
+    "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "081",
@@ -52,15 +53,16 @@
     "otros_impuestos": 603.67,
     "importe_total": 72076.02,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / combustible",
+    "rubro_emisor": "Estación de servicio / venta de combustible (NAFTA SUPER)",
     "categoria_gasto_sugerida": "Combustible",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 34.1269,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique Factura A (Cód. 081) emitida por PRIMAS GROUP S.A (CUIT 30-71599456-5, IVA Responsable Inscripto), Chivilcoy, Pcia. de Buenos Aires. Adquiriente: CVC SOCIEDAD ANONIMA (CUIT 30-58221570-3), condición CONTADO. Ítem: 34,1269 u. x 1492,1767 de NAFTA SUPER (alícuota 21%), importe 50923,37. Neto gravado 50923,37 + IVA 21% 10693,91 + Impuesto interno a nivel ítem 9855,07 + IDC 603,67 (total otros tributos 10458,74) = TOTAL 72076,02; la aritmética cierra. No se observan percepciones de IIBB ni montos no gravados ni exentos. Dígito verificador del CUIT del emisor validado correctamente (5). Fecha impresa 23/07/2026 con hora 11:25:32. Moneda inferida ARS por tratarse de comprobante fiscal argentino con IVA 21% (no hay símbolo de moneda impreso explícito). No figura centro de costo en el comprobante."
+    "observaciones": "Tique Factura \"A\" Cód. 081 (AFIP 081 = Tique Factura A), punto de venta 00002 - N° 00113331. Emisor PRIMAS GROUP S.A, CUIT 30-71599456-5 (dígito verificador válido), IVA Responsable Inscripto, domicilio Av. Mitre 101, Chivilcoy, Pcia. de Buenos Aires. Fecha impresa 23/07/2026 (fecha futura respecto de lo habitual; se transcribe tal como figura). Detalle: 34,1269 u. x 1492,1767 = NAFTA SUPER 50923,37 (se interpreta la cantidad como litros de combustible, aunque el ticket la rotula como \"u.\"). Impuestos: IVA 21% = 10693,91; Impuesto interno a nivel ítem (cód. 10) = 9855,07; IDC (cód. 04) = 603,67; IMPORTE TOTAL OTROS TRIBUTOS 10458,74. No hay percepciones de IIBB ni exento/no gravado. Aritmética verificada: 50923,37 + 10693,91 + 10458,74 = 72076,02 (cierra)."
   },
   "extraccion": {
+    "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "081",
@@ -80,13 +82,13 @@
     "otros_impuestos": 603.67,
     "importe_total": 72076.02,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / combustible",
+    "rubro_emisor": "Estación de servicio / venta de combustible (NAFTA SUPER)",
     "categoria_gasto_sugerida": "Combustible",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 34.1269,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique Factura A (Cód. 081) emitida por PRIMAS GROUP S.A (CUIT 30-71599456-5, IVA Responsable Inscripto), Chivilcoy, Pcia. de Buenos Aires. Adquiriente: CVC SOCIEDAD ANONIMA (CUIT 30-58221570-3), condición CONTADO. Ítem: 34,1269 u. x 1492,1767 de NAFTA SUPER (alícuota 21%), importe 50923,37. Neto gravado 50923,37 + IVA 21% 10693,91 + Impuesto interno a nivel ítem 9855,07 + IDC 603,67 (total otros tributos 10458,74) = TOTAL 72076,02; la aritmética cierra. No se observan percepciones de IIBB ni montos no gravados ni exentos. Dígito verificador del CUIT del emisor validado correctamente (5). Fecha impresa 23/07/2026 con hora 11:25:32. Moneda inferida ARS por tratarse de comprobante fiscal argentino con IVA 21% (no hay símbolo de moneda impreso explícito). No figura centro de costo en el comprobante."
+    "observaciones": "Tique Factura \"A\" Cód. 081 (AFIP 081 = Tique Factura A), punto de venta 00002 - N° 00113331. Emisor PRIMAS GROUP S.A, CUIT 30-71599456-5 (dígito verificador válido), IVA Responsable Inscripto, domicilio Av. Mitre 101, Chivilcoy, Pcia. de Buenos Aires. Fecha impresa 23/07/2026 (fecha futura respecto de lo habitual; se transcribe tal como figura). Detalle: 34,1269 u. x 1492,1767 = NAFTA SUPER 50923,37 (se interpreta la cantidad como litros de combustible, aunque el ticket la rotula como \"u.\"). Impuestos: IVA 21% = 10693,91; Impuesto interno a nivel ítem (cód. 10) = 9855,07; IDC (cód. 04) = 603,67; IMPORTE TOTAL OTROS TRIBUTOS 10458,74. No hay percepciones de IIBB ni exento/no gravado. Aritmética verificada: 50923,37 + 10693,91 + 10458,74 = 72076,02 (cierra)."
   },
   "aritmetica": {
     "calculable": true,

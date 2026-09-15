@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/otros/4be3d157-7c0c-491d-bfe0-abf8fe755a7b.jpg",
   "archivo_relativo": "otros/4be3d157-7c0c-491d-bfe0-abf8fe755a7b.jpg",
-  "procesado_utc": "2026-09-15T12:03:58+00:00",
+  "procesado_utc": "2026-09-15T13:48:16+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:62f07862b9dd7d4c",
+  "prompt_hash": "sha256:49bf219ef6de34fc",
   "uso": {
-    "prompt_tokens": 3686,
-    "completion_tokens": 2073,
-    "total_tokens": 5759,
-    "prompt_cache_hit_tokens": 2560,
-    "prompt_cache_miss_tokens": 1126
+    "prompt_tokens": 4025,
+    "completion_tokens": 1882,
+    "total_tokens": 5907,
+    "prompt_cache_hit_tokens": 2816,
+    "prompt_cache_miss_tokens": 1209
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,15 +31,16 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.002841,
+  "costo_usd": 0.002638,
   "resultado": {
+    "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "C",
     "codigo_afip": "011",
-    "razon_social_emisor": "ALTOS DEL PARQUE - OPPICI LIA NOEMI",
+    "razon_social_emisor": "OPPICI LIA NOEMI (nombre de fantasía: ALTOS DEL PARQUE)",
     "cuit_emisor": "27-38132636-0",
     "digito_verificador_cuit_valido": true,
-    "fecha_emision": "29/05/2026 (impreso como 29/05/26 13:37)",
+    "fecha_emision": "29/05/2026",
     "nro_factura": "00005-00000368",
     "moneda": "ARS",
     "subtotal": 15207.5,
@@ -52,22 +53,23 @@
     "otros_impuestos": 0,
     "importe_total": 19250.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Gastronómico / Restaurante (ticket de mesa con mozo, menú del día)",
+    "rubro_emisor": "Restaurante / servicio de comidas y bebidas (menú del día, mesa, mozo)",
     "categoria_gasto_sugerida": "Restaurante",
     "cantidad_comensales_personas": 1,
-    "cantidad_litros": 0,
+    "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura C (COD. 011) emitida por ALTOS DEL PARQUE - OPPICI LIA NOEMI, CUIT 27-38132636-0, IVA RESPONSABLE MONOTRIBUTO, Alberdi 737 CP 2126, Pueblo Esther, Santa Fe. Domicilio del receptor: CVC SOCIEDAD ANONIMA, PIA, RESPONSABLE INSCRIPTO, CUIT 30-58221570-3. Detalle: 1 MENU DEL DIA MEDIODIA 17.500,00 + 1 RECARGO 1.750,00 = 19.250,00. Líneas de importes: NETO SIN IVA 15.207,50 e IVA 21,00% 4.042,50, que suman exactamente el TOTAL ARS 19.250,00 (la aritmética cierra). Se aclara que el campo 'subtotal' se cargó con el NETO SIN IVA (15.207,50) y no con el total. Observación de auditoría: el IVA impreso (4.042,50) no equivale al 21% del neto declarado (21% de 15.207,50 = 3.193,58) ni el neto surge de dividir el total por 1,21 (19.250/1,21 = 15.909,09); el 21% tampoco coincide con la alícuota aplicada sobre el neto implícito. No obstante, la suma de las líneas impresas coincide con el total. Adicionalmente, siendo un comprobante C de monotributista, la discriminación de IVA es formalmente improcedente (no genera crédito fiscal). Cubiertos: CUB 1, PROM 19.250 (consistente con 1 comensal). CAE 86227459946956 con vencimiento 08/06/2026 (fuera del alcance de la transcripción). No se visualiza Centro de Costo en el comprobante (dato no controlado por aprobadores). No hay campos ilegibles."
+    "observaciones": "Factura C (COD. 011), punto de venta 00005, número 00000368, emitida el 29/05/2026 13:37 por OPPICI LIA NOEMI (Altos del Parque), CUIT 27-38132636-0, domicilio Alberdi 737, CP 2126, Pueblo Esther, Santa Fe. Dicho CUIT es válido: el dígito verificador calculado (módulo 11) da 0, coincidente con el impreso. Emisor monotributista (IVA RESPONSABLE MONOTRIBUTO). Receptor: CVC SOCIEDAD ANONIMA, PIA, RESPONSABLE INSCRIPTO, CUIT 30-58221570-3 (sin discriminar en el formato, sólo texto). Detalle: 1 MENU DEL DIA MEDIODIA 17.500,00 + 1 RECARGO 1.750,00 = 19.250,00. Aunque es Factura C, el ticket discrimina NETO SIN IVA 15.207,50 + IVA 21,00% 4.042,50 = 19.250,00, por lo que la aritmética cierra (subtotal + IVA = total). Anomalía formal: un responsable monotributista no debería discriminar IVA en una Factura C; el desglose impreso es inconsistente con la condición fiscal declarada del emisor. Cubiertos: CUB 1 / PROM 19250, coincide con 1 comensal. CAE 86227459946956, vencimiento CAE 08/06/2026. No se observan percepciones de IIBB ni otros tributos. No hay monto no gravado ni exento impresos. Centro de costo no informado en el comprobante."
   },
   "extraccion": {
+    "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "C",
     "codigo_afip": "011",
-    "razon_social_emisor": "ALTOS DEL PARQUE - OPPICI LIA NOEMI",
+    "razon_social_emisor": "OPPICI LIA NOEMI (nombre de fantasía: ALTOS DEL PARQUE)",
     "cuit_emisor": "27-38132636-0",
     "digito_verificador_cuit_valido": true,
-    "fecha_emision": "29/05/2026 (impreso como 29/05/26 13:37)",
+    "fecha_emision": "29/05/2026",
     "nro_factura": "00005-00000368",
     "moneda": "ARS",
     "subtotal": 15207.5,
@@ -80,13 +82,13 @@
     "otros_impuestos": 0,
     "importe_total": 19250.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Gastronómico / Restaurante (ticket de mesa con mozo, menú del día)",
+    "rubro_emisor": "Restaurante / servicio de comidas y bebidas (menú del día, mesa, mozo)",
     "categoria_gasto_sugerida": "Restaurante",
     "cantidad_comensales_personas": 1,
-    "cantidad_litros": 0,
+    "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura C (COD. 011) emitida por ALTOS DEL PARQUE - OPPICI LIA NOEMI, CUIT 27-38132636-0, IVA RESPONSABLE MONOTRIBUTO, Alberdi 737 CP 2126, Pueblo Esther, Santa Fe. Domicilio del receptor: CVC SOCIEDAD ANONIMA, PIA, RESPONSABLE INSCRIPTO, CUIT 30-58221570-3. Detalle: 1 MENU DEL DIA MEDIODIA 17.500,00 + 1 RECARGO 1.750,00 = 19.250,00. Líneas de importes: NETO SIN IVA 15.207,50 e IVA 21,00% 4.042,50, que suman exactamente el TOTAL ARS 19.250,00 (la aritmética cierra). Se aclara que el campo 'subtotal' se cargó con el NETO SIN IVA (15.207,50) y no con el total. Observación de auditoría: el IVA impreso (4.042,50) no equivale al 21% del neto declarado (21% de 15.207,50 = 3.193,58) ni el neto surge de dividir el total por 1,21 (19.250/1,21 = 15.909,09); el 21% tampoco coincide con la alícuota aplicada sobre el neto implícito. No obstante, la suma de las líneas impresas coincide con el total. Adicionalmente, siendo un comprobante C de monotributista, la discriminación de IVA es formalmente improcedente (no genera crédito fiscal). Cubiertos: CUB 1, PROM 19.250 (consistente con 1 comensal). CAE 86227459946956 con vencimiento 08/06/2026 (fuera del alcance de la transcripción). No se visualiza Centro de Costo en el comprobante (dato no controlado por aprobadores). No hay campos ilegibles."
+    "observaciones": "Factura C (COD. 011), punto de venta 00005, número 00000368, emitida el 29/05/2026 13:37 por OPPICI LIA NOEMI (Altos del Parque), CUIT 27-38132636-0, domicilio Alberdi 737, CP 2126, Pueblo Esther, Santa Fe. Dicho CUIT es válido: el dígito verificador calculado (módulo 11) da 0, coincidente con el impreso. Emisor monotributista (IVA RESPONSABLE MONOTRIBUTO). Receptor: CVC SOCIEDAD ANONIMA, PIA, RESPONSABLE INSCRIPTO, CUIT 30-58221570-3 (sin discriminar en el formato, sólo texto). Detalle: 1 MENU DEL DIA MEDIODIA 17.500,00 + 1 RECARGO 1.750,00 = 19.250,00. Aunque es Factura C, el ticket discrimina NETO SIN IVA 15.207,50 + IVA 21,00% 4.042,50 = 19.250,00, por lo que la aritmética cierra (subtotal + IVA = total). Anomalía formal: un responsable monotributista no debería discriminar IVA en una Factura C; el desglose impreso es inconsistente con la condición fiscal declarada del emisor. Cubiertos: CUB 1 / PROM 19250, coincide con 1 comensal. CAE 86227459946956, vencimiento CAE 08/06/2026. No se observan percepciones de IIBB ni otros tributos. No hay monto no gravado ni exento impresos. Centro de costo no informado en el comprobante."
   },
   "aritmetica": {
     "calculable": true,

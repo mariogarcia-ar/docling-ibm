@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/otros/2e32c727-855b-4335-976d-369eb1deac27.jpg",
   "archivo_relativo": "otros/2e32c727-855b-4335-976d-369eb1deac27.jpg",
-  "procesado_utc": "2026-09-15T12:03:45+00:00",
+  "procesado_utc": "2026-09-15T13:48:08+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,23 +16,26 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:62f07862b9dd7d4c",
+  "prompt_hash": "sha256:49bf219ef6de34fc",
   "uso": {
-    "prompt_tokens": 3686,
-    "completion_tokens": 4658,
-    "total_tokens": 8344,
-    "prompt_cache_hit_tokens": 2560,
-    "prompt_cache_miss_tokens": 1126
+    "prompt_tokens": 8771,
+    "completion_tokens": 3532,
+    "total_tokens": 12303,
+    "prompt_cache_hit_tokens": 6784,
+    "prompt_cache_miss_tokens": 1987
   },
   "esquema_validado": true,
+  "reintentos_esquema": 1,
+  "avisos_esquema": [],
   "precios_usd_1m": {
     "entrada": 0.3,
     "salida": 1.2,
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.005943,
+  "costo_usd": 0.004875,
   "resultado": {
+    "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "081",
@@ -52,15 +55,16 @@
     "otros_impuestos": 0,
     "importe_total": 6599.99,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Gastronomía (bar/café), inferido del detalle facturado",
+    "rubro_emisor": "Gastronomía / cafetería (el detalle indica 'Cafe c/Leche + 2 Facturas')",
     "categoria_gasto_sugerida": "Restaurante",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique Factura A (Cód. 081) impreso por controlador fiscal (REGISTRO EPEPAA0000048678, V 1.03 Neptuno). Emisor en encabezado: RUMIGAS S R L, CUIT 30-69090084-6 (dígito verificador válido), Ing. Brutos 021-291699-3, J. B. Alberdi 840, CP S2129HEQ, Pueblo Esther, Santa Fe, IVA Responsable Inscripto, inicio de actividades 01/07/1998. Detalle: '1,0000 (00) x 5454,5455' - Café c/Leche + 2 Facturas 5454,55; 'DTO. Ajuste por redondeo' -0,01; SUBTOT. IMP. NETO GRAVADO 5454,54; ALICUOTA 21,00% 1145,45; TOTAL 6599,99. La aritmética cierra: 5454,54 + 1145,45 = 6599,99. No hay líneas de NO GRAVADO, EXENTO, PERCEPCIONES ni OTROS TRIBUTOS (todos en cero); la Transparencia Fiscal al Consumidor Ley 27743 informa IVA Contenido 1145,45 y Otros Impuestos Nac. Indirectos 0,00. Pago: RECIBI/MOS Efectivo 6600,00, Suma de sus pagos 6600,00, Su Vuelto 0,01; Cond. Vta.: Contado. No hay símbolo de moneda impreso, se asume ARS por tratarse de comprobante fiscal argentino con IVA en pesos. En el cuerpo del ticket figura además un bloque de 'CVC SA (17259)', CUIT 30-58221570-3, Av. Circunvalación, Rosario-SFE (2000), IVA Responsable Inscripto, con leyenda 'COMPROBANTES ASOCIADOS: Cód. 081 - Tique Factura A 00013-00000957' (corresponde al bloque de datos del adquirente/receptor del tique, no al emisor). Vendedor: Arredondo Gianella, Turno 6. No se imprimen cantidad de comensales ni litros. Centro de costo no informado en el comprobante."
+    "observaciones": "Tique Factura A (Cód. 081), sistema Neptuno V 1.03, N° 00013-00000957, fecha 14/05/2026 16:42:36. Emisor: RUMIGAS S R L, CUIT 30-69090084-6 (dígito verificador válido), Ing. Brutos 021-291699-3, dom. J. B. Alberdi 840, CP S2129HEQ, Pueblo Esther, Santa Fe, IVA Responsable Inscripto. Receptor: CVC SA, CUIT 30-58221570-3, Av. Circunvalación, Rosario (SF). Detalle: 'Cafe c/Leche + 2 Facturas' 5454,55 + Dto. ajuste por redondeo -0,01 => Subtotal Imp. Neto Gravado 5454,54; Alicuota 21,00% 1145,45; TOTAL 6599,99. Aritmética verificada: 5454,54 + 1145,45 = 6599,99 (cierra). No hay líneas de no gravado, exento, percepciones ni otros tributos. Pago en efectivo 6600,00, vuelto 0,01. Ley 27743: IVA contenido 1145,45; otros impuestos nac. indirectos 0,00. Vendedor: Arredondo Gianella, Turno 6."
   },
   "extraccion": {
+    "es_comprobante": "comprobante",
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "081",
@@ -80,13 +84,13 @@
     "otros_impuestos": 0,
     "importe_total": 6599.99,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Gastronomía (bar/café), inferido del detalle facturado",
+    "rubro_emisor": "Gastronomía / cafetería (el detalle indica 'Cafe c/Leche + 2 Facturas')",
     "categoria_gasto_sugerida": "Restaurante",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique Factura A (Cód. 081) impreso por controlador fiscal (REGISTRO EPEPAA0000048678, V 1.03 Neptuno). Emisor en encabezado: RUMIGAS S R L, CUIT 30-69090084-6 (dígito verificador válido), Ing. Brutos 021-291699-3, J. B. Alberdi 840, CP S2129HEQ, Pueblo Esther, Santa Fe, IVA Responsable Inscripto, inicio de actividades 01/07/1998. Detalle: '1,0000 (00) x 5454,5455' - Café c/Leche + 2 Facturas 5454,55; 'DTO. Ajuste por redondeo' -0,01; SUBTOT. IMP. NETO GRAVADO 5454,54; ALICUOTA 21,00% 1145,45; TOTAL 6599,99. La aritmética cierra: 5454,54 + 1145,45 = 6599,99. No hay líneas de NO GRAVADO, EXENTO, PERCEPCIONES ni OTROS TRIBUTOS (todos en cero); la Transparencia Fiscal al Consumidor Ley 27743 informa IVA Contenido 1145,45 y Otros Impuestos Nac. Indirectos 0,00. Pago: RECIBI/MOS Efectivo 6600,00, Suma de sus pagos 6600,00, Su Vuelto 0,01; Cond. Vta.: Contado. No hay símbolo de moneda impreso, se asume ARS por tratarse de comprobante fiscal argentino con IVA en pesos. En el cuerpo del ticket figura además un bloque de 'CVC SA (17259)', CUIT 30-58221570-3, Av. Circunvalación, Rosario-SFE (2000), IVA Responsable Inscripto, con leyenda 'COMPROBANTES ASOCIADOS: Cód. 081 - Tique Factura A 00013-00000957' (corresponde al bloque de datos del adquirente/receptor del tique, no al emisor). Vendedor: Arredondo Gianella, Turno 6. No se imprimen cantidad de comensales ni litros. Centro de costo no informado en el comprobante."
+    "observaciones": "Tique Factura A (Cód. 081), sistema Neptuno V 1.03, N° 00013-00000957, fecha 14/05/2026 16:42:36. Emisor: RUMIGAS S R L, CUIT 30-69090084-6 (dígito verificador válido), Ing. Brutos 021-291699-3, dom. J. B. Alberdi 840, CP S2129HEQ, Pueblo Esther, Santa Fe, IVA Responsable Inscripto. Receptor: CVC SA, CUIT 30-58221570-3, Av. Circunvalación, Rosario (SF). Detalle: 'Cafe c/Leche + 2 Facturas' 5454,55 + Dto. ajuste por redondeo -0,01 => Subtotal Imp. Neto Gravado 5454,54; Alicuota 21,00% 1145,45; TOTAL 6599,99. Aritmética verificada: 5454,54 + 1145,45 = 6599,99 (cierra). No hay líneas de no gravado, exento, percepciones ni otros tributos. Pago en efectivo 6600,00, vuelto 0,01. Ley 27743: IVA contenido 1145,45; otros impuestos nac. indirectos 0,00. Vendedor: Arredondo Gianella, Turno 6."
   },
   "aritmetica": {
     "calculable": true,
