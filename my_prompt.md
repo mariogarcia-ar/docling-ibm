@@ -1,3 +1,14 @@
+# cmd 
+ voucherflow-lab tests/fixtures/expected-extraction -M extraer -p deepseek --workers 4 -o tests/expected-extraction --dry-run\n
+ 
+ voucherflow-lab tests/fixtures/expected-extraction -M extraer -p deepseek --workers 4 -o tests/ixtures-extraction/expected-extraction 
+
+
+
+ voucherflow-lab tests/fixtures/chicos -M extraer -p deepseek --workers 4 -o tests/ixtures-extraction/chicos 
+
+
+
 # revisar
 - comprimir las imagenes
 - revisar la calidad y que procesamiento tengo que realizar en los otros docs o archivos.
