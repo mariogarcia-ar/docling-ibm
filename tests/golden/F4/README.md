@@ -78,7 +78,7 @@ reportarse como regresión:
 
 | Campo | Por qué puede diferir |
 |---|---|
-| `tipo_comprobante` | se publica el valor **tal como se leyó**: el vocabulario de lectura acepta `090`/`099` de los tiques, que el motor R1-R7 de F3 deja fuera por D-13. Comparar contra la **letra final** mezcla lectura con decisión. |
+| `tipo_comprobante` | se publica el valor **tal como se leyó**: el vocabulario de lectura acepta `090`/`099` de los tiques, que el motor R1-R7 de F3 deja fuera por D-13. Comparar contra la **letra final** mezcla lectura con decisión. ⚠️ Desde el 2026-09-15 el vocabulario incluye `INTERNACIONAL` (comprobante de un proveedor de otro país): los artefactos anteriores lo tienen como `null`. |
 | `moneda` | no se aplica un default `ARS` sin indicio explícito (sería inventar la moneda). |
 | `descripcion` | se normaliza en código (minúsculas + espacios colapsados): el texto puede diferir en la forma aunque describa lo mismo. |
 | Campos de **decisión** | Fuera de la medición por ADR-001 (`campos_fuera_de_alcance`). No son un desacuerdo: son el objetivo del rediseño. |

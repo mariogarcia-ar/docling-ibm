@@ -225,10 +225,53 @@ SYSTEM_PROMPT_EXTRACCION = (
     "Devolvé únicamente JSON válido, sin markdown ni texto fuera del JSON.\n"
 )
 
+#: Guía del campo ``tipo_comprobante``: **es la única regla de dominio** que este
+#: prompt aporta, y hace falta porque el vocabulario no se deduce de la imagen.
+#:
+#: ``INTERNACIONAL`` marca un comprobante emitido por un proveedor de afuera (una
+#: ``INVOICE`` de una LLC de EE.UU.): no es un comprobante fiscal argentino, así
+#: que no tiene letra A/B/C/M/E ni código AFIP, y por eso **no** debe quedar en
+#: ``null`` ni con texto libre. La distinción que se le pide al modelo es la que
+#: el negocio definió: ``E`` es una **Factura E argentina** (un emisor argentino
+#: que le factura *al exterior*) e ``INTERNACIONAL`` es lo inverso (un proveedor
+#: de afuera que nos factura a nosotros).
+#:
+#: ⚠️ Sin esta guía el modelo improvisó de **tres** formas distintas sobre el
+#: corpus real: ``null`` (perdía el dato), texto libre
+#: (``"INVOICE (no es comprobante AFIP: no corresponde a A/B/C/090/099)"``, que
+#: el vocabulario cerrado marca como inválido) y ``"E"``.
+#:
+#: ⚠️ Y **no** alcanza con dejar que el modelo decida: un DNI, un presupuesto o
+#: un resumen de tarjeta tampoco son A/B/C —pero tampoco son ``INTERNACIONAL``—.
+#: ``INTERNACIONAL`` no significa "no es un comprobante argentino": significa
+#: "el emisor está en otro país". Los que no son comprobantes van en ``null``.
+#:
+#: ⚠️ **Sobre los términos**: la guía evita a propósito la palabra "exterior"
+#: para *este* valor. El dominio la usa para la **exportación** (``E``: se
+#: factura *al exterior*), así que decir "proveedor del exterior" describía tanto
+#: el caso de ``E`` como el de ``INTERNACIONAL`` y el modelo tenía que adivinar
+#: cuál. La guía nombra el criterio que decide —**dónde está el emisor**— y evita
+#: la palabra ambigua.
+GUIA_TIPO_COMPROBANTE = (
+    "Sobre el campo 'tipo_comprobante':\n"
+    "- Si el comprobante es argentino, reportá la letra del encabezado: A, B, C, "
+    "M o E (o el código '090'/'099' de un boleto).\n"
+    "- Si quien lo emitió está en **otro país** (por ejemplo una 'INVOICE' de una "
+    "empresa de EE.UU. o de Irlanda, sin letra A/B/C ni código AFIP), reportá "
+    "'INTERNACIONAL'. Es el caso de un proveedor de afuera que nos factura a "
+    "nosotros.\n"
+    "- NO uses 'E' para eso: 'E' es una Factura E **argentina** (un emisor "
+    "argentino que le factura al exterior). Son casos opuestos.\n"
+    "- Si el documento NO es un comprobante (un DNI, un presupuesto, un resumen "
+    "de tarjeta, una captura de pantalla, un memo interno), NO reportes este "
+    "campo: no uses 'INTERNACIONAL' para decir 'no es un comprobante argentino'.\n"
+)
+
 #: Guía del flujo **VLM** (lee la imagen de la vista fiel).
 SYSTEM_PROMPT_EXTRACCION_VLM = (
     SYSTEM_PROMPT_EXTRACCION
     + "\n"
+    + GUIA_TIPO_COMPROBANTE
     + "Analizá únicamente la imagen adjunta del comprobante.\n"
     + "- Recorré el encabezado (emisor/receptor, tipo, número y fecha) y el "
     + "detalle de importes (subtotal, IVA, percepciones, total).\n"
@@ -250,6 +293,7 @@ SYSTEM_PROMPT_EXTRACCION_VLM = (
 SYSTEM_PROMPT_EXTRACCION_LLM = (
     SYSTEM_PROMPT_EXTRACCION
     + "\n"
+    + GUIA_TIPO_COMPROBANTE
     + "Analizá únicamente el texto OCR/Markdown recibido.\n"
     + "- Buscá cada campo junto a su etiqueta impresa (por ejemplo 'CUIT', "
     + "'Fecha de Emisión', 'Importe Total', 'Subtotal', 'IVA 21%').\n"

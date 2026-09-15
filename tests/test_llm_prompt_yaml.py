@@ -209,5 +209,11 @@ class TestElYamlReconstruyeElTemplate:
         )
         # Los hashes quedan fijados: si el prompt cambia, hay que **querer**
         # cambiarlos (y re-medir las corridas anteriores).
-        assert hash_prompt(*para_validar) == "sha256:e0834d01f94e6e7b"
-        assert hash_prompt(*para_extraer) == "sha256:af9349e99995dbb4"
+        #
+        # ⚠️ Actualizados al agregar "INTERNACIONAL" a la regla 1 (2026-09-15):
+        # los comprobantes de proveedores de otro país no tenían cómo declararse
+        # y el modelo improvisaba (`null`, texto libre, o "E"). Las corridas
+        # anteriores al cambio quedan registradas con el hash viejo — es lo que
+        # el registro de auditoría debe poder distinguir.
+        assert hash_prompt(*para_validar) == "sha256:60b92df8beb84472"
+        assert hash_prompt(*para_extraer) == "sha256:0d7ffc3dc25de2fe"

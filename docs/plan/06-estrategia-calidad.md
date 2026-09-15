@@ -84,7 +84,7 @@ tests/golden/
 | Dimensión | Cobertura objetivo |
 |-----------|--------------------|
 | Tipos de entrada | pdf texto, pdf escaneado, imagen (foto/escaneo/screenshot), docx, txt/csv/log/html/md |
-| Letras | A, B, C, M, E + casos 090/099 |
+| Letras | A, B, C, M, E + casos 090/099 + `INTERNACIONAL` (comprobante de proveedor de otro país) |
 | Condiciones fiscales | RI+RI, RI+Monotributo, RI+Consumidor Final, Monotributo/Exento |
 | Calidad | nítido, ruidoso, baja resolución, rotado, con perspectiva |
 | Complejidad | factura simple, factura con tabla, ticket, con sello/firma, con QR |

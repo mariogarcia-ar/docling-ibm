@@ -70,10 +70,16 @@
    registra en `campos_ausentes` (con su motivo) para el gate de F5, sin degradar
    el veredicto raw.
 8. **El vocabulario cerrado de T-401 es explícito y alineado con v1**:
-   `tipo_comprobante ∈ {A, B, C, M, E, 090, 099}` (el prompt de v1 admite
-   `090`/`099` para boletos, regla 4) y `moneda ∈ {ARS, USD}`. Esto **no**
+   `tipo_comprobante ∈ {A, B, C, M, E, 090, 099, INTERNACIONAL}` (el prompt de v1
+   admite `090`/`099` para boletos, regla 4) y `moneda ∈ {ARS, USD}`. Esto **no**
    contradice la decisión abierta **D-13** de F3: acá se evalúa **qué se leyó**,
    no qué letra decide el negocio (esa distinción sigue siendo del motor R1-R7).
+   `INTERNACIONAL` es la marca de un comprobante de un proveedor de otro país
+   (una `INVOICE` sin letra AFIP, agregada el 2026-09-15): **no** es una letra
+   impresa, así que su sostén no se exige literal en el fragmento
+   (`VALORES_SIN_SOSTEN_LITERAL`) — buscarla marcaría como "sin prueba" a todos
+   los comprobantes internacionales. La regla de **vocabulario** sí se evalúa: un
+   valor inventado se reporta igual.
 9. **Una sola autoridad por debilidad** (hallazgo de implementación): la
    violación de vocabulario la reporta **solo** `RAW_VOCABULARIO` (con el valor
    crudo) y el campo sin sustento lo reporta **solo** una vez (la regla raw si el

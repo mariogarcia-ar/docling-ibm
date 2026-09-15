@@ -343,12 +343,21 @@ class ArcaClient:
         cerrada con negocio. Acá solo se traducen las letras del voculario del
         motor, que **sí** están definidas (A=1, B=6, C=11); un valor fuera de
         ese conjunto lanza ``ValueError`` en vez de inventar un código.
+
+        ⚠️ ``INTERNACIONAL`` **no tiene código AFIP**: es un comprobante emitido
+        por un proveedor de otro país, que no está en el padrón argentino. El
+        ``ValueError`` es la conducta correcta (no se inventa un código), y
+        :func:`voucherflow.models.arca.ArcaClient._construir_payload` lo traduce
+        a "consulta no formulable" — pero el gap ni siquiera debería llegar acá:
+        ``rules.gaps`` declara el campo no buscable para un comprobante
+        internacional.
         """
         tabla = {"A": 1, "B": 6, "C": 11, "M": 51, "E": 19}
         if letra not in tabla:
             raise ValueError(
                 f"no hay código AFIP para el tipo de comprobante {letra!r} "
-                "(decisión abierta D-13: el mapeo de tiques no está cerrado)"
+                "(el mapeo de tiques 090/099 es la decisión abierta D-13 y un "
+                "comprobante internacional no está en el padrón argentino)"
             )
         return tabla[letra]
 

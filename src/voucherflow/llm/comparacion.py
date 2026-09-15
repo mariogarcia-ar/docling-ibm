@@ -369,12 +369,15 @@ def _no_puntuan(lectura: dict[str, Any], mapa: dict[str, Any]) -> list[Comparaci
 #: o el reporte miente con más autoridad que si no dijera nada.
 CAUSAS_CONOCIDAS: dict[str, str] = {
     "tipo_comprobante": (
-        "Dos causas posibles, y el reporte no distingue cuál aplica: (a) los "
+        "Tres causas posibles, y el reporte no distingue cuál aplica: (a) los "
         "vocabularios difieren a propósito —el lab acepta códigos de tique "
         "(090/099) que el motor R1-R7 de F3 deja fuera por D-13—; (b) las dos "
         "fuentes del propio pipeline no coincidieron (medido: VLM 'TICKET DE "
         "VENTA' vs. LLM 'FACTURA'), y el valor publicado es el de la fuente que "
-        "ganó por precedencia, marcado como no confiable."
+        "ganó por precedencia, marcado como no confiable; (c) el comprobante es "
+        "de un proveedor **internacional** y la referencia lo dejó en `null` "
+        "mientras el lab ahora dice 'INTERNACIONAL' (la marca se agregó el "
+        "2026-09-15; las corridas anteriores a esa fecha no la tienen)."
     ),
     "moneda": (
         "El pipeline NO asume 'ARS' sin indicio explícito: inventar la moneda "

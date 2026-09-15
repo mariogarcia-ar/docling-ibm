@@ -178,6 +178,10 @@ def diff_deterministico(extraccion: dict, datos: dict) -> dict[str, Any]:
             criticas.append(nombre)
 
     # 1. Tipo de comprobante: 090 y 099 son indistintos (regla 1).
+    #    ⚠️ "INTERNACIONAL" NO es indistinto con una letra: es un comprobante de
+    #    un proveedor de otro país (sin letra AFIP), así que compararlo contra
+    #    "A"/"B"/"E" es una discrepancia real. La regla de 090/099 se mantiene
+    #    acotada a ese par para no volverla una bolsa de equivalencias.
     leido_tipo, cargado_tipo = _norm(extraccion.get("tipo_comprobante")), _norm(
         datos.get("tipo_comprobante")
     )
@@ -199,7 +203,14 @@ def diff_deterministico(extraccion: dict, datos: dict) -> dict[str, Any]:
                 extraccion.get("tipo_comprobante"),
                 datos.get("tipo_comprobante"),
                 (leido_tipo == cargado_tipo) if leido_tipo and cargado_tipo else "no_verificable",
-                None if leido_tipo == cargado_tipo else "El tipo leído no coincide con el cargado.",
+                None
+                if leido_tipo == cargado_tipo
+                else (
+                    "El comprobante es de un proveedor internacional y la carga "
+                    "dice otra cosa (regla 1: 'INTERNACIONAL' no es una letra)."
+                    if "INTERNACIONAL" in (leido_tipo, cargado_tipo)
+                    else "El tipo leído no coincide con el cargado."
+                ),
             ),
             True,
         )

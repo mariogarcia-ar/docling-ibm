@@ -66,6 +66,25 @@ from .contexto_conclusion import CAMPOS_CRITICOS, ContextoConclusion
 #: Versión de la política de gaps/búsqueda (se registra en la trazabilidad).
 VERSION_GAPS = "conclusion-gaps@1"
 
+
+def es_comprobante_internacional(contexto: ContextoConclusion) -> bool:
+    """True si la letra vigente del caso marca un comprobante internacional.
+
+    El valor es :data:`~voucherflow.rules.contexto.INTERNACIONAL` (un
+    comprobante emitido por un proveedor de otro país, sin letra ni código
+    AFIP). Se compara en mayúsculas porque la letra vigente se publica en la
+    forma del vocabulario pero el contexto puede venir de un mapping armado a
+    mano.
+
+    Se evalúa de forma **defensiva**: si el contexto no expone ``letra`` (un
+    doble de test, por ejemplo), no se afirma que sea internacional — el default
+    conserva el comportamiento previo.
+    """
+    from .contexto import INTERNACIONAL
+
+    letra = getattr(contexto, "letra", None)
+    return isinstance(letra, str) and letra.strip().upper() == INTERNACIONAL
+
 #: Niveles de criticidad de un gap. Un gap **bloqueante** impide dar un veredicto
 #: con certeza alta; uno **informativo** no impide concluir pero mejora el caso.
 CRITICIDAD_BLOQUEANTE = "bloqueante"
@@ -83,6 +102,15 @@ MOTIVO_NO_BUSCABLE = (
     "El campo «{campo}» solo puede provenir del documento: no hay una fuente "
     "externa que lo aporte (ADR-003: se busca con un objetivo concreto, no "
     "'más evidencia' en general)."
+)
+
+#: Motivo del gap de un comprobante **internacional**: el padrón argentino no
+#: puede constatar un comprobante que no emitió un contribuyente argentino.
+MOTIVO_NO_BUSCABLE_INTERNACIONAL = (
+    "El comprobante lo emitió un proveedor internacional: el padrón ARCA/WSCDC "
+    "no puede constatarlo (el emisor no es un contribuyente argentino), así que "
+    "la búsqueda no se dispara y el caso se resuelve con la lectura del "
+    "documento."
 )
 
 #: Descripción por campo de **qué** consulta cierra el gap y **si** es buscable.
@@ -270,6 +298,10 @@ def detectar_gaps(
 
     tabla = catalogo if catalogo is not None else CATALOGO_GAPS
     faltantes = list(contexto.campos_ausentes)
+    # Un comprobante internacional se identifica por su letra vigente: el padrón
+    # argentino no tiene nada que decir sobre un emisor de otro país (ver el corte
+    # por gap más abajo).
+    es_internacional = es_comprobante_internacional(contexto)
 
     gaps: list[Gap] = []
     for campo in faltantes:
@@ -284,12 +316,23 @@ def detectar_gaps(
             CRITICIDAD_BLOQUEANTE if campo in CAMPOS_CRITICOS else entrada["criticidad"]
         )
         buscable = bool(entrada.get("buscable", False))
+        objetivo: str | None = None
         fuente = entrada.get("fuente")
+        # ⚠️ Un comprobante **internacional** no se puede constatar contra el
+        # padrón argentino: el emisor no es un contribuyente de ARCA, así que la
+        # consulta no tiene sujeto. Sin este corte el sistema dispararía una
+        # consulta que no puede prosperar (o peor: armaría el ``CmpReq`` con un
+        # CUIT y un tipo AFIP que el documento no tiene). El gap se conserva
+        # —el dato sigue faltando y hay que verlo— pero deja de ser buscable.
+        if es_internacional and buscable:
+            buscable = False
+            fuente = None
+            objetivo = MOTIVO_NO_BUSCABLE_INTERNACIONAL
         gaps.append(
             Gap(
                 campo=campo,
                 criticidad=criticidad,
-                objetivo=str(entrada.get("objetivo", "")),
+                objetivo=str(objetivo if objetivo is not None else entrada.get("objetivo", "")),
                 buscable=buscable,
                 fuente=fuente if isinstance(fuente, Fuente) else None,
             )
@@ -718,6 +761,7 @@ __all__ = [
     "INTENTO_PRESUPUESTO_AGOTADO",
     "INTENTO_NO_BUSCABLE",
     "MOTIVO_NO_BUSCABLE",
+    "MOTIVO_NO_BUSCABLE_INTERNACIONAL",
     "CATALOGO_GAPS",
     "GAP_POR_DEFECTO",
     "Gap",

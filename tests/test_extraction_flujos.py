@@ -1127,7 +1127,22 @@ class TestVocabularios:
     def test_tipo_comprobante_incluye_los_tiques(self):
         # El prompt de referencia (regla 4) admite "090"/"099" para boletos: acá se
         # evalúa qué se leyó, no qué letra decide el negocio (D-13 es de F3).
-        assert set(VOCABULARIO_TIPO_COMPROBANTE) == {"A", "B", "C", "M", "E", "090", "099"}
+        #
+        # ``INTERNACIONAL`` está en el vocabulario desde 2026-09-15: es la marca
+        # de un comprobante de un proveedor de otro país (una INVOICE sin letra
+        # AFIP), que antes no tenía valor posible y el modelo improvisaba.
+        # ⚠️ Se llama INTERNACIONAL, no EXTERIOR: "exterior" nombra el eje de la
+        # exportación (Factura E), que es el caso opuesto.
+        assert set(VOCABULARIO_TIPO_COMPROBANTE) == {
+            "A",
+            "B",
+            "C",
+            "M",
+            "E",
+            "090",
+            "099",
+            "INTERNACIONAL",
+        }
 
     def test_moneda(self):
         assert set(VOCABULARIO_MONEDA) == {"ARS", "USD"}

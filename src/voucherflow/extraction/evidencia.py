@@ -122,6 +122,7 @@ from ..evidencia import (
 from ..evidencia import (
     resolver_modelo as _resolver_modelo,
 )
+from ..rules.contexto import INTERNACIONAL
 from ..rules.raw import (
     CampoDeclarado,
     ImplicacionCoherencia,
@@ -224,7 +225,36 @@ _FUENTE_SCHEMA: dict[str, Fuente] = {"vlm": Fuente.vlm, "llm": Fuente.llm}
 #: regla 4) a diferencia del vocabulario del motor R1-R7 de F3 —que los deja
 #: fuera por la decisión abierta **D-13**—: acá se evalúa **qué se leyó**, no qué
 #: letra decide el negocio.
-VOCABULARIO_TIPO_COMPROBANTE: tuple[str, ...] = ("A", "B", "C", "M", "E", "090", "099")
+#:
+#: ⚠️ ``INTERNACIONAL`` **no es un valor impreso** (ver :data:`INTERNACIONAL` en
+#: ``rules.contexto``): es una **inferencia** —"este comprobante lo emitió un
+#: proveedor internacional"—, así que exigirle sostén literal produciría una
+#: debilidad **espuria sistemática** (el papel dice ``INVOICE``, no
+#: ``INTERNACIONAL``). Por eso el sostén de ese valor concreto no se evalúa
+#: (:data:`VALORES_SIN_SOSTEN_LITERAL`): lo que sostiene la lectura es la
+#: descripción del documento, que el modelo cita igual en el fragmento.
+VOCABULARIO_TIPO_COMPROBANTE: tuple[str, ...] = (
+    "A",
+    "B",
+    "C",
+    "M",
+    "E",
+    "090",
+    "099",
+    INTERNACIONAL,
+)
+
+#: Valores del vocabulario que son **inferencias**, no texto impreso, y por eso
+#: no se les exige sostén literal (RAW_SUSTENTO / RAW_CONTRADICCION).
+#:
+#: El caso es ``INTERNACIONAL``: ningún comprobante imprime esa palabra, así
+#: que buscarla en el fragmento siempre falla. La alternativa —dejarlo como
+#: debilidad ``dudosa``— marcaría **todos** los comprobantes internacionales como
+#: lectura sin prueba, que es exactamente el falso positivo que T-403 combatió
+#: con :data:`CAMPOS_SOSTEN_NO_EVALUADO`. El valor se sigue evaluando por
+#: vocabulario (que es lo que detecta una lectura inventada) y se publica con su
+#: fragmento de sustento, que es lo que la auditoría necesita.
+VALORES_SIN_SOSTEN_LITERAL: frozenset[str] = frozenset({INTERNACIONAL})
 VOCABULARIO_MONEDA: tuple[str, ...] = ("ARS", "USD")
 
 CAMPOS_CON_VOCABULARIO: dict[str, tuple[str, ...]] = {
@@ -951,8 +981,24 @@ def campo_declarado_de_campo(campo_lectura: CampoLectura) -> CampoDeclarado | No
         normalizador_valor=_normalizador_canonico_de_campo(campo),
         sostenedor=_sostenedor_de_campo(campo),
         coherencia=COHERENCIA_POR_CAMPO.get(campo, ()),
+        sin_sosten_literal=_sin_sosten_literal_de(campo),
         exigir_sustento=True,
     )
+
+
+def _sin_sosten_literal_de(campo: str) -> frozenset[str]:
+    """Valores del campo que **no** se exigen literalmente en el fragmento (T-403).
+
+    Hoy solo ``tipo_comprobante`` → ``{INTERNACIONAL}``: la marca de comprobante
+    internacional es una **inferencia** sobre quién emitió, no una palabra
+    impresa, y ningún papel la dice. Exigirla marcaría como "sin prueba" a todos
+    los comprobantes internacionales —el falso positivo que T-403 ya combatió
+    para los campos de formato volátil—. La regla de **vocabulario** se sigue
+    evaluando: un valor inventado se reporta igual.
+    """
+    if campo == "tipo_comprobante":
+        return VALORES_SIN_SOSTEN_LITERAL
+    return frozenset()
 
 
 def veredicto_raw_de_evidencia(

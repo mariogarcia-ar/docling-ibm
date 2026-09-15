@@ -252,7 +252,10 @@ def esquema_extraccion() -> dict[str, Any]:
                 "description": "Calidad general de la imagen para leer los datos.",
             },
             "tipo_comprobante": _texto_o_null(
-                'Tipo o letra ("A", "B", "C", "090", "099", u otro código AFIP).'
+                'Tipo o letra ("A", "B", "C", "090", "099", "INTERNACIONAL", u '
+                'otro código AFIP). "INTERNACIONAL" es un comprobante emitido por '
+                "un proveedor de otro país (una INVOICE sin letra AFIP); NO es "
+                'una Factura E argentina.'
             ),
             "codigo_afip": _texto_o_null('Código impreso, p. ej. "COD. 001".'),
             "razon_social_emisor": _texto_o_null("Razón social del emisor."),

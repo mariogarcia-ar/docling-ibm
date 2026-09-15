@@ -808,6 +808,7 @@ criterio que el README de `tests/golden/F4/`: una diferencia se **explica** o se
 | Diferencia | Por qué **no** es una regresión |
 |---|---|
 | `tipo_comprobante` A vs `090` | Son vocabularios distintos a propósito: el lab acepta los códigos de tique; el motor R1-R7 de F3 los deja fuera por D-13. Comparar contra la **letra final** mezcla lectura con decisión. |
+| `tipo_comprobante` `null` vs `INTERNACIONAL` | Los artefactos anteriores al **2026-09-15** no tienen la marca: el lab ahora la emite para un comprobante de un proveedor de otro país (una `INVOICE` sin letra AFIP), y la referencia lo dejaba en `null`. No es una regresión de la lectura: es un valor que antes no existía. |
 | `moneda` `null` vs `"ARS"` | El pipeline **no asume** `ARS` sin indicio explícito: inventar la moneda sería peor que no leerla. |
 | `descripcion` | Texto libre en las dos puntas; §8.1. |
 | `observaciones` · `rubro_emisor` | **No entran en el acuerdo**: el mismo modelo no coincide consigo mismo (§2.4). |

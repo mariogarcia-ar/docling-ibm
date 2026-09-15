@@ -126,7 +126,35 @@ las reglas habría dos versiones y una mentiría.
 
 El YAML tiene tres claves: `system` (las 15 reglas), `user` (el pedido + el
 *template* del JSON de entrada) y `ejemplo_salida` (el formato de la respuesta).
-Las tres se pueden ver por separado porque el código las trata distinto.
+Las tres se pueden ver por separado porque el código las trata distintas.
+
+### El vocabulario de `tipo_comprobante`
+
+| Valor | Qué es |
+|---|---|
+| `A` `B` `C` `M` `E` | La letra del encabezado de un comprobante **argentino** |
+| `090` `099` | Códigos de otros comprobantes (boletos); son **indistintos** entre sí |
+| `INTERNACIONAL` | Un comprobante de un proveedor de **otro país** (`INVOICE` de una LLC de EE.UU.) |
+
+⚠️ **`E` e `INTERNACIONAL` son ejes opuestos, no variantes:**
+
+- `E` — **Factura E argentina**: la emite un contribuyente argentino *hacia* el
+  exterior (R3: el *receptor* está fuera del país).
+- `INTERNACIONAL` — un proveedor de afuera que **nos** factura a nosotros (el
+  *emisor* está fuera del país).
+
+⚠️ **Por qué no se llama `EXTERIOR`**: el dominio ya usa "exterior" para la
+exportación (se factura *al exterior*). Un valor con ese nombre hacía que
+"comprobante del exterior" describiera **los dos** casos a la vez. La palabra
+quedó reservada para el eje de R3.
+
+Sin `INTERNACIONAL` el modelo improvisaba de tres formas sobre el corpus real:
+`null` (el dato se perdía), texto libre —`"INVOICE (no es comprobante AFIP…)"`,
+que el vocabulario cerrado marca como inválido— y `"E"`.
+
+⚠️ **Un `INTERNACIONAL` no se constata en el padrón ARCA**: el emisor no es un
+contribuyente argentino, así que la búsqueda de evidencia adicional no se dispara
+para ese caso (el gap se sigue reportando, pero como no buscable).
 
 Dos modos de armado:
 

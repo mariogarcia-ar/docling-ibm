@@ -13,6 +13,7 @@
 | Término | Definición |
 |---------|------------|
 | **Comprobante** | Documento fiscal o comercial (factura A/B/C/M/E, nota de crédito/débito, ticket, boleto 090/099, etc.) sujeto a validación y extracción. |
+| **Comprobante internacional** (`INTERNACIONAL`) | Comprobante emitido por un proveedor de **otro país** (una `INVOICE` de una LLC de EE.UU.): no es un comprobante fiscal argentino, así que no tiene letra A/B/C/M/E ni código AFIP. **No confundir con la Factura E**: `E` es un emisor **argentino** que le factura *al exterior*; `INTERNACIONAL` es un proveedor de afuera que nos factura a nosotros. Por eso el valor **no** se llama `EXTERIOR` — esa palabra queda para el eje de la exportación. |
 | **Docling / procesamiento** | Capacidad de convertir cualquier entrada (PDF texto, PDF escaneado, imagen, DOCX, XLSX, PPTX, TXT, CSV, LOG, HTML/Markdown) en una representación estructurada y legible (Markdown + boxes). |
 | **OCR** | Lectura de texto desde imagen mediante motor clásico (RapidOCR/Docling) o modelo visual (VLM). |
 | **Markdown OCR / representación intermedia** | Salida textual ordenada por posición visual que sirve de entrada al flujo LLM. |

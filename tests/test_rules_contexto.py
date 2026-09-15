@@ -193,8 +193,14 @@ class TestNormalizacion:
         assert not es_condicion_fiscal_conocida(None)
 
     def test_vocabulario_letras(self):
-        assert LETRAS_COMPROBANTE == frozenset({"A", "B", "C", "M", "E"}), (
-            "El vocabulario de letras debe ser el enum TipoComprobante sin los tiques 090/099"
+        assert LETRAS_COMPROBANTE == frozenset(
+            {"A", "B", "C", "M", "E", "INTERNACIONAL"}
+        ), (
+            "El vocabulario de letras debe ser el enum TipoComprobante sin los "
+            "tiques 090/099, más INTERNACIONAL (la marca de un comprobante de un "
+            "proveedor de otro país, que no es una letra impresa). "
+            "⚠️ No se llama 'EXTERIOR': esa palabra nombra el eje de R3 "
+            "(exportación), que es el caso **opuesto**."
         )
 
 

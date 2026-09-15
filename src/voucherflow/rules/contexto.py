@@ -50,6 +50,28 @@ CONDICION_DESCONOCIDA = "desconocido"
 #: País del receptor que NO dispara R3 (exportación).
 PAIS_ARGENTINA = "Argentina"
 
+#: Marca de un comprobante emitido por un proveedor **internacional**.
+#:
+#: ⚠️ **No es una letra** como A/B/C/M/E: es la marca de que el documento no es
+#: un comprobante fiscal argentino (una ``INVOICE`` de una LLC de EE.UU.), así que
+#: no tiene letra ni código AFIP. Por eso convive con ``E`` en vez de
+#: reemplazarla: ``E`` es una Factura E **argentina** (emisor argentino que le
+#: factura al exterior, regla R3); esto es el caso inverso (un proveedor de afuera
+#: que nos factura a nosotros).
+#:
+#: ⚠️ **Por qué ``INTERNACIONAL`` y no ``EXTERIOR``**: el término "exterior" se
+#: usa en el dominio para la **exportación** (la Factura E: un emisor argentino
+#: que factura *al exterior*). Nombrar así este valor ponía dos significados
+#: opuestos en la misma palabra. ``INTERNACIONAL`` deja "exterior" para el eje de
+#: R3 y no se confunde con él.
+#:
+#: ▲ Entra por **lectura**, no por una regla de negocio: lo que lo determina es
+#: que el **emisor** esté fuera del país, y ese dato no lo lee la extracción (el
+#: ``emisor_pais`` del contexto solo se puebla desde un mapping externo, nunca
+#: desde el documento). Una regla R8 sería código muerto: ninguna condición
+#: podría dispararla.
+INTERNACIONAL = "INTERNACIONAL"
+
 #: Valores de ``campos_totales`` (enum del prompt WIP §inputs_esperados).
 CAMPOS_TOTALES_DISCRIMINADO = "discriminado"
 CAMPOS_TOTALES_SUBTOTAL_UNICO = "subtotal_unico"
@@ -58,7 +80,17 @@ CAMPOS_TOTALES_DESCONOCIDO = "desconocido"
 #: Letras válidas para la lectura de tipo/letra (enum ``TipoComprobante`` de
 #: ``schemas/evidence.py``, sin los códigos de tique 090/099 — ver F3-subplan
 #: §2.8 / decisión abierta D-13: el motor no inventa el mapeo letra↔código).
-LETRAS_COMPROBANTE = frozenset({"A", "B", "C", "M", "E"})
+#:
+#: ⚠️ Incluye :data:`INTERNACIONAL`, que **no es una letra** impresa: es la marca
+#: de un comprobante de un proveedor internacional. Entra igual a este conjunto
+#: porque es el **vocabulario en el que se resuelve la letra vigente** del caso
+#: (lo consumen ``normalizar_letra``, ``_es_letra_valida`` de F5 y la
+#: consolidación): si no estuviera, el valor se descartaría en silencio y un
+#: comprobante internacional —que el negocio reembolsa— quedaría en revisión
+#: perpetua por "sin letra" (``CRUZ_2``). Lo que **no** hace es habilitar que R4
+#: lo lea de un recuadro: ``REGEX_LETRA_ENCABEZADO`` sigue aceptando solo letras
+#: reales.
+LETRAS_COMPROBANTE = frozenset({"A", "B", "C", "M", "E", INTERNACIONAL})
 
 #: Condiciones fiscales reconocidas (normalizadas).
 CONDICIONES_FISCALES_CONOCIDAS = frozenset(
@@ -102,13 +134,14 @@ def normalizar_condicion_fiscal(valor: Any) -> str | None:
 
 
 def normalizar_letra(valor: Any) -> str | None:
-    """Devuelve la letra en mayúscula si está en ``{A,B,C,M,E}``; si no, ``None``.
+    """Devuelve el valor en mayúscula si está en :data:`LETRAS_COMPROBANTE`.
 
-    Contrato explícito de **T-301** (Gherkin E-CLAS-1): el vocabulario de letras
-    es el enum ``TipoComprobante`` de ``schemas/evidence.py`` sin los códigos de
-    tique ``090``/``099`` (decisión abierta D-13; el prompt WIP no define reglas
-    para ellos). Es el **normalizador reutilizable por R4 y R5** y el asignador
-    de la letra final del orquestador.
+    Contrato explícito de **T-301** (Gherkin E-CLAS-1): el vocabulario es el enum
+    ``TipoComprobante`` de ``schemas/evidence.py`` (``A``/``B``/``C``/``M``/``E``
+    más :data:`INTERNACIONAL`) sin los códigos de tique ``090``/``099`` (decisión
+    abierta D-13; el prompt WIP no define reglas para ellos). Es el
+    **normalizador reutilizable por R4 y R5** y el asignador de la letra final del
+    orquestador.
 
     Un valor fuera del vocabulario (``"Z"``, ``"090"``, ``None``, ``""``)
     devuelve ``None``: **no se inventa** una letra válida.
@@ -401,6 +434,7 @@ __all__ = [
     "CONDICION_DESCONOCIDA",
     "CONDICIONES_FISCALES_CONOCIDAS",
     "PAIS_ARGENTINA",
+    "INTERNACIONAL",
     "CAMPOS_TOTALES_DISCRIMINADO",
     "CAMPOS_TOTALES_SUBTOTAL_UNICO",
     "CAMPOS_TOTALES_DESCONOCIDO",

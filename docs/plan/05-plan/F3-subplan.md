@@ -417,7 +417,13 @@
   actuales (`classification/__init__.py` debe seguir exportándolos). Agregar
   campos con default es válido.
 - **Vocabulario de letras**: usar el enum `TipoComprobante` de
-  `schemas/evidence.py` (A/B/C/M/E/090/099); no inventar valores nuevos.
+  `schemas/evidence.py` (A/B/C/M/E/090/099/`INTERNACIONAL`); no inventar valores
+  nuevos. `INTERNACIONAL` (2026-09-15) marca un comprobante de un proveedor de
+  otro país: **no es una letra impresa**, así que R4/R5 no lo leen de un recuadro
+  —`REGEX_LETRA_ENCABEZADO` sigue aceptando solo letras reales— y entra al
+  vocabulario porque es la forma en que se resuelve la **letra vigente** del caso
+  (si no estuviera, F5 lo descartaría y el comprobante quedaría en revisión
+  perpetua por "sin letra").
 - **La suite default corre sin Ollama ni Docling real**: dobles
   (`FakeOllamaClient`, lectores inyectados) o fixtures; las corridas reales
   quedan en `@pytest.mark.integration`.

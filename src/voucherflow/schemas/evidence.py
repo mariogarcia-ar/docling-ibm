@@ -101,7 +101,23 @@ class EstadoResultado(str, Enum):
 
 
 class TipoComprobante(str, Enum):
-    """Letras/tipos de comprobante que el sistema clasifica (E-CLAS-1)."""
+    """Letras/tipos de comprobante que el sistema clasifica (E-CLAS-1).
+
+    ⚠️ ``INTERNACIONAL`` **no es una letra**: es la marca de un comprobante
+    emitido por un proveedor internacional (una ``INVOICE`` de una LLC de
+    EE.UU.), que no es un comprobante fiscal argentino y por lo tanto no tiene
+    letra A/B/C/M/E ni código AFIP.
+
+    Es **ortogonal** a ``E`` y convive con ella: ``E`` es una Factura E
+    argentina, esto es, un emisor argentino que le factura al exterior (R3, el
+    receptor está fuera del país); ``INTERNACIONAL`` es el caso inverso, un
+    proveedor de afuera que nos factura a nosotros. Confundirlos haría que un
+    mismo campo signifique dos cosas a la vez.
+
+    ⚠️ **Por qué no se llama ``EXTERIOR``**: el dominio ya usa "exterior" para
+    la **exportación** (la Factura E: se factura *al exterior*). Un valor con ese
+    nombre ponía dos significados opuestos en la misma palabra.
+    """
 
     factura_a = "A"
     factura_b = "B"
@@ -110,6 +126,7 @@ class TipoComprobante(str, Enum):
     factura_e = "E"
     tique_090 = "090"
     tique_099 = "099"
+    internacional = "INTERNACIONAL"
 
 
 # ---------------------------------------------------------------------------

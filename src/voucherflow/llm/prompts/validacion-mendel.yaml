@@ -32,13 +32,22 @@
   Reglas de negocio por campo:
 
   1. TIPO_COMPROBANTE
-     - Valores válidos: "A", "B", "C", "090", "099".
+     - Valores válidos: "A", "B", "C", "090", "099", "INTERNACIONAL".
      - "090"/"099" (Otros Comprobantes) se usan para boletos/pasajes de colectivo
        u otros casos sin factura AFIP tradicional. Es indistinto cuál de los dos
        se use (no se toma IVA en ningún caso) — NO marcar error si el empleado
        usó 090 en vez de 099 o viceversa en un comprobante de este tipo.
      - Si el comprobante muestra "COD. 001" (A), "COD. 006" (B), "COD. 011" (C)
        u otro código AFIP, mapealo al tipo correspondiente antes de comparar.
+     - "INTERNACIONAL": el comprobante lo emitió un proveedor de **otro país**
+       (una "INVOICE" de una empresa de EE.UU., Irlanda, etc.), sin letra A/B/C
+       ni código AFIP porque no es un comprobante fiscal argentino. El criterio
+       es dónde está el **emisor**. NO uses "E" para esto: "E" es una Factura E
+       **argentina** (un emisor argentino que le factura al exterior), que es el
+       caso opuesto. Si el comprobante es internacional y el empleado no cargó
+       "INTERNACIONAL" (o cargó A/B/C), marcalo como discrepancia crítica; y a
+       la inversa, no marques "E" como válido para un comprobante emitido por
+       un proveedor de afuera.
 
   2. RAZON_SOCIAL_EMISOR
      - Comparar contra el nombre/razón social impreso en el encabezado del
@@ -147,7 +156,7 @@
 
   Datos cargados por el empleado en Mendel:
   {
-    "tipo_comprobante": "<A|B|C|090|099>",
+    "tipo_comprobante": "<A|B|C|090|099|INTERNACIONAL>",
     "razon_social_emisor": "<texto>",
     "cuit_emisor": "<XX-XXXXXXXX-X>",
     "fecha_emision": "<DD/MM/AAAA>",

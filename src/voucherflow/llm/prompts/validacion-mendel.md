@@ -51,7 +51,7 @@ deducir de la imagen. Las que más importan, porque evitan falsos «REVISAR»:
 
 | # | Regla | Qué decide |
 |---|---|---|
-| 1 | Tipo | `090` y `099` son **indistintos** (boletos). Mapea `COD. 001/006/011` → A/B/C |
+| 1 | Tipo | `090` y `099` son **indistintos** (boletos). Mapea `COD. 001/006/011` → A/B/C. `INTERNACIONAL` = comprobante de un proveedor de otro país (no es una Factura E) |
 | 2 | Razón social | Tolerar formato: mayúsculas, tildes, «S.A. vs SA» |
 | 3 | CUIT | Comparar dígito a dígito. No rechazar por el verificador |
 | 4 | Fecha | Contra la **impresa**, no la de carga |

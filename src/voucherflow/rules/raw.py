@@ -279,6 +279,13 @@ class CampoDeclarado:
     normalizador_valor: Any = None
     sostenedor: Any = None
     coherencia: tuple["ImplicacionCoherencia", ...] = ()
+    #: Valores del ``vocabulario`` que **no** se exigen literalmente en el
+    #: fragmento porque son **inferencias**, no texto impreso (ver
+    #: :func:`valor_sostenido`). Hoy solo ``INTERNACIONAL``: ningún comprobante
+    #: imprime esa palabra, así que buscarla marcaría una debilidad espuria en
+    #: **todos** los comprobantes internacionales. La regla de vocabulario se
+    #: sigue aplicando: un valor inventado se reporta igual.
+    sin_sosten_literal: frozenset[str] = frozenset()
 
     def normalizar(self) -> Any:
         """Valor normalizado (aplica ``normalizador`` si se declaró).
@@ -384,10 +391,34 @@ class VeredictoRaw:
 
 
 def _en_vocabulario(campo: CampoDeclarado) -> bool:
-    """True si el valor pertenece al vocabulario declarado (o no hay vocabulario)."""
+    """True si el valor pertenece al vocabulario declarado (o no hay vocabulario).
+
+    ⚠️ El ``in`` va por :func:`_esta_en`, no directo: el valor declarado puede
+    **no ser hashable** (una lista de ítems del modo genérico ``kvg``), y
+    ``lista in set(...)`` levanta ``TypeError``. Ese error no rompía solo la
+    evaluación de ese campo: tumbaba **toda** la pasada raw de la fuente, porque
+    las reglas se evalúan en un bucle sobre los campos (defecto preexistente,
+    destapado al agregar un valor más al vocabulario de ``tipo_comprobante``).
+    """
     if campo.vocabulario is None:
         return True
-    return campo.normalizar() in set(campo.vocabulario)
+    return _esta_en(campo.normalizar(), campo.vocabulario)
+
+
+def _esta_en(valor: Any, opciones: Any) -> bool:
+    """Pertenencia **tolerante a valores no hashables** (listas del modo ``kvg``).
+
+    Un valor de tipo colección se compara por igualdad contra las opciones en vez
+    de usar ``in`` sobre un ``set`` (que exige hashable). Se evita convertir el
+    valor a texto para no inventar una coincidencia: una lista **no** es un valor
+    del vocabulario, así que devuelve ``False``.
+    """
+    if isinstance(valor, (list, dict, set)):
+        return any(valor == opcion for opcion in opciones or ())
+    try:
+        return valor in set(opciones or ())
+    except TypeError:
+        return any(valor == opcion for opcion in opciones or ())
 
 
 def condicion_raw_campo(campo: CampoDeclarado) -> bool:
@@ -441,7 +472,7 @@ def coincidencias_en_sustento(campo: CampoDeclarado) -> list[str]:
             capturado_norm = (
                 campo.normalizador(capturado) if campo.normalizador else capturado
             )
-            if campo.vocabulario is not None and capturado_norm in set(campo.vocabulario):
+            if campo.vocabulario is not None and _esta_en(capturado_norm, campo.vocabulario):
                 if capturado_norm not in encontrados:
                     encontrados.append(capturado_norm)
         return encontrados
@@ -490,11 +521,19 @@ def valor_sostenido(campo: CampoDeclarado) -> bool:
     donde el formato importa: ``"1.234,56"`` está contenido en
     ``"Ajuste: 1.234,56-"``, pero ese fragmento sostiene ``-1234.56``, no
     ``1234.56``.
+
+    ⚠️ Un valor marcado en ``sin_sosten_literal`` (p. ej. ``INTERNACIONAL``, que
+    es una **inferencia** y no un texto que el papel imprima) se da por
+    sostenido: exigirle la palabra en el fragmento marcaría una debilidad
+    **espuria sistemática**. Sigue sujeto a la regla de **vocabulario**, que es
+    la que detecta un valor inventado.
     """
     if campo.vocabulario is not None:
         declarado = campo.normalizar()
         if declarado is None:
             return False
+        if _sin_sosten_literal(campo, declarado):
+            return True
         return declarado in coincidencias_en_sustento(campo)
     canonico = campo.valor_canonico()
     if canonico is None:
@@ -528,13 +567,33 @@ def condicion_raw_contradiccion(campo: CampoDeclarado) -> bool:
     distinta de la declarada. No cambia el valor declarado (la lectura sigue
     siendo el indicio), pero registra la contradicción y alimenta los candidatos
     descartados.
+
+    ⚠️ Silencio cuando el valor declarado está en ``sin_sosten_literal``
+    (``INTERNACIONAL``): ahí la ausencia de la palabra en el fragmento es lo
+    **esperado**, así que lo que el fragmento diga de más no contradice nada. Sin
+    este corte, la "A" de un texto en inglés del tipo ``"Invoice A"`` se leería
+    como una contradicción del comprobante internacional.
     """
     if not campo.valor_presente or not campo.sustento_presente:
         return False
     if not _en_vocabulario(campo):
         return False
     declarado = campo.normalizar()
+    if _sin_sosten_literal(campo, declarado):
+        return False
     return any(valor != declarado for valor in coincidencias_en_sustento(campo))
+
+
+def _sin_sosten_literal(campo: CampoDeclarado, declarado: Any) -> bool:
+    """True si ``declarado`` es un valor del campo que no se exige literalmente.
+
+    Delega en :func:`_esta_en` por el mismo motivo que la regla de vocabulario:
+    el valor declarado puede no ser hashable (listas del modo ``kvg``) y un
+    ``in`` directo levantaría ``TypeError``.
+    """
+    if not campo.sin_sosten_literal:
+        return False
+    return _esta_en(declarado, campo.sin_sosten_literal)
 
 
 # ---------------------------------------------------------------------------
@@ -842,7 +901,9 @@ def _candidatos(
     declarado_utilizable = (
         campo.valor_presente
         and campo.vocabulario is not None
-        and declarado in set(campo.vocabulario)
+        # ``_esta_en`` y no ``in set(...)``: el valor puede ser una lista (modo
+        # ``kvg``) y el ``in`` directo levantaría ``TypeError``.
+        and _esta_en(declarado, campo.vocabulario)
     )
 
     if declarado_utilizable:
