@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/chicos/243a8b81-eca0-4841-ab69-72adf519a843.png",
   "archivo_relativo": "243a8b81-eca0-4841-ab69-72adf519a843.png",
-  "procesado_utc": "2026-09-15T02:15:32+00:00",
+  "procesado_utc": "2026-09-15T03:46:33+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -19,10 +19,10 @@
   "prompt_hash": "sha256:a0cd908fe067fb3c",
   "uso": {
     "prompt_tokens": 2956,
-    "completion_tokens": 697,
-    "total_tokens": 3653,
-    "prompt_cache_hit_tokens": 2304,
-    "prompt_cache_miss_tokens": 652
+    "completion_tokens": 499,
+    "total_tokens": 3455,
+    "prompt_cache_hit_tokens": 2816,
+    "prompt_cache_miss_tokens": 140
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,7 +31,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.001046,
+  "costo_usd": 0.000658,
   "resultado": {
     "legibilidad": "buena",
     "tipo_comprobante": null,
@@ -58,7 +58,7 @@
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "La imagen NO es un comprobante fiscal: es una hoja en blanco con la única leyenda 'GASTOS VARIOS, FALTA FACTURA.' No hay encabezado de emisor, CUIT, punto de venta, número, fecha, moneda ni líneas de importes (subtotal, IVA, exento, no gravado, percepciones, total). Por lo tanto no hay ningún dato fiscal que transcribir: todos los campos quedan en null/false. Se recomienda solicitar el comprobante respaldatorio (factura A/B/C o comprobante 090/099 de pasaje) antes de aprobar el gasto."
+    "observaciones": "La imagen no contiene un comprobante fiscal: es una hoja en blanco con la única leyenda 'GASTOS VARIOS, FALTA FACTURA.'. No hay emisor, CUIT, fecha, número, moneda ni importes que transcribir. No se puede validar tipo de comprobante, código AFIP, ni cierre aritmético. Se sugiere solicitar el comprobante respaldatorio (factura AFIP/ARCA o comprobante 090/099 según corresponda) antes de aprobar el gasto."
   },
   "extraccion": {
     "legibilidad": "buena",
@@ -86,7 +86,7 @@
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "La imagen NO es un comprobante fiscal: es una hoja en blanco con la única leyenda 'GASTOS VARIOS, FALTA FACTURA.' No hay encabezado de emisor, CUIT, punto de venta, número, fecha, moneda ni líneas de importes (subtotal, IVA, exento, no gravado, percepciones, total). Por lo tanto no hay ningún dato fiscal que transcribir: todos los campos quedan en null/false. Se recomienda solicitar el comprobante respaldatorio (factura A/B/C o comprobante 090/099 de pasaje) antes de aprobar el gasto."
+    "observaciones": "La imagen no contiene un comprobante fiscal: es una hoja en blanco con la única leyenda 'GASTOS VARIOS, FALTA FACTURA.'. No hay emisor, CUIT, fecha, número, moneda ni importes que transcribir. No se puede validar tipo de comprobante, código AFIP, ni cierre aritmético. Se sugiere solicitar el comprobante respaldatorio (factura AFIP/ARCA o comprobante 090/099 según corresponda) antes de aprobar el gasto."
   },
   "aritmetica": {
     "calculable": false,

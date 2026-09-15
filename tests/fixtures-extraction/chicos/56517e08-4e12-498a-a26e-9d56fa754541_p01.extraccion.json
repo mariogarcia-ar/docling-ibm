@@ -1,12 +1,12 @@
 {
   "origen": "tests/fixtures/chicos/56517e08-4e12-498a-a26e-9d56fa754541_p01.pdf",
   "archivo_relativo": "56517e08-4e12-498a-a26e-9d56fa754541_p01.pdf",
-  "procesado_utc": "2026-09-15T03:40:33+00:00",
+  "procesado_utc": "2026-09-15T03:46:22+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
   "fuente": "api",
-  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_umckocck/56517e08-4e12-498a-a26e-9d56fa754541_p01.jpg",
+  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_zw1uqns7/56517e08-4e12-498a-a26e-9d56fa754541_p01.jpg",
   "pagina": 1,
   "imagen": {
     "bytes": 433531,
@@ -21,8 +21,8 @@
   "prompt_hash": "sha256:a0cd908fe067fb3c",
   "uso": {
     "prompt_tokens": 3491,
-    "completion_tokens": 1279,
-    "total_tokens": 4770,
+    "completion_tokens": 1829,
+    "total_tokens": 5320,
     "prompt_cache_hit_tokens": 3328,
     "prompt_cache_miss_tokens": 163
   },
@@ -33,7 +33,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.001604,
+  "costo_usd": 0.002264,
   "resultado": {
     "legibilidad": "buena",
     "tipo_comprobante": "A",
@@ -54,13 +54,13 @@
     "otros_impuestos": 0,
     "importe_total": 73000.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Comercio de artículos de limpieza (toallas intercaladas y detergente)",
-    "categoria_gasto_sugerida": "Insumos de limpieza",
-    "cantidad_comensales_personas": 0,
-    "cantidad_litros": 0,
+    "rubro_emisor": "Distribuidora de artículos de limpieza (toallas intercaladas, detergente)",
+    "categoria_gasto_sugerida": "Limpieza",
+    "cantidad_comensales_personas": null,
+    "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A (COD. 01), punto de venta 0005, nro 00018969. Emisor responsable inscripto (CUIT 20-08497822-2, dígito verificador válido). Ítems: 2,00 x CAJAS TOALLAS INTERCALADAS $25.619,835 = $51.239,67 y 1,00 x BIDON DETERGENTE $9.090,909 = $9.090,91. Subtotal (neto gravado) $60.330,58 + IVA 21% $12.669,42 = $73.000,00, coincide con el TOTAL impreso; la aritmética cierra. IVA al 10,5% e Impuesto Interno en $0,00. No se observan percepciones ni otros tributos. CAE 86095942632850, vto. CAE 12/03/2026. Moneda pesos ($)."
+    "observaciones": "Factura A (COD. 01), punto de venta 0005, número 00018969. Emisor: \"EL LUGAR\" de Navarra Miguel Angel, CUIT 20-08497822-2 (dígito verificador válido), Responsable Inscripto, domicilio 9 de Julio 767, (2600) Venado Tuerto, Santa Fe. Cliente: 433 - CVC S.A, CUIT 30-58221570-3, condición de venta contado. Ítems: 2,00 x CAJAS TOALLAS INTERCALADAS (P. Unit. 25.619,835, alícuota 21%) = 51.239,67; 1,00 x BIDON DETERGENTE (P. Unit. 9.090,909, alícuota 21%) = 9.090,91. Subtotal (neto gravado) 60.330,58 + IVA 21% 12.669,42 + IVA 10,50% 0,00 + Impuesto Interno 0,00 = TOTAL 73.000,00. La aritmética cierra. No se observan líneas de no gravado, exento, percepciones ni otros tributos. CAE 86095942632850, VTO CAE 12/03/2026. La categoría de gasto se sugiere por el rubro del emisor (artículos de limpieza); no hay datos de comensales, litros ni centro de costo en el comprobante."
   },
   "extraccion": {
     "legibilidad": "buena",
@@ -82,13 +82,13 @@
     "otros_impuestos": 0,
     "importe_total": 73000.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Comercio de artículos de limpieza (toallas intercaladas y detergente)",
-    "categoria_gasto_sugerida": "Insumos de limpieza",
-    "cantidad_comensales_personas": 0,
-    "cantidad_litros": 0,
+    "rubro_emisor": "Distribuidora de artículos de limpieza (toallas intercaladas, detergente)",
+    "categoria_gasto_sugerida": "Limpieza",
+    "cantidad_comensales_personas": null,
+    "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A (COD. 01), punto de venta 0005, nro 00018969. Emisor responsable inscripto (CUIT 20-08497822-2, dígito verificador válido). Ítems: 2,00 x CAJAS TOALLAS INTERCALADAS $25.619,835 = $51.239,67 y 1,00 x BIDON DETERGENTE $9.090,909 = $9.090,91. Subtotal (neto gravado) $60.330,58 + IVA 21% $12.669,42 = $73.000,00, coincide con el TOTAL impreso; la aritmética cierra. IVA al 10,5% e Impuesto Interno en $0,00. No se observan percepciones ni otros tributos. CAE 86095942632850, vto. CAE 12/03/2026. Moneda pesos ($)."
+    "observaciones": "Factura A (COD. 01), punto de venta 0005, número 00018969. Emisor: \"EL LUGAR\" de Navarra Miguel Angel, CUIT 20-08497822-2 (dígito verificador válido), Responsable Inscripto, domicilio 9 de Julio 767, (2600) Venado Tuerto, Santa Fe. Cliente: 433 - CVC S.A, CUIT 30-58221570-3, condición de venta contado. Ítems: 2,00 x CAJAS TOALLAS INTERCALADAS (P. Unit. 25.619,835, alícuota 21%) = 51.239,67; 1,00 x BIDON DETERGENTE (P. Unit. 9.090,909, alícuota 21%) = 9.090,91. Subtotal (neto gravado) 60.330,58 + IVA 21% 12.669,42 + IVA 10,50% 0,00 + Impuesto Interno 0,00 = TOTAL 73.000,00. La aritmética cierra. No se observan líneas de no gravado, exento, percepciones ni otros tributos. CAE 86095942632850, VTO CAE 12/03/2026. La categoría de gasto se sugiere por el rubro del emisor (artículos de limpieza); no hay datos de comensales, litros ni centro de costo en el comprobante."
   },
   "aritmetica": {
     "calculable": true,
