@@ -87,6 +87,7 @@ def _renderizar(tarea: Tarea, opciones: Opciones) -> Resultado:
             dpi=opciones.dpi,
             recortar=opciones.recortar,
             destino=tarea.destino,
+            calidad=opciones.calidad,
         )
     except Exception as exc:  # noqa: BLE001 - una página rota no corta el lote
         return Resultado(

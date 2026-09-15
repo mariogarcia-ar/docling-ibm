@@ -549,6 +549,33 @@ class TestRenderDecidePorCobertura:
             "(ningún PDF del corpus entre 0,36 y 0,83)"
         )
 
+    def test_la_calidad_sale_con_la_imagen(self, tmp_path):
+        """⚠️ La calidad del JPEG no puede quedar cableada en la escritura.
+
+        Estaba fija en 95 dentro de la función que guarda, así que el `--calidad`
+        que los comandos anunciaban en su resumen **nunca llegaba al archivo**.
+        """
+        ruta = _pdf_texto(tmp_path)
+        pesos = {}
+        for calidad in (95, 50):
+            destino = tmp_path / f"q{calidad}.jpg"
+            render_pdf_a_jpg(ruta, calidad=calidad, destino=destino)
+            pesos[calidad] = destino.stat().st_size
+        assert pesos[50] < pesos[95], (
+            f"bajar la calidad tiene que bajar el peso: {pesos}"
+        )
+
+    def test_el_default_de_calidad_es_el_de_la_constante(self, tmp_path):
+        """El default documentado (`CALIDAD_JPEG`) es el que se usa de verdad."""
+        from voucherflow.processing.orquestacion import CALIDAD_JPEG
+
+        ruta = _pdf_texto(tmp_path)
+        implicito = tmp_path / "implicito.jpg"
+        explicito = tmp_path / "explicito.jpg"
+        render_pdf_a_jpg(ruta, destino=implicito)
+        render_pdf_a_jpg(ruta, destino=explicito, calidad=CALIDAD_JPEG)
+        assert implicito.stat().st_size == explicito.stat().st_size
+
 
 # ---------------------------------------------------------------------------
 # procesar_imagen (subrutina de imagen, E-DOC-2)

@@ -97,6 +97,18 @@ def _error_no_procesable(mensaje: str) -> "Exception":
 #: queda en el medio del hueco.
 UMBRAL_IMAGEN_DOMINA = 0.5
 
+#: Calidad del JPEG que produce :func:`render_pdf_a_jpg`.
+#:
+#: 95 y no 85: el render es el **insumo de un OCR/VLM**, y la diferencia de peso
+#: entre ambas calidades es marginal frente a lo que cuesta perder un dígito
+#: (medido: 470 KiB a 95 contra 421 KiB a 85 en un A4 a 300 dpi).
+#:
+#: ⚠️ Es un **default de librería**: los comandos que exponen `--calidad`
+#: (``voucherflow pdf``, ``corpus --calidad``) lo pisan con lo que pida el
+#: operador. Antes el valor estaba cableado en la escritura y el `--calidad` de
+#: ``voucherflow pdf`` se anunciaba en el resumen sin llegar nunca al archivo.
+CALIDAD_JPEG = 95
+
 
 def _fraccion_imagen_mayor(hoja: "fitz.Page") -> float:
     """Fracción (0–1+) del área de la página que cubre su imagen más grande.
@@ -125,6 +137,7 @@ def render_pdf_a_jpg(
     *,
     recortar: bool | None = None,
     destino: str | Path | None = None,
+    calidad: int = CALIDAD_JPEG,
 ) -> Path:
     """Renderiza una página de un PDF a un archivo JPG (RGB sin alfa).
 
@@ -165,6 +178,7 @@ def render_pdf_a_jpg(
         dpi: resolución objetivo en puntos por pulgada (default 300, PROC.md §5).
         recortar: ``None`` decide por cobertura, ``True``/``False`` lo fuerzan.
         destino: archivo de salida; ``None`` crea uno temporal.
+        calidad: calidad del JPEG 1-100 (default :data:`CALIDAD_JPEG`).
 
     Devuelve:
         ``Path`` al JPG creado (RGB, sin canal alfa).
@@ -208,34 +222,58 @@ def render_pdf_a_jpg(
 
     if destino is None:
         tmp = Path(tempfile.mkdtemp(prefix="vf_render_")) / "pagina.jpg"
-        pix.save(str(tmp), jpg_quality=95)
-        return tmp
+        return _guardar_pixmap(pix, tmp, calidad=calidad)
 
-    return _guardar_pixmap(pix, Path(destino))
+    return _guardar_pixmap(pix, Path(destino), calidad=calidad)
 
 
-def _guardar_pixmap(pix: "fitz.Pixmap", destino: Path) -> Path:
-    """Guarda un pixmap en ``destino`` de forma atómica.
+def _guardar_pixmap(
+    pix: "fitz.Pixmap", destino: Path, *, calidad: int = 95
+) -> Path:
+    """Guarda un pixmap como JPEG de forma atómica.
 
-    Delega la mecánica en ``persistencia.escribir_bytes_atomico`` (temporal en el
-    mismo directorio + ``fsync`` + ``os.replace``): tener una copia local del
-    patrón es justo lo que ese módulo vino a cerrar, y un test lo verifica.
+    ⚠️ **El JPEG lo codifica Pillow, no PyMuPDF** (medido, 2026-09-15): para el
+    mismo A4 a 300 dpi, ``pix.tobytes("jpeg")`` y ``pix.save(...jpg)`` tardan
+    **~0,18 s**, mientras que ``Image.save(..., "JPEG")`` tarda **~0,014 s** — unas
+    **12 veces menos**, con el mismo tamaño de salida. El render (``get_pixmap``)
+    sí conviene hacerlo con PyMuPDF (~0,014 s en proceso, contra ~0,11 s de
+    ``pdf2image`` invocando poppler por página).
 
-    PyMuPDF escribe a un archivo, no devuelve bytes, así que el pixmap se
-    serializa a JPEG en memoria (``tobytes``) y lo que viaja al temporal son los
-    bytes ya listos. Eso además hace que el ``fsync`` cubra el contenido real: con
-    un ``save`` a archivo, el buffer de PyMuPDF podría no estar vaciado.
+    La mecánica de escritura se delega en ``persistencia.escribir_bytes_atomico``:
+    tener una copia local del patrón (temporal + ``fsync`` + ``replace``) es justo
+    lo que ese módulo vino a cerrar, y un test lo verifica.
     """
-    import pymupdf as fitz  # noqa: F401  (documenta de quién son los pixmaps)
-
+    datos = _jpeg_desde_pixmap(pix, calidad)
+    # El sufijo del temporal es el del destino: la extensión tiene que decir el
+    # formato, no ser un `.tmp` genérico.
     from ..persistencia import escribir_bytes_atomico
 
-    datos = pix.tobytes("jpeg", jpg_quality=95)
-    # El sufijo del temporal es el del destino: PyMuPDF deduce el formato de la
-    # extensión cuando escribe a archivo (acá ya no aplica, pero el temporal
-    # tampoco tiene que parecer un `.tmp` de otra cosa).
     escribir_bytes_atomico(destino, datos, sufijo=destino.suffix or ".jpg")
     return destino
+
+
+def _jpeg_desde_pixmap(pix: "fitz.Pixmap", calidad: int) -> bytes:
+    """Codifica un pixmap a JPEG con Pillow (ver el porqué en ``_guardar_pixmap``).
+
+    ``pix.samples`` son los bytes crudos en el ``colorspace`` del pixmap. Si el
+    pixmap tiene alfa (un PDF con transparencias puede darlo aunque se pida
+    ``csRGB``), se compone sobre blanco: un JPEG no puede llevar alfa, y dejarlo
+    caer a RGB a secas oscurecería los bordes transparentes.
+    """
+    from io import BytesIO
+
+    from PIL import Image
+
+    modo = "RGBA" if pix.alpha else "RGB"
+    imagen = Image.frombytes(modo, (pix.width, pix.height), pix.samples)
+    if pix.alpha:
+        fondo = Image.new("RGB", imagen.size, (255, 255, 255))
+        fondo.paste(imagen, mask=imagen.split()[3])
+        imagen = fondo
+
+    buffer = BytesIO()
+    imagen.save(buffer, "JPEG", quality=calidad, optimize=True)
+    return buffer.getvalue()
 
 
 # ---------------------------------------------------------------------------
@@ -919,6 +957,7 @@ __all__ = [
     "procesar_documento",
     "procesar_imagen",
     "render_pdf_a_jpg",
+    "CALIDAD_JPEG",
     "UMBRAL_IMAGEN_DOMINA",
     "_procesar_pdf_apto",
 ]

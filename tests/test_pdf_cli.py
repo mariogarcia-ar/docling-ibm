@@ -193,6 +193,21 @@ class TestConversion:
         grande = Image.open(tmp_path / "b" / "pagina_1.jpg").size
         assert grande[0] > chico[0] * 1.5
 
+    def test_la_calidad_llega_al_archivo(self, tmp_path, entorno):
+        """⚠️ El bug que este test fija: ``--calidad`` se anunciaba en el resumen
+        y **nunca llegaba al render** (la calidad estaba cableada en 95 dentro de
+        la escritura). El operador bajaba la calidad, el resumen lo confirmaba y
+        el peso no cambiaba.
+        """
+        pdf = _pdf(tmp_path / "uno.pdf", paginas=1)
+        _correr([str(pdf), "-o", str(tmp_path / "alta"), "--calidad", "95"], entorno)
+        _correr([str(pdf), "-o", str(tmp_path / "baja"), "--calidad", "50"], entorno)
+        alta = (tmp_path / "alta" / "pagina_1.jpg").stat().st_size
+        baja = (tmp_path / "baja" / "pagina_1.jpg").stat().st_size
+        assert baja < alta, (
+            f"--calidad 50 tiene que pesar menos que 95 ({baja} vs {alta} bytes)"
+        )
+
 
 class TestRangoYPatron:
     def test_primera_y_ultima(self, lote, tmp_path, entorno):
