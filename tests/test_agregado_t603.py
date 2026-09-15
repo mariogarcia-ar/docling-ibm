@@ -547,6 +547,77 @@ class TestIntegracionCLI:
         assert agregado.total == 2
         assert str(cases) == agregado.raiz
 
+    def test_los_dos_caminos_de_escritura_dan_el_mismo_archivo(self, tmp_path: Path):
+        """⚠️ El agregado se escribe por DOS rutas, y tienen que coincidir byte a byte.
+
+        ``batch -o A.json`` lo escribe con :func:`trace.agregado.escribir_agregado` y
+        ``case aggregate -o A.json`` llegaba a ``cli._json_salida``, que usaba un
+        ``write_text`` pelado (sin escritura atómica). El mismo archivo con dos
+        garantías distintas es un riesgo silencioso: un corte a mitad del
+        ``write_text`` deja el agregado truncado, y la corrida siguiente lo lee como
+        válido (o lo pisa con la mitad del histórico).
+
+        Se fija la **equivalencia del formato** (`ensure_ascii=False`, `indent=2` y el
+        salto final), que es la parte que se puede romper al tocar cualquiera de los dos.
+        """
+        from voucherflow.cli.main import EntornoCLI as _EntornoCLI
+        from voucherflow.cli.main import _json_salida
+
+        agregado = construir_agregado(
+            resultados=[_resultado("sha256:a")], raiz="/files", lote={"a": 1}
+        )
+        via_trace = tmp_path / "trace.json"
+        escribir_agregado(via_trace, agregado)
+
+        via_cli = tmp_path / "cli.json"
+        _json_salida(
+            agregado.como_dict(),
+            str(via_cli),
+            _EntornoCLI(stdout=io.StringIO(), stderr=io.StringIO(), cwd=tmp_path),
+        )
+
+        assert via_cli.read_bytes() == via_trace.read_bytes(), (
+            "los dos caminos de escritura del agregado tienen que ser idénticos"
+        )
+
+    def test_el_agregado_del_cli_se_escribe_atomico(self, tmp_path: Path, monkeypatch):
+        """⚠️ Un agregado a medio escribir es peor que no tenerlo.
+
+        La reanudación del lote lo lee como estado de la carpeta: si quedara truncado, la
+        corrida siguiente lo daría por bueno o perdería el histórico que había adentro.
+
+        ⚠️ Se espía el temporal mientras corre **``cli._json_salida``**, que es la ruta que
+        tenía el ``write_text``. La primera versión de este test verificaba
+        ``trace.agregado`` (que ya era atómico): pasaba sin cubrir el cambio, y el
+        mutation testing lo destapó — volver a ``write_text`` en el CLI no lo hacía
+        fallar.
+        """
+        import voucherflow.persistencia as p
+        from voucherflow.cli.main import EntornoCLI as _EntornoCLI
+        from voucherflow.cli.main import _json_salida
+
+        llamadas: list[Path] = []
+        original = p.tempfile.mkstemp
+
+        def espia(*args, **kwargs):
+            llamadas.append(Path(kwargs.get("dir", ".")))
+            return original(*args, **kwargs)
+
+        monkeypatch.setattr(p.tempfile, "mkstemp", espia)
+        destino = tmp_path / "sub" / "agregado.json"
+        _json_salida(
+            construir_agregado(resultados=[_resultado("sha256:a")]).como_dict(),
+            str(destino),
+            _EntornoCLI(stdout=io.StringIO(), stderr=io.StringIO(), cwd=tmp_path),
+        )
+
+        assert llamadas == [destino.parent], (
+            "el CLI tiene que escribir con temporal + replace (mkstemp en el mismo "
+            "directorio), no con un write_text pelado"
+        )
+        assert not list(tmp_path.rglob("*.tmp")), "y no dejar temporales"
+        assert leer_agregado(destino).total == 1, "el archivo tiene que quedar legible"
+
 
 # ---------------------------------------------------------------------------
 # 6. Fronteras

@@ -438,12 +438,25 @@ def construir_parser() -> argparse.ArgumentParser:
 
 
 def _json_salida(datos: Any, destino: str | None, entorno: EntornoCLI) -> None:
-    """Escribe ``datos`` como JSON: a archivo si hay destino, si no a stdout."""
+    """Escribe ``datos`` como JSON: a archivo si hay destino, si no a stdout.
+
+    ⚠️ **La escritura a archivo es atómica** (:func:`persistencia.escribir_atomico`), y no
+    por prolijidad: varios de estos destinos los escribe **también** otra ruta del sistema.
+    El caso concreto es el agregado del lote — ``batch -o A.json`` lo escribe con
+    :func:`trace.agregado.escribir_agregado` (atómico) y ``case aggregate -o A.json``
+    llegaba acá con un ``write_text`` pelado. El mismo archivo escrito por dos caminos con
+    garantías distintas es un riesgo silencioso: el ``write_text`` deja el archivo truncado
+    a la mitad si el proceso muere, y la corrida siguiente lo lee como un agregado válido
+    (o peor, lo pisa con la mitad del histórico).
+
+    El formato se conserva byte a byte (``ensure_ascii=False``, ``indent=2`` y el salto de
+    línea final que ya tenía), así que los dos caminos producen **el mismo** archivo.
+    """
     texto = json.dumps(datos, ensure_ascii=False, indent=2)
     if destino:
         ruta = entorno.ruta(destino)
-        ruta.parent.mkdir(parents=True, exist_ok=True)
-        ruta.write_text(texto + "\n", encoding="utf-8")
+        # ``escribir_atomico`` crea el árbol de salida y escribe con temporal + fsync.
+        escribir_atomico(ruta, texto + "\n")
         entorno.log(f"Guardado: {ruta}")
     else:
         entorno.dato(texto)
