@@ -41,6 +41,7 @@ from ..corpus.recorrido import esta_dentro, raiz_espejado, salida_de
 from ..orchestrator import (
     PipelineOrchestrator,
     PipelineResult,
+    identificador_de_archivo,
     iterar_documentos,
 )
 from ..persistencia import escribir_atomico, ya_escrito
@@ -71,6 +72,96 @@ EXTENSIONES_TEXTO = (".md", ".txt")
 
 #: Versión del contrato del CLI (para el reporte y la paridad de T-604).
 VERSION_CLI = "voucherflow-cli@1"
+
+#: Marca que este CLI le pone a las entradas de ``extract`` para poder reutilizarlas.
+#: Cambiar el conjunto de campos que se extrae (o su forma) **invalida el reúso**: una
+#: entrada sin esta marca viene de otra versión del CLI y se vuelve a extraer en vez de
+#: reusarse (una evidencia vieja presentada como vigente es peor que no reusar).
+MARCA_EXTRACT = "cli_extract"
+
+#: Modo con el que ``extract-detect`` marca sus entradas. Es un modo propio (no es un
+#: modo heredado de ``extract``) justamente para que las dos salidas **no** se
+#: confundan entre sí: el contrato de cada una es distinto.
+MARCA_DETECT = "detect"
+
+#: A partir de este tamaño (bytes) la salida de ``extract`` por ``stdout`` se
+#: declara en el log: no cambia el contrato, avisa del costo de leerla.
+LIMITE_STDOUT_BYTES = 1_000_000
+
+
+def _reusables_de_extract(
+    previas: Any, *, modo: str, version: str = VERSION_CLI
+) -> dict[str, dict[str, Any]]:
+    """Entradas de un ``extract`` anterior que se pueden reutilizar, por ``documento_id``.
+
+    ⚠️ Existe porque ``extract`` **reprocesaba y volvía a consultar al modelo** en cada
+    corrida (medido: 2 llamadas por documento), y además **sobreescribía** su archivo de
+    salida: correr sobre una carpeta ya hecha pagaba todo de nuevo y el resultado anterior
+    se perdía. Es el mismo problema que tenían ``process``/``pdf``/``corpus``, pero el
+    contrato de salida es distinto (un **único** JSON del lote, no un archivo por
+    documento), así que la marca de "ya hecho" es una entrada de ese lote.
+
+    Qué se exige para reutilizar una entrada (las cuatro importan):
+
+    1. **``documento_id``**: es el ``sha256`` del contenido, así que un documento
+       **modificado** cambia de id y se vuelve a extraer solo (es la misma propiedad que
+       hace segura la reanudación de ``batch``). Además el id ya es **único por
+       definición**, mientras que la ruta es relativa a la invocación y el nombre de
+       archivo no distingue dos homónimos de carpetas distintas.
+    2. **Sin ``error``**: un error **no es un paso completado** (lección de T-603). Si no
+       se filtrara, una re-corrida después de arreglar la causa (clave, red, modelo)
+       saltearía ese documento y el resumen reportaría éxito.
+    3. **El mismo ``modo``**: el modo heredado viaja en el resultado, y reusar lo
+       extraído en otro modo afirmaría algo falso sobre esa corrida.
+    4. **La marca del CLI** (``MARCA_EXTRACT``): una entrada sin la marca viene de otra
+       versión, con otros campos o prompts.
+
+    Devuelve ``{documento_id: entrada}``. Un archivo previo ilegible o de otra forma
+    devuelve ``{}``: no se reusa nada y la corrida reprocesa (un derivado roto no puede
+    tirar la corrida, misma regla que el índice de T-506 y los checkpoints de T-602).
+    """
+    if not isinstance(previas, list):
+        return {}
+    reusables: dict[str, dict[str, Any]] = {}
+    for entrada in previas:
+        if not isinstance(entrada, dict):
+            continue
+        if entrada.get("error"):
+            continue
+        if entrada.get("modo") != modo:
+            continue
+        if MARCA_EXTRACT not in entrada:
+            continue
+        documento_id = entrada.get("documento_id")
+        if isinstance(documento_id, str) and documento_id:
+            reusables[documento_id] = entrada
+    return reusables
+
+
+def _leer_previas(destino: Path) -> list[Any]:
+    """El JSON previo de una salida de ``extract``, o ``[]`` si no hay o no se puede leer.
+
+    Nada de esto es fatal: el archivo previo es una **ayuda** para no volver a pagar, no
+    el dato de la corrida. Si está corrupto o lo escribió otro comando, se ignora.
+    """
+    if not destino.is_file():
+        return []
+    try:
+        datos = json.loads(destino.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return []
+    return datos if isinstance(datos, list) else []
+
+
+def _limite_texto(texto: str, limite: int) -> str:
+    """``texto`` recortado a ``limite``, declarando cuánto se omitió."""
+    if len(texto) <= limite:
+        return texto
+    return (
+        texto[:limite]
+        + f"\n… (recortado: {len(texto) - limite} caracteres más; "
+        f"el JSON completo está en el archivo de -o)\n"
+    )
 
 
 @dataclass
@@ -377,6 +468,32 @@ def _resumen_legible(resultado: PipelineResult) -> str:
     )
 
 
+def _resumen_de_entradas(salidas: Sequence[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Resumen de un lote de ``extract``: una línea por documento, sin la evidencia.
+
+    ⚠️ No es la salida del comando (el contrato de ``stdout`` es el JSON completo, ver
+    :func:`_salida_de_lote`): es el material del **log** para lotes largos, donde una
+    línea por documento se lee y el detalle por campo no.
+    """
+    resumen: list[dict[str, Any]] = []
+    for entrada in salidas:
+        if entrada.get("error"):
+            resumen.append({"archivo": entrada.get("archivo"), "error": entrada["error"]})
+            continue
+        campos = ((entrada.get("evidencia") or {}).get("campos")) or {}
+        fila: dict[str, Any] = {
+            "archivo": entrada.get("archivo"),
+            "modo": entrada.get("modo"),
+            "campos": len(campos),
+        }
+        # `extract-detect` no trae `evidencia` (trae la letra suelta).
+        for clave in ("tipo_comprobante", "certeza", "origen"):
+            if clave in entrada:
+                fila[clave] = entrada[clave]
+        resumen.append(fila)
+    return resumen
+
+
 # ---------------------------------------------------------------------------
 # Implementación de cada subcomando
 # ---------------------------------------------------------------------------
@@ -614,22 +731,60 @@ def _cmd_classify(args: argparse.Namespace, entorno: EntornoCLI) -> int:
 
 
 def _cmd_extract(args: argparse.Namespace, entorno: EntornoCLI) -> int:
-    """``extract``: extracción VLM+LLM combinada (F4) por archivo o carpeta."""
+    """``extract``: extracción VLM+LLM combinada (F4) por archivo o carpeta.
+
+    **Reanuda y acumula.** Si ``-o`` apunta a un archivo de una corrida anterior, las
+    entradas de los documentos que **no cambiaron** se reutilizan (no se vuelve a
+    consultar al modelo) y las nuevas se **suman** a las viejas en vez de reemplazarlas.
+    ``--force`` rehace todo.
+
+    ⚠️ Antes reprocesaba todo y **sobreescribía** el archivo: correr sobre una carpeta ya
+    hecha costaba 2 llamadas al modelo por documento y **perdía** el resultado anterior.
+    No alcanzaba con saltear los archivos: el markdown que ``process`` escribe **al lado**
+    del documento es un documento de entrada válido, así que sólo mirar "¿existe la
+    salida?" habría salteado el PDF y su markdown como si fueran el mismo trabajo.
+    """
     raiz = entorno.ruta(args.origen)
     documentos = iterar_documentos(raiz)
     if not documentos:
         raise ErrorCLI(f"No hay documentos extraíbles en {raiz}.")
 
+    destino = entorno.ruta(args.output) if args.output else None
+    previas = _leer_previas(destino) if destino else []
+    reusables = (
+        {} if args.force else _reusables_de_extract(previas, modo=args.mode)
+    )
+
+    # Las entradas que NO se reusan (de otro modo, con error, u otra versión) no se
+    # pierden: el archivo es el estado de la carpeta, así que se reescriben tal cual.
+    otras: list[dict[str, Any]] = [
+        entrada
+        for entrada in previas
+        if not (
+            isinstance(entrada, dict)
+            and isinstance(entrada.get("documento_id"), str)
+            and entrada["documento_id"] in reusables
+        )
+    ]
+
     salidas: list[dict[str, Any]] = []
     fallos = 0
+    reanudados = 0
     for ruta in documentos:
         try:
+            documento_id = identificador_de_archivo(ruta)
+            if documento_id in reusables:
+                salidas.append(reusables[documento_id])
+                reanudados += 1
+                entorno.log(f"· saltado: {ruta} (ya extraído; usá --force)")
+                continue
             evidencia = _extraer_archivo(ruta, args.mode, args, entorno)
             salidas.append(
                 {
                     "archivo": str(ruta),
                     "documento_id": evidencia.documento_id,
                     "modo": args.mode,
+                    MARCA_EXTRACT: {"version_cli": VERSION_CLI},
                     "evidencia": evidencia.model_dump(mode="json"),
                 }
             )
@@ -639,20 +794,32 @@ def _cmd_extract(args: argparse.Namespace, entorno: EntornoCLI) -> int:
             salidas.append({"archivo": str(ruta), "error": str(exc)})
             entorno.log(f"ERROR: {ruta}: {exc}")
 
-    _json_salida(salidas, args.output, entorno)
+    if reanudados:
+        entorno.log(
+            f"{reanudados} documento(s) reutilizado(s) de la corrida anterior "
+            "(--force para rehacerlos)."
+        )
+    _salida_de_lote([*otras, *salidas], destino, entorno)
     return 1 if fallos else 0
 
 
 def _extraer_archivo(
-    ruta: Path, mode: str, args: argparse.Namespace, entorno: EntornoCLI
+    ruta: Path,
+    mode: str,
+    args: argparse.Namespace,
+    entorno: EntornoCLI,
+    documento_id: str | None = None,
 ) -> Any:
-    """Extrae y combina la evidencia de un archivo (F4), reutilizando el orquestador."""
+    """Extrae y combina la evidencia de un archivo (F4), reutilizando el orquestador.
+
+    ``documento_id`` se acepta para no volver a hashear el archivo: el llamador ya lo
+    calcula para decidir si puede reutilizar una extracción previa.
+    """
     orch = entorno.orch()
     documento, _ = orch.procesar(ruta, orientation=args.orientation)
     gate = orch.validar(documento, modelo=args.model)
-    from ..orchestrator import identificador_de_archivo
 
-    documento_id = identificador_de_archivo(ruta)
+    documento_id = documento_id or identificador_de_archivo(ruta)
     extraccion = orch.extraer(
         documento,
         vista=gate.vista_fiel,
@@ -676,7 +843,13 @@ def _extraer_archivo(
 
 
 def _cmd_extract_detect(args: argparse.Namespace, entorno: EntornoCLI) -> int:
-    """``extract-detect``: letra por VLM/LLM (equivale al modo histórico ``-M 11.1``)."""
+    """``extract-detect``: letra por VLM/LLM (equivale al modo histórico ``-M 11.1``).
+
+    Reanuda y acumula con la misma regla que ``extract`` (misma clave: el
+    ``documento_id``, que es el hash del contenido). El contrato de cada entrada es
+    distinto (letra + certeza en vez de evidencia por campo), así que se guardan bajo
+    otra marca: una entrada de ``extract`` no se puede reusar como una letra.
+    """
     raiz = entorno.ruta(args.origen)
     documentos = iterar_documentos(raiz)
     if not documentos:
@@ -685,10 +858,35 @@ def _cmd_extract_detect(args: argparse.Namespace, entorno: EntornoCLI) -> int:
     from ..classification.evidencia import leer_evidencia
     from ..classification.tipo_comprobante import clasificar_tipo_comprobante
 
+    destino = entorno.ruta(args.output) if args.output else None
+    previas = _leer_previas(destino) if destino else []
+    reusables = (
+        {}
+        if args.force
+        else _reusables_de_extract(previas, modo=MARCA_DETECT, version=VERSION_CLI)
+    )
+    propias: set[str] = set()
+    otras: list[dict[str, Any]] = []
+    for entrada in previas:
+        if not isinstance(entrada, dict):
+            continue
+        clave = entrada.get("documento_id")
+        if isinstance(clave, str) and clave in reusables:
+            propias.add(clave)
+        else:
+            otras.append(entrada)
+
     salidas: list[dict[str, Any]] = []
     fallos = 0
+    reanudados = 0
     for ruta in documentos:
         try:
+            documento_id = identificador_de_archivo(ruta)
+            if documento_id in reusables:
+                salidas.append(reusables[documento_id])
+                reanudados += 1
+                entorno.log(f"· saltado: {ruta} (ya detectado; usá --force)")
+                continue
             orch = entorno.orch()
             documento, _ = orch.procesar(ruta, orientation=args.orientation)
             gate = orch.validar(documento, modelo=args.model)
@@ -703,6 +901,9 @@ def _cmd_extract_detect(args: argparse.Namespace, entorno: EntornoCLI) -> int:
             salidas.append(
                 {
                     "archivo": str(ruta),
+                    "documento_id": documento_id,
+                    "modo": MARCA_DETECT,
+                    MARCA_EXTRACT: {"version_cli": VERSION_CLI},
                     "tipo_comprobante": tipo.letra,
                     "certeza": tipo.certeza,
                     "origen": tipo.origen,
@@ -718,8 +919,39 @@ def _cmd_extract_detect(args: argparse.Namespace, entorno: EntornoCLI) -> int:
             salidas.append({"archivo": str(ruta), "error": str(exc)})
             entorno.log(f"ERROR: {ruta}: {exc}")
 
-    _json_salida(salidas, args.output, entorno)
+    if reanudados:
+        entorno.log(
+            f"{reanudados} documento(s) reutilizado(s) de la corrida anterior "
+            "(--force para rehacerlos)."
+        )
+    _salida_de_lote([*otras, *salidas], destino, entorno)
     return 1 if fallos else 0
+
+
+def _salida_de_lote(
+    salidas: list[dict[str, Any]], destino: Path | None, entorno: EntornoCLI
+) -> None:
+    """Escribe el lote a ``-o``, o lo imprime por ``stdout`` (contrato de T-604).
+
+    ⚠️ **El contrato de ``stdout`` no se toca**: ``extract`` imprime el JSON completo
+    sin ``-o`` desde T-601 y la guía del operador lo documenta (T-605). Lo que se
+    agrega es la **advertencia de tamaño** cuando el lote es grande: la evidencia pesa
+    ~11,7 KB por documento (medido), así que los 3.846 documentos del corpus son ~45 MB
+    — una terminal los ahoga y un pipe los procesa nadie. Se avisa con el peso real
+    calculado, no con una constante estimada, y se sugiere ``-o``.
+    """
+    if destino is not None:
+        _json_salida(salidas, str(destino), entorno)
+        entorno.log(f"{len(salidas)} documento(s) en {destino}")
+        return
+
+    texto = json.dumps(salidas, ensure_ascii=False, indent=2)
+    if len(texto) > LIMITE_STDOUT_BYTES:
+        entorno.log(
+            f"⚠  {len(salidas)} documento(s) → {len(texto) / 1e6:.1f} MB por stdout. "
+            "Con -o ARCHIVO.json el detalle va a un archivo y la terminal queda libre."
+        )
+    entorno.dato(texto)
 
 
 def _opciones_pipeline(args: argparse.Namespace) -> dict[str, Any]:

@@ -1019,6 +1019,270 @@ class TestComandos:
             main(["ask", str(documento)], entorno=entorno)
 
 
+class TestReanudacionExtract:
+    """``extract``/``extract-detect`` reutilizan lo ya extraído (2026-09-15).
+
+    ⚠️ Antes reprocesaban todo y **volvían a consultar al modelo** en cada corrida
+    (medido: 2 llamadas por documento), y además **sobreescribían** el archivo de salida,
+    así que el resultado anterior se perdía.
+    """
+
+    @pytest.fixture
+    def lote(self, tmp_path: Path) -> Path:
+        carpeta = tmp_path / "lote"
+        carpeta.mkdir()
+        (carpeta / "a.md").write_text("FACTURA A\nTotal: 121,00\n", encoding="utf-8")
+        (carpeta / "b.md").write_text("FACTURA A\nTotal: 50,00\n", encoding="utf-8")
+        return carpeta
+
+    def _entorno(self, tmp_path: Path, lector: Any) -> EntornoCLI:
+        return EntornoCLI(
+            orquestador=PipelineOrchestrator(
+                cliente=lector, converter=FakeConverter(), settings=_settings()
+            ),
+            stdout=io.StringIO(),
+            stderr=io.StringIO(),
+            cwd=tmp_path,
+        )
+
+    def test_la_segunda_corrida_no_vuelve_a_llamar_al_modelo(
+        self, tmp_path: Path, lote: Path
+    ):
+        """⚠️ Es el punto entero: reanudar sin pagar se mide en llamadas, no en tiempo."""
+        salida = tmp_path / "extract.json"
+        lector = FakeLector()
+        main(["extract", str(lote), "-o", str(salida)], entorno=self._entorno(tmp_path, lector))
+        assert len(lector.llamadas) == 4, "2 por documento (VLM + LLM)"
+
+        lector.llamadas.clear()
+        entorno2 = self._entorno(tmp_path, lector)
+        assert main(["extract", str(lote), "-o", str(salida)], entorno=entorno2) == 0
+        assert lector.llamadas == [], "no debe volver a consultar al modelo"
+        assert _log(entorno2).count("saltado:") == 2
+        assert "2 documento(s) reutilizado(s)" in _log(entorno2)
+
+    def test_con_force_vuelve_a_extraer(self, tmp_path: Path, lote: Path):
+        salida = tmp_path / "extract.json"
+        lector = FakeLector()
+        main(["extract", str(lote), "-o", str(salida)], entorno=self._entorno(tmp_path, lector))
+
+        lector.llamadas.clear()
+        entorno2 = self._entorno(tmp_path, lector)
+        assert main(
+            ["extract", str(lote), "-o", str(salida), "--force"], entorno=entorno2
+        ) == 0
+        assert len(lector.llamadas) == 4, "--force rehace todo"
+        assert "saltado:" not in _log(entorno2)
+
+    def test_acumula_las_entradas_de_la_corrida_anterior(self, tmp_path: Path, lote: Path):
+        """El archivo es el estado de la carpeta, no el reporte de la última corrida.
+
+        Se ACUMULA (misma decisión que el agregado de T-603): agregar un documento a
+        la carpeta y volver a correr no puede perder lo ya extraído.
+        """
+        salida = tmp_path / "extract.json"
+        lector = FakeLector()
+        main(["extract", str(lote), "-o", str(salida)], entorno=self._entorno(tmp_path, lector))
+        assert len(json.loads(salida.read_text(encoding="utf-8"))) == 2
+
+        (lote / "c.md").write_text("FACTURA A\nTotal: 10,00\n", encoding="utf-8")
+        lector.llamadas.clear()
+        main(["extract", str(lote), "-o", str(salida)], entorno=self._entorno(tmp_path, lector))
+
+        datos = json.loads(salida.read_text(encoding="utf-8"))
+        assert len(datos) == 3, "las dos anteriores se conservan y se suma la nueva"
+        assert len(lector.llamadas) == 2, "solo se extrae el documento nuevo"
+
+    def test_un_documento_cambiado_se_vuelve_a_extraer(self, tmp_path: Path, lote: Path):
+        """⚠️ La clave es el ``documento_id`` (hash del contenido), no el nombre.
+
+        Saltear por nombre dejaría un documento **modificado** sin reprocesar para
+        siempre (misma lección que el checkpoint del lote, T-602).
+        """
+        salida = tmp_path / "extract.json"
+        lector = FakeLector()
+        main(["extract", str(lote), "-o", str(salida)], entorno=self._entorno(tmp_path, lector))
+
+        (lote / "a.md").write_text("FACTURA A\nTotal: 999,99\n", encoding="utf-8")
+        lector.llamadas.clear()
+        main(["extract", str(lote), "-o", str(salida)], entorno=self._entorno(tmp_path, lector))
+        assert len(lector.llamadas) == 2, "el modificado sí se reprocesa"
+
+    def test_un_error_no_cuenta_como_hecho(self, tmp_path: Path, lote: Path):
+        """⚠️ Un error NO es un paso completado (lección de T-603).
+
+        Si contara, una re-corrida después de arreglar la causa (clave, red, modelo)
+        saltearía el documento y el resumen reportaría un éxito que no ocurrió.
+
+        ⚠️ La entrada tiene que estar **completa y bien marcada** (modo y `cli_extract`):
+        si le faltara la marca, el filtro la descartaría por *eso* y el test pasaría sin
+        haber evaluado nunca la regla del error — que es lo que pasó en la primera
+        versión de este test (lo destapó el mutation testing: la mutación "un error
+        cuenta como hecho" no la detectaba).
+        """
+        from importlib import import_module
+
+        cli = import_module("voucherflow.cli.main")
+        salida = tmp_path / "extract.json"
+        salida.write_text(
+            json.dumps(
+                [
+                    {
+                        "archivo": "/x/a.md",
+                        "documento_id": identificador_de_archivo(lote / "a.md"),
+                        "modo": "kvi",
+                        cli.MARCA_EXTRACT: {"version_cli": cli.VERSION_CLI},
+                        "error": "OllamaError: no responde",
+                    }
+                ]
+            ),
+            encoding="utf-8",
+        )
+
+        # Control: la misma entrada, sin el error, SÍ se reutiliza (si no, el test
+        # pasaría por la razón equivocada otra vez).
+        lector = FakeLector()
+        main(["extract", str(lote), "-o", str(salida)], entorno=self._entorno(tmp_path, lector))
+        assert len(lector.llamadas) == 4, "el que había fallado se reintenta"
+
+    def test_otro_modo_no_se_reutiliza(self, tmp_path: Path, lote: Path):
+        salida = tmp_path / "extract.json"
+        lector = FakeLector()
+        main(
+            ["extract", str(lote), "-o", str(salida), "-M", "kvi"],
+            entorno=self._entorno(tmp_path, lector),
+        )
+        lector.llamadas.clear()
+        main(
+            ["extract", str(lote), "-o", str(salida), "-M", "kvg"],
+            entorno=self._entorno(tmp_path, lector),
+        )
+        assert len(lector.llamadas) == 4, "el modo es parte de la identidad del trabajo"
+
+    def test_una_salida_de_otra_version_no_se_reutiliza(self, tmp_path: Path, lote: Path):
+        """Una entrada sin la marca del CLI viene de otra versión: se rehace."""
+        salida = tmp_path / "extract.json"
+        salida.write_text(
+            json.dumps(
+                [
+                    {
+                        "archivo": "/x/a.md",
+                        "documento_id": identificador_de_archivo(lote / "a.md"),
+                        "modo": "kvi",
+                        "evidencia": {"campos": {}},
+                    }
+                ]
+            ),
+            encoding="utf-8",
+        )
+        lector = FakeLector()
+        main(["extract", str(lote), "-o", str(salida)], entorno=self._entorno(tmp_path, lector))
+        assert len(lector.llamadas) == 4
+
+    def test_una_salida_ilegible_no_tumba_la_corrida(self, tmp_path: Path, lote: Path):
+        salida = tmp_path / "extract.json"
+        salida.write_text("{no es json", encoding="utf-8")
+        lector = FakeLector()
+        assert main(
+            ["extract", str(lote), "-o", str(salida)],
+            entorno=self._entorno(tmp_path, lector),
+        ) == 0
+        assert len(lector.llamadas) == 4, "sin nada reutilizable, se extrae todo"
+
+    def test_las_entradas_de_otro_modo_no_se_pierden(self, tmp_path: Path, lote: Path):
+        """El archivo es el estado de la carpeta: lo ajeno se conserva."""
+        salida = tmp_path / "extract.json"
+        lector = FakeLector()
+        main(
+            ["extract", str(lote), "-o", str(salida), "-M", "kvi"],
+            entorno=self._entorno(tmp_path, lector),
+        )
+        main(
+            ["extract", str(lote), "-o", str(salida), "-M", "kvg"],
+            entorno=self._entorno(tmp_path, lector),
+        )
+        datos = json.loads(salida.read_text(encoding="utf-8"))
+        modos = sorted({entrada["modo"] for entrada in datos})
+        assert modos == sorted(["kvi", "kvg"]), "no se sobreescribe el modo anterior"
+
+    def test_extract_detect_tambien_reanuda(self, tmp_path: Path, lote: Path):
+        salida = tmp_path / "detect.json"
+        lector = FakeLector()
+        main(
+            ["extract-detect", str(lote), "-o", str(salida)],
+            entorno=self._entorno(tmp_path, lector),
+        )
+        primera = len(lector.llamadas)
+        assert primera > 0
+
+        lector.llamadas.clear()
+        main(
+            ["extract-detect", str(lote), "-o", str(salida)],
+            entorno=self._entorno(tmp_path, lector),
+        )
+        assert lector.llamadas == [], "tampoco vuelve a consultar al modelo"
+
+    def test_las_salidas_de_extract_y_detect_no_se_confunden(self, tmp_path: Path, lote: Path):
+        """⚠️ El contrato de cada entrada es distinto: una letra no es una evidencia."""
+        archivo = tmp_path / "compartido.json"
+        lector = FakeLector()
+        main(
+            ["extract", str(lote), "-o", str(archivo)],
+            entorno=self._entorno(tmp_path, lector),
+        )
+        lector.llamadas.clear()
+        main(
+            ["extract-detect", str(lote), "-o", str(archivo)],
+            entorno=self._entorno(tmp_path, lector),
+        )
+        assert len(lector.llamadas) > 0, (
+            "extract-detect no puede reusar entradas de extract"
+        )
+
+    def test_sin_output_avisa_del_tamano_sin_cambiar_el_contrato(
+        self, tmp_path: Path, lote: Path, monkeypatch
+    ):
+        """⚠️ La evidencia pesa ~11,7 KB por documento (45 MB el corpus entero).
+
+        El contrato de `stdout` **no** se toca (lo fijan T-601/T-605): sin `-o` sigue
+        saliendo el JSON completo. Lo que se agrega es la advertencia con el peso real
+        —una terminal con 45 MB de salida es inusable igual— para que se pueda pedir `-o`.
+
+        El umbral se baja con monkeypatch para no generar 1 MB en el test.
+        """
+        from importlib import import_module
+
+        cli = import_module("voucherflow.cli.main")
+        monkeypatch.setattr(cli, "LIMITE_STDOUT_BYTES", 10)
+
+        lector = FakeLector()
+        entorno = self._entorno(tmp_path, lector)
+        assert main(["extract", str(lote)], entorno=entorno) == 0
+
+        # El dato sigue siendo el JSON completo (contrato intacto)…
+        datos = json.loads(_salida(entorno))
+        assert datos[0]["evidencia"]["campos"], "el detalle no se recorta"
+        # …y el aviso aparece en el log, con el peso y la sugerencia.
+        assert "MB por stdout" in _log(entorno)
+        assert "-o ARCHIVO.json" in _log(entorno)
+
+    def test_lotes_chicos_no_avisan(self, tmp_path: Path, lote: Path):
+        """El aviso es para el lote grande: el caso normal no tiene que hacer ruido."""
+        lector = FakeLector()
+        entorno = self._entorno(tmp_path, lector)
+        main(["extract", str(lote)], entorno=entorno)
+        assert "MB por stdout" not in _log(entorno)
+
+    def test_con_output_deja_el_detalle_en_el_archivo(self, tmp_path: Path, lote: Path):
+        salida = tmp_path / "detalle.json"
+        lector = FakeLector()
+        entorno = self._entorno(tmp_path, lector)
+        assert main(["extract", str(lote), "-o", str(salida)], entorno=entorno) == 0
+        assert _salida(entorno) == "", "el dato va al archivo, no a stdout"
+        assert json.loads(salida.read_text(encoding="utf-8"))[0]["evidencia"]["campos"]
+        assert "documento(s) en" in _log(entorno)
+
+
 # ---------------------------------------------------------------------------
 # 5. Auditoría: case / hitl sobre lo persistido (F5/T-506)
 # ---------------------------------------------------------------------------

@@ -55,8 +55,8 @@ Estas las aceptan los comandos del pipeline (`process`, `extract`,
 > - **`run`**: reprocesa siempre —un documento suelto no tiene lote del cual
 >   reanudar— y **lo declara en su traza** (`detalle.force`) en vez de fingir un
 >   efecto.
-> - **`extract` / `extract-detect`**: se acepta y **no cambia nada** (tampoco
->   reanudan: reprocesan y vuelven a consultar al modelo en cada corrida).
+> - **`extract` / `extract-detect`**: reanudan por el **contenido** del documento
+>   (reutilizan la entrada de una corrida anterior y acumulan; `--force` rehace).
 >
 > **`--workers`**: solo `batch` levanta el pool de procesos. En los demás
 > comandos se acepta y se ignora (el documento se procesa en el proceso
@@ -220,6 +220,25 @@ voucherflow extract var/files/2025-08 -o extract.json
 **Qué imprime**: un JSON con la evidencia por campo: el **valor** y el
 **fragmento del documento** que lo sostiene.
 
+**Reanudación y acumulación**: si `-o` apunta al archivo de una corrida anterior, los
+documentos que **no cambiaron** se reutilizan (no se vuelve a consultar al modelo) y
+las entradas nuevas se **suman** a las viejas. `--force` rehace todo.
+
+```bash
+voucherflow extract var/files -o extract.json            # 1ª vez: extrae todo
+voucherflow extract var/files -o extract.json            # 2ª: reutiliza (0 llamadas)
+voucherflow extract var/files -o extract.json --force    # rehace todo
+```
+
+Se reutiliza por el **contenido** del documento (su hash), no por su nombre: un
+documento **modificado** se vuelve a extraer solo, y uno que **falló** se reintenta
+(un error no es un paso completado).
+
+> ⚠️ **Sin `-o`, el lote grande se avisa.** La evidencia pesa ~11,7 KB por documento,
+así que los 3.846 del corpus son ~45 MB de `stdout`. El comando lo declara con el peso
+real y sugiere `-o`; el contrato de la salida no cambia (el JSON completo sigue
+saliendo por `stdout`).
+
 **Código de salida**: `0` si todos los documentos se extrajeron, `1` si alguno
 falló (los errores van en la salida, por documento).
 
@@ -243,6 +262,9 @@ voucherflow extract-detect var/files/2025-08 -o letras.json
 
 **Qué imprime**: por documento, la letra detectada, la certeza, las reglas
 aplicadas y los candidatos que quedaron descartados y vivos.
+
+**Reanudación**: igual que `extract` (reutiliza lo ya detectado y acumula;
+`--force` rehace).
 
 **Código de salida**: `0` si todos, `1` si alguno falló.
 
