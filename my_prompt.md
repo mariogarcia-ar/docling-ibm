@@ -1,4 +1,21 @@
+# Flujo 
+
+- preparar los archivos
+  - convertir pdf a imagenes : oucherflow pdf
+  - reducir imagenes grandes : voucherflow corpus
+- invocar llm frontier (deepseek):  voucherflow-lab
+- invocar llm local 
+- evaluar y corregir
+- publicar
+
 # cmd 
+
+
+1 - corpus.md (reducir las imagenes)
+3 - pdf.md (exportar el pdf a imagenes)
+2 - llm.md (invocar a deepseek para extraer informacion)
+
+
  voucherflow-lab tests/fixtures/expected-extraction -M extraer -p deepseek --workers 4 -o tests/expected-extraction --dry-run\n
  
  voucherflow-lab tests/fixtures/expected-extraction -M extraer -p deepseek --workers 4 -o tests/ixtures-extraction/expected-extraction 
