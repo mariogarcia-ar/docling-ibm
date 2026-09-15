@@ -34,9 +34,9 @@ el servidor embebido de PHP no puede servirlo solo: los bytes viajan por
 | Archivo | Qué es |
 |---|---|
 | `index.php` | El listado: un bloque por grupo, una fila por documento, con su estado de extracción. |
-| `documento.php?doc=<grupo>/<archivo>` | La ficha: el documento a la izquierda y la extracción a la derecha. |
+| `documento.php?doc=<grupo>/<archivo>` | La ficha: el documento a la izquierda, la extracción a la derecha, y la barra de navegación abajo. |
 | `archivo.php?c=fixtures\|extracciones&ref=<grupo>/<archivo>` | Sirve los bytes. Valida la ruta contra traversal. |
-| `assets/visor.css`, `assets/visor.js` | Estilo y el único JS (el filtro de campos vacíos). |
+| `assets/visor.css`, `assets/visor.js` | Estilo, el filtro de campos vacíos y los atajos de teclado. |
 
 **El listado no esconde lo que no cerró.** Las extracciones que no se pueden atar a
 ningún documento aparecen en un bloque aparte, con el campo que se usó para
@@ -55,7 +55,41 @@ incrustado N veces es N veces la descarga).
 
 ---
 
-## 3. Cómo se empareja un documento con su extracción
+## 3. Recorrer los documentos
+
+La barra de abajo permite avanzar y volver sin pasar por el listado: 94 documentos
+a mano, volviendo al índice cada vez, no se recorren.
+
+| Cómo | Qué hace |
+|---|---|
+| `← anterior` / `→ siguiente` | Va al documento vecino. |
+| Teclas `←` y `→` | Lo mismo, sin tocar el mouse. |
+| `1 / 94` | Dónde estás en la secuencia. |
+| El nombre al lado del botón | A dónde vas, **antes** de ir. |
+
+El orden es el del listado: grupos alfabéticos y, dentro de cada uno, los
+documentos por nombre. Se recorre la secuencia entera, cruzando de un grupo al
+siguiente, así que no hay que volver al índice al terminar `chicos/`.
+
+Decisiones que no son obvias:
+
+- **En los extremos el botón se deshabilita, no da la vuelta.** Un «anterior» en el
+  primer documento que saltara al último rompe la lectura de dónde estás.
+- **El destino se muestra al lado del botón**, no en un `title`: en un recorrido
+  rápido hay que saber a dónde se va sin pasar el mouse.
+- **Los botones son `<a>`**, no `<button>` con JS: el recorrido funciona sin
+  JavaScript, se puede abrir en otra pestaña y el navegador muestra el destino en
+  la barra de estado. El JS solo **agrega** las teclas, y lee el destino del `href`
+  que emitió el servidor — así el atajo no puede desincronizarse de la barra.
+- **Las teclas no pisan lo que estás escribiendo.** Con el foco en un campo de
+  texto, `←`/`→` mueven el cursor y no cambian de documento. La guarda mira el
+  **tipo** del control: un checkbox no consume las flechas, así que la casilla
+  «Mostrar campos sin dato» (el control que más se usa acá) no deja las flechas
+  muertas.
+
+---
+
+## 4. Cómo se empareja un documento con su extracción
 
 Es la parte con más casos raros del visor, y no es obvia. Medido sobre el corpus
 real (**95 extracciones / 94 documentos**), el nombre del JSON **no** coincide con
@@ -84,7 +118,7 @@ rompe alguna, deja de estar en silencio: aparece el bloque de huérfanas.
 
 ---
 
-## 4. Decisiones que no son de estilo
+## 5. Decisiones que no son de estilo
 
 - **`null` ≠ `0`.** El laboratorio usa `null` para «no figura / no legible» y `0`
   para «figura y vale cero» (el caso medido: el monto 0 que no cierra la
@@ -106,6 +140,11 @@ rompe alguna, deja de estar en silencio: aparece el bloque de huérfanas.
 - **El tema oscuro es el default** y el claro se activa con `prefers-color-scheme`.
   Contrastar una factura clara contra un fondo oscuro es más cómodo y evita el
   flash blanco al abrir.
+- **Cada flecha se ata a su botón por posición** (`[0]` anterior, `[1]` siguiente),
+  no buscando entre los que tienen `href`. Lo segundo parece más robusto y es lo
+  contrario: en el primer documento no hay «anterior», así que el único con `href`
+  es «siguiente» y `←` **avanzaba**. Medido, y con un comentario que afirmaba la
+  garantía que el código no daba.
 - **`archivo.php` valida de más.** Rechaza `..`, rutas absolutas y todo lo que
   resuelva fuera de la raíz; un fallo es siempre 404 (distinguir «no existe» de
   «no permitido» filtraría información del disco). `Cache-Control: no-cache` +
@@ -114,7 +153,7 @@ rompe alguna, deja de estar en silencio: aparece el bloque de huérfanas.
 
 ---
 
-## 5. Qué NO hace
+## 6. Qué NO hace
 
 - **No edita nada.** Es de solo lectura: no hay correcciones HITL ni re-extracción
   desde acá.

@@ -286,6 +286,34 @@ function catalogo_normalizar_extraccion(string $ref, array $datos): array
 }
 
 /**
+ * Vecinos de un documento en la secuencia: el anterior y el siguiente.
+ *
+ * Devuelve `['indice' => int, 'total' => int, 'anterior' => ?string,
+ * 'siguiente' => ?string]`. En los extremos la referencia correspondiente es
+ * `null` y la vista deshabilita el botón: no se envuelve al otro extremo, porque
+ * «volver» y «avanzar» no deben dar el mismo resultado.
+ *
+ * Si la referencia no está en la secuencia (una URL vieja, un archivo borrado)
+ * devuelve `indice` 0 y vecinos `null` en vez de un valor inventado.
+ */
+function catalogo_vecinos(array $catalogo, string $ref): array
+{
+    $secuencia = $catalogo['secuencia'] ?? [];
+    $posicion = array_search($ref, $secuencia, true);
+    if ($posicion === false) {
+        return ['indice' => 0, 'total' => count($secuencia), 'anterior' => null, 'siguiente' => null];
+    }
+    $i = (int) $posicion;
+
+    return [
+        'indice' => $i + 1,
+        'total' => count($secuencia),
+        'anterior' => $i > 0 ? $secuencia[$i - 1] : null,
+        'siguiente' => $i + 1 < count($secuencia) ? $secuencia[$i + 1] : null,
+    ];
+}
+
+/**
  * Catálogo completo: grupos → documentos → extracciones, más lo que no cerró.
  *
  * La clave de un documento es su ruta relativa a `tests/fixtures` (p. ej.
@@ -300,6 +328,7 @@ function catalogo_listar(): array
         'grupos' => [],
         'huerfanas' => [],
         'documentos' => [],
+        'secuencia' => [],
         'totales' => ['documentos' => 0, 'extracciones' => 0, 'con_extraccion' => 0,
             'sin_extraccion' => 0, 'multipagina' => 0],
     ];
@@ -369,11 +398,28 @@ function catalogo_listar(): array
 
     $con = count(array_filter($documentos, static fn (array $d): bool => $d['extracciones'] !== []));
 
+    // Orden canónico de recorrido: el MISMO del listado, aplanado.
+    //
+    // Se construye desde `$grupos` y no desde `$documentos` a propósito. Hoy los
+    // dos coinciden, pero por una coincidencia frágil: `$documentos` queda en el
+    // orden de `catalogo_archivos()` (alfabético por ruta completa) y `$grupos`
+    // en el orden de presentación (grupo alfabético, después por nombre).
+    // Derivar el «siguiente documento» del array equivocado daría una navegación
+    // que salta de grupo sin motivo, y el bug no se vería hasta que alguien
+    // cambie la vista: por eso la secuencia se toma de la vista.
+    $secuencia = [];
+    foreach ($grupos as $lista) {
+        foreach ($lista as $documento) {
+            $secuencia[] = $documento['ref'];
+        }
+    }
+
     return [
         'ok' => true,
         'grupos' => $grupos,
         'huerfanas' => $huerfanas,
         'documentos' => $documentos,
+        'secuencia' => $secuencia,
         'totales' => [
             'documentos' => count($documentos),
             'extracciones' => $totalExtracciones,

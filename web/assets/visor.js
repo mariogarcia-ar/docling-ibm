@@ -1,12 +1,14 @@
 /* Visor de fixtures — el único JavaScript de la app.
  *
- * Hace una sola cosa, y por eso no hay framework: el checkbox «Mostrar campos sin
- * dato» de cada extracción plegable. Todo lo demás (el listado, la tabla, las
- * banderas, el PDF) lo resuelve el servidor, así que funciona sin JS.
+ * Hace dos cosas, y por eso no hay framework:
+ *  1. El checkbox «Mostrar campos sin dato» de cada extracción plegable.
+ *  2. Los atajos de teclado del navegador entre documentos.
  *
- * No hay estado: el filtro es una consecuencia del DOM. Marcar la casilla
- * esconde las filas `tr.fila-no-leido` que están DENTRO del contenedor que
- * declara el `data-filtro-vacios`.
+ * Todo lo demás (el listado, la tabla, las banderas, el PDF, la navegación misma)
+ * lo resuelve el servidor, así que la app funciona sin JS. Acá solo se AGREGA.
+ *
+ * No hay estado: el filtro es una consecuencia del DOM y la navegación usa el
+ * `href` que el servidor ya puso en el `<a>`.
  */
 
 (function () {
@@ -52,4 +54,63 @@
   // Estado inicial: el HTML nace con la casilla marcada (se ven todos los
   // campos), así que solo hay que contar los ausentes.
   document.querySelectorAll("input[data-filtro-vacios]").forEach(aplicar);
+
+  /**
+   * ¿El foco está en un control donde las flechas significan otra cosa?
+   *
+   * Sin esta guarda, moverse con `←`/`→` dentro del texto de una observación
+   * cambiaría de documento y se perdería lo que se estaba leyendo.
+   *
+   * ⚠️ NO alcanza con preguntar si es un `<input>`: la casilla «Mostrar campos sin
+   * dato» es un input y es el control que más se toca en esta pantalla, así que
+   * bloquear por etiqueta dejaba las flechas muertas después de usarla (medido).
+   * Un checkbox no consume las flechas; un campo de texto sí. Por eso se mira el
+   * TIPO y solo se bloquea lo que realmente se está escribiendo.
+   */
+  var TIPOS_DE_TEXTO = [
+    "text", "search", "url", "tel", "email", "password", "number",
+    "date", "datetime-local", "month", "week", "time",
+  ];
+
+  function escribiendoEnUnCampo() {
+    var activo = document.activeElement;
+    if (!activo) return false;
+    if (activo.isContentEditable) return true;
+    var tag = activo.tagName;
+    // Un `<select>` cambia de opción con las flechas; un `<textarea>` mueve el
+    // cursor. Los dos tienen que quedar afuera del atajo.
+    if (tag === "TEXTAREA" || tag === "SELECT") return true;
+    if (tag !== "INPUT") return false;
+
+    return TIPOS_DE_TEXTO.indexOf(activo.type) !== -1;
+  }
+
+  /**
+   * Atajos del navegador: `←` y `→` van al documento anterior y siguiente.
+   *
+   * ⚠️ El botón NO se busca entre los `.nav-boton[href]`. Filtrar por `href` y
+   * tomar el primero o el último da el botón equivocado en los extremos de la
+   * lista: en el primer documento no hay «anterior», así que el único con `href`
+   * es «siguiente» y `←` avanzaba en vez de quedarse quieto — lo contrario de lo
+   * que la flecha significa. Cada tecla se ata a un botón por su POSICIÓN en la
+   * barra (`[0]` anterior, `[1]` siguiente), esté habilitado o no, y así el
+   * estado deshabilitado del servidor se respeta sin repetir la condición acá.
+   *
+   * Los destinos siguen saliendo del `href` que emitió el servidor: el atajo no
+   * puede apuntar a un destino distinto del que ofrece la barra.
+   */
+  document.addEventListener("keydown", function (evento) {
+    if (evento.key !== "ArrowLeft" && evento.key !== "ArrowRight") return;
+    if (evento.metaKey || evento.ctrlKey || evento.altKey || evento.shiftKey) return;
+    if (escribiendoEnUnCampo()) return;
+
+    var botones = document.querySelectorAll(".navegador .nav-boton");
+    var boton = botones[evento.key === "ArrowLeft" ? 0 : 1];
+    // Un `<span aria-disabled>` en el extremo no tiene `href`: no hay destino.
+    if (!boton || !boton.hasAttribute("href")) return;
+
+    evento.preventDefault();
+    boton.click();
+  });
 })();
+

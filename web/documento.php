@@ -31,6 +31,6 @@ if ($documento === null) {
     exit;
 }
 
-vista_cabecera($documento['nombre']);
-vista_documento($documento);
+vista_cabecera($documento['nombre'], true);
+vista_documento($documento, $catalogo);
 vista_pie();

@@ -32,7 +32,7 @@ function url_documento(string $ref): string
 }
 
 /** Cabecera común de las dos pantallas. */
-function vista_cabecera(string $titulo): void
+function vista_cabecera(string $titulo, bool $conNavegador = false): void
 {
     ?>
 <!doctype html>
@@ -43,7 +43,7 @@ function vista_cabecera(string $titulo): void
 <title><?= h($titulo) ?></title>
 <link rel="stylesheet" href="assets/visor.css">
 </head>
-<body>
+<body<?= $conNavegador ? ' class="con-navegador"' : '' ?>>
 <header class="encabezado">
   <a class="marca" href="index.php">visor de fixtures</a>
   <span class="subtitulo">tests/fixtures → tests/fixtures-extraction</span>
@@ -312,6 +312,83 @@ function vista_extraccion(array $extraccion, string $sufijoId): void
 }
 
 /**
+ * Barra de navegación entre documentos.
+ *
+ * Se emite dentro de `<main>`, pero el CSS la saca del flujo (`position: fixed`),
+ * así que su lugar en el documento no afecta al layout: no hay que envolver las
+ * vistas en un contenedor nuevo para colocarla.
+ *
+ * Los destinos van como `<a>` y no como `<button>` con JS: así el recorrido
+ * funciona sin JavaScript, se puede abrir en otra pestaña y el navegador muestra
+ * el destino en la barra de estado. El JS solo AGREGA los atajos de teclado, y
+ * los lee del `href` de estos botones — de modo que el atajo no puede apuntar a
+ * un destino distinto del que ofrece la barra.
+ *
+ * En los extremos el botón se deshabilita (`aria-disabled` + sin `href`) en vez
+ * de envolver al otro lado: un «anterior» en el primero que salte al último
+ * rompe la lectura de dónde estás, y el atajo de teclado hereda esa decisión
+ * sin repetirla.
+ */
+function vista_navegador(array $catalogo, string $ref): void
+{
+    // Sin secuencia no hay navegación: es el caso de una llamada con el catálogo
+    // vacío (por ejemplo una vista armada a mano). Mostrar «0 / 0» sería peor que
+    // no mostrar la barra.
+    if (($catalogo['secuencia'] ?? []) === []) {
+        return;
+    }
+
+    $vecinos = catalogo_vecinos($catalogo, $ref);
+    $anterior = $vecinos['anterior'];
+    $siguiente = $vecinos['siguiente'];
+
+    /** Botón de navegación: `<a>` si hay destino, `<span>` deshabilitado si no. */
+    $boton = static function (string $cual, ?string $destino) use ($catalogo): void {
+        $flecha = $cual === 'anterior' ? '←' : '→';
+        $etiqueta = $flecha . ' ' . $cual;
+        if ($destino === null) {
+            ?>
+            <span class="nav-boton" aria-disabled="true"><?= h($etiqueta) ?></span>
+            <?php
+            return;
+        }
+        $nombre = $catalogo['documentos'][$destino]['nombre'] ?? $destino;
+        ?>
+        <a class="nav-boton" href="<?= h(url_documento($destino)) ?>" title="<?= h($nombre) ?>">
+          <?= h($etiqueta) ?>
+        </a>
+        <?php
+    };
+
+    /** El nombre del destino, o el extremo de la lista. */
+    $destino = static function (?string $ref) use ($catalogo): string {
+        if ($ref === null) {
+            return '';
+        }
+
+        return $catalogo['documentos'][$ref]['nombre'] ?? $ref;
+    };
+    ?>
+    <nav class="navegador" aria-label="Recorrer documentos">
+      <?php $boton('anterior', $anterior); ?>
+      <span class="nav-destino">
+        <?= $anterior === null ? 'principio de la lista' : h($destino($anterior)) ?>
+      </span>
+
+      <span class="nav-posicion">
+        <?= h($vecinos['indice']) ?> / <?= h($vecinos['total']) ?>
+        <span class="sep">·</span><kbd>←</kbd> <kbd>→</kbd>
+      </span>
+
+      <span class="nav-destino alineado-derecha">
+        <?= $siguiente === null ? 'fin de la lista' : h($destino($siguiente)) ?>
+      </span>
+      <?php $boton('siguiente', $siguiente); ?>
+    </nav>
+    <?php
+}
+
+/**
  * Detalle de un documento.
  *
  * Una sola extracción: pantalla partida, documento a la izquierda y extracción a
@@ -323,7 +400,7 @@ function vista_extraccion(array $extraccion, string $sufijoId): void
  * grande incrustado N veces es N veces la descarga — y el visor nativo del PDF
  * ya permite saltar a la página que cada bloque declara.
  */
-function vista_documento(array $documento): void
+function vista_documento(array $documento, array $catalogo = []): void
 {
     $cantidad = count($documento['extracciones']);
     ?>
@@ -351,7 +428,15 @@ function vista_documento(array $documento): void
   -o tests/fixtures-extraction/<?= h($documento['grupo']) ?></code></pre>
         </div>
       </div>
-      <?php return; ?>
+      <?php
+      // El navegador se emite ANTES de cortar: este es justamente el caso donde
+      // más se salta al siguiente documento, y un `return` seco lo dejaba sin
+      // barra (el bug que este orden evita).
+      if ($catalogo !== []) {
+          vista_navegador($catalogo, $documento['ref']);
+      }
+      return;
+      ?>
     <?php endif; ?>
 
     <div class="pantalla-partida<?= $cantidad > 1 ? ' pantalla-apilada' : '' ?>">
@@ -364,5 +449,7 @@ function vista_documento(array $documento): void
         <?php endforeach; ?>
       </div>
     </div>
+
+    <?php if ($catalogo !== []) { vista_navegador($catalogo, $documento['ref']); } ?>
     <?php
 }

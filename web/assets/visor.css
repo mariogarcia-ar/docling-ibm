@@ -327,6 +327,90 @@ code, pre, .ruta { font-family: var(--mono); }
 
 .lista-valores { margin: 0; padding-left: 18px; }
 
+/* --- Navegador entre documentos ------------------------------------------ */
+
+/* Va pegado al borde inferior: recorrer 94 documentos a mano es el uso normal, y
+   tener que volver arriba para avanzar lo haría inútil. `bottom: 0` sobre `fixed`
+   deja el navegador siempre alcanzable y el `padding` del `body` evita que tape
+   el final del contenido. */
+.navegador {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 22px;
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid var(--borde);
+}
+
+.navegador .nav-boton {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 13px;
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  background: var(--panel-alto);
+  color: var(--texto);
+  font-size: 13.5px;
+  white-space: nowrap;
+}
+.navegador .nav-boton:hover { border-color: var(--acento); text-decoration: none; }
+.navegador .nav-boton .flecha { color: var(--acento); }
+
+/* Deshabilitado ≠ ausente: el botón se queda en su lugar con el mismo tamaño.
+   Reemplazarlo por un espacio en blanco movería los otros y el recorrido a
+   ciegas (teclado) perdería una posición fija que memorizar. */
+.navegador .nav-boton[aria-disabled="true"] {
+  opacity: 0.38;
+  pointer-events: none;
+  cursor: default;
+}
+
+/* El destino se muestra al lado del botón, no en un `title`: en un recorrido
+   rápido hay que saber a dónde se va sin pasar el mouse. */
+.navegador .nav-destino {
+  color: var(--texto-tenue);
+  font-family: var(--mono);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  flex: 1;
+}
+.navegador .nav-destino.alineado-derecha { text-align: right; }
+
+.navegador .nav-posicion {
+  color: var(--texto-tenue);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.navegador kbd {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--texto-tenue);
+  border: 1px solid var(--borde);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  padding: 0 4px;
+  background: var(--fondo);
+}
+
+/* Espacio para que el navegador fijo no tape la última fila o el JSON. */
+body.con-navegador .contenido { padding-bottom: 76px; }
+
+@media (max-width: 700px) {
+  .navegador .nav-destino, .navegador kbd { display: none; }
+}
+
 /* --- Procedencia y plegables --------------------------------------------- */
 
 .procedencia {
