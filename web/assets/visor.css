@@ -21,6 +21,27 @@
   --medio: #e3b341;
   --radio: 10px;
   --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  /* Alto de la barra superior. NO es un valor fijo: el subtítulo pasa a una
+     segunda línea en ventanas angostas y el encabezado crece. Medido: 52px con
+     el subtítulo en una línea y 86px cuando se parte, y el punto de quiebre cae
+     cerca de los 502px de ancho — pero depende del renderizado de la fuente, no
+     solo del ancho, así que ninguna media query puede acertarlo.
+     Por eso lo MIDE `visor.js` (`ResizeObserver`) y lo escribe como estilo en
+     línea, que gana sobre lo de acá. Este par de valores y la media query de
+     abajo son el FALLBACK para cuando el JS no corre: sin JS el contenido queda
+     a lo sumo 34px desfasado en ventanas angostas, no roto. */
+  --alto-encabezado: 52px;
+  /* Separación entre la barra superior y lo que se pega debajo de ella (la
+     cabecera de la tabla y la columna del documento). Los dos sitios usaban
+     `70px` fijos, que era «52 + 18»: con el encabezado en 86px quedaban 16px por
+     debajo de la barra y el contenido se le metía abajo. Un solo número
+     derivado, para que no puedan desincronizarse. */
+  --offset-bajo-encabezado: calc(var(--alto-encabezado) + 18px);
+}
+
+/* Fallback sin JS: por debajo del ancho donde el subtítulo suele partirse. */
+@media (max-width: 520px) {
+  :root { --alto-encabezado: 86px; }
 }
 
 @media (prefers-color-scheme: light) {
@@ -88,7 +109,7 @@ code, pre, .ruta { font-family: var(--mono); }
 }
 .resumen b { color: var(--texto); font-size: 15px; margin-right: 4px; }
 
-.grupo { margin-bottom: 30px; scroll-margin-top: 70px; }
+.grupo { margin-bottom: 30px; scroll-margin-top: var(--offset-bajo-encabezado); }
 .grupo h2 {
   font-size: 15px;
   text-transform: uppercase;
@@ -117,7 +138,13 @@ code, pre, .ruta { font-family: var(--mono); }
 }
 .tabla thead th {
   position: sticky;
-  top: 55px;
+  /* Se pega DEBAJO de la barra superior, no al borde de la ventana: `top: 0` la
+     dejaría escondida detrás del encabezado de la app. */
+  top: var(--alto-encabezado);
+  /* `z-index` sobre el encabezado de la app (10): la cabecera de la tabla tiene
+     que pasar por ENCIMA de las filas al desplazarse, y sin esto el orden de
+     pintado la dejaba debajo del contenido siguiente. */
+  z-index: 15;
   background: var(--fondo);
   font-size: 11.5px;
   text-transform: uppercase;
@@ -183,7 +210,7 @@ code, pre, .ruta { font-family: var(--mono); }
 
 /* Con varias extracciones, el medio se queda pegado arriba mientras se recorre
    la lista de páginas: así no hay que volver a subir para comparar. */
-.pantalla-apilada .columna-medio { position: sticky; top: 70px; }
+.pantalla-apilada .columna-medio { position: sticky; top: var(--offset-bajo-encabezado); }
 .columna-extracciones { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
 
 @media (max-width: 1100px) {
@@ -301,15 +328,38 @@ code, pre, .ruta { font-family: var(--mono); }
 
 /* --- Tabla de campos ----------------------------------------------------- */
 
-.tabla-scroll { border: 1px solid var(--borde); border-radius: 8px; overflow: hidden; }
+/* ⚠️ `overflow: clip`, NO `hidden`. Este contenedor existe para recortar las
+   esquinas redondeadas del borde, pero `overflow: hidden` crea un contenedor de
+   scroll y eso DESACTIVA el `position: sticky` de la cabecera de la tabla, que
+   entonces se deslizaba por debajo de la barra superior y quedaba tapada por la
+   primera fila. `clip` recorta igual (mantiene el redondeo) sin crear el
+   contenedor de scroll, así que el sticky vuelve a enganchar. Medido: `hidden`
+   rompe el sticky, `auto` también, `clip` no.
+   ⚠️ El desborde horizontal de la TABLA (en pantallas angostas) no se resuelve
+   acá. Darle scroll propio (`overflow-x: auto`) volvería a crear el contenedor y
+   rompería el sticky otra vez — es la trampa que hay que no volver a pisar. El
+   desborde se evita achicando las columnas con `min-width: 0` más abajo. */
+.tabla-scroll { border: 1px solid var(--borde); border-radius: 8px; overflow: clip; }
 .tabla-campos { width: 100%; }
+/* `min-width: 0`: sin esto, las celdas no bajan de su ancho de contenido y la
+   tabla desborda el contenedor en pantallas angostas (medido: 36px de sobra a
+   500px y 156px a 380px), dejando la columna «Clave del JSON» cortada y sin
+   forma de alcanzarla porque el contenedor recorta en vez de scrollear. */
+.tabla-campos th, .tabla-campos td { min-width: 0; overflow-wrap: anywhere; }
 .tabla-campos th[scope="row"] {
   width: 34%;
   color: var(--texto-tenue);
   font-weight: 500;
   font-size: 13px;
 }
-.tabla-campos .col-clave { width: 1%; white-space: nowrap; }
+/* `width: 1%` NO es un ancho chico: en una tabla es «encogete al mínimo», y con
+   `nowrap` ese mínimo pasa a ser el ancho del contenido MÁS LARGO de la columna
+   —el nombre más largo de campo—, que es un piso rígido de ~232px. En una
+   pantalla angosta eso solo ya desborda la tabla: medido, la clave más larga es
+   `digito_verificador_cuit_valido` (30 caracteres) y con el `nowrap` no podía
+   partirse ni encogerse. Sin el `nowrap` la clave se parte en dos líneas y la
+   tabla entra. */
+.tabla-campos .col-clave { width: 1%; }
 .tabla-campos .col-clave code { font-size: 11.5px; color: var(--texto-tenue); }
 .tabla-campos tbody tr:last-child td, .tabla-campos tbody tr:last-child th { border-bottom: 0; }
 
@@ -407,7 +457,11 @@ code, pre, .ruta { font-family: var(--mono); }
 /* Espacio para que el navegador fijo no tape la última fila o el JSON. */
 body.con-navegador .contenido { padding-bottom: 76px; }
 
-@media (max-width: 700px) {
+/* Mismo breakpoint que la variable del encabezado, a propósito: por debajo de
+   701px la barra superior pasa a dos líneas y estos destinos ya no entran. Un
+   700 acá y un 701 allá sería una diferencia de 1px sin motivo que parecería un
+   descuido. */
+@media (max-width: 701px) {
   .navegador .nav-destino, .navegador kbd { display: none; }
 }
 

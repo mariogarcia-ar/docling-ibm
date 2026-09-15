@@ -56,6 +56,45 @@
   document.querySelectorAll("input[data-filtro-vacios]").forEach(aplicar);
 
   /**
+   * Sincroniza `--alto-encabezado` con el alto REAL de la barra superior.
+   *
+   * La barra es `sticky` y el subtítulo se parte en dos líneas en ventanas
+   * angostas, así que su alto cambia (medido: 52px → 86px alrededor de los 502px
+   * de ancho). Todo lo que se pega debajo de ella —la cabecera de la tabla y la
+   * columna del documento— fija su `top` con esa variable, y el `scroll-margin` de
+   * los grupos del listado también.
+   *
+   * ⚠️ El valor NO se puede adivinar con una media query: el punto de quiebre
+   * depende del renderizado de la fuente, no solo del ancho (un breakpoint fijo en
+   * 701px estaba 200px corrido, y el desfase solo se veía en una franja angosta de
+   * anchos). Se mide, y se vuelve a medir en cada resize.
+   *
+   * El estilo en línea gana sobre el `:root` del CSS, que queda como fallback
+   * para cuando este script no corre.
+   */
+  function sincronizarAltoDelEncabezado() {
+    var encabezado = document.querySelector(".encabezado");
+    if (!encabezado) return;
+    var alto = Math.round(encabezado.getBoundingClientRect().height);
+    if (alto > 0) {
+      document.documentElement.style.setProperty("--alto-encabezado", alto + "px");
+    }
+  }
+
+  var encabezado = document.querySelector(".encabezado");
+  sincronizarAltoDelEncabezado();
+  // `ResizeObserver` en vez de `window.onresize`: observa el ELEMENTO, así que
+  // también reacciona si el alto cambia sin que cambie la ventana (por ejemplo al
+  // cargar una fuente que ensancha el subtítulo). Escribir la variable NO cambia el
+  // alto del encabezado (solo el `top` de lo que se pega debajo), así que no hay
+  // bucle de observación.
+  if (encabezado && typeof ResizeObserver === "function") {
+    new ResizeObserver(sincronizarAltoDelEncabezado).observe(encabezado);
+  } else {
+    window.addEventListener("resize", sincronizarAltoDelEncabezado);
+  }
+
+  /**
    * ¿El foco está en un control donde las flechas significan otra cosa?
    *
    * Sin esta guarda, moverse con `←`/`→` dentro del texto de una observación

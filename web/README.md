@@ -151,6 +151,43 @@ rompe alguna, deja de estar en silencio: aparece el bloque de huérfanas.
   `ETag`, porque los `.extraccion.json` **se regeneran** y una copia sin revalidar
   mostraría una lectura vieja.
 
+### El alto del encabezado se mide, no se adivina
+
+La barra superior es `sticky` y su subtítulo pasa a una **segunda línea** en
+ventanas angostas, así que su alto cambia:
+
+| Ancho de ventana | Alto del encabezado |
+|---|---|
+| ≥ ~502px (subtítulo en una línea) | **52px** |
+| ≤ ~500px (subtítulo en dos líneas) | **86px** |
+
+Todo lo que se pega debajo de ella —la cabecera de la tabla de campos y la columna
+del documento en la vista multipágina— fija su `top` con `--alto-encabezado`, y el
+`scroll-margin-top` de los grupos del listado usa `--offset-bajo-encabezado`
+(derivado: `alto + 18px`). **Un solo lugar define el número**; los tres sitios lo
+heredan, así que no pueden desincronizarse.
+
+⚠️ **Ese alto NO se puede fijar con una media query.** El punto de quiebre depende
+del renderizado de la fuente, no solo del ancho: se midió primero en 700px, después
+en 502px. Un breakpoint cableado estaba **200px corrido** y el desfase solo se veía
+en una franja angosta de anchos. Por eso lo **mide `visor.js`** con un
+`ResizeObserver` y lo escribe como variable; el valor del CSS es el fallback para
+cuando el JS no corre (verificado: acierta igual sin JS).
+
+### Trampa: `overflow: hidden` anula `position: sticky`
+
+`.tabla-scroll` envolvía la tabla con `overflow: hidden` para recortar las esquinas
+redondeadas. Eso crea un contenedor de scroll y **desactiva el `position: sticky`**
+de la cabecera, que se deslizaba por debajo de la barra superior y quedaba tapada
+por la primera fila — el síntoma reportado («una fila tapa el detalle»).
+
+Se usa **`overflow: clip`**, que recorta igual sin crear el contenedor de scroll.
+Medido con las tres opciones: `hidden` rompe el sticky, `auto` también, `clip` no.
+
+⚠️ **No «arreglar» el desborde horizontal de la tabla** dándole `overflow-x: auto`
+a ese contenedor: vuelve a crear el contenedor de scroll y rompe el sticky otra
+vez. El desborde se evita en las columnas (`min-width: 0`).
+
 ---
 
 ## 6. Qué NO hace
