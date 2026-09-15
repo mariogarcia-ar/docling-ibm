@@ -1,0 +1,364 @@
+/* Visor de fixtures — hoja única, sin framework.
+ *
+ * Dos ideas gobiernan el estilo:
+ *  1. El dato manda. La cromática es mínima y el color se reserva para lo que
+ *     hay que mirar: un valor leído, uno ausente y un documento sin extracción.
+ *  2. Se lee de noche o en una pantalla grande. El tema oscuro es el DEFAULT (no
+ *     un `prefers-color-scheme` que rinda el control al sistema): contrastar una
+ *     factura clara contra un fondo oscuro es más cómodo y evita el flash blanco.
+ */
+
+:root {
+  --fondo: #16181d;
+  --panel: #1d2027;
+  --panel-alto: #23272f;
+  --borde: #31363f;
+  --texto: #e6e8ec;
+  --texto-tenue: #98a0ad;
+  --acento: #6ea8fe;
+  --ok: #5fd08a;
+  --no: #f0736a;
+  --medio: #e3b341;
+  --radio: 10px;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --fondo: #f6f7f9;
+    --panel: #ffffff;
+    --panel-alto: #f0f2f5;
+    --borde: #dfe3e8;
+    --texto: #1c1f24;
+    --texto-tenue: #667085;
+    --acento: #1f5fd0;
+    --ok: #1a7f4b;
+    --no: #b42318;
+    --medio: #96690b;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--fondo);
+  color: var(--texto);
+  font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+a { color: var(--acento); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+code, pre, .ruta { font-family: var(--mono); }
+
+/* --- Encabezado ---------------------------------------------------------- */
+
+.encabezado {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 14px 22px;
+  border-bottom: 1px solid var(--borde);
+  background: var(--panel);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.marca { font-weight: 650; letter-spacing: -0.01em; }
+.subtitulo { color: var(--texto-tenue); font-size: 13px; font-family: var(--mono); }
+
+.contenido { padding: 22px; max-width: 1800px; margin: 0 auto; }
+
+/* --- Listado ------------------------------------------------------------- */
+
+.resumen {
+  display: flex;
+  gap: 22px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  background: var(--panel);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  margin-bottom: 22px;
+  color: var(--texto-tenue);
+  font-size: 13px;
+}
+.resumen b { color: var(--texto); font-size: 15px; margin-right: 4px; }
+
+.grupo { margin-bottom: 30px; scroll-margin-top: 70px; }
+.grupo h2 {
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--texto-tenue);
+  margin: 0 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.conteo {
+  background: var(--panel-alto);
+  border: 1px solid var(--borde);
+  border-radius: 20px;
+  padding: 1px 9px;
+  font-size: 12px;
+  letter-spacing: 0;
+}
+
+.tabla { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.tabla th, .tabla td {
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--borde);
+  vertical-align: middle;
+}
+.tabla thead th {
+  position: sticky;
+  top: 55px;
+  background: var(--fondo);
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--texto-tenue);
+  font-weight: 600;
+}
+.tabla tbody tr:hover { background: var(--panel); }
+
+.tabla-huerfanas td { font-size: 12.5px; }
+.col-tipo, .col-bytes, .col-extraccion { width: 1%; white-space: nowrap; }
+.celda-resumen { color: var(--texto-tenue); }
+.vacio { color: var(--texto-tenue); }
+
+/* Una fila sin extracción se distingue de una con extracción sin gritar: el
+   nombre del archivo es la parte accionable y queda de color normal. */
+.fila-sin-extraccion { opacity: 0.62; }
+
+.pastilla {
+  display: inline-block;
+  min-width: 22px;
+  text-align: center;
+  padding: 1px 8px;
+  border-radius: 20px;
+  background: var(--panel-alto);
+  border: 1px solid var(--borde);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.pastilla-vacia { color: var(--texto-tenue); border-style: dashed; }
+.pastilla-media { color: var(--medio); border-color: var(--medio); }
+
+.aviso {
+  border: 1px solid var(--medio);
+  border-radius: var(--radio);
+  padding: 14px 16px;
+  margin-bottom: 22px;
+  background: color-mix(in srgb, var(--medio) 8%, transparent);
+}
+.aviso h2 { margin: 0 0 6px; font-size: 15px; }
+.nota { color: var(--texto-tenue); font-size: 13px; margin: 0 0 10px; }
+
+/* --- Detalle: documento | extracción ------------------------------------- */
+
+.migas {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: var(--texto-tenue);
+}
+.migas .actual { color: var(--texto); font-family: var(--mono); }
+.migas .sep { color: var(--borde); }
+
+.pantalla-partida {
+  display: grid;
+  grid-template-columns: minmax(360px, 44%) 1fr;
+  gap: 22px;
+  align-items: start;
+}
+
+/* Con varias extracciones, el medio se queda pegado arriba mientras se recorre
+   la lista de páginas: así no hay que volver a subir para comparar. */
+.pantalla-apilada .columna-medio { position: sticky; top: 70px; }
+.columna-extracciones { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
+
+@media (max-width: 1100px) {
+  .pantalla-partida { grid-template-columns: 1fr; }
+  .pantalla-apilada .columna-medio { position: static; }
+}
+
+.medio {
+  margin: 0;
+  background: var(--panel);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  overflow: hidden;
+}
+.medio img, .medio-pdf {
+  display: block;
+  width: 100%;
+  max-height: 78vh;
+  object-fit: contain;
+  background: #0b0c0f;
+  border: 0;
+}
+.medio-pdf { height: 78vh; }
+.medio figcaption {
+  padding: 8px 12px;
+  font-size: 12.5px;
+  color: var(--texto-tenue);
+  font-family: var(--mono);
+  border-top: 1px solid var(--borde);
+  word-break: break-all;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 18px;
+}
+.panel-vacio { color: var(--texto-tenue); }
+.panel-vacio h2 { margin-top: 0; color: var(--texto); font-size: 17px; }
+.comando {
+  background: var(--fondo);
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  padding: 10px 12px;
+  overflow-x: auto;
+  font-size: 12.5px;
+  color: var(--texto);
+}
+
+.extraccion {
+  background: var(--panel);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 16px 18px 18px;
+  min-width: 0;
+}
+.extraccion-encabezado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.extraccion-encabezado h2 {
+  margin: 0;
+  font-size: 13.5px;
+  font-family: var(--mono);
+  font-weight: 500;
+  word-break: break-all;
+}
+.control {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--texto-tenue);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+.control-conteo { color: var(--texto-tenue); opacity: 0.8; }
+
+/* --- Banderas ------------------------------------------------------------ */
+
+.banderas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+}
+.banderas li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 7px 11px;
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  background: var(--panel-alto);
+  min-width: 108px;
+}
+.bandera-etiqueta {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--texto-tenue);
+}
+.bandera-valor { font-size: 14px; font-variant-numeric: tabular-nums; }
+.banderas .valor-vacio .bandera-valor { color: var(--texto-tenue); font-style: italic; }
+.banderas .valor-si .bandera-valor { color: var(--ok); }
+.banderas .valor-no .bandera-valor { color: var(--no); }
+
+/* --- Tabla de campos ----------------------------------------------------- */
+
+.tabla-scroll { border: 1px solid var(--borde); border-radius: 8px; overflow: hidden; }
+.tabla-campos { width: 100%; }
+.tabla-campos th[scope="row"] {
+  width: 34%;
+  color: var(--texto-tenue);
+  font-weight: 500;
+  font-size: 13px;
+}
+.tabla-campos .col-clave { width: 1%; white-space: nowrap; }
+.tabla-campos .col-clave code { font-size: 11.5px; color: var(--texto-tenue); }
+.tabla-campos tbody tr:last-child td, .tabla-campos tbody tr:last-child th { border-bottom: 0; }
+
+/* Sin dato: el valor se apaga pero la fila no desaparece (el «no está» es el
+   dato). Cuando se filtra, el JS la esconde. El nombre de la clase está atado al
+   selector de `visor.js`: cambiarlo acá sin cambiarlo allá apaga el filtro. */
+.fila-sin-dato th[scope="row"] { color: var(--texto-tenue); opacity: 0.75; }
+.valor-vacio { color: var(--texto-tenue); font-style: italic; }
+.valor-si { color: var(--ok); }
+.valor-no { color: var(--no); }
+.valor-numero { font-variant-numeric: tabular-nums; font-family: var(--mono); font-size: 13px; }
+.valor-largo p { margin: 0; white-space: pre-wrap; }
+
+.fila-larga td { max-width: 0; }
+
+.lista-valores { margin: 0; padding-left: 18px; }
+
+/* --- Procedencia y plegables --------------------------------------------- */
+
+.procedencia {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 26px;
+  margin: 16px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--borde);
+  font-size: 12.5px;
+}
+.procedencia div { display: flex; gap: 7px; align-items: baseline; }
+.procedencia dt { color: var(--texto-tenue); }
+.procedencia dd { margin: 0; font-family: var(--mono); }
+
+.plegable { margin-top: 12px; font-size: 13px; }
+.plegable summary {
+  cursor: pointer;
+  color: var(--texto-tenue);
+  font-size: 12.5px;
+  padding: 4px 0;
+}
+.plegable-aviso summary { color: var(--medio); }
+.plegable summary:hover { color: var(--texto); }
+
+.json {
+  background: var(--fondo);
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  padding: 12px;
+  overflow: auto;
+  max-height: 60vh;
+  font-size: 12px;
+  margin: 8px 0 0;
+}
