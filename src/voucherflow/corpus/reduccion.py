@@ -9,6 +9,7 @@ from __future__ import annotations
 import shutil
 from pathlib import Path
 
+from ..persistencia import ya_escrito
 from .dimensiones import dimensiones_objetivo
 from .imagen import medir, reducir, tipo_salida
 from .modelo import (
@@ -72,7 +73,7 @@ def procesar(origen: Path, destino: Path, opciones: Opciones) -> Resultado:
         # Ya entra en el objetivo: NO se toca (el loop base la agrandaba).
         return _ya_entra(origen, destino, dims_origen, peso_origen, opciones)
 
-    if destino.exists() and not opciones.forzar:
+    if ya_escrito(destino) and not opciones.forzar:
         # Reanudación: el destino ya está. NO se asume que tenga las
         # dimensiones calculadas (pudo generarse con otros parámetros) → se
         # mide el archivo real para que el reporte no invente el resultado.
@@ -175,7 +176,7 @@ def _ya_entra(
             dims_destino=dims,
             peso_origen=peso_origen,
         )
-    ya_existe = destino.exists() and not opciones.forzar
+    ya_existe = ya_escrito(destino) and not opciones.forzar
     # ⚠️ Copiar los bytes no sirve si el formato pedido no es el del original:
     # un PNG copiado a ``foto.jpg`` queda con nombre que miente sobre el
     # contenido (y ningún visor le cree — el defecto 3 del loop base, en la

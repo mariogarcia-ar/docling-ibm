@@ -34,6 +34,7 @@ voucherflow process var/fixtures -o var/fixtures-extracted
 
 voucherflow corpus var/files -o var/processed --workers 4
 voucherflow pdf var/files -o var/processed
+voucherflow process var/files -o var/files-extracted
 
 
 

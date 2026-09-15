@@ -106,3 +106,29 @@ def escribir_json_atomico(destino: Path, datos: Any) -> None:
     escribir_atomico(
         destino, json.dumps(datos, ensure_ascii=False, indent=2, default=str)
     )
+
+
+def ya_escrito(destino: Path) -> bool:
+    """``True`` si ``destino`` existe **y tiene contenido**: el paso está hecho.
+
+    Es la regla que decide **reanudar o rehacer** una corrida, y por eso vive acá
+    y no en cada comando: si dos comandos la implementaran distinto, el mismo
+    archivo sería "hecho" para uno y "pendiente" para el otro — y la reanudación
+    no encontraría lo que la corrida anterior escribió (volver a pagar por
+    documentos ya procesados es el bug que el repo ya sufrió dos veces).
+
+    ⚠️ **El chequeo de tamaño no es decorativo.** Un archivo creado y vacío es el
+    residuo típico de una corrida interrumpida a mitad de escritura: darlo por
+    hecho deja un hueco silencioso en la salida que nadie nota. Medido sobre el
+    corpus real: ``voucherflow process`` nunca produce un markdown vacío (incluso
+    una imagen en negro sale con 26 bytes de encabezado), así que exigir contenido
+    no reintenta trabajo legítimo.
+
+    Nota: es una regla de **existencia**, no de frescura. Un destino generado con
+    otras opciones (otro DPI, otra orientación) también da ``True``: quien cambie
+    los parámetros debe usar el ``--forzar`` de su comando.
+    """
+    try:
+        return destino.exists() and destino.stat().st_size > 0
+    except OSError:  # pragma: no cover - carrera con otro proceso
+        return False

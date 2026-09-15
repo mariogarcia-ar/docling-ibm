@@ -38,6 +38,11 @@ Se escribe:
   (`var/files/2025-08/2D2C9343/x.pdf` → `salida/2025-08/2D2C9343/x.md`), con la
   misma regla que `corpus` y `pdf`.
 
+Si ya existe, **no se reescribe**: la corrida lo saltea (el archivo es la marca de
+"ya hecho") y lo declara. Escribir es **atómico**, así que un archivo a medio
+escribir nunca queda con el nombre final — que es lo que hace confiable a esa
+reanudación.
+
 ### `<doc>.raw.md` — el crudo de Docling
 
 Lo escribe `process --raw`. Es el texto **sin** el reordenado por posición: sirve

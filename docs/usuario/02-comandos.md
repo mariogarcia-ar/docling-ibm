@@ -38,24 +38,29 @@ Estas las aceptan los comandos del pipeline (`process`, `extract`,
 
 | Bandera | Qué hace |
 |---|---|
-| `--force` | Reprocesa lo que ya estaba hecho. **Con efecto real en `batch`** (reanudación) |
+| `--force` | Reprocesa lo que ya estaba hecho. **Con efecto real en `process` y `batch`** (reanudación) |
 | `--orientation {auto,horizontal,vertical}` | Qué orientación del texto extraer (default: `auto`, la dominante) |
 | `--condicion-impositiva` | Condición para la cadena contable (default: `21`) |
 | `--model MODEL` | Modelo de Ollama a usar (default: el rol configurado de cada etapa) |
 | `--workers N` | Workers del lote (default: `1`). **Con efecto real en `batch`** |
 
-> **Dos banderas que solo aplican a `batch`.** El parser las acepta en todos los
-> comandos del pipeline (para que las banderas no cambien de nombre según el
-> comando), pero el efecto real es del lote:
+> **Dónde tiene efecto `--force`.** El parser la acepta en todos los comandos del
+> pipeline (para que las banderas no cambien de nombre según el comando), pero no
+> en todos cambia algo:
 >
-> - **`--force`**: en `batch` decide si se reanuda o se rehace. Un documento
->   suelto (`run`) no tiene lote del cual reanudar, así que reprocesa siempre —
->   y `run` **lo declara en su traza** (`detalle.force`) en vez de fingir un
->   efecto. En `process` y `extract`, que tampoco tienen reanudación, la bandera
->   se acepta y no cambia nada.
-> - **`--workers`**: solo `batch` levanta el pool de procesos. En los demás
->   comandos se acepta y se ignora (el documento se procesa en el proceso
->   actual).
+> - **`process`**: reanuda por existencia del markdown de salida. Sin `--force`,
+>   un documento ya procesado **se saltea** (y el comando lo declara, con cuántos).
+> - **`batch`**: reanuda por el checkpoint del lote (`<doc>.batch.json`, que además
+>   guarda el hash del contenido: un documento **cambiado** se reprocesa solo).
+> - **`run`**: reprocesa siempre —un documento suelto no tiene lote del cual
+>   reanudar— y **lo declara en su traza** (`detalle.force`) en vez de fingir un
+>   efecto.
+> - **`extract` / `extract-detect`**: se acepta y **no cambia nada** (tampoco
+>   reanudan: reprocesan y vuelven a consultar al modelo en cada corrida).
+>
+> **`--workers`**: solo `batch` levanta el pool de procesos. En los demás
+> comandos se acepta y se ignora (el documento se procesa en el proceso
+> actual).
 
 ---
 
@@ -106,8 +111,23 @@ markdown.
 **Qué genera**: un `.md` por documento (o `<doc>.raw.md` con `--raw`). Ver
 [qué archivos genera](04-salidas.md).
 
-**Código de salida**: `0` siempre que haya procesado algo; `1` si no encontró
-documentos procesables.
+**Reanudación**: un documento cuyo markdown ya existe **se saltea**, y el comando
+lo declara al final (`N documento(s) salteado(s)`). `--force` lo rehace. Antes
+`process` reprocesaba todo en cada corrida: con PDF nativos era el **61% del
+tiempo**, y en un PDF escaneado el OCR se pagaba entero de nuevo. La regla es la
+misma que usan `pdf` y `corpus`.
+
+⚠️ **Es reanudación por existencia, no por frescura**: si cambiás `--orientation`
+(o `--raw`), el destino ya escrito **se reutiliza**. En ese caso usá `--force`.
+
+```bash
+voucherflow process var/files -o var/procesados            # 1ª vez: procesa todo
+voucherflow process var/files -o var/procesados            # 2ª: saltea lo hecho
+voucherflow process var/files -o var/procesados --force    # rehace todo
+```
+
+**Código de salida**: `0` siempre que haya procesado algo (o que todo ya estuviera
+hecho); `1` si no encontró documentos procesables.
 
 > **Nunca sobrescribe el documento de entrada.** Si el archivo de origen es un
 > `.md` y el destino sería el mismo archivo, se escribe `<doc>.processed.md`. Por

@@ -15,6 +15,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Sequence
 
+from ..persistencia import ya_escrito
 from ..processing.orquestacion import render_pdf_a_jpg
 from .modelo import (
     ESTADO_ESCRITO,
@@ -69,13 +70,18 @@ def ejecutar(
 def _ya_escrito(destino) -> bool:
     """True si el destino existe **y tiene contenido**.
 
+    La regla vive en :func:`voucherflow.persistencia.ya_escrito` (la comparten
+    ``pdf``, ``corpus`` y ``process``): si cada comando la implementara por su
+    cuenta, el mismo archivo sería "hecho" para uno y "pendiente" para el otro, y
+    la reanudación no encontraría lo que la corrida anterior escribió.
+
     ⚠️ El chequeo de tamaño no es decorativo: una corrida interrumpida a mitad de
-    un ``save`` puede dejar el archivo creado y vacío, y darlo por hecho dejaría un
-    hueco silencioso en la salida. El render es atómico (``processing.orquestacion``
-    escribe con temporal + ``os.replace``), así que esto solo cubre un archivo
-    preexistente de una corrida vieja o de otro proceso.
+    escritura puede dejar el archivo creado y vacío, y darlo por hecho dejaría un
+    hueco silencioso en la salida. El render es atómico
+    (``processing.orquestacion`` escribe con temporal + ``os.replace``), así que
+    esto solo cubre un archivo preexistente de una corrida vieja o de otro proceso.
     """
-    return destino.exists() and destino.stat().st_size > 0
+    return ya_escrito(destino)
 
 
 def _renderizar(tarea: Tarea, opciones: Opciones) -> Resultado:

@@ -43,6 +43,7 @@ from ..orchestrator import (
     PipelineResult,
     iterar_documentos,
 )
+from ..persistencia import escribir_atomico, ya_escrito
 
 #: Subcomandos que expone el CLI (el contrato de E-CLI-1 + ``extract-detect`` y
 #: los de auditoría de `ORCH-CLI.md` §3, + ``corpus`` y ``pdf``).
@@ -397,6 +398,18 @@ def _cmd_process(args: argparse.Namespace, entorno: EntornoCLI) -> int:
     saber de qué documento era cada markdown. La regla **no se reimplementa acá**:
     una segunda copia de dónde va cada archivo es exactamente lo que divergencea y
     hace pagar dos veces (ver ``corpus/recorrido.py``).
+
+    **Reanuda**: un documento cuyo markdown ya existe **y tiene contenido** se
+    saltea (``--force`` lo rehace). Antes reprocesaba todo cada vez — medido: el
+    61% del tiempo de una corrida con PDF nativos, y en un PDF escaneado el camino
+    OCR se paga entero de nuevo. La regla es la misma de ``pdf`` y ``corpus``
+    (:func:`persistencia.ya_escrito`) y el proceso es **determinista** (dos corridas
+    dan markdown byte a byte idéntico), así que saltear no cambia la salida.
+
+    ⚠️ Es reanudación por **existencia**, no por frescura: si se cambia
+    ``--orientation`` (o ``--raw``), el destino ya escrito se reutiliza. Se
+    **declara** en el log cuántos se saltearon para que el cambio de opciones sin
+    ``--force`` no pase inadvertido.
     """
     raiz = entorno.ruta(args.origen)
     documentos = iterar_documentos(raiz, extensiones=_extensiones_de_proceso())
@@ -425,14 +438,28 @@ def _cmd_process(args: argparse.Namespace, entorno: EntornoCLI) -> int:
         entorno.log(f"salida           : {salida}")
         _declarar_fuera_de_la_raiz(documentos, raiz_efectiva, motivo, entorno)
 
+    reanudados = 0
     for ruta in documentos:
+        destino = _destino_markdown(ruta, salida, raiz_efectiva, raw=args.raw)
+        # ⚠️ El skip va ANTES de procesar: el punto es no pagar la conversión.
+        if not args.force and ya_escrito(destino):
+            reanudados += 1
+            entorno.log(f"· saltado: {destino} (ya existía; usá --force)")
+            continue
         documento = entorno.orch().procesar(
             ruta, docling_raw=args.raw, orientation=args.orientation
         )[0]
-        destino = _destino_markdown(ruta, salida, raiz_efectiva, raw=args.raw)
-        destino.parent.mkdir(parents=True, exist_ok=True)
-        destino.write_text(documento.markdown or "", encoding="utf-8")
+        # La escritura es atómica (igual que `corpus` y `pdf`): un markdown a medio
+        # escribir con el nombre final rompería la reanudación de la próxima
+        # corrida, que lo daría por bueno.
+        escribir_atomico(destino, documento.markdown or "")
         entorno.log(f"OK: {destino} (orientación={documento.orientacion})")
+
+    if reanudados:
+        entorno.log(
+            f"{reanudados} documento(s) salteado(s) por estar ya procesados "
+            "(--force para rehacerlos)."
+        )
     return 0
 
 

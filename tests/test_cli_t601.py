@@ -786,6 +786,121 @@ class TestComandos:
         encontrados = [p.name for p in iterar_documentos(tmp_path)]
         assert encontrados == ["doc.jpg"]
 
+    def test_process_reanuda_y_saltea_lo_ya_hecho(
+        self, entorno: EntornoCLI, corpus_proceso: Path, tmp_path: Path
+    ):
+        """⚠️ Sin reanudación, `process` reprocesaba todo en cada corrida.
+
+        Medido sobre PDF nativos: el 61% del tiempo era trabajo repetido, y en un
+        PDF escaneado el camino OCR se pagaba entero de nuevo (3,07 s de 8,87 s).
+        `pdf` y `corpus` ya reanudaban; `process` era el único sin la regla.
+        """
+        salida = tmp_path / "out"
+        assert main(["process", str(corpus_proceso), "-o", str(salida)], entorno=entorno) == 0
+        assert _log(entorno).count("OK:") == 2, "la primera corrida procesa los dos"
+
+        # Segunda corrida: los dos ya están → ninguna conversión, y se declara.
+        entorno2 = EntornoCLI(
+            orquestador=entorno.orquestador,
+            stdout=io.StringIO(),
+            stderr=io.StringIO(),
+            cwd=tmp_path,
+        )
+        assert main(["process", str(corpus_proceso), "-o", str(salida)], entorno=entorno2) == 0
+        assert _log(entorno2).count("OK:") == 0, "no debe reprocesar nada"
+        assert _log(entorno2).count("saltado:") == 2
+        assert "2 documento(s) salteado(s)" in _log(entorno2)
+        assert "--force" in _log(entorno2), "tiene que decir cómo rehacerlos"
+
+    def test_process_con_force_rehace(
+        self, entorno: EntornoCLI, corpus_proceso: Path, tmp_path: Path
+    ):
+        salida = tmp_path / "out"
+        main(["process", str(corpus_proceso), "-o", str(salida)], entorno=entorno)
+        entorno2 = EntornoCLI(
+            orquestador=entorno.orquestador,
+            stdout=io.StringIO(),
+            stderr=io.StringIO(),
+            cwd=tmp_path,
+        )
+        codigo = main(
+            ["process", str(corpus_proceso), "-o", str(salida), "--force"], entorno=entorno2
+        )
+        assert codigo == 0
+        assert _log(entorno2).count("OK:") == 2, "--force reprocesa todo"
+        assert "saltado:" not in _log(entorno2)
+
+    def test_process_no_saltea_un_markdown_vacio(
+        self, entorno: EntornoCLI, tmp_path: Path
+    ):
+        """⚠️ Un archivo creado y vacío NO es un paso completado.
+
+        Es el residuo de una corrida interrumpida a mitad de escritura: darlo por
+        hecho dejaría un hueco silencioso en la salida. La regla es la compartida
+        (`persistencia.ya_escrito`, que exige tamaño > 0), no un `exists()` pelado.
+        """
+        entrada = tmp_path / "entrada"
+        entrada.mkdir()
+        (entrada / "doc.md").write_text("FACTURA A\nTotal: 121,00\n", encoding="utf-8")
+        salida = tmp_path / "out"
+        salida.mkdir()
+        # El destino que la corrida va a calcular, creado pero VACÍO.
+        (salida / "doc.md").write_text("", encoding="utf-8")
+
+        assert main(["process", str(entrada), "-o", str(salida)], entorno=entorno) == 0
+        assert _log(entorno).count("OK:") == 1, "el vacío se reprocesa"
+        assert (salida / "doc.md").stat().st_size > 0
+
+    def test_process_la_escritura_es_atomica(
+        self, entorno: EntornoCLI, tmp_path: Path, monkeypatch
+    ):
+        """⚠️ Un markdown a medio escribir con el nombre final rompe la reanudación.
+
+        La próxima corrida lo daría por bueno (es la marca de "ya hecho"), así que
+        escribir atómico es lo que hace confiable al `ya_escrito`.
+
+        ⚠️ Verificar que el import existe **no alcanza**: una versión que importe el
+        helper y siga usando `write_text` pasaría esa aserción (lo verifiqué con
+        mutación: el test solo-import no detectaba la regresión). Hay que comprobar
+        que la corrida **pasa por el helper**.
+
+        ⚠️ ``import voucherflow.cli.main as cli`` da la función ``main``, no el
+        módulo: ``voucherflow/cli/__init__.py`` la reexporta y ensombrece el
+        submódulo (mismo footgun que documenta ``test_corpus_cli.py``).
+        """
+        from importlib import import_module
+
+        cli = import_module("voucherflow.cli.main")
+        entrada = tmp_path / "entrada"
+        entrada.mkdir()
+        (entrada / "doc.md").write_text("FACTURA A\nTotal: 121,00\n", encoding="utf-8")
+
+        llamadas: list[Path] = []
+        original = cli.escribir_atomico
+
+        def espia(destino, contenido):
+            llamadas.append(Path(destino))
+            return original(destino, contenido)
+
+        monkeypatch.setattr(cli, "escribir_atomico", espia)
+        assert main(["process", str(entrada), "-o", str(tmp_path / "out")], entorno=entorno) == 0
+        assert llamadas == [tmp_path / "out" / "doc.md"], (
+            "la corrida tiene que escribir por el helper atómico, no con write_text"
+        )
+        assert not list(tmp_path.rglob("*.tmp")), "no debe quedar ningún temporal"
+
+    def test_process_escribe_en_un_directorio_que_no_existe(
+        self, entorno: EntornoCLI, tmp_path: Path
+    ):
+        """El helper atómico crea el árbol de salida (antes lo hacía el comando)."""
+        entrada = tmp_path / "entrada"
+        entrada.mkdir()
+        (entrada / "doc.md").write_text("FACTURA A\n", encoding="utf-8")
+
+        destino = tmp_path / "nuevo" / "bien" / "adentro"
+        assert main(["process", str(entrada), "-o", str(destino)], entorno=entorno) == 0
+        assert (destino / "doc.md").is_file()
+
     def test_iterar_documentos_excluye_markdown_de_corrida(self, tmp_path: Path):
         # ``.md`` es un formato de entrada VÁLIDO, pero el ``.raw.md`` que escribe
         # Es una salida derivada: descubrirla reprocesaría la propia corrida.
