@@ -4,6 +4,10 @@
  voucherflow-lab tests/fixtures/expected-extraction -M extraer -p deepseek --workers 4 -o tests/ixtures-extraction/expected-extraction 
 
 
+voucherflow pdf tests/fixtures/chicos -o var/paginas
+voucherflow pdf tests/fixtures -o var/paginas
+
+
 
  voucherflow-lab tests/fixtures/chicos -M extraer -p deepseek --workers 4 -o tests/ixtures-extraction/chicos
 

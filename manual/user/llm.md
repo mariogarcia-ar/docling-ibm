@@ -53,8 +53,10 @@ voucherflow-lab --help
 |---|---|
 | Ajustar el prompt del control de comprobantes | **Sí.** Es su motivo. |
 | Medir la calidad de un modelo sobre comprobantes reales | **Sí.** Contra los datos cargados, no contra una impresión. |
+| El lote tiene PDF mezclados con imágenes | **Sí.** Los renderiza solo; ver [Los PDF entran solos](#los-pdf-entran-solos). |
 | Procesar el corpus en producción | **No.** Para eso está `voucherflow run` (Ollama local). |
-| Bajar el peso de las imágenes antes de mandarlas | Antes: `voucherflow <corpus>` (ver `corpus.md`). |
+| Extraer el dato de un PDF que ya tiene texto seleccionable | **No.** Ese es el camino del pipeline (`voucherflow process`). |
+| Bajar el peso de las imágenes antes de mandarlas | Antes: `voucherflow corpus` (ver `corpus.md`). |
 
 ⚠️ **Esto gasta dinero.** Cada corrida de `extraer` o `validar` llama a una API
 paga; cada reintento por formato del JSON se paga también. Por eso el flujo
@@ -162,6 +164,47 @@ con lo anterior: se guarda para poder auditarlo —y para que el gasto de los
 reintentos no se pierda— pero la reanudación lo ignora porque no es un resultado.
 Sin ese archivo, un fallo de la API que consumió tokens no aparecería nunca en el
 reporte de gastos.
+
+---
+
+## Los PDF entran solos
+
+⚠️ **No hace falta convertir nada antes.** El laboratorio manda imágenes al
+proveedor, así que los PDF del lote se **renderizan a imagen** (una por página)
+como parte de la corrida. Podés apuntarlo a una carpeta mezclada:
+
+```bash
+voucherflow-lab tests/fixtures/chicos -M extraer -p deepseek --workers 4 \
+  -o tests/fixtures-extraction/chicos
+```
+
+```
+lote: 4 imagen(es) + 6 PDF → 6 página(s) renderizada(s)  (raíz: derivada de las rutas)
+a procesar: 6 de 10  (raíz: derivada de las rutas)
+```
+
+La primera línea dice **exactamente** qué se va a pagar: las 4 imágenes que ya
+estaban y las 6 páginas de los 6 PDF. Los renders son temporales (se borran al
+terminar, también si cortás con Ctrl-C); lo que queda en la salida son los JSON.
+
+Tres cosas que conviene saber:
+
+- **La unidad es la página, no el documento.** Un PDF de 3 páginas son **3
+  llamadas** y produce 3 archivos, con `_pNN` en el nombre
+  (`comprobante_p01.extraccion.json`). En el corpus real hay 100 PDF de 2 y 3
+  páginas: 264 PDF son **441 páginas**.
+- **El destino conserva la carpeta del PDF.** Un `2025-08/2D2C9343/x.pdf` escribe
+  `…/2025-08/2D2C9343/x_p01.extraccion.json`, así que dos PDF homónimos de meses
+  distintos no se pisan.
+- **En `validar` los datos se buscan por documento**, no por página: la clave
+  sigue siendo el nombre del PDF (o el hash de su carpeta), sin el `_pNN`.
+
+⚠️ **Los PDF de texto nativo son el caso caro.** Rasterizar un PDF que ya tiene
+texto seleccionable y mandarlo a un VLM cuesta una llamada por página **y pierde
+precisión** frente a leer el texto. Para extraer datos de un PDF de texto nativo,
+el camino es el pipeline (`voucherflow process`), que usa el texto. El
+laboratorio es para **medir el prompt contra un modelo de visión**; si lo que
+querés es el dato, empezá por el pipeline.
 
 ---
 
