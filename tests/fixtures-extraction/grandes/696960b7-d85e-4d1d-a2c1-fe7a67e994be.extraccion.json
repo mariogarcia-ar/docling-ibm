@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/grandes/696960b7-d85e-4d1d-a2c1-fe7a67e994be.jpg",
   "archivo_relativo": "grandes/696960b7-d85e-4d1d-a2c1-fe7a67e994be.jpg",
-  "procesado_utc": "2026-09-15T03:52:57+00:00",
+  "procesado_utc": "2026-09-15T12:02:24+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 3478,
-    "completion_tokens": 3386,
-    "total_tokens": 6864,
-    "prompt_cache_hit_tokens": 2304,
-    "prompt_cache_miss_tokens": 1174
+    "prompt_tokens": 3686,
+    "completion_tokens": 2643,
+    "total_tokens": 6329,
+    "prompt_cache_hit_tokens": 2560,
+    "prompt_cache_miss_tokens": 1126
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,12 +31,12 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.004429,
+  "costo_usd": 0.003525,
   "resultado": {
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "081",
-    "razon_social_emisor": "LA POSTA DE CHIVILCOY S.A. (ESTACIO DE SERVICIO YPF)",
+    "razon_social_emisor": "LA POSTA DE CHIVILCOY S.A. (Estación de Servicio YPF)",
     "cuit_emisor": "30-68772552-9",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "10/09/2025",
@@ -52,19 +52,19 @@
     "otros_impuestos": 0,
     "importe_total": 29400.01,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio (YPF) con despacho de comidas",
+    "rubro_emisor": "Estación de servicio / expendedor de combustible (YPF)",
     "categoria_gasto_sugerida": "Restaurante",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Ticket Factura A (Cód. 081) emitido por La Posta de Chivilcoy S.A. - Estación de Servicio YPF, Ruta 5 Km 158.500, Chivilcoy, Bs. As. N° 00029-00005017, fecha 10/09/2025, hora 12:43:02. DV del CUIT del emisor verificado: válido (30-68772552-9). Detalle: 2,0000 u x 2272,7273 - Empanadas Especiales 1 Un (21) $4.545,45; 2,0000 u x 9848,1179 - Plato de carre de cerd (21)[99,65] $19.696,24; ajuste por redondeo (21) $0,01. Subtotal neto gravado $24.241,70 + IVA 21% $5.090,76 + impuesto interno a nivel ítem (otros tributos) $67,55 = TOTAL $29.400,01; la aritmética cierra. Pago en efectivo $29.400,00 + $0,01, sin vuelto. Aunque el emisor es una estación de servicio, el detalle corresponde a consumo gastronómico (no hay carga de combustible ni litros), por lo que se sugiere categoría Restaurante; el rubro del emisor y el detalle no coinciden, se deja constancia de la ambigüedad. No se imprime símbolo ni leyenda de moneda: se asume ARS por tratarse de comprobante AFIP argentino. No se detallan cubiertos/comensales (las cantidades '1 Un' corresponden a unidades de producto, no a comensales). Centro de costo no figura en el comprobante; el campo '127781, CVC S.A.' corresponde al cliente."
+    "observaciones": "Tique Factura A (Cód. 081) de Estación de Servicio YPF - La Posta de Chivilcoy S.A., CUIT 30-68772552-9 (dígito verificador 9 válido), fecha 10/09/2025 12:43:02. Detalle: 'Empanadas Especiales 1 Un' 4.545,45 + 'Plato de carre de cerd' 19.696,24 + ajuste por redondeo 0,01 = Subtotal Imp. Neto Gravado 24.241,70; IVA 21,00% 5.090,76; Impuesto interno a nivel ítem 67,55 (total otros tributos 67,55); TOTAL 29.400,01. La aritmética cierra: 24.241,70 + 5.090,76 + 67,55 = 29.400,01. Pago: Efectivo 29.400,00 + 0,01, suma 29.400,01, vuelto 0,00. Receptor al pie (CONTADO): C.V.C. S.A., CUIT 30-58221570-3. Anomalía a revisar: el emisor es una estación de servicio (rubro combustible) pero el detalle de ítems corresponde a comida/restaurante (empanadas y plato de carne), por lo que la categoría sugerida se basó en el detalle de los ítems y no en el rubro del emisor. No se imprime leyenda ni símbolo de moneda explícito; se asume ARS por tratarse de comprobante fiscal argentino. No hay campo de centro de costo; 'PL: 15306 OP: 0015 - TORRES JUAN MARTI' es dato de punto de venta/operador, no centro de costo. No se imprimen comensales ni litros: esos campos no son verificables desde el comprobante."
   },
   "extraccion": {
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "081",
-    "razon_social_emisor": "LA POSTA DE CHIVILCOY S.A. (ESTACIO DE SERVICIO YPF)",
+    "razon_social_emisor": "LA POSTA DE CHIVILCOY S.A. (Estación de Servicio YPF)",
     "cuit_emisor": "30-68772552-9",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "10/09/2025",
@@ -80,13 +80,13 @@
     "otros_impuestos": 0,
     "importe_total": 29400.01,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio (YPF) con despacho de comidas",
+    "rubro_emisor": "Estación de servicio / expendedor de combustible (YPF)",
     "categoria_gasto_sugerida": "Restaurante",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Ticket Factura A (Cód. 081) emitido por La Posta de Chivilcoy S.A. - Estación de Servicio YPF, Ruta 5 Km 158.500, Chivilcoy, Bs. As. N° 00029-00005017, fecha 10/09/2025, hora 12:43:02. DV del CUIT del emisor verificado: válido (30-68772552-9). Detalle: 2,0000 u x 2272,7273 - Empanadas Especiales 1 Un (21) $4.545,45; 2,0000 u x 9848,1179 - Plato de carre de cerd (21)[99,65] $19.696,24; ajuste por redondeo (21) $0,01. Subtotal neto gravado $24.241,70 + IVA 21% $5.090,76 + impuesto interno a nivel ítem (otros tributos) $67,55 = TOTAL $29.400,01; la aritmética cierra. Pago en efectivo $29.400,00 + $0,01, sin vuelto. Aunque el emisor es una estación de servicio, el detalle corresponde a consumo gastronómico (no hay carga de combustible ni litros), por lo que se sugiere categoría Restaurante; el rubro del emisor y el detalle no coinciden, se deja constancia de la ambigüedad. No se imprime símbolo ni leyenda de moneda: se asume ARS por tratarse de comprobante AFIP argentino. No se detallan cubiertos/comensales (las cantidades '1 Un' corresponden a unidades de producto, no a comensales). Centro de costo no figura en el comprobante; el campo '127781, CVC S.A.' corresponde al cliente."
+    "observaciones": "Tique Factura A (Cód. 081) de Estación de Servicio YPF - La Posta de Chivilcoy S.A., CUIT 30-68772552-9 (dígito verificador 9 válido), fecha 10/09/2025 12:43:02. Detalle: 'Empanadas Especiales 1 Un' 4.545,45 + 'Plato de carre de cerd' 19.696,24 + ajuste por redondeo 0,01 = Subtotal Imp. Neto Gravado 24.241,70; IVA 21,00% 5.090,76; Impuesto interno a nivel ítem 67,55 (total otros tributos 67,55); TOTAL 29.400,01. La aritmética cierra: 24.241,70 + 5.090,76 + 67,55 = 29.400,01. Pago: Efectivo 29.400,00 + 0,01, suma 29.400,01, vuelto 0,00. Receptor al pie (CONTADO): C.V.C. S.A., CUIT 30-58221570-3. Anomalía a revisar: el emisor es una estación de servicio (rubro combustible) pero el detalle de ítems corresponde a comida/restaurante (empanadas y plato de carne), por lo que la categoría sugerida se basó en el detalle de los ítems y no en el rubro del emisor. No se imprime leyenda ni símbolo de moneda explícito; se asume ARS por tratarse de comprobante fiscal argentino. No hay campo de centro de costo; 'PL: 15306 OP: 0015 - TORRES JUAN MARTI' es dato de punto de venta/operador, no centro de costo. No se imprimen comensales ni litros: esos campos no son verificables desde el comprobante."
   },
   "aritmetica": {
     "calculable": true,

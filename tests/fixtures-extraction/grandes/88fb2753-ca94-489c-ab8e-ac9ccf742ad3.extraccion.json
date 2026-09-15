@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/grandes/88fb2753-ca94-489c-ab8e-ac9ccf742ad3.jpg",
   "archivo_relativo": "grandes/88fb2753-ca94-489c-ab8e-ac9ccf742ad3.jpg",
-  "procesado_utc": "2026-09-15T03:52:59+00:00",
+  "procesado_utc": "2026-09-15T12:02:40+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 3478,
-    "completion_tokens": 13574,
-    "total_tokens": 17052,
-    "prompt_cache_hit_tokens": 2304,
-    "prompt_cache_miss_tokens": 1174
+    "prompt_tokens": 3686,
+    "completion_tokens": 3289,
+    "total_tokens": 6975,
+    "prompt_cache_hit_tokens": 2560,
+    "prompt_cache_miss_tokens": 1126
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,11 +31,11 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.016655,
+  "costo_usd": 0.0043,
   "resultado": {
     "legibilidad": "buena",
     "tipo_comprobante": "B",
-    "codigo_afip": "006",
+    "codigo_afip": "006 (COD. 006 - Factura B, según leyenda 'FACTURA B ELECTRONICA')",
     "razon_social_emisor": "CHUNO Y TORDO SRL",
     "cuit_emisor": "30-71594815-6",
     "digito_verificador_cuit_valido": true,
@@ -46,24 +46,24 @@
     "no_gravado": 0,
     "exento": 0,
     "discrimina_impuestos": false,
-    "iva": 6855.37,
+    "iva": 0,
     "impuestos_internos": 0,
     "percepciones_iibb": 0,
     "otros_impuestos": 0,
     "importe_total": 39500.0,
-    "cierra_aritmetica": false,
-    "rubro_emisor": "Gastronómico (restaurante/cervecería - hamburguesería, sistema Maxirest)",
+    "cierra_aritmetica": true,
+    "rubro_emisor": "Gastronómico / restaurante-cervecería (hamburguesería con venta de cerveza)",
     "categoria_gasto_sugerida": "Restaurante",
-    "cantidad_comensales_personas": null,
-    "cantidad_litros": null,
+    "cantidad_comensales_personas": 0,
+    "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura B electrónica (FCB) emitida por CHUNO Y TORDO SRL, Responsable Inscripto, CUIT 30-71594815-6 (dígito verificador 6 validado: correcto). Domicilio: Remedios de Escalada de San Martín 74. Ingresos Brutos 30-71594815-6. Inicio de actividades 03/2018. Punto de venta 0002, comprobante N° 39001, serie FCB. C.A.E. 75376434637639. MESA 7. Hora 23:13:51. La fecha está impresa en formato MM/DD/AA (09/16/25 = 16/09/2025), formato estadounidense. No se imprime código AFIP explícito; el 006 surge de 'FACTURA B ELECTRONICA'. No se imprime símbolo de moneda; se asume ARS por el contexto (restaurante en Argentina). El comprobante NO discrimina neto gravado, exento ni no gravado: al ser Factura B el IVA está incluido en el precio y la línea 'Iva contenido: 6855.37' es informativa (Régimen de Transparencia Fiscal al Consumidor, Ley 27.743), equivalente al 21% del total (neto implícito 32.644,63). Por eso el subtotal se informa igual al total (39.500,00) y el IVA contenido no se adiciona a la suma. Línea 'Otros impuestos Nac. indirectos: 0.00'. ATENCIÓN: la suma del detalle de ítems (4.900 + 4.900 + 3.000 + 13.500 + 13.500 + 13.500 + 6.000 = 59.300,00) NO coincide con el TOTAL impreso (39.500,00); la diferencia (19.800,00) no corresponde a ningún impuesto ni línea impresa, por lo que cierra_aritmetica se marca en false. No se imprime cantidad de comensales/cubiertos (MESA 7 es número de mesa, no de personas). Emisor de rubro gastronómico (hamburguesería/cervecería). Bebidas alcohólicas y hamburguesas detalladas en el ticket."
+    "observaciones": "Factura B electrónica (COD. 006) de CHUNO Y TORDO SRL, CUIT 30-71594815-6 (dígito verificador válido), domicilio Remedios de Escalada de San Martín 74, Ingresos Brutos 30-71594815-6, Resp. Inscripto, inicio de actividades 03/2018. Comprobante tipo ticket: 'Factura: Fcb-0002 39001' (punto de venta 0002, nro 39001), MESA 7, cliente en blanco. Fecha impresa en formato MM/DD/YY: 09/16/25 (16/09/2025), hora 23:13:51. Detalle: 1 Pinta Golden 4900,00; 1 Pinta Honey 4900,00; 1 Sprite 3000,00; 1 Burger Birrera 13500,00; 1 Burger Americana 13500,00; 1 Burger Mushroom 13500,00; 2 Sprite 6000,00. C.A.E. 75376434637639. TOTAL: 39500,00. Al ser Factura B no discrimina IVA: el subtotal coincide con el total (39500,00) y no hay IVA, percepciones ni otros tributos discriminados; por eso los campos de impuestos van en cero. Se deja constancia de que al pie figura, dentro del 'Régimen de Transparencia Fiscal al Consumidor (Ley 27.743)', la leyenda informativa 'Iva contenido: 6855,37' y 'Otros impuestos Nac. indirectos: 0,00': son datos informativos de IVA incluido en el precio, NO un impuesto discriminado que se sume al total (por eso no se cargan en el campo IVA ni afectan la aritmética). La aritmética cierra: subtotal 39500,00 = total 39500,00. No se imprimen cantidad de cubiertos/comensales (solo MESA 7) ni litros. No hay leyenda explícita de moneda impresa, pero por tratarse de comprobante fiscal argentino en pesos con IVA contenido se consigna ARS. Emisor gastronómico, consistente con categoría Restaurante."
   },
   "extraccion": {
     "legibilidad": "buena",
     "tipo_comprobante": "B",
-    "codigo_afip": "006",
+    "codigo_afip": "006 (COD. 006 - Factura B, según leyenda 'FACTURA B ELECTRONICA')",
     "razon_social_emisor": "CHUNO Y TORDO SRL",
     "cuit_emisor": "30-71594815-6",
     "digito_verificador_cuit_valido": true,
@@ -74,27 +74,26 @@
     "no_gravado": 0,
     "exento": 0,
     "discrimina_impuestos": false,
-    "iva": 6855.37,
+    "iva": 0,
     "impuestos_internos": 0,
     "percepciones_iibb": 0,
     "otros_impuestos": 0,
     "importe_total": 39500.0,
-    "cierra_aritmetica": false,
-    "rubro_emisor": "Gastronómico (restaurante/cervecería - hamburguesería, sistema Maxirest)",
+    "cierra_aritmetica": true,
+    "rubro_emisor": "Gastronómico / restaurante-cervecería (hamburguesería con venta de cerveza)",
     "categoria_gasto_sugerida": "Restaurante",
-    "cantidad_comensales_personas": null,
-    "cantidad_litros": null,
+    "cantidad_comensales_personas": 0,
+    "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura B electrónica (FCB) emitida por CHUNO Y TORDO SRL, Responsable Inscripto, CUIT 30-71594815-6 (dígito verificador 6 validado: correcto). Domicilio: Remedios de Escalada de San Martín 74. Ingresos Brutos 30-71594815-6. Inicio de actividades 03/2018. Punto de venta 0002, comprobante N° 39001, serie FCB. C.A.E. 75376434637639. MESA 7. Hora 23:13:51. La fecha está impresa en formato MM/DD/AA (09/16/25 = 16/09/2025), formato estadounidense. No se imprime código AFIP explícito; el 006 surge de 'FACTURA B ELECTRONICA'. No se imprime símbolo de moneda; se asume ARS por el contexto (restaurante en Argentina). El comprobante NO discrimina neto gravado, exento ni no gravado: al ser Factura B el IVA está incluido en el precio y la línea 'Iva contenido: 6855.37' es informativa (Régimen de Transparencia Fiscal al Consumidor, Ley 27.743), equivalente al 21% del total (neto implícito 32.644,63). Por eso el subtotal se informa igual al total (39.500,00) y el IVA contenido no se adiciona a la suma. Línea 'Otros impuestos Nac. indirectos: 0.00'. ATENCIÓN: la suma del detalle de ítems (4.900 + 4.900 + 3.000 + 13.500 + 13.500 + 13.500 + 6.000 = 59.300,00) NO coincide con el TOTAL impreso (39.500,00); la diferencia (19.800,00) no corresponde a ningún impuesto ni línea impresa, por lo que cierra_aritmetica se marca en false. No se imprime cantidad de comensales/cubiertos (MESA 7 es número de mesa, no de personas). Emisor de rubro gastronómico (hamburguesería/cervecería). Bebidas alcohólicas y hamburguesas detalladas en el ticket."
+    "observaciones": "Factura B electrónica (COD. 006) de CHUNO Y TORDO SRL, CUIT 30-71594815-6 (dígito verificador válido), domicilio Remedios de Escalada de San Martín 74, Ingresos Brutos 30-71594815-6, Resp. Inscripto, inicio de actividades 03/2018. Comprobante tipo ticket: 'Factura: Fcb-0002 39001' (punto de venta 0002, nro 39001), MESA 7, cliente en blanco. Fecha impresa en formato MM/DD/YY: 09/16/25 (16/09/2025), hora 23:13:51. Detalle: 1 Pinta Golden 4900,00; 1 Pinta Honey 4900,00; 1 Sprite 3000,00; 1 Burger Birrera 13500,00; 1 Burger Americana 13500,00; 1 Burger Mushroom 13500,00; 2 Sprite 6000,00. C.A.E. 75376434637639. TOTAL: 39500,00. Al ser Factura B no discrimina IVA: el subtotal coincide con el total (39500,00) y no hay IVA, percepciones ni otros tributos discriminados; por eso los campos de impuestos van en cero. Se deja constancia de que al pie figura, dentro del 'Régimen de Transparencia Fiscal al Consumidor (Ley 27.743)', la leyenda informativa 'Iva contenido: 6855,37' y 'Otros impuestos Nac. indirectos: 0,00': son datos informativos de IVA incluido en el precio, NO un impuesto discriminado que se sume al total (por eso no se cargan en el campo IVA ni afectan la aritmética). La aritmética cierra: subtotal 39500,00 = total 39500,00. No se imprimen cantidad de cubiertos/comensales (solo MESA 7) ni litros. No hay leyenda explícita de moneda impresa, pero por tratarse de comprobante fiscal argentino en pesos con IVA contenido se consigna ARS. Emisor gastronómico, consistente con categoría Restaurante."
   },
   "aritmetica": {
     "calculable": true,
-    "suma": 46355.37,
+    "suma": 39500.0,
     "total": 39500.0,
-    "diferencia": -6855.37,
-    "cierra": false,
-    "faltantes": [],
-    "aviso": "Los importes leídos suman 46,355.37 y el total impreso es 39,500.00 (diferencia -6,855.37)."
+    "diferencia": 0.0,
+    "cierra": true,
+    "faltantes": []
   }
 }

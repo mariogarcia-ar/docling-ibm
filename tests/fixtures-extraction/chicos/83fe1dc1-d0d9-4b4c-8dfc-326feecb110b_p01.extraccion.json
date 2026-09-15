@@ -1,12 +1,12 @@
 {
   "origen": "tests/fixtures/chicos/83fe1dc1-d0d9-4b4c-8dfc-326feecb110b_p01.pdf",
-  "archivo_relativo": "83fe1dc1-d0d9-4b4c-8dfc-326feecb110b_p01.pdf",
-  "procesado_utc": "2026-09-15T03:46:22+00:00",
+  "archivo_relativo": "chicos/83fe1dc1-d0d9-4b4c-8dfc-326feecb110b_p01.pdf",
+  "procesado_utc": "2026-09-15T11:58:01+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
   "fuente": "api",
-  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_zw1uqns7/83fe1dc1-d0d9-4b4c-8dfc-326feecb110b_p01.jpg",
+  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_gpiw991f/chicos/83fe1dc1-d0d9-4b4c-8dfc-326feecb110b_p01.jpg",
   "pagina": 1,
   "imagen": {
     "bytes": 409980,
@@ -18,13 +18,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 3491,
-    "completion_tokens": 2229,
-    "total_tokens": 5720,
-    "prompt_cache_hit_tokens": 3328,
-    "prompt_cache_miss_tokens": 163
+    "prompt_tokens": 3699,
+    "completion_tokens": 1197,
+    "total_tokens": 4896,
+    "prompt_cache_hit_tokens": 2560,
+    "prompt_cache_miss_tokens": 1139
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -33,11 +33,11 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.002744,
+  "costo_usd": 0.001793,
   "resultado": {
     "legibilidad": "buena",
     "tipo_comprobante": "A",
-    "codigo_afip": "001",
+    "codigo_afip": "COD. 01",
     "razon_social_emisor": "\"EL LUGAR\" de Navarra Miguel Angel",
     "cuit_emisor": "20-08497822-2",
     "digito_verificador_cuit_valido": true,
@@ -54,18 +54,18 @@
     "otros_impuestos": 0,
     "importe_total": 40800.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "no verificable (emisor 'EL LUGAR' de Navarra Miguel Angel; único ítem: PAPEL HIGIENICO 6X12)",
-    "categoria_gasto_sugerida": "no verificable",
+    "rubro_emisor": "Comercio minorista / venta de artículos de limpieza (emisor tipo almacén o supermercado pequeño)",
+    "categoria_gasto_sugerida": "Supermercado / Artículos de limpieza",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A, COD. 001, punto de venta 0005, número 00018971. Emisor: \"EL LUGAR\" de Navarra Miguel Angel, CUIT 20-08497822-2 (dígito verificador válido), IVA Responsable Inscripto, domicilio 9 de Julio 767 - (2600) Venado Tuerto, Santa Fe, Tel. (03462) 424551, IIBB 032-028557-8. Cliente: 433 - CVC S.A, CUIT 30-58221570-3, Ruta 33 KM 635, Venado Tuerto, Santa Fe, Cond. venta Contado. Detalle: 1,00 x PAPEL HIGIENICO 6X12, P. Unit. 33.719,008, %Dto 0,00, Alícuota 21,00, Total línea 33.719,01. Se discrimina IVA: SUBTOT. IMP. NETO GRAVADO 33.719,01; IVA 21% 7.080,99; columna IVA 10,5% en 0,00; Impuesto Interno 0,00; TOTAL 40.800,00. La aritmética cierra: 33.719,01 + 7.080,99 = 40.800,00. No hay montos no gravados ni exentos. CAE 86095943996786 con vencimiento 12/03/2026. No se observa centro de costo; '433' corresponde al código de cliente. Categoría de gasto no inferible con confianza a partir del rubro del emisor."
+    "observaciones": "Factura A (COD. 01), punto de venta 0005, número 00018971. Emisor \"EL LUGAR\" de Navarra Miguel Angel, CUIT 20-08497822-2 (dígito verificador válido), Responsable Inscripto, domicilio 9 de Julio 767, Venado Tuerto, Santa Fe. Cliente: 433 - CVC S.A, CUIT 30-58221570-3, Cond. venta Contado. Único ítem: PAPEL HIGIENICO 6X12, cant. 1,00, P. Unit. 33.719,008, alícuota 21%, total línea 33.719,01. Discrimina IVA 21% por $7.080,99. Subtotal (neto gravado) $33.719,01 + IVA $7.080,99 = $40.800,00, cierra aritméticamente. No se observan percepciones de IIBB, impuestos internos ni otros tributos. CAE 86095943996786, vencimiento CAE 12/03/2026. No hay montos no gravados ni exentos. No figuran cubiertos/personas ni litros (no aplica). El rubro del emisor se infiere por el ítem (papel higiénico) como comercio minorista de artículos de limpieza/supermercado."
   },
   "extraccion": {
     "legibilidad": "buena",
     "tipo_comprobante": "A",
-    "codigo_afip": "001",
+    "codigo_afip": "COD. 01",
     "razon_social_emisor": "\"EL LUGAR\" de Navarra Miguel Angel",
     "cuit_emisor": "20-08497822-2",
     "digito_verificador_cuit_valido": true,
@@ -82,13 +82,13 @@
     "otros_impuestos": 0,
     "importe_total": 40800.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "no verificable (emisor 'EL LUGAR' de Navarra Miguel Angel; único ítem: PAPEL HIGIENICO 6X12)",
-    "categoria_gasto_sugerida": "no verificable",
+    "rubro_emisor": "Comercio minorista / venta de artículos de limpieza (emisor tipo almacén o supermercado pequeño)",
+    "categoria_gasto_sugerida": "Supermercado / Artículos de limpieza",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A, COD. 001, punto de venta 0005, número 00018971. Emisor: \"EL LUGAR\" de Navarra Miguel Angel, CUIT 20-08497822-2 (dígito verificador válido), IVA Responsable Inscripto, domicilio 9 de Julio 767 - (2600) Venado Tuerto, Santa Fe, Tel. (03462) 424551, IIBB 032-028557-8. Cliente: 433 - CVC S.A, CUIT 30-58221570-3, Ruta 33 KM 635, Venado Tuerto, Santa Fe, Cond. venta Contado. Detalle: 1,00 x PAPEL HIGIENICO 6X12, P. Unit. 33.719,008, %Dto 0,00, Alícuota 21,00, Total línea 33.719,01. Se discrimina IVA: SUBTOT. IMP. NETO GRAVADO 33.719,01; IVA 21% 7.080,99; columna IVA 10,5% en 0,00; Impuesto Interno 0,00; TOTAL 40.800,00. La aritmética cierra: 33.719,01 + 7.080,99 = 40.800,00. No hay montos no gravados ni exentos. CAE 86095943996786 con vencimiento 12/03/2026. No se observa centro de costo; '433' corresponde al código de cliente. Categoría de gasto no inferible con confianza a partir del rubro del emisor."
+    "observaciones": "Factura A (COD. 01), punto de venta 0005, número 00018971. Emisor \"EL LUGAR\" de Navarra Miguel Angel, CUIT 20-08497822-2 (dígito verificador válido), Responsable Inscripto, domicilio 9 de Julio 767, Venado Tuerto, Santa Fe. Cliente: 433 - CVC S.A, CUIT 30-58221570-3, Cond. venta Contado. Único ítem: PAPEL HIGIENICO 6X12, cant. 1,00, P. Unit. 33.719,008, alícuota 21%, total línea 33.719,01. Discrimina IVA 21% por $7.080,99. Subtotal (neto gravado) $33.719,01 + IVA $7.080,99 = $40.800,00, cierra aritméticamente. No se observan percepciones de IIBB, impuestos internos ni otros tributos. CAE 86095943996786, vencimiento CAE 12/03/2026. No hay montos no gravados ni exentos. No figuran cubiertos/personas ni litros (no aplica). El rubro del emisor se infiere por el ítem (papel higiénico) como comercio minorista de artículos de limpieza/supermercado."
   },
   "aritmetica": {
     "calculable": true,

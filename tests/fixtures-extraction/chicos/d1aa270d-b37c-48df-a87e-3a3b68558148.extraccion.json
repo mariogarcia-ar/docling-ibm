@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/chicos/d1aa270d-b37c-48df-a87e-3a3b68558148.png",
-  "archivo_relativo": "d1aa270d-b37c-48df-a87e-3a3b68558148.png",
-  "procesado_utc": "2026-09-15T03:46:39+00:00",
+  "archivo_relativo": "chicos/d1aa270d-b37c-48df-a87e-3a3b68558148.png",
+  "procesado_utc": "2026-09-15T11:58:57+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 2956,
-    "completion_tokens": 473,
-    "total_tokens": 3429,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 140
+    "prompt_tokens": 3164,
+    "completion_tokens": 743,
+    "total_tokens": 3907,
+    "prompt_cache_hit_tokens": 2944,
+    "prompt_cache_miss_tokens": 220
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,7 +31,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.000626,
+  "costo_usd": 0.000975,
   "resultado": {
     "legibilidad": "buena",
     "tipo_comprobante": null,
@@ -58,7 +58,7 @@
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "La imagen no contiene un comprobante fiscal: es una hoja en blanco con la leyenda impresa 'NO EXISTE COMPROBANTE PARA LA RENDICION DEL GASTO. SE CARGA A NOMBRE DE CVC.'. No hay emisor, CUIT, fecha, número, moneda ni importes para transcribir; todos los campos quedan en null. No corresponde validar aritmética ni discriminação de impuestos."
+    "observaciones": "La imagen NO contiene un comprobante fiscal: es una hoja en blanco con la leyenda 'NO EXISTE COMPROBANTE PARA LA RENDICION DEL GASTO. SE CARGA A NOMBRE DE CVC.' No hay emisor, CUIT, fecha, número, moneda, importes ni desglose de impuestos que transcribir. No corresponde validar aritmética ni tipo de comprobante. Se trata de un gasto rendido sin respaldo documental (a nombre de CVC), por lo que la aprobación queda sujeta a la política interna para gastos sin comprobante."
   },
   "extraccion": {
     "legibilidad": "buena",
@@ -86,7 +86,7 @@
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "La imagen no contiene un comprobante fiscal: es una hoja en blanco con la leyenda impresa 'NO EXISTE COMPROBANTE PARA LA RENDICION DEL GASTO. SE CARGA A NOMBRE DE CVC.'. No hay emisor, CUIT, fecha, número, moneda ni importes para transcribir; todos los campos quedan en null. No corresponde validar aritmética ni discriminação de impuestos."
+    "observaciones": "La imagen NO contiene un comprobante fiscal: es una hoja en blanco con la leyenda 'NO EXISTE COMPROBANTE PARA LA RENDICION DEL GASTO. SE CARGA A NOMBRE DE CVC.' No hay emisor, CUIT, fecha, número, moneda, importes ni desglose de impuestos que transcribir. No corresponde validar aritmética ni tipo de comprobante. Se trata de un gasto rendido sin respaldo documental (a nombre de CVC), por lo que la aprobación queda sujeta a la política interna para gastos sin comprobante."
   },
   "aritmetica": {
     "calculable": false,

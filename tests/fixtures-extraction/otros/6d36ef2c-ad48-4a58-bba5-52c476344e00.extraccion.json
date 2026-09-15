@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/otros/6d36ef2c-ad48-4a58-bba5-52c476344e00.jpg",
   "archivo_relativo": "otros/6d36ef2c-ad48-4a58-bba5-52c476344e00.jpg",
-  "procesado_utc": "2026-09-15T03:54:43+00:00",
+  "procesado_utc": "2026-09-15T12:04:09+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 3478,
-    "completion_tokens": 2670,
-    "total_tokens": 6148,
-    "prompt_cache_hit_tokens": 2304,
-    "prompt_cache_miss_tokens": 1174
+    "prompt_tokens": 3686,
+    "completion_tokens": 1513,
+    "total_tokens": 5199,
+    "prompt_cache_hit_tokens": 2560,
+    "prompt_cache_miss_tokens": 1126
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,7 +31,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.00357,
+  "costo_usd": 0.002169,
   "resultado": {
     "legibilidad": "buena",
     "tipo_comprobante": "A",
@@ -40,7 +40,7 @@
     "cuit_emisor": "30-71599456-5",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "23/07/2026",
-    "nro_factura": "00002-001133331",
+    "nro_factura": "00002-00113331",
     "moneda": "ARS",
     "subtotal": 50923.37,
     "no_gravado": 0,
@@ -52,13 +52,13 @@
     "otros_impuestos": 603.67,
     "importe_total": 72076.02,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / venta de combustibles",
+    "rubro_emisor": "Estación de servicio / combustible",
     "categoria_gasto_sugerida": "Combustible",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 34.1269,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique Factura A (Cód. 081), emisor PRIMAS GROUP S.A, CUIT 30-71599456-5 (dígito verificador válido), IVA Responsable Inscripto, domicilio AV. MITRE 101, Chivilcoy, Bs. As. Punto de venta 00002, comprobante N° 001133331, fecha 23/07/2026 hora 11:25:32. Receptor: CVC SOCIEDAD ANONIMA, CUIT 30-58221570-3 (DV válido), condición CONTADO. Detalle: 34,1269 u. x 1492,1767 de NAFTA SUPER (alícuota 21%) = 50.923,37. La aritmética cierra: neto gravado 50.923,37 + IVA 21% 10.693,91 + otros tributos 10.458,74 = 72.076,02. El rubro 'otros tributos' (10.458,74) está compuesto por la línea '10 - Impuesto interno a nivel ítem' 9.855,07 (cargada en impuestos_internos) y la línea '04 - IDC' 603,67 (cargada en otros_impuestos); si se prefiere consolidar, el total de impuestos internos sería 10.458,74. No hay percepciones de IIBB ni montos no gravados/exentos. No se imprime símbolo ni leyenda de moneda; se asume ARS por tratarse de comprobante fiscal argentino. El pie ('RECIBI/MOS') aparece cortado, sin datos de importe. Todos los campos del comprobante resultaron legibles."
+    "observaciones": "Tique Factura A (Cód. 081) emitida por PRIMAS GROUP S.A (CUIT 30-71599456-5, IVA Responsable Inscripto), Chivilcoy, Pcia. de Buenos Aires. Adquiriente: CVC SOCIEDAD ANONIMA (CUIT 30-58221570-3), condición CONTADO. Ítem: 34,1269 u. x 1492,1767 de NAFTA SUPER (alícuota 21%), importe 50923,37. Neto gravado 50923,37 + IVA 21% 10693,91 + Impuesto interno a nivel ítem 9855,07 + IDC 603,67 (total otros tributos 10458,74) = TOTAL 72076,02; la aritmética cierra. No se observan percepciones de IIBB ni montos no gravados ni exentos. Dígito verificador del CUIT del emisor validado correctamente (5). Fecha impresa 23/07/2026 con hora 11:25:32. Moneda inferida ARS por tratarse de comprobante fiscal argentino con IVA 21% (no hay símbolo de moneda impreso explícito). No figura centro de costo en el comprobante."
   },
   "extraccion": {
     "legibilidad": "buena",
@@ -68,7 +68,7 @@
     "cuit_emisor": "30-71599456-5",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "23/07/2026",
-    "nro_factura": "00002-001133331",
+    "nro_factura": "00002-00113331",
     "moneda": "ARS",
     "subtotal": 50923.37,
     "no_gravado": 0,
@@ -80,13 +80,13 @@
     "otros_impuestos": 603.67,
     "importe_total": 72076.02,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / venta de combustibles",
+    "rubro_emisor": "Estación de servicio / combustible",
     "categoria_gasto_sugerida": "Combustible",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 34.1269,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique Factura A (Cód. 081), emisor PRIMAS GROUP S.A, CUIT 30-71599456-5 (dígito verificador válido), IVA Responsable Inscripto, domicilio AV. MITRE 101, Chivilcoy, Bs. As. Punto de venta 00002, comprobante N° 001133331, fecha 23/07/2026 hora 11:25:32. Receptor: CVC SOCIEDAD ANONIMA, CUIT 30-58221570-3 (DV válido), condición CONTADO. Detalle: 34,1269 u. x 1492,1767 de NAFTA SUPER (alícuota 21%) = 50.923,37. La aritmética cierra: neto gravado 50.923,37 + IVA 21% 10.693,91 + otros tributos 10.458,74 = 72.076,02. El rubro 'otros tributos' (10.458,74) está compuesto por la línea '10 - Impuesto interno a nivel ítem' 9.855,07 (cargada en impuestos_internos) y la línea '04 - IDC' 603,67 (cargada en otros_impuestos); si se prefiere consolidar, el total de impuestos internos sería 10.458,74. No hay percepciones de IIBB ni montos no gravados/exentos. No se imprime símbolo ni leyenda de moneda; se asume ARS por tratarse de comprobante fiscal argentino. El pie ('RECIBI/MOS') aparece cortado, sin datos de importe. Todos los campos del comprobante resultaron legibles."
+    "observaciones": "Tique Factura A (Cód. 081) emitida por PRIMAS GROUP S.A (CUIT 30-71599456-5, IVA Responsable Inscripto), Chivilcoy, Pcia. de Buenos Aires. Adquiriente: CVC SOCIEDAD ANONIMA (CUIT 30-58221570-3), condición CONTADO. Ítem: 34,1269 u. x 1492,1767 de NAFTA SUPER (alícuota 21%), importe 50923,37. Neto gravado 50923,37 + IVA 21% 10693,91 + Impuesto interno a nivel ítem 9855,07 + IDC 603,67 (total otros tributos 10458,74) = TOTAL 72076,02; la aritmética cierra. No se observan percepciones de IIBB ni montos no gravados ni exentos. Dígito verificador del CUIT del emisor validado correctamente (5). Fecha impresa 23/07/2026 con hora 11:25:32. Moneda inferida ARS por tratarse de comprobante fiscal argentino con IVA 21% (no hay símbolo de moneda impreso explícito). No figura centro de costo en el comprobante."
   },
   "aritmetica": {
     "calculable": true,

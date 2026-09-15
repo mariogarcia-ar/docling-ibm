@@ -1,12 +1,12 @@
 {
   "origen": "tests/fixtures/pdf_escaneados/722106ec-ad35-4d09-879f-b2da6f8897ad_p01.pdf",
   "archivo_relativo": "pdf_escaneados/722106ec-ad35-4d09-879f-b2da6f8897ad_p01.pdf",
-  "procesado_utc": "2026-09-15T03:52:07+00:00",
+  "procesado_utc": "2026-09-15T11:58:41+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
   "fuente": "api",
-  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_pcat1xl9/pdf_escaneados/722106ec-ad35-4d09-879f-b2da6f8897ad_p01.jpg",
+  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_gpiw991f/pdf_escaneados/722106ec-ad35-4d09-879f-b2da6f8897ad_p01.jpg",
   "pagina": 1,
   "imagen": {
     "bytes": 1034681,
@@ -18,13 +18,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 3491,
-    "completion_tokens": 1610,
-    "total_tokens": 5101,
-    "prompt_cache_hit_tokens": 2304,
-    "prompt_cache_miss_tokens": 1187
+    "prompt_tokens": 3699,
+    "completion_tokens": 1639,
+    "total_tokens": 5338,
+    "prompt_cache_hit_tokens": 2560,
+    "prompt_cache_miss_tokens": 1139
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -33,7 +33,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.002302,
+  "costo_usd": 0.002324,
   "resultado": {
     "legibilidad": "buena",
     "tipo_comprobante": "A",
@@ -54,15 +54,13 @@
     "otros_impuestos": 0,
     "importe_total": 71400.02,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Ferretería industrial / insumos para gastronomía (vende cajas porta pizza)",
-    "categoria_gasto_sugerida": "Insumos / Ferretería (rubro inferido: ferretería industrial; el ítem es una caja porta pizza de 50 cm, por lo que también podría corresponder a insumos gastronómicos)",
+    "rubro_emisor": "Ferretería industrial / insumos y materiales",
+    "categoria_gasto_sugerida": "Ferretería / Insumos",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
-    "campos_no_legibles": [
-      "descripción exacta del ítem (BREMENUOZ / 'PIZZA PORTA NASA 50CM' se lee con dificultad)"
-    ],
-    "observaciones": "Factura A, Cód. 01, N° 0003-00004976, emitida por Briatore S.A. (CUIT 30-70983686-9, IVA Responsable Inscripto, BV. Avellaneda 509, Rosario). Fecha de emisión y vencimiento: 01/06/2026. CAE 86227885067928, vencimiento CAE 11/06/2026. Cliente: CVC S.A. (CUIT 30-58221570-3), condición de venta contado. Único ítem: 4 unidades de caja porta pizza 50 cm a $14.752,07 c/u, IVA 21%. Aritmética verificada: subtotal neto gravado 59.008,28 + IVA 21% 12.391,74 = total 71.400,02. No se observan percepciones, impuestos internos, exentos ni no gravados. Dígito verificador del CUIT del emisor validado correctamente (resultado 9). El CUIT del cliente es parcialmente legible pero se transcribe como 30-58221570-3 (no validado, fuera del alcance del control)."
+    "campos_no_legibles": [],
+    "observaciones": "Factura A (Cod. 01) N° 0003-00004976, emitida por Briatore S.A. (Ferretería Industrial), BV. Avellaneda 509, (2000) Rosario; CUIT 30-70983686-9 (dígito verificador validado: 9). Fecha de emisión 01/06/2026, vencimiento 01/06/2026. Ingresos Brutos 021-164000-0, inicio de actividades 01/10/2006, IVA Responsable Inscripto. Cliente: CVC S.A., AV. CIRCUNVALACION 1245 BIS, condición de venta CONTADO. Único ítem: 4 unidades de 'PIZZA PORTA NASA 50CM' (código interno dudoso, se lee 'BREMENUOZ') a P/UNITARIO 14752,07 con alícuota IVA 21%, total de línea 59008,28. Aritmética verificada: subtotal 59008,28 + IVA 21% 12391,74 = 71400,02. La columna '% BON' y la sección DESCUENTOS figuran vacías. No se discriminan no gravado, exento ni percepciones. CAE 86227885067928, F.VENC 11/06/2026. Categoría de gasto sugerida por el rubro del emisor (ferretería/insumos); la descripción del ítem es poco legible y podría corresponder a un producto comercializado por el comercio."
   },
   "extraccion": {
     "legibilidad": "buena",
@@ -84,15 +82,13 @@
     "otros_impuestos": 0,
     "importe_total": 71400.02,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Ferretería industrial / insumos para gastronomía (vende cajas porta pizza)",
-    "categoria_gasto_sugerida": "Insumos / Ferretería (rubro inferido: ferretería industrial; el ítem es una caja porta pizza de 50 cm, por lo que también podría corresponder a insumos gastronómicos)",
+    "rubro_emisor": "Ferretería industrial / insumos y materiales",
+    "categoria_gasto_sugerida": "Ferretería / Insumos",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
-    "campos_no_legibles": [
-      "descripción exacta del ítem (BREMENUOZ / 'PIZZA PORTA NASA 50CM' se lee con dificultad)"
-    ],
-    "observaciones": "Factura A, Cód. 01, N° 0003-00004976, emitida por Briatore S.A. (CUIT 30-70983686-9, IVA Responsable Inscripto, BV. Avellaneda 509, Rosario). Fecha de emisión y vencimiento: 01/06/2026. CAE 86227885067928, vencimiento CAE 11/06/2026. Cliente: CVC S.A. (CUIT 30-58221570-3), condición de venta contado. Único ítem: 4 unidades de caja porta pizza 50 cm a $14.752,07 c/u, IVA 21%. Aritmética verificada: subtotal neto gravado 59.008,28 + IVA 21% 12.391,74 = total 71.400,02. No se observan percepciones, impuestos internos, exentos ni no gravados. Dígito verificador del CUIT del emisor validado correctamente (resultado 9). El CUIT del cliente es parcialmente legible pero se transcribe como 30-58221570-3 (no validado, fuera del alcance del control)."
+    "campos_no_legibles": [],
+    "observaciones": "Factura A (Cod. 01) N° 0003-00004976, emitida por Briatore S.A. (Ferretería Industrial), BV. Avellaneda 509, (2000) Rosario; CUIT 30-70983686-9 (dígito verificador validado: 9). Fecha de emisión 01/06/2026, vencimiento 01/06/2026. Ingresos Brutos 021-164000-0, inicio de actividades 01/10/2006, IVA Responsable Inscripto. Cliente: CVC S.A., AV. CIRCUNVALACION 1245 BIS, condición de venta CONTADO. Único ítem: 4 unidades de 'PIZZA PORTA NASA 50CM' (código interno dudoso, se lee 'BREMENUOZ') a P/UNITARIO 14752,07 con alícuota IVA 21%, total de línea 59008,28. Aritmética verificada: subtotal 59008,28 + IVA 21% 12391,74 = 71400,02. La columna '% BON' y la sección DESCUENTOS figuran vacías. No se discriminan no gravado, exento ni percepciones. CAE 86227885067928, F.VENC 11/06/2026. Categoría de gasto sugerida por el rubro del emisor (ferretería/insumos); la descripción del ítem es poco legible y podría corresponder a un producto comercializado por el comercio."
   },
   "aritmetica": {
     "calculable": true,

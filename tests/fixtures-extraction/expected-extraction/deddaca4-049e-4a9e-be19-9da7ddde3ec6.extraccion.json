@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/expected-extraction/deddaca4-049e-4a9e-be19-9da7ddde3ec6.jpg",
-  "archivo_relativo": "deddaca4-049e-4a9e-be19-9da7ddde3ec6.jpg",
-  "procesado_utc": "2026-09-15T02:06:50+00:00",
+  "archivo_relativo": "expected-extraction/deddaca4-049e-4a9e-be19-9da7ddde3ec6.jpg",
+  "procesado_utc": "2026-09-15T12:01:43+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,33 +16,31 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 6706,
-    "completion_tokens": 12959,
-    "total_tokens": 19665,
-    "prompt_cache_hit_tokens": 5760,
-    "prompt_cache_miss_tokens": 946
+    "prompt_tokens": 3225,
+    "completion_tokens": 6863,
+    "total_tokens": 10088,
+    "prompt_cache_hit_tokens": 2560,
+    "prompt_cache_miss_tokens": 665
   },
   "esquema_validado": true,
-  "reintentos_esquema": 1,
-  "avisos_esquema": [],
   "precios_usd_1m": {
     "entrada": 0.3,
     "salida": 1.2,
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.015869,
+  "costo_usd": 0.00845,
   "resultado": {
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "001",
     "razon_social_emisor": "DIARCO S.A.",
-    "cuit_emisor": "30-56027314-9",
-    "digito_verificador_cuit_valido": true,
-    "fecha_emision": "30/05/2025",
-    "nro_factura": "03402-00000258",
+    "cuit_emisor": "30-62228702-0",
+    "digito_verificador_cuit_valido": false,
+    "fecha_emision": "30/09/2025",
+    "nro_factura": null,
     "moneda": "ARS",
     "subtotal": 102329.5,
     "no_gravado": 0,
@@ -50,29 +48,30 @@
     "discrimina_impuestos": true,
     "iva": 21489.2,
     "impuestos_internos": 0,
-    "percepciones_iibb": 511.65,
-    "otros_impuestos": 3581.54,
+    "percepciones_iibb": 3069.89,
+    "otros_impuestos": 1023.3,
     "importe_total": 127911.89,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Mayorista / autoservicio de alimentos y productos de almacén",
+    "rubro_emisor": "Supermercado mayorista / venta de alimentos y bebidas",
     "categoria_gasto_sugerida": "Supermercado",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [
-      "Rótulos de las líneas de percepciones (parcialmente tapados por el sello y la escritura a mano sobre el sector de totales)"
+      "nro_factura",
+      "digito_verificador_cuit"
     ],
-    "observaciones": "Factura A de Diarco (sucursal 010 - Junín), emitida el 30/05/2025 a las 09:13 hs. Se discriminan líneas de productos de almacén (alfajor, café La Planta, leche en polvo, té Taragüí, turrón, yerba Playadito) por un neto gravado de 102.329,50 al 21%. Se discrimina IVA 21% por 21.489,20 y tres líneas de percepciones por 511,65 + 511,65 + 3.069,89 = 4.093,19 (los rótulos exactos de cada percepción están parcialmente tapados por el sello/escritura, por lo que la clasificación entre IIBB y otros es estimada). Total 127.911,89, abonado con Visa Electron 1 cuota. La aritmética cierra: 102.329,50 + 21.489,20 + 4.093,19 = 127.911,89. No se observan ítems no gravados ni exentos. El CUIT del emisor se lee con dígito verificador válido. No hay campos de comensales, litros ni centro de costo impresos en el comprobante."
+    "observaciones": "Factura A de DIARCO S.A. (CUIT 30-62228702-0, IVA Responsable Inscripto, Capital Federal), emitida el 30/09/2025 09:13:09. Emisor mayorista de alimentos y bebidas (Diarco), coherente con 'Supermercado'. Neto gravado impreso 102.329,50 + IVA 21% 21.489,20 (discrimina impuestos). Se leen además percepciones: una línea rotulada 'ING. 3,00 %' por 3.069,89 (imputable a percepciones IIBB) y dos importes de 511,65 cada uno (contabilizados en otros_impuestos, 1.023,30). La aritmética cierra exactamente: 102.329,50 + 21.489,20 + 3.069,89 + 1.023,30 = 127.911,89, coincidente con el TOTAL impreso. No se visualiza con claridad el número de factura (Pto. Venta-Nro.), se marca como no legible. El dígito verificador del CUIT leído no valida (correspondería a 8 según el algoritmo módulo 11) y/o el último dígito no es nítido, se indica como no verificable con certeza desde la imagen. Cantidad de unidades: 66. Forma de pago: Visa Electron, 1 cuota. No hay campos de comensales ni litros aplicables."
   },
   "extraccion": {
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "001",
     "razon_social_emisor": "DIARCO S.A.",
-    "cuit_emisor": "30-56027314-9",
-    "digito_verificador_cuit_valido": true,
-    "fecha_emision": "30/05/2025",
-    "nro_factura": "03402-00000258",
+    "cuit_emisor": "30-62228702-0",
+    "digito_verificador_cuit_valido": false,
+    "fecha_emision": "30/09/2025",
+    "nro_factura": null,
     "moneda": "ARS",
     "subtotal": 102329.5,
     "no_gravado": 0,
@@ -80,19 +79,20 @@
     "discrimina_impuestos": true,
     "iva": 21489.2,
     "impuestos_internos": 0,
-    "percepciones_iibb": 511.65,
-    "otros_impuestos": 3581.54,
+    "percepciones_iibb": 3069.89,
+    "otros_impuestos": 1023.3,
     "importe_total": 127911.89,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Mayorista / autoservicio de alimentos y productos de almacén",
+    "rubro_emisor": "Supermercado mayorista / venta de alimentos y bebidas",
     "categoria_gasto_sugerida": "Supermercado",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [
-      "Rótulos de las líneas de percepciones (parcialmente tapados por el sello y la escritura a mano sobre el sector de totales)"
+      "nro_factura",
+      "digito_verificador_cuit"
     ],
-    "observaciones": "Factura A de Diarco (sucursal 010 - Junín), emitida el 30/05/2025 a las 09:13 hs. Se discriminan líneas de productos de almacén (alfajor, café La Planta, leche en polvo, té Taragüí, turrón, yerba Playadito) por un neto gravado de 102.329,50 al 21%. Se discrimina IVA 21% por 21.489,20 y tres líneas de percepciones por 511,65 + 511,65 + 3.069,89 = 4.093,19 (los rótulos exactos de cada percepción están parcialmente tapados por el sello/escritura, por lo que la clasificación entre IIBB y otros es estimada). Total 127.911,89, abonado con Visa Electron 1 cuota. La aritmética cierra: 102.329,50 + 21.489,20 + 4.093,19 = 127.911,89. No se observan ítems no gravados ni exentos. El CUIT del emisor se lee con dígito verificador válido. No hay campos de comensales, litros ni centro de costo impresos en el comprobante."
+    "observaciones": "Factura A de DIARCO S.A. (CUIT 30-62228702-0, IVA Responsable Inscripto, Capital Federal), emitida el 30/09/2025 09:13:09. Emisor mayorista de alimentos y bebidas (Diarco), coherente con 'Supermercado'. Neto gravado impreso 102.329,50 + IVA 21% 21.489,20 (discrimina impuestos). Se leen además percepciones: una línea rotulada 'ING. 3,00 %' por 3.069,89 (imputable a percepciones IIBB) y dos importes de 511,65 cada uno (contabilizados en otros_impuestos, 1.023,30). La aritmética cierra exactamente: 102.329,50 + 21.489,20 + 3.069,89 + 1.023,30 = 127.911,89, coincidente con el TOTAL impreso. No se visualiza con claridad el número de factura (Pto. Venta-Nro.), se marca como no legible. El dígito verificador del CUIT leído no valida (correspondería a 8 según el algoritmo módulo 11) y/o el último dígito no es nítido, se indica como no verificable con certeza desde la imagen. Cantidad de unidades: 66. Forma de pago: Visa Electron, 1 cuota. No hay campos de comensales ni litros aplicables."
   },
   "aritmetica": {
     "calculable": true,

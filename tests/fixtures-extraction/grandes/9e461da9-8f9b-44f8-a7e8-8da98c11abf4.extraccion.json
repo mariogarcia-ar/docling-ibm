@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/grandes/9e461da9-8f9b-44f8-a7e8-8da98c11abf4.jpg",
   "archivo_relativo": "grandes/9e461da9-8f9b-44f8-a7e8-8da98c11abf4.jpg",
-  "procesado_utc": "2026-09-15T03:53:31+00:00",
+  "procesado_utc": "2026-09-15T12:02:45+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 3478,
-    "completion_tokens": 2127,
-    "total_tokens": 5605,
-    "prompt_cache_hit_tokens": 2304,
-    "prompt_cache_miss_tokens": 1174
+    "prompt_tokens": 3686,
+    "completion_tokens": 4986,
+    "total_tokens": 8672,
+    "prompt_cache_hit_tokens": 2560,
+    "prompt_cache_miss_tokens": 1126
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,12 +31,12 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.002918,
+  "costo_usd": 0.006336,
   "resultado": {
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "081",
-    "razon_social_emisor": "LUIS LARUMBE S R L (PUMA - RUTA 18)",
+    "razon_social_emisor": "LUIS LARUMBE S R L",
     "cuit_emisor": "30-70151419-6",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "06/08/2025",
@@ -52,21 +52,19 @@
     "otros_impuestos": 633.82,
     "importe_total": 66354.04,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / expendedora de combustible",
+    "rubro_emisor": "Estación de servicio / venta de combustible (PUMA - RUTA 18, Alvear, Santa Fe)",
     "categoria_gasto_sugerida": "Combustible",
-    "cantidad_comensales_personas": null,
+    "cantidad_comensales_personas": 0,
     "cantidad_litros": 46.73,
     "centro_de_costo": null,
-    "campos_no_legibles": [
-      "Último dígito del N° de comprobante (00013-0003105?), parcialmente cortado en el borde derecho"
-    ],
-    "observaciones": "Tique Factura A (Cód. 081) emitido por LUIS LARUMBE S R L (estación PUMA - RUTA 18), Ruta Prov. 18 Km 7.5, Alvear, Santa Fe. CUIT 30-70151419-6 con dígito verificador válido. Fecha 06/08/2025, hora 16:26:40. Receptor: CVC SOCIEDAD ANONIMA, CUIT 30-58221570-3. Detalle: PUMA SUPER E12, 46,73 l x $1420,0000. Neto gravado 45762,63 + IVA 21% 9610,15 + Impuesto interno a nivel ítem 10347,45 + IDC 633,82 (total otros tributos 10981,27) = 66354,05, contra total impreso 66354,04 (diferencia de $0,01 por redondeo). Litros según ticket: 46,7282 u / 46,73 l facturados. Pago en efectivo por 66354,04, vuelto 0,00."
+    "campos_no_legibles": [],
+    "observaciones": "Tique Factura 'A' (Cód. 081) N° 00013-00031054, emitido el 06/08/2025 16:26:40 por LUIS LARUMBE S R L (CUIT 30-70151419-6, dígito verificador correcto), estación de servicio PUMA RUTA 18, Alvear, Santa Fe. Detalle: 46,7282 L (impreso también como 46,73) de PUMA SUPER E12 a $1.420,00000/l (precio final con impuestos). Neto gravado $45.762,63 (equivalente a $979,3364/L), IVA 21% $9.610,15, Impuesto interno a nivel ítem $10.347,45, IDC (07) $633,82, IMPORTE TOTAL OTROS TRIBUTOS $10.981,27, TOTAL $66.354,04. La suma subtotal + IVA + otros tributos da $66.354,05, es decir $0,01 más que el total impreso: la diferencia es un redondeo (el comprobante muestra 'DTO. Ajuste por redondeo (D) (21) -0,01' y el total final está truncado en 1 centavo); no es una discrepancia real. Receptor: CVC SOCIEDAD ANONIMA, CUIT 30-58221570-3 (dígito verificador correcto), Av. de Circunvalación Bis 1245, Rosario, condición CONTADO. Comprobante asociado Cód. 001 00001-00000000. Pago: se menciona 'Cupon: VISA 293-7236' pero la línea de pago figura como 'Efectivo' por $66.354,04, con suma de pagos $66.354,04 y vuelto $0,00 (posible inconsistencia de medio de pago, no verificable). Registro EPEPAA000030290, V: 1.02 Jano. El borde derecho del ticket está levemente cortado pero todos los importes y el CUIT resultan legibles; no se detectaron tildes de operador."
   },
   "extraccion": {
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "081",
-    "razon_social_emisor": "LUIS LARUMBE S R L (PUMA - RUTA 18)",
+    "razon_social_emisor": "LUIS LARUMBE S R L",
     "cuit_emisor": "30-70151419-6",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "06/08/2025",
@@ -82,15 +80,13 @@
     "otros_impuestos": 633.82,
     "importe_total": 66354.04,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / expendedora de combustible",
+    "rubro_emisor": "Estación de servicio / venta de combustible (PUMA - RUTA 18, Alvear, Santa Fe)",
     "categoria_gasto_sugerida": "Combustible",
-    "cantidad_comensales_personas": null,
+    "cantidad_comensales_personas": 0,
     "cantidad_litros": 46.73,
     "centro_de_costo": null,
-    "campos_no_legibles": [
-      "Último dígito del N° de comprobante (00013-0003105?), parcialmente cortado en el borde derecho"
-    ],
-    "observaciones": "Tique Factura A (Cód. 081) emitido por LUIS LARUMBE S R L (estación PUMA - RUTA 18), Ruta Prov. 18 Km 7.5, Alvear, Santa Fe. CUIT 30-70151419-6 con dígito verificador válido. Fecha 06/08/2025, hora 16:26:40. Receptor: CVC SOCIEDAD ANONIMA, CUIT 30-58221570-3. Detalle: PUMA SUPER E12, 46,73 l x $1420,0000. Neto gravado 45762,63 + IVA 21% 9610,15 + Impuesto interno a nivel ítem 10347,45 + IDC 633,82 (total otros tributos 10981,27) = 66354,05, contra total impreso 66354,04 (diferencia de $0,01 por redondeo). Litros según ticket: 46,7282 u / 46,73 l facturados. Pago en efectivo por 66354,04, vuelto 0,00."
+    "campos_no_legibles": [],
+    "observaciones": "Tique Factura 'A' (Cód. 081) N° 00013-00031054, emitido el 06/08/2025 16:26:40 por LUIS LARUMBE S R L (CUIT 30-70151419-6, dígito verificador correcto), estación de servicio PUMA RUTA 18, Alvear, Santa Fe. Detalle: 46,7282 L (impreso también como 46,73) de PUMA SUPER E12 a $1.420,00000/l (precio final con impuestos). Neto gravado $45.762,63 (equivalente a $979,3364/L), IVA 21% $9.610,15, Impuesto interno a nivel ítem $10.347,45, IDC (07) $633,82, IMPORTE TOTAL OTROS TRIBUTOS $10.981,27, TOTAL $66.354,04. La suma subtotal + IVA + otros tributos da $66.354,05, es decir $0,01 más que el total impreso: la diferencia es un redondeo (el comprobante muestra 'DTO. Ajuste por redondeo (D) (21) -0,01' y el total final está truncado en 1 centavo); no es una discrepancia real. Receptor: CVC SOCIEDAD ANONIMA, CUIT 30-58221570-3 (dígito verificador correcto), Av. de Circunvalación Bis 1245, Rosario, condición CONTADO. Comprobante asociado Cód. 001 00001-00000000. Pago: se menciona 'Cupon: VISA 293-7236' pero la línea de pago figura como 'Efectivo' por $66.354,04, con suma de pagos $66.354,04 y vuelto $0,00 (posible inconsistencia de medio de pago, no verificable). Registro EPEPAA000030290, V: 1.02 Jano. El borde derecho del ticket está levemente cortado pero todos los importes y el CUIT resultan legibles; no se detectaron tildes de operador."
   },
   "aritmetica": {
     "calculable": true,

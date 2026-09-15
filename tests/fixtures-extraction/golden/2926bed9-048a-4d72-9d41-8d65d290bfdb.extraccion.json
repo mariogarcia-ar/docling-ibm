@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/golden/2926bed9-048a-4d72-9d41-8d65d290bfdb.jpeg",
   "archivo_relativo": "golden/2926bed9-048a-4d72-9d41-8d65d290bfdb.jpeg",
-  "procesado_utc": "2026-09-15T03:52:19+00:00",
+  "procesado_utc": "2026-09-15T12:01:53+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 2681,
-    "completion_tokens": 1655,
-    "total_tokens": 4336,
-    "prompt_cache_hit_tokens": 2432,
-    "prompt_cache_miss_tokens": 249
+    "prompt_tokens": 2889,
+    "completion_tokens": 1044,
+    "total_tokens": 3933,
+    "prompt_cache_hit_tokens": 2560,
+    "prompt_cache_miss_tokens": 329
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,7 +31,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.002075,
+  "costo_usd": 0.001367,
   "resultado": {
     "legibilidad": "buena",
     "tipo_comprobante": null,
@@ -58,7 +58,7 @@
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "La imagen NO es un comprobante fiscal AFIP/ARCA: es una captura de un correo electrónico junto con dos paneles de un sistema de gestión. En el correo el remitente indica expresamente: 'no hay comprobante, ya que corresponde a impuestos de sellos' y adjunta una captura. Los paneles muestran: (1) 'Comprobantes': 14/01/2026 - CVSA TRAMO II - $ 5.033,52 con botón 'Descargar'; (2) 'Conceptos TLPP': 12/01/2026 - Impuesto de Sellos - $ 60,40. Se trata de registros internos/listado del sistema, no de la imagen de una Factura A/B/C ni de un Otro Comprobante (090/099), por lo que no hay encabezado de emisor, CUIT, punto de venta, número de comprobante, discriminación de IVA ni total fiscal que transcribir. Las fechas e importes consignados son los del listado del sistema y no de un comprobante. No corresponde validar aritmética ni dígito verificador. Se recomienda solicitar el comprobante respaldatorio del Impuesto de Sellos (boleta/constancia del organismo recaudador) antes de aprobar el gasto."
+    "observaciones": "La imagen NO es un comprobante fiscal: es una captura de la plataforma Mendel (bandeja de Comprobantes / Conceptos TLPP) con el texto de un correo. El propio texto indica: 'no hay comprobante, ya que corresponde a impuestos de sellos', por lo que no hay factura para transcribir. Lo único visible son dos registros de la plataforma: (1) Comprobantes: 'CVSA TRAMO II' por $ 5.033,52 con fecha 14/01/2026 (con botón 'Descargar', es decir, un archivo adjunto no visible en esta imagen); (2) Conceptos TLPP: 'Impuesto de Sellos' por $ 60,40 con fecha 12/01/2026. Esos importes son datos de listado de la plataforma, no importes impresos en un comprobante, por lo que no se transcriben en los campos de importes. No hay encabezado de emisor, CUIT, punto de venta, número, letra/código AFIP, moneda ni discriminación de impuestos legibles. Se solicita adjuntar la imagen del comprobante (factura) o, en su defecto, la documentación del impuesto de sellos para poder auditar."
   },
   "extraccion": {
     "legibilidad": "buena",
@@ -86,7 +86,7 @@
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "La imagen NO es un comprobante fiscal AFIP/ARCA: es una captura de un correo electrónico junto con dos paneles de un sistema de gestión. En el correo el remitente indica expresamente: 'no hay comprobante, ya que corresponde a impuestos de sellos' y adjunta una captura. Los paneles muestran: (1) 'Comprobantes': 14/01/2026 - CVSA TRAMO II - $ 5.033,52 con botón 'Descargar'; (2) 'Conceptos TLPP': 12/01/2026 - Impuesto de Sellos - $ 60,40. Se trata de registros internos/listado del sistema, no de la imagen de una Factura A/B/C ni de un Otro Comprobante (090/099), por lo que no hay encabezado de emisor, CUIT, punto de venta, número de comprobante, discriminación de IVA ni total fiscal que transcribir. Las fechas e importes consignados son los del listado del sistema y no de un comprobante. No corresponde validar aritmética ni dígito verificador. Se recomienda solicitar el comprobante respaldatorio del Impuesto de Sellos (boleta/constancia del organismo recaudador) antes de aprobar el gasto."
+    "observaciones": "La imagen NO es un comprobante fiscal: es una captura de la plataforma Mendel (bandeja de Comprobantes / Conceptos TLPP) con el texto de un correo. El propio texto indica: 'no hay comprobante, ya que corresponde a impuestos de sellos', por lo que no hay factura para transcribir. Lo único visible son dos registros de la plataforma: (1) Comprobantes: 'CVSA TRAMO II' por $ 5.033,52 con fecha 14/01/2026 (con botón 'Descargar', es decir, un archivo adjunto no visible en esta imagen); (2) Conceptos TLPP: 'Impuesto de Sellos' por $ 60,40 con fecha 12/01/2026. Esos importes son datos de listado de la plataforma, no importes impresos en un comprobante, por lo que no se transcriben en los campos de importes. No hay encabezado de emisor, CUIT, punto de venta, número, letra/código AFIP, moneda ni discriminación de impuestos legibles. Se solicita adjuntar la imagen del comprobante (factura) o, en su defecto, la documentación del impuesto de sellos para poder auditar."
   },
   "aritmetica": {
     "calculable": false,

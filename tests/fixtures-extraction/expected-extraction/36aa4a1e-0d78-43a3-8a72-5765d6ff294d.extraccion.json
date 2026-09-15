@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/expected-extraction/36aa4a1e-0d78-43a3-8a72-5765d6ff294d.jpg",
-  "archivo_relativo": "36aa4a1e-0d78-43a3-8a72-5765d6ff294d.jpg",
-  "procesado_utc": "2026-09-15T02:05:31+00:00",
+  "archivo_relativo": "expected-extraction/36aa4a1e-0d78-43a3-8a72-5765d6ff294d.jpg",
+  "procesado_utc": "2026-09-15T11:59:26+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 3017,
-    "completion_tokens": 1485,
-    "total_tokens": 4502,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 201
+    "prompt_tokens": 3225,
+    "completion_tokens": 1033,
+    "total_tokens": 4258,
+    "prompt_cache_hit_tokens": 2560,
+    "prompt_cache_miss_tokens": 665
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,12 +31,12 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.001859,
+  "costo_usd": 0.001454,
   "resultado": {
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "001",
-    "razon_social_emisor": "BENITO, MANUEL",
+    "razon_social_emisor": "BENITO, MANUEL (Don Benito El Origen)",
     "cuit_emisor": "20-37812905-3",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "26/08/2025",
@@ -52,19 +52,19 @@
     "otros_impuestos": 0,
     "importe_total": 229000.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Gastronómico / Restaurante (nombre de fantasía «Don Benito El Origen», emisión por sistema Maxirest, detalle «CENA»)",
+    "rubro_emisor": "Gastronómico / Restaurante",
     "categoria_gasto_sugerida": "Restaurante",
     "cantidad_comensales_personas": 5,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A Electrónica (COD. 001). Emisor: BENITO, MANUEL, domicilio comercial Saavedra 80, CUIT 20-37812905-3 (dígito verificador validado: correcto), IIBB 20-37812905-3, IVA Responsable Inscripto, inicio de actividades 11/2021. Encabezado con nombre de fantasía «Don Benito El Origen». Punto de venta 0012, comprobante N° 0002104 (impreso como «Fca-0012 0002104»). Fecha 26/08/2025, hora 22:49:47. Cliente: CVC SA CVC SA, CUIT 30-58221570-3. Detalle: 5 x CENA a P.Unit. 37851.240 = 189256.20. Neto gravado 189256.20 + IVA 39743.80 (21%) = TOTAL 229000.00; la aritmética cierra. La línea «DESCUENTO:» figura impresa pero sin importe (vacía). Moneda: no hay símbolo ni leyenda explícita impresa; se asume ARS por tratarse de comprobante AFIP en pesos. Cantidad de comensales inferida del detalle («5 CENA»), no hay desglose de cubiertos. C.A.E. 75343726828718. Pie: www.maxirest.com. Nota manuscrita «Lo Mendel» en el margen superior (ajena al comprobante)."
+    "observaciones": "Factura A electrónica emitida por BENITO, MANUEL (nombre de fantasía 'Don Benito El Origen'), CUIT 20-37812905-3, domicilio Saavedra 80, IVA Responsable Inscripto, inicio de actividades 11/2021. Nro de factura FCA-0012 0002104 (pto. de venta 0012, nro 0002104). Fecha de emisión 26/08/2025 22:49:47 hs. Cliente: CUC SA, CUIT 30-58221570-3. Detalle: 5 x CENA a $37.851,240 = $189.256,20. Línea 'DESCUENTO' impresa sin valor. Aritmética verificada: subtotal $189.256,20 + IVA $39.743,80 = total $229.000,00. Dígito verificador del CUIT validado correctamente. C.A.E. 75343726828718. La cantidad de comensales (5) surge del detalle de ítems (5 cenas), aunque no está impreso como campo de cubiertos. C.A.E. y leyenda www.maxirest.com visibles."
   },
   "extraccion": {
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "001",
-    "razon_social_emisor": "BENITO, MANUEL",
+    "razon_social_emisor": "BENITO, MANUEL (Don Benito El Origen)",
     "cuit_emisor": "20-37812905-3",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "26/08/2025",
@@ -80,13 +80,13 @@
     "otros_impuestos": 0,
     "importe_total": 229000.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Gastronómico / Restaurante (nombre de fantasía «Don Benito El Origen», emisión por sistema Maxirest, detalle «CENA»)",
+    "rubro_emisor": "Gastronómico / Restaurante",
     "categoria_gasto_sugerida": "Restaurante",
     "cantidad_comensales_personas": 5,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A Electrónica (COD. 001). Emisor: BENITO, MANUEL, domicilio comercial Saavedra 80, CUIT 20-37812905-3 (dígito verificador validado: correcto), IIBB 20-37812905-3, IVA Responsable Inscripto, inicio de actividades 11/2021. Encabezado con nombre de fantasía «Don Benito El Origen». Punto de venta 0012, comprobante N° 0002104 (impreso como «Fca-0012 0002104»). Fecha 26/08/2025, hora 22:49:47. Cliente: CVC SA CVC SA, CUIT 30-58221570-3. Detalle: 5 x CENA a P.Unit. 37851.240 = 189256.20. Neto gravado 189256.20 + IVA 39743.80 (21%) = TOTAL 229000.00; la aritmética cierra. La línea «DESCUENTO:» figura impresa pero sin importe (vacía). Moneda: no hay símbolo ni leyenda explícita impresa; se asume ARS por tratarse de comprobante AFIP en pesos. Cantidad de comensales inferida del detalle («5 CENA»), no hay desglose de cubiertos. C.A.E. 75343726828718. Pie: www.maxirest.com. Nota manuscrita «Lo Mendel» en el margen superior (ajena al comprobante)."
+    "observaciones": "Factura A electrónica emitida por BENITO, MANUEL (nombre de fantasía 'Don Benito El Origen'), CUIT 20-37812905-3, domicilio Saavedra 80, IVA Responsable Inscripto, inicio de actividades 11/2021. Nro de factura FCA-0012 0002104 (pto. de venta 0012, nro 0002104). Fecha de emisión 26/08/2025 22:49:47 hs. Cliente: CUC SA, CUIT 30-58221570-3. Detalle: 5 x CENA a $37.851,240 = $189.256,20. Línea 'DESCUENTO' impresa sin valor. Aritmética verificada: subtotal $189.256,20 + IVA $39.743,80 = total $229.000,00. Dígito verificador del CUIT validado correctamente. C.A.E. 75343726828718. La cantidad de comensales (5) surge del detalle de ítems (5 cenas), aunque no está impreso como campo de cubiertos. C.A.E. y leyenda www.maxirest.com visibles."
   },
   "aritmetica": {
     "calculable": true,

@@ -1,12 +1,12 @@
 {
   "origen": "tests/fixtures/pdf_aptos_layout/c9946aa2-0979-4b5c-9265-77e4f126b978_p01.pdf",
   "archivo_relativo": "pdf_aptos_layout/c9946aa2-0979-4b5c-9265-77e4f126b978_p01.pdf",
-  "procesado_utc": "2026-09-15T11:52:25+00:00",
+  "procesado_utc": "2026-09-15T11:58:34+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
   "fuente": "api",
-  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_6ekg21fv/pdf_aptos_layout/c9946aa2-0979-4b5c-9265-77e4f126b978_p01.jpg",
+  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_gpiw991f/pdf_aptos_layout/c9946aa2-0979-4b5c-9265-77e4f126b978_p01.jpg",
   "pagina": 1,
   "imagen": {
     "bytes": 466774,
@@ -21,10 +21,10 @@
   "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
     "prompt_tokens": 3680,
-    "completion_tokens": 1887,
-    "total_tokens": 5567,
-    "prompt_cache_hit_tokens": 0,
-    "prompt_cache_miss_tokens": 3680
+    "completion_tokens": 1467,
+    "total_tokens": 5147,
+    "prompt_cache_hit_tokens": 3456,
+    "prompt_cache_miss_tokens": 224
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -33,7 +33,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.003368,
+  "costo_usd": 0.001848,
   "resultado": {
     "legibilidad": "buena",
     "tipo_comprobante": "INTERNACIONAL",
@@ -54,13 +54,13 @@
     "otros_impuestos": 0,
     "importe_total": 21684.41,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Software / licencias y servicios informáticos (suscripción Adobe)",
-    "categoria_gasto_sugerida": "Software / Suscripción de software",
+    "rubro_emisor": "Software / servicios informáticos (suscripciones digitales)",
+    "categoria_gasto_sugerida": "Software",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Comprobante emitido por proveedor del exterior (Adobe Systems Software Ireland Ltd, Dublín, Irlanda): no es factura fiscal argentina, sin letra A/B/C ni código AFIP; el CUIT emisor no existe (el N° 30582215703 que figura es el 'N° de IVA de cliente', es decir el CUIT del receptor Martín Ojea Quintana, Rosario). Numeración tipo 'invoice' 3508280577, fecha 04-JUL-2026, divisa ARS. Detalle: 'Acrobat Pro' neto 14.340,00 + 21% (3.011,40) = 17.351,40; 'Asistente de IA para Acrobat' neto 3.581,00 + 21% (752,01) = 4.333,01. Totales impresos: IMPORTE NETO (ARS) 17.921,00; IMPUESTOS (VER LOS TIPOS) 3.763,41; TOTAL (ARS) 21.684,41. La aritmética cierra (17.921,00 + 3.763,41 = 21.684,41) y el impuesto impreso (3.763,41) coincide exactamente con el 21% del neto y con la suma de los impuestos por línea, por lo que se cargó como IVA. ATENCIÓN: el texto al pie indica 'Este cargo incluye 30% por concepto de impuesto PAIS y 34% por concepto del impuesto de la Resolución General 4815/2020', porcentajes que NO se corresponden con el 21% efectivamente impreso ni con ningún importe visible del comprobante; no hay líneas separadas de Percepciones ni de impuesto PAIS. Se transcribe solo lo que figura impreso. No corresponden campos de comensales ni litros."
+    "observaciones": "Comprobante emitido por proveedor del exterior (Adobe Systems Software Ireland Ltd, Dublin, Irlanda): no es Factura A/B/C ni tiene código AFIP, por lo que corresponde clasificarlo como INTERNACIONAL. No hay CUIT de emisor; el número 30582215703 consignado como 'N.º de IVA de cliente' es el identificador fiscal del receptor (Martin Ojea Quintana, S2000 Rosario, Argentina), no del emisor. Detalle: Acrobat Pro (1 EA, neto 14.340,00) y Asistente de IA para Acrobat (1 EA, neto 3.581,00), ambos con IVA 21% (3.011,40 + 752,01). Los renglones de impuestos suman 3.763,41 = 21% sobre el neto de 17.921,00. El comentario menciona un recargo por impuesto PAIS 30% y RG 4815/2020 34%, pero esos conceptos no están sumados en el total: el total 21.684,41 equivale exactamente a neto 17.921,00 + impuestos 3.763,41. Aritmética verificada: 17.921,00 + 3.763,41 = 21.684,41. Divisa declarada en ARS. Fechas expresadas como 04-JUL-2026 (emisión) y período de servicio 04-JUL-2026 a 03-AGO-2026."
   },
   "extraccion": {
     "legibilidad": "buena",
@@ -82,13 +82,13 @@
     "otros_impuestos": 0,
     "importe_total": 21684.41,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Software / licencias y servicios informáticos (suscripción Adobe)",
-    "categoria_gasto_sugerida": "Software / Suscripción de software",
+    "rubro_emisor": "Software / servicios informáticos (suscripciones digitales)",
+    "categoria_gasto_sugerida": "Software",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Comprobante emitido por proveedor del exterior (Adobe Systems Software Ireland Ltd, Dublín, Irlanda): no es factura fiscal argentina, sin letra A/B/C ni código AFIP; el CUIT emisor no existe (el N° 30582215703 que figura es el 'N° de IVA de cliente', es decir el CUIT del receptor Martín Ojea Quintana, Rosario). Numeración tipo 'invoice' 3508280577, fecha 04-JUL-2026, divisa ARS. Detalle: 'Acrobat Pro' neto 14.340,00 + 21% (3.011,40) = 17.351,40; 'Asistente de IA para Acrobat' neto 3.581,00 + 21% (752,01) = 4.333,01. Totales impresos: IMPORTE NETO (ARS) 17.921,00; IMPUESTOS (VER LOS TIPOS) 3.763,41; TOTAL (ARS) 21.684,41. La aritmética cierra (17.921,00 + 3.763,41 = 21.684,41) y el impuesto impreso (3.763,41) coincide exactamente con el 21% del neto y con la suma de los impuestos por línea, por lo que se cargó como IVA. ATENCIÓN: el texto al pie indica 'Este cargo incluye 30% por concepto de impuesto PAIS y 34% por concepto del impuesto de la Resolución General 4815/2020', porcentajes que NO se corresponden con el 21% efectivamente impreso ni con ningún importe visible del comprobante; no hay líneas separadas de Percepciones ni de impuesto PAIS. Se transcribe solo lo que figura impreso. No corresponden campos de comensales ni litros."
+    "observaciones": "Comprobante emitido por proveedor del exterior (Adobe Systems Software Ireland Ltd, Dublin, Irlanda): no es Factura A/B/C ni tiene código AFIP, por lo que corresponde clasificarlo como INTERNACIONAL. No hay CUIT de emisor; el número 30582215703 consignado como 'N.º de IVA de cliente' es el identificador fiscal del receptor (Martin Ojea Quintana, S2000 Rosario, Argentina), no del emisor. Detalle: Acrobat Pro (1 EA, neto 14.340,00) y Asistente de IA para Acrobat (1 EA, neto 3.581,00), ambos con IVA 21% (3.011,40 + 752,01). Los renglones de impuestos suman 3.763,41 = 21% sobre el neto de 17.921,00. El comentario menciona un recargo por impuesto PAIS 30% y RG 4815/2020 34%, pero esos conceptos no están sumados en el total: el total 21.684,41 equivale exactamente a neto 17.921,00 + impuestos 3.763,41. Aritmética verificada: 17.921,00 + 3.763,41 = 21.684,41. Divisa declarada en ARS. Fechas expresadas como 04-JUL-2026 (emisión) y período de servicio 04-JUL-2026 a 03-AGO-2026."
   },
   "aritmetica": {
     "calculable": true,

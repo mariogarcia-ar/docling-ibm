@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/expected-extraction/34266aa0-c7d1-46e4-9ee4-6a69dabd59fd.jpg",
-  "archivo_relativo": "34266aa0-c7d1-46e4-9ee4-6a69dabd59fd.jpg",
-  "procesado_utc": "2026-09-15T02:05:29+00:00",
+  "archivo_relativo": "expected-extraction/34266aa0-c7d1-46e4-9ee4-6a69dabd59fd.jpg",
+  "procesado_utc": "2026-09-15T11:59:26+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 3017,
-    "completion_tokens": 3303,
-    "total_tokens": 6320,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 201
+    "prompt_tokens": 3225,
+    "completion_tokens": 4741,
+    "total_tokens": 7966,
+    "prompt_cache_hit_tokens": 2560,
+    "prompt_cache_miss_tokens": 665
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,10 +31,10 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.004041,
+  "costo_usd": 0.005904,
   "resultado": {
     "legibilidad": "buena",
-    "tipo_comprobante": "Tique (Cod. 083)",
+    "tipo_comprobante": "B",
     "codigo_afip": "083",
     "razon_social_emisor": "HERRERO SRL",
     "cuit_emisor": "30-51808998-2",
@@ -52,17 +52,17 @@
     "otros_impuestos": 0,
     "importe_total": 12300.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Gastronomía / cafetería-confitería (Latte 415 cc y galletitas Bagley); el pie incluye 'Tasa Vial' y registro de controlador 'Neptuno', datos atípicos para el rubro.",
+    "rubro_emisor": "Gastronomía / cafetería-bar (ítems: Latte 415 cc + 2 facturas y galletitas surtidas)",
     "categoria_gasto_sugerida": "Restaurante",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique (Cod. 083), no es Factura A/B/C: emitido a CONSUMIDOR FINAL, por lo que NO discrimina IVA ni otros tributos. El 'Subtotal' impreso (12300,00) coincide con el TOTAL (12300,00); no hay desglose de neto/exento/no gravado. El renglón 'IVA Contenido 2134,71' corresponde a la ley de Transparencia Fiscal (Ley 27743) e informa el IVA incluido dentro del total, no un impuesto discriminado aparte; por eso no se carga en el campo IVA ni altera la aritmética. 'Otros Impuestos Nac. Indirectos 0,00'. Detalle: 1,0000 (00) x 7700,0000 Latte 415 cc + 2 fact = 7700,00 y 1,0000 (00) x 4600,0000 Gall Surtido Bagley = 4600,00. Punto de venta 00026, Nro. T. 00038429, hora 08:34:59. Pago: Tarjeta de crédito (57KKJHZ0MJ), suma de pagos 12300,00, vuelto 0,00. CUIT 30-51808998-2 con dígito verificador válido. Emisor IVA Responsable Inscripto, Ing. Brutos 021-093598-9, domicilio Av. Eva Perón 7898, Rosario, Santa Fe, CP 2000. Vend: HERNANDORENA JENIFER, Turno 30. Se observa 'INCLUYE TASA VIAL' y 'REGISTRO: EPEPAA00000051486 V: 1.03 Neptuno', habitual en controladores fiscales, aunque el rubro aparente por los ítems es gastronómico. No se informan litros ni comensales. Moneda inferida en pesos (ARS) por formato de importes; no hay símbolo de moneda impreso."
+    "observaciones": "Tique (Cód. 083) de HERRERO SRL, IVA Responsable Inscripto, emitido 'A CONSUMIDOR FINAL': se transcribe como tipo 'B' por no discriminar IVA (codigo AFIP 083). Punto de venta 00026, número 00038429, fecha 23/01/2026 08:34:59, hora no incluida en el campo de fecha. CUIT 30-51808998-2: 11 dígitos y dígito verificador válido. Detalle: 1,0000 x 7700,0000 = 7700,00 (Latte 415 cc + 2 facturas) y 1,0000 x 4600,0000 = 4600,00 (Gall Surtido Bagley); 'Subtotal' impreso 12.300,00, que coincide con el TOTAL 12.300,00 (no hay apertura de neto gravado, no gravado ni exento). No discrimina impuestos: los 2.134,71 de 'IVA Contenido' y 0,00 de 'Otros Impuestos Nac. Indirectos' figuran solo en el bloque 'Transparencia Fiscal al Consumidor Ley 27743' (informativo, incluido en el total), por lo que se cargan IVA y demás impuestos en 0. La aritmética cierra (12.300,00 + 0 + 0 + 0 = 12.300,00). Medios de pago: tarjeta de crédito (57KKJHZ0MJ), 'Suma de sus pagos' 12.300,00 y 'Su Vuelto' 0,00; el renglón 'Otros medios de Pago' no se lee con total claridad. Cantidad de comensales y litros no figuran en el comprobante (no verificables). No se observa centro de costo. Pie: 'INCLUYE TASA VIAL', REGISTRO EPEPAA0000051486, V 1.03 Neptuno, vendedor HERNANDORENA JENIFER, Turno 30. Rubro inferido de los ítems (cafetería/bar), sin plena certeza."
   },
   "extraccion": {
     "legibilidad": "buena",
-    "tipo_comprobante": "Tique (Cod. 083)",
+    "tipo_comprobante": "B",
     "codigo_afip": "083",
     "razon_social_emisor": "HERRERO SRL",
     "cuit_emisor": "30-51808998-2",
@@ -80,13 +80,13 @@
     "otros_impuestos": 0,
     "importe_total": 12300.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Gastronomía / cafetería-confitería (Latte 415 cc y galletitas Bagley); el pie incluye 'Tasa Vial' y registro de controlador 'Neptuno', datos atípicos para el rubro.",
+    "rubro_emisor": "Gastronomía / cafetería-bar (ítems: Latte 415 cc + 2 facturas y galletitas surtidas)",
     "categoria_gasto_sugerida": "Restaurante",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique (Cod. 083), no es Factura A/B/C: emitido a CONSUMIDOR FINAL, por lo que NO discrimina IVA ni otros tributos. El 'Subtotal' impreso (12300,00) coincide con el TOTAL (12300,00); no hay desglose de neto/exento/no gravado. El renglón 'IVA Contenido 2134,71' corresponde a la ley de Transparencia Fiscal (Ley 27743) e informa el IVA incluido dentro del total, no un impuesto discriminado aparte; por eso no se carga en el campo IVA ni altera la aritmética. 'Otros Impuestos Nac. Indirectos 0,00'. Detalle: 1,0000 (00) x 7700,0000 Latte 415 cc + 2 fact = 7700,00 y 1,0000 (00) x 4600,0000 Gall Surtido Bagley = 4600,00. Punto de venta 00026, Nro. T. 00038429, hora 08:34:59. Pago: Tarjeta de crédito (57KKJHZ0MJ), suma de pagos 12300,00, vuelto 0,00. CUIT 30-51808998-2 con dígito verificador válido. Emisor IVA Responsable Inscripto, Ing. Brutos 021-093598-9, domicilio Av. Eva Perón 7898, Rosario, Santa Fe, CP 2000. Vend: HERNANDORENA JENIFER, Turno 30. Se observa 'INCLUYE TASA VIAL' y 'REGISTRO: EPEPAA00000051486 V: 1.03 Neptuno', habitual en controladores fiscales, aunque el rubro aparente por los ítems es gastronómico. No se informan litros ni comensales. Moneda inferida en pesos (ARS) por formato de importes; no hay símbolo de moneda impreso."
+    "observaciones": "Tique (Cód. 083) de HERRERO SRL, IVA Responsable Inscripto, emitido 'A CONSUMIDOR FINAL': se transcribe como tipo 'B' por no discriminar IVA (codigo AFIP 083). Punto de venta 00026, número 00038429, fecha 23/01/2026 08:34:59, hora no incluida en el campo de fecha. CUIT 30-51808998-2: 11 dígitos y dígito verificador válido. Detalle: 1,0000 x 7700,0000 = 7700,00 (Latte 415 cc + 2 facturas) y 1,0000 x 4600,0000 = 4600,00 (Gall Surtido Bagley); 'Subtotal' impreso 12.300,00, que coincide con el TOTAL 12.300,00 (no hay apertura de neto gravado, no gravado ni exento). No discrimina impuestos: los 2.134,71 de 'IVA Contenido' y 0,00 de 'Otros Impuestos Nac. Indirectos' figuran solo en el bloque 'Transparencia Fiscal al Consumidor Ley 27743' (informativo, incluido en el total), por lo que se cargan IVA y demás impuestos en 0. La aritmética cierra (12.300,00 + 0 + 0 + 0 = 12.300,00). Medios de pago: tarjeta de crédito (57KKJHZ0MJ), 'Suma de sus pagos' 12.300,00 y 'Su Vuelto' 0,00; el renglón 'Otros medios de Pago' no se lee con total claridad. Cantidad de comensales y litros no figuran en el comprobante (no verificables). No se observa centro de costo. Pie: 'INCLUYE TASA VIAL', REGISTRO EPEPAA0000051486, V 1.03 Neptuno, vendedor HERNANDORENA JENIFER, Turno 30. Rubro inferido de los ítems (cafetería/bar), sin plena certeza."
   },
   "aritmetica": {
     "calculable": true,

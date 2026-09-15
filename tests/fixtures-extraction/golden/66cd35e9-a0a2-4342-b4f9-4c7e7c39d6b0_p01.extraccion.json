@@ -1,12 +1,12 @@
 {
   "origen": "tests/fixtures/golden/66cd35e9-a0a2-4342-b4f9-4c7e7c39d6b0_p01.pdf",
   "archivo_relativo": "golden/66cd35e9-a0a2-4342-b4f9-4c7e7c39d6b0_p01.pdf",
-  "procesado_utc": "2026-09-15T03:51:34+00:00",
+  "procesado_utc": "2026-09-15T11:58:09+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
   "fuente": "api",
-  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_pcat1xl9/golden/66cd35e9-a0a2-4342-b4f9-4c7e7c39d6b0_p01.jpg",
+  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_gpiw991f/golden/66cd35e9-a0a2-4342-b4f9-4c7e7c39d6b0_p01.jpg",
   "pagina": 1,
   "imagen": {
     "bytes": 682476,
@@ -18,13 +18,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 3491,
-    "completion_tokens": 1180,
-    "total_tokens": 4671,
-    "prompt_cache_hit_tokens": 2304,
-    "prompt_cache_miss_tokens": 1187
+    "prompt_tokens": 3699,
+    "completion_tokens": 985,
+    "total_tokens": 4684,
+    "prompt_cache_hit_tokens": 2560,
+    "prompt_cache_miss_tokens": 1139
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -33,7 +33,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.001786,
+  "costo_usd": 0.001539,
   "resultado": {
     "legibilidad": "buena",
     "tipo_comprobante": "A",
@@ -55,12 +55,12 @@
     "importe_total": 17898.3,
     "cierra_aritmetica": true,
     "rubro_emisor": "Comercio de materiales eléctricos / electricidad",
-    "categoria_gasto_sugerida": "Materiales eléctricos / Ferretería",
+    "categoria_gasto_sugerida": "Ferretería / Materiales eléctricos",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A ORIGINAL, COD. 001, punto de venta 0004, comp. nro 00037469, emitida el 07/08/2026. Emisor AIMARO JAVIER ANGEL (nombre comercial 'AIMARO ELECTRICIDAD'), CUIT 20-22087601-3 (dígito verificador válido), Responsable Inscripto, IIBB 021-311076-9, inicio de actividades 01/02/2005. Cliente CVC S.A. CUIT 30-58221570-3. Detalle: 1 termica Schneider 1x10 ap Easy9 ($8.613,90) y 2 cables canal Kalop 18x21 c/adh ($6.178,08). Importes: Bruto/Subtotal 14.791,98; IVA 21% 3.106,32; Percep. 0,00; Imp. Int. 0,00; Total 17.898,30. La aritmética cierra (14.791,98 + 3.106,32 = 17.898,30). No figuran líneas de NO GRAVADO ni EXENTO. Forma de pago Contado; se informa pago con VISA Crédito Banco Galicia, cupón 895, 1 cuota, total tarjetas $17.898,30 (coincide con el total). CAE 86327284406071, venc. CAE 17/08/2026. Saldo Cta Cte -1.522,34. No aplica cantidad de comensales ni litros para este rubro. El comprobante no presenta fecha de carga ni datos de centro de costo."
+    "observaciones": "Factura A (COD. 001) emitida por AIMARO JAVIER ANGEL (AIMARO ELECTRICIDAD), CUIT 20-22087601-3 con dígito verificador válido. Punto de venta 0004, comprobante 00037469. Fecha de emisión 07/08/2026. Neto gravado 14.791,98 + IVA 21% 3.106,32 = TOTAL 17.898,30; la aritmética cierra. No hay no gravado, exento, percepciones ni impuestos internos. Ítems: terner Schneider 1x10A Easy9 (8.613,90) y cable canal Kalop 18x21 c/ adhesivo (6.178,08). Forma de pago: VISA Crédito Banco Galicia, 1 cuota, total tarjetas $17.898,30; saldo cuenta corriente -1.522,34. CAE 86327284406071, vencimiento CAE 17/08/2026. Rubro del emisor: materiales eléctricos."
   },
   "extraccion": {
     "legibilidad": "buena",
@@ -83,12 +83,12 @@
     "importe_total": 17898.3,
     "cierra_aritmetica": true,
     "rubro_emisor": "Comercio de materiales eléctricos / electricidad",
-    "categoria_gasto_sugerida": "Materiales eléctricos / Ferretería",
+    "categoria_gasto_sugerida": "Ferretería / Materiales eléctricos",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A ORIGINAL, COD. 001, punto de venta 0004, comp. nro 00037469, emitida el 07/08/2026. Emisor AIMARO JAVIER ANGEL (nombre comercial 'AIMARO ELECTRICIDAD'), CUIT 20-22087601-3 (dígito verificador válido), Responsable Inscripto, IIBB 021-311076-9, inicio de actividades 01/02/2005. Cliente CVC S.A. CUIT 30-58221570-3. Detalle: 1 termica Schneider 1x10 ap Easy9 ($8.613,90) y 2 cables canal Kalop 18x21 c/adh ($6.178,08). Importes: Bruto/Subtotal 14.791,98; IVA 21% 3.106,32; Percep. 0,00; Imp. Int. 0,00; Total 17.898,30. La aritmética cierra (14.791,98 + 3.106,32 = 17.898,30). No figuran líneas de NO GRAVADO ni EXENTO. Forma de pago Contado; se informa pago con VISA Crédito Banco Galicia, cupón 895, 1 cuota, total tarjetas $17.898,30 (coincide con el total). CAE 86327284406071, venc. CAE 17/08/2026. Saldo Cta Cte -1.522,34. No aplica cantidad de comensales ni litros para este rubro. El comprobante no presenta fecha de carga ni datos de centro de costo."
+    "observaciones": "Factura A (COD. 001) emitida por AIMARO JAVIER ANGEL (AIMARO ELECTRICIDAD), CUIT 20-22087601-3 con dígito verificador válido. Punto de venta 0004, comprobante 00037469. Fecha de emisión 07/08/2026. Neto gravado 14.791,98 + IVA 21% 3.106,32 = TOTAL 17.898,30; la aritmética cierra. No hay no gravado, exento, percepciones ni impuestos internos. Ítems: terner Schneider 1x10A Easy9 (8.613,90) y cable canal Kalop 18x21 c/ adhesivo (6.178,08). Forma de pago: VISA Crédito Banco Galicia, 1 cuota, total tarjetas $17.898,30; saldo cuenta corriente -1.522,34. CAE 86327284406071, vencimiento CAE 17/08/2026. Rubro del emisor: materiales eléctricos."
   },
   "aritmetica": {
     "calculable": true,

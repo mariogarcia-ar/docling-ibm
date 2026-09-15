@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/otros/b152bac8-52ce-4a96-a2f0-e9d62229686a.png",
   "archivo_relativo": "otros/b152bac8-52ce-4a96-a2f0-e9d62229686a.png",
-  "procesado_utc": "2026-09-15T03:55:15+00:00",
+  "procesado_utc": "2026-09-15T12:04:39+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 2956,
-    "completion_tokens": 649,
-    "total_tokens": 3605,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 140
+    "prompt_tokens": 3164,
+    "completion_tokens": 545,
+    "total_tokens": 3709,
+    "prompt_cache_hit_tokens": 2944,
+    "prompt_cache_miss_tokens": 220
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,7 +31,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.000838,
+  "costo_usd": 0.000738,
   "resultado": {
     "legibilidad": "buena",
     "tipo_comprobante": null,
@@ -58,7 +58,7 @@
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "La imagen no contiene ningún comprobante fiscal: es una hoja en blanco con la leyenda 'NO EXISTE COMPROBANTE PARA LA RENDICION DEL GASTO. SE CARGA A NOMBRE DE CVC.'. No hay emisor, CUIT, fecha, número, importes ni desglose de impuestos que transcribir; todos los campos quedan en null. No se trata de un problema de legibilidad sino de ausencia total de comprobante."
+    "observaciones": "La imagen no es un comprobante fiscal: contiene únicamente la leyenda 'NO EXISTE COMPROBANTE PARA LA RENDICION DEL GASTO. SE CARGA A NOMBRE DE CVC.'. No hay emisor, CUIT, fecha, número, moneda ni importes que transcribir; todos los campos de datos quedan en null. No hay discriminación de impuestos ni total que controlar aritméticamente."
   },
   "extraccion": {
     "legibilidad": "buena",
@@ -86,7 +86,7 @@
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "La imagen no contiene ningún comprobante fiscal: es una hoja en blanco con la leyenda 'NO EXISTE COMPROBANTE PARA LA RENDICION DEL GASTO. SE CARGA A NOMBRE DE CVC.'. No hay emisor, CUIT, fecha, número, importes ni desglose de impuestos que transcribir; todos los campos quedan en null. No se trata de un problema de legibilidad sino de ausencia total de comprobante."
+    "observaciones": "La imagen no es un comprobante fiscal: contiene únicamente la leyenda 'NO EXISTE COMPROBANTE PARA LA RENDICION DEL GASTO. SE CARGA A NOMBRE DE CVC.'. No hay emisor, CUIT, fecha, número, moneda ni importes que transcribir; todos los campos de datos quedan en null. No hay discriminación de impuestos ni total que controlar aritméticamente."
   },
   "aritmetica": {
     "calculable": false,

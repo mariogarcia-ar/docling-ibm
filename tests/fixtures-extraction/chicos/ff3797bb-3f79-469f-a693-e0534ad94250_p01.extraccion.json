@@ -1,12 +1,12 @@
 {
   "origen": "tests/fixtures/chicos/ff3797bb-3f79-469f-a693-e0534ad94250_p01.pdf",
-  "archivo_relativo": "ff3797bb-3f79-469f-a693-e0534ad94250_p01.pdf",
-  "procesado_utc": "2026-09-15T03:46:33+00:00",
+  "archivo_relativo": "chicos/ff3797bb-3f79-469f-a693-e0534ad94250_p01.pdf",
+  "procesado_utc": "2026-09-15T11:58:09+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
   "fuente": "api",
-  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_zw1uqns7/ff3797bb-3f79-469f-a693-e0534ad94250_p01.jpg",
+  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_gpiw991f/chicos/ff3797bb-3f79-469f-a693-e0534ad94250_p01.jpg",
   "pagina": 1,
   "imagen": {
     "bytes": 611909,
@@ -18,13 +18,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 3491,
-    "completion_tokens": 1564,
-    "total_tokens": 5055,
-    "prompt_cache_hit_tokens": 3328,
-    "prompt_cache_miss_tokens": 163
+    "prompt_tokens": 3699,
+    "completion_tokens": 1382,
+    "total_tokens": 5081,
+    "prompt_cache_hit_tokens": 2560,
+    "prompt_cache_miss_tokens": 1139
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -33,13 +33,13 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.001946,
+  "costo_usd": 0.002015,
   "resultado": {
     "legibilidad": "buena",
     "tipo_comprobante": "A",
-    "codigo_afip": "001",
+    "codigo_afip": "COD. 01",
     "razon_social_emisor": "PALACEL",
-    "cuit_emisor": "20244586369",
+    "cuit_emisor": "20-24458636-9",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "29/04/2026",
     "nro_factura": "0006-00000333",
@@ -54,20 +54,20 @@
     "otros_impuestos": 0,
     "importe_total": 36000.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Venta de insumos informáticos / electrónica (teclado inalámbrico, pilas)",
-    "categoria_gasto_sugerida": "Insumos de informática / tecnología",
+    "rubro_emisor": "Comercio de insumos y accesorios de informática/electrónica (teclados, pilas)",
+    "categoria_gasto_sugerida": "Informática / Tecnología (insumos y accesorios)",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A, COD. 01, punto de venta 0006, comprobante Nº 00000333. Emisor PALACEL, CUIT 20-24458636-9 (11 dígitos, dígito verificador calculado = 9, válido). Fecha de emisión impresa 29/04/2026. Moneda ARS (importes con formato argentino; el comprobante no imprime leyenda explícita de moneda, sólo el símbolo $). Detalle: 1 teclado inalámbrico Netmak 2.4GHz (34.000,00 c/IVA) y 2 pilas AAA alcalinas Hytoshi (2.000,00 c/IVA). Neto gravado 29.752,07 + IVA 21% 6.247,93 = 36.000,00; la aritmética cierra. Se listan IVA 27% y IVA 10,5% en 0,00. Importe Otros Tributos 0,00. No hay percepciones de IIBB ni impuestos internos discriminados. CAE Nº 86173509035514, vto. CAE 09/05/2026. Cliente: CVC SOCIEDAD ANONIMA, CUIT 30582215703, condición IVA RESP. INSCRIPTO, condición de venta T.CREDITO. Campos E-Mail y TE del emisor están en blanco en el comprobante (no ilegibles). No se observan montos no gravados ni exentos."
+    "observaciones": "Factura A, COD. 01, emitida por PALACEL (CUIT 20-24458636-9, dígito verificador válido, Resp. Inscripto, IIBB 021-645736-4, inicio de actividades 03/02/2021). Cliente: CVC SOCIEDAD ANONIMA (CUIT 30582215703), condición de venta T. CREDITO. Detalle: TECLADO INALAMBRICO CON TOUCH PAD NETMAK 2.4GHZ NEGRO (1 x 28.099,17, alícuota 21%, subtotal c/IVA 34.000,00) y PILA AAA ALCALINA HYTOSHY X1 (2 x 826,45, alícuota 21%, subtotal c/IVA 2.000,00). Se discrimina IVA: neto gravado 29.752,07 + IVA 21% 6.247,93 = total 36.000,00 (cierra aritmética). No hay líneas de no gravado, exento, percepciones ni otros tributos (todos 0,00). No se detallan comensales ni litros por el rubro del comprobante. CAE N° 86173509035514, vto. CAE 09/05/2026. Comprobante del sistema Caddis (www.caddis.com.ar), página 1/1. No se consigna centro de costo."
   },
   "extraccion": {
     "legibilidad": "buena",
     "tipo_comprobante": "A",
-    "codigo_afip": "001",
+    "codigo_afip": "COD. 01",
     "razon_social_emisor": "PALACEL",
-    "cuit_emisor": "20244586369",
+    "cuit_emisor": "20-24458636-9",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "29/04/2026",
     "nro_factura": "0006-00000333",
@@ -82,13 +82,13 @@
     "otros_impuestos": 0,
     "importe_total": 36000.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Venta de insumos informáticos / electrónica (teclado inalámbrico, pilas)",
-    "categoria_gasto_sugerida": "Insumos de informática / tecnología",
+    "rubro_emisor": "Comercio de insumos y accesorios de informática/electrónica (teclados, pilas)",
+    "categoria_gasto_sugerida": "Informática / Tecnología (insumos y accesorios)",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A, COD. 01, punto de venta 0006, comprobante Nº 00000333. Emisor PALACEL, CUIT 20-24458636-9 (11 dígitos, dígito verificador calculado = 9, válido). Fecha de emisión impresa 29/04/2026. Moneda ARS (importes con formato argentino; el comprobante no imprime leyenda explícita de moneda, sólo el símbolo $). Detalle: 1 teclado inalámbrico Netmak 2.4GHz (34.000,00 c/IVA) y 2 pilas AAA alcalinas Hytoshi (2.000,00 c/IVA). Neto gravado 29.752,07 + IVA 21% 6.247,93 = 36.000,00; la aritmética cierra. Se listan IVA 27% y IVA 10,5% en 0,00. Importe Otros Tributos 0,00. No hay percepciones de IIBB ni impuestos internos discriminados. CAE Nº 86173509035514, vto. CAE 09/05/2026. Cliente: CVC SOCIEDAD ANONIMA, CUIT 30582215703, condición IVA RESP. INSCRIPTO, condición de venta T.CREDITO. Campos E-Mail y TE del emisor están en blanco en el comprobante (no ilegibles). No se observan montos no gravados ni exentos."
+    "observaciones": "Factura A, COD. 01, emitida por PALACEL (CUIT 20-24458636-9, dígito verificador válido, Resp. Inscripto, IIBB 021-645736-4, inicio de actividades 03/02/2021). Cliente: CVC SOCIEDAD ANONIMA (CUIT 30582215703), condición de venta T. CREDITO. Detalle: TECLADO INALAMBRICO CON TOUCH PAD NETMAK 2.4GHZ NEGRO (1 x 28.099,17, alícuota 21%, subtotal c/IVA 34.000,00) y PILA AAA ALCALINA HYTOSHY X1 (2 x 826,45, alícuota 21%, subtotal c/IVA 2.000,00). Se discrimina IVA: neto gravado 29.752,07 + IVA 21% 6.247,93 = total 36.000,00 (cierra aritmética). No hay líneas de no gravado, exento, percepciones ni otros tributos (todos 0,00). No se detallan comensales ni litros por el rubro del comprobante. CAE N° 86173509035514, vto. CAE 09/05/2026. Comprobante del sistema Caddis (www.caddis.com.ar), página 1/1. No se consigna centro de costo."
   },
   "aritmetica": {
     "calculable": true,

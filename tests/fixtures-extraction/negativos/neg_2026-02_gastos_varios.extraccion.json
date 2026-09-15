@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/negativos/neg_2026-02_gastos_varios.png",
   "archivo_relativo": "negativos/neg_2026-02_gastos_varios.png",
-  "procesado_utc": "2026-09-15T03:53:54+00:00",
+  "procesado_utc": "2026-09-15T12:03:21+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 2720,
-    "completion_tokens": 645,
-    "total_tokens": 3365,
-    "prompt_cache_hit_tokens": 2304,
-    "prompt_cache_miss_tokens": 416
+    "prompt_tokens": 2928,
+    "completion_tokens": 1098,
+    "total_tokens": 4026,
+    "prompt_cache_hit_tokens": 2560,
+    "prompt_cache_miss_tokens": 368
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,7 +31,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.000913,
+  "costo_usd": 0.001443,
   "resultado": {
     "legibilidad": "buena",
     "tipo_comprobante": null,
@@ -53,12 +53,12 @@
     "importe_total": null,
     "cierra_aritmetica": false,
     "rubro_emisor": null,
-    "categoria_gasto_sugerida": null,
-    "cantidad_comensales_personas": 0,
-    "cantidad_litros": 0,
+    "categoria_gasto_sugerida": "Gastos varios",
+    "cantidad_comensales_personas": null,
+    "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "La imagen NO es un comprobante fiscal. Se trata de una hoja/constancia interna con la leyenda «GASTOS VARIOS», «Comprobante: FALTA FACTURA», «Detalle: sin documento respaldatorio» y «NO ES COMPROBANTE». No contiene emisor, CUIT, fecha, número, moneda ni importes, por lo que no hay datos fiscales que transcribir ni aritmética que verificar. No corresponde asignarle tipo de comprobante AFIP (A/B/C/090/099) ni categoría de gasto a partir del rubro, ya que no hay emisor identificable."
+    "observaciones": "La imagen NO es un comprobante fiscal: es una constancia/hoja interna con los textos 'GASTOS VARIOS', 'Comprobante: FALTA FACTURA', 'Detalle: sin documento respaldatorio' y la leyenda 'NO ES COMPROBANTE'. No hay emisor, CUIT, fecha de emisión, número de factura, moneda, importes, IVA ni ningún otro tributo que transcribir, por lo que todos los campos de datos quedan en null. No corresponde asignar tipo A/B/C ni código AFIP, ni validar categoría o cantidad de comensales/litros. Se sugiere al empleado adjuntar el comprobante respaldatorio correspondiente."
   },
   "extraccion": {
     "legibilidad": "buena",
@@ -81,12 +81,12 @@
     "importe_total": null,
     "cierra_aritmetica": false,
     "rubro_emisor": null,
-    "categoria_gasto_sugerida": null,
-    "cantidad_comensales_personas": 0,
-    "cantidad_litros": 0,
+    "categoria_gasto_sugerida": "Gastos varios",
+    "cantidad_comensales_personas": null,
+    "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "La imagen NO es un comprobante fiscal. Se trata de una hoja/constancia interna con la leyenda «GASTOS VARIOS», «Comprobante: FALTA FACTURA», «Detalle: sin documento respaldatorio» y «NO ES COMPROBANTE». No contiene emisor, CUIT, fecha, número, moneda ni importes, por lo que no hay datos fiscales que transcribir ni aritmética que verificar. No corresponde asignarle tipo de comprobante AFIP (A/B/C/090/099) ni categoría de gasto a partir del rubro, ya que no hay emisor identificable."
+    "observaciones": "La imagen NO es un comprobante fiscal: es una constancia/hoja interna con los textos 'GASTOS VARIOS', 'Comprobante: FALTA FACTURA', 'Detalle: sin documento respaldatorio' y la leyenda 'NO ES COMPROBANTE'. No hay emisor, CUIT, fecha de emisión, número de factura, moneda, importes, IVA ni ningún otro tributo que transcribir, por lo que todos los campos de datos quedan en null. No corresponde asignar tipo A/B/C ni código AFIP, ni validar categoría o cantidad de comensales/litros. Se sugiere al empleado adjuntar el comprobante respaldatorio correspondiente."
   },
   "aritmetica": {
     "calculable": false,

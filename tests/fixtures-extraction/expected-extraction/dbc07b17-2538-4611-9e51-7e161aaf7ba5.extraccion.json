@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/expected-extraction/dbc07b17-2538-4611-9e51-7e161aaf7ba5.jpg",
-  "archivo_relativo": "dbc07b17-2538-4611-9e51-7e161aaf7ba5.jpg",
-  "procesado_utc": "2026-09-15T02:06:47+00:00",
+  "archivo_relativo": "expected-extraction/dbc07b17-2538-4611-9e51-7e161aaf7ba5.jpg",
+  "procesado_utc": "2026-09-15T12:01:40+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 3017,
-    "completion_tokens": 2827,
-    "total_tokens": 5844,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 201
+    "prompt_tokens": 3225,
+    "completion_tokens": 2173,
+    "total_tokens": 5398,
+    "prompt_cache_hit_tokens": 2560,
+    "prompt_cache_miss_tokens": 665
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,7 +31,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.00347,
+  "costo_usd": 0.002822,
   "resultado": {
     "legibilidad": "buena",
     "tipo_comprobante": "A",
@@ -40,25 +40,27 @@
     "cuit_emisor": "33-53674744-9",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "07/08/2025",
-    "nro_factura": "0020-00049776",
+    "nro_factura": "0020-000049776",
     "moneda": "ARS",
     "subtotal": 36916.18,
     "no_gravado": 0,
     "exento": 0,
     "discrimina_impuestos": true,
     "iva": 7752.4,
-    "impuestos_internos": 4785.99,
+    "impuestos_internos": 5331.47,
     "percepciones_iibb": 211.24,
-    "otros_impuestos": 545.48,
+    "otros_impuestos": 0,
     "importe_total": 50211.29,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / venta de combustibles (V Power Nitro Diesel)",
+    "rubro_emisor": "Estación de servicio / venta de combustible (V POWER NITRO DIESEL)",
     "categoria_gasto_sugerida": "Combustible",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 29.0698,
     "centro_de_costo": null,
-    "campos_no_legibles": [],
-    "observaciones": "Factura A (COD. 001), ORIGINAL, emitida por SOCOMA S.A. (CUIT 33-53674744-9, dígito verificador válido), Ruta 188 km 110, Rojas, Bs. As., Inicio Actividad 01-01-1958, Responsable Inscripto. Cliente: 1887-C V C SA, CUIT 30-58221570-3, Rosario - Santa Fe. Detalle: 29,0698 x 1720,00 - V POWER NITRO DIESEL = 36.916,18. Neto Gravado 36.916,18; I.V.A. 7.752,40; Impuesto Interno 4.785,99 (ICL); IDC 545,48; nota impresa: IDC(545,48) + ICL(4.785,99) = TCNG(5.331,48). Se cargó el IDC en 'otros_impuestos' para que la aritmética cierre exacta: 36.916,18 + 7.752,40 + 4.785,99 + 545,48 + 211,24 = 50.211,29 = TOTAL impreso. Si se tomara el TCNG redondeado (5.331,48) la suma daría 50.211,30 (1 centavo de diferencia por redondeo del comprobante). Percepción IIBB ARBA 211,24. Forma de pago: Contado. Planilla 00002838, Operario MARVEGGIO JUAN. CAE N° 75329394209058, vto. CAE 17/08/2025. No se imprime símbolo de moneda; se asume ARS por tratarse de comprobante AFIP argentino en pesos. La parte superior del ticket está parcialmente tapada por otro papel superpuesto, pero la razón social y el CUIT del emisor son legibles. No hay campo de centro de costo en el comprobante. No se detallan cubiertos/comensales."
+    "campos_no_legibles": [
+      "razon_social_emisor (la línea 'SOCOMA S...' está parcialmente tapada por otro ticket superpuesto; se lee 'SOCOMA' y el sufijo societario queda cubierto)"
+    ],
+    "observaciones": "Factura A (COD. 001) emitida por SOCOMA S.A., Ruta 188 km 110, Rojas, Bs. As., Inicio de Actividad 01-01-1958, Responsable Inscripto. Nro. 0020-000049776, fecha 07/08/2025 16:30:00. Cliente: 1887-C V C SA, CUIT 30-58221570-3. Detalle: 29,0698 litros x $1.720,00 = V POWER NITRO DIESEL $36.916,18 (neto gravado). Impuestos discriminados: IVA $7.752,40; Impuesto Interno (ICL) $4.785,99; IDC $545,48; Percepción IIBB ARBA $211,24. En el ticket figura 'IDC(545,48) + ICL(4785,99) = TCNG(5331,48)': la suma impresa de ambos conceptos arroja $5.331,47 (1 centavo menos que el TCNG impreso, por redondeo), por lo que se carga impuestos_internos = 5.331,47. Verificación aritmética: 36.916,18 + 7.752,40 + 5.331,47 + 211,24 = 50.211,29 = TOTAL impreso, cierra. Forma de pago: Contado. Planilla 00002838, Operario MARVEGGIO JUAN. CAE N° 75329394209058, vencimiento CAE 17/08/2025. Dígito verificador del CUIT del emisor validado correctamente (módulo 11). No figura centro de costo en el comprobante. No hay línea de 'no gravado' ni 'exento'."
   },
   "extraccion": {
     "legibilidad": "buena",
@@ -68,25 +70,27 @@
     "cuit_emisor": "33-53674744-9",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "07/08/2025",
-    "nro_factura": "0020-00049776",
+    "nro_factura": "0020-000049776",
     "moneda": "ARS",
     "subtotal": 36916.18,
     "no_gravado": 0,
     "exento": 0,
     "discrimina_impuestos": true,
     "iva": 7752.4,
-    "impuestos_internos": 4785.99,
+    "impuestos_internos": 5331.47,
     "percepciones_iibb": 211.24,
-    "otros_impuestos": 545.48,
+    "otros_impuestos": 0,
     "importe_total": 50211.29,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / venta de combustibles (V Power Nitro Diesel)",
+    "rubro_emisor": "Estación de servicio / venta de combustible (V POWER NITRO DIESEL)",
     "categoria_gasto_sugerida": "Combustible",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 29.0698,
     "centro_de_costo": null,
-    "campos_no_legibles": [],
-    "observaciones": "Factura A (COD. 001), ORIGINAL, emitida por SOCOMA S.A. (CUIT 33-53674744-9, dígito verificador válido), Ruta 188 km 110, Rojas, Bs. As., Inicio Actividad 01-01-1958, Responsable Inscripto. Cliente: 1887-C V C SA, CUIT 30-58221570-3, Rosario - Santa Fe. Detalle: 29,0698 x 1720,00 - V POWER NITRO DIESEL = 36.916,18. Neto Gravado 36.916,18; I.V.A. 7.752,40; Impuesto Interno 4.785,99 (ICL); IDC 545,48; nota impresa: IDC(545,48) + ICL(4.785,99) = TCNG(5.331,48). Se cargó el IDC en 'otros_impuestos' para que la aritmética cierre exacta: 36.916,18 + 7.752,40 + 4.785,99 + 545,48 + 211,24 = 50.211,29 = TOTAL impreso. Si se tomara el TCNG redondeado (5.331,48) la suma daría 50.211,30 (1 centavo de diferencia por redondeo del comprobante). Percepción IIBB ARBA 211,24. Forma de pago: Contado. Planilla 00002838, Operario MARVEGGIO JUAN. CAE N° 75329394209058, vto. CAE 17/08/2025. No se imprime símbolo de moneda; se asume ARS por tratarse de comprobante AFIP argentino en pesos. La parte superior del ticket está parcialmente tapada por otro papel superpuesto, pero la razón social y el CUIT del emisor son legibles. No hay campo de centro de costo en el comprobante. No se detallan cubiertos/comensales."
+    "campos_no_legibles": [
+      "razon_social_emisor (la línea 'SOCOMA S...' está parcialmente tapada por otro ticket superpuesto; se lee 'SOCOMA' y el sufijo societario queda cubierto)"
+    ],
+    "observaciones": "Factura A (COD. 001) emitida por SOCOMA S.A., Ruta 188 km 110, Rojas, Bs. As., Inicio de Actividad 01-01-1958, Responsable Inscripto. Nro. 0020-000049776, fecha 07/08/2025 16:30:00. Cliente: 1887-C V C SA, CUIT 30-58221570-3. Detalle: 29,0698 litros x $1.720,00 = V POWER NITRO DIESEL $36.916,18 (neto gravado). Impuestos discriminados: IVA $7.752,40; Impuesto Interno (ICL) $4.785,99; IDC $545,48; Percepción IIBB ARBA $211,24. En el ticket figura 'IDC(545,48) + ICL(4785,99) = TCNG(5331,48)': la suma impresa de ambos conceptos arroja $5.331,47 (1 centavo menos que el TCNG impreso, por redondeo), por lo que se carga impuestos_internos = 5.331,47. Verificación aritmética: 36.916,18 + 7.752,40 + 5.331,47 + 211,24 = 50.211,29 = TOTAL impreso, cierra. Forma de pago: Contado. Planilla 00002838, Operario MARVEGGIO JUAN. CAE N° 75329394209058, vencimiento CAE 17/08/2025. Dígito verificador del CUIT del emisor validado correctamente (módulo 11). No figura centro de costo en el comprobante. No hay línea de 'no gravado' ni 'exento'."
   },
   "aritmetica": {
     "calculable": true,

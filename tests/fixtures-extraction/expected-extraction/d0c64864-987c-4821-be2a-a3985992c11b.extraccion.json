@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/expected-extraction/d0c64864-987c-4821-be2a-a3985992c11b.jpg",
-  "archivo_relativo": "d0c64864-987c-4821-be2a-a3985992c11b.jpg",
-  "procesado_utc": "2026-09-15T02:06:28+00:00",
+  "archivo_relativo": "expected-extraction/d0c64864-987c-4821-be2a-a3985992c11b.jpg",
+  "procesado_utc": "2026-09-15T12:01:26+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 2817,
-    "completion_tokens": 1894,
-    "total_tokens": 4711,
-    "prompt_cache_hit_tokens": 2683,
-    "prompt_cache_miss_tokens": 134
+    "prompt_tokens": 3025,
+    "completion_tokens": 3082,
+    "total_tokens": 6107,
+    "prompt_cache_hit_tokens": 2560,
+    "prompt_cache_miss_tokens": 465
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,7 +31,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.002329,
+  "costo_usd": 0.003853,
   "resultado": {
     "legibilidad": "buena",
     "tipo_comprobante": "A",
@@ -58,7 +58,7 @@
     "cantidad_litros": 60.515,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique Factura A (Cod. 081) de estación de servicio YPF. Emisor: YPF DEL VASCO - ARAMENDI JUAN RAMON, CUIT 20-12175732-0 (dígito verificador válido). Fecha de emisión 19/04/2026 16:21:43. Nro 00011-00040705. Detalle: 60,5150 u x 1440,7420 de NAFTA SUPER. Se discrimina IVA 21% (18.309,17) sobre neto gravado 87.186,50, más Impuesto interno a nivel ítem 19.528,32 (total otros tributos 19.528,32). La aritmética cierra: 87.186,50 + 18.309,17 + 19.528,32 = 125.023,99. Pago en efectivo por el total, sin vuelto. Advertencia: el CUIT del emisor y el de Ingresos Brutos son idénticos (20-12175732-0), dato a revisar. El CUIT 30-58221570-3 corresponde al cliente (CVC S.A.), no al emisor."
+    "observaciones": "Tique de controlador fiscal de estación de servicio YPF (emisor: ARAMENDI JUAN RAMON, CUIT 20-12175732-0, IVA Responsable Inscripto). Factura A, Cod. 081, N° 00011-00040705, fecha 19/04/2026 16:21:43. Detalle: 60,5150 u x 1440,7420 NAFTA SUPER = 87.186,50 (Subtot. Imp. Neto Gravado). Alícuota 21,00% = 18.309,17. Impuesto interno a nivel ítem = 19.528,32, que coincide con el renglón 'IMPORTE TOTAL OTROS TRIBUTOS' (19.528,32), por lo que no se duplica. Verificación aritmética: 87.186,50 + 18.309,17 + 19.528,32 = 125.023,99 = TOTAL impreso (cierra). Receptor: 1274, CVC S.A., CUIT 30-58221570-3, IVA Responsable Inscripto. Pago: Efectivo 125.023,99, vuelto 0,00. Dígito verificador del CUIT del emisor validado correctamente. No se observan campos ilegibles."
   },
   "extraccion": {
     "legibilidad": "buena",
@@ -86,7 +86,7 @@
     "cantidad_litros": 60.515,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique Factura A (Cod. 081) de estación de servicio YPF. Emisor: YPF DEL VASCO - ARAMENDI JUAN RAMON, CUIT 20-12175732-0 (dígito verificador válido). Fecha de emisión 19/04/2026 16:21:43. Nro 00011-00040705. Detalle: 60,5150 u x 1440,7420 de NAFTA SUPER. Se discrimina IVA 21% (18.309,17) sobre neto gravado 87.186,50, más Impuesto interno a nivel ítem 19.528,32 (total otros tributos 19.528,32). La aritmética cierra: 87.186,50 + 18.309,17 + 19.528,32 = 125.023,99. Pago en efectivo por el total, sin vuelto. Advertencia: el CUIT del emisor y el de Ingresos Brutos son idénticos (20-12175732-0), dato a revisar. El CUIT 30-58221570-3 corresponde al cliente (CVC S.A.), no al emisor."
+    "observaciones": "Tique de controlador fiscal de estación de servicio YPF (emisor: ARAMENDI JUAN RAMON, CUIT 20-12175732-0, IVA Responsable Inscripto). Factura A, Cod. 081, N° 00011-00040705, fecha 19/04/2026 16:21:43. Detalle: 60,5150 u x 1440,7420 NAFTA SUPER = 87.186,50 (Subtot. Imp. Neto Gravado). Alícuota 21,00% = 18.309,17. Impuesto interno a nivel ítem = 19.528,32, que coincide con el renglón 'IMPORTE TOTAL OTROS TRIBUTOS' (19.528,32), por lo que no se duplica. Verificación aritmética: 87.186,50 + 18.309,17 + 19.528,32 = 125.023,99 = TOTAL impreso (cierra). Receptor: 1274, CVC S.A., CUIT 30-58221570-3, IVA Responsable Inscripto. Pago: Efectivo 125.023,99, vuelto 0,00. Dígito verificador del CUIT del emisor validado correctamente. No se observan campos ilegibles."
   },
   "aritmetica": {
     "calculable": true,

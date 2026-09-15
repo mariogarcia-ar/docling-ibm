@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/otros/336a2740-2aaa-4577-b551-fedc961607fd.jpg",
   "archivo_relativo": "otros/336a2740-2aaa-4577-b551-fedc961607fd.jpg",
-  "procesado_utc": "2026-09-15T03:54:26+00:00",
+  "procesado_utc": "2026-09-15T12:03:52+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 3452,
-    "completion_tokens": 2215,
-    "total_tokens": 5667,
-    "prompt_cache_hit_tokens": 2304,
-    "prompt_cache_miss_tokens": 1148
+    "prompt_tokens": 3660,
+    "completion_tokens": 2053,
+    "total_tokens": 5713,
+    "prompt_cache_hit_tokens": 2560,
+    "prompt_cache_miss_tokens": 1100
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,11 +31,11 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.003016,
+  "costo_usd": 0.002809,
   "resultado": {
     "legibilidad": "buena",
     "tipo_comprobante": "A",
-    "codigo_afip": "081 (Tique Factura A)",
+    "codigo_afip": "081",
     "razon_social_emisor": "PAN AMERICAN ENERGY, S.L., SUCURSAL ARG",
     "cuit_emisor": "30-69554247-6",
     "digito_verificador_cuit_valido": true,
@@ -52,18 +52,18 @@
     "otros_impuestos": 1858.26,
     "importe_total": 90865.15,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / venta de combustible (AXION - PAN AMERICAN ENERGY)",
+    "rubro_emisor": "Estación de servicio / expendio de combustible (bandera AXION)",
     "categoria_gasto_sugerida": "Combustible",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 35.7601,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique Factura A (Cód. 081) emitido por PAN AMERICAN ENERGY S.L. Sucursal Arg (estación AXION PILAR), CUIT 30-69554247-6, dígito verificador válido. Fecha impresa 21/07/2026 18:01:55, N° 05193-00003191. Detalle: 35,7601 (00) x 1732,1498 E15 QUANTIUM (21)[81,50]. Neto gravado 61.941,85 + IVA 21% 13.007,79 + otros tributos 15.915,51 (Impuesto interno a nivel ítem 14.057,25 + IVA RI 1.858,26) = TOTAL 90.865,15; la suma cierra exactamente. No hay líneas de NO GRAVADO ni EXENTO ni percepciones IIBB. Combustible: 35,7601 litros de E15 QUANTIUM. Pago con PayStore (Nro Pago 000000798274), suma de pagos 90.865,15, vuelto 0,00. Caja 12, transacción 1498115, cajero Luis Smith, registro EPEPAA0000025410. Receptor: CVC SOCIEDAD ANONIMA, CUIT 30-58221570-3, Av. Coronel Díaz 2717, CABA. El comprobante no imprime símbolo/leyenda explícita de moneda; se asume ARS por tratarse de emisor y domicilio argentinos. No se imprime centro de costo."
+    "observaciones": "Tique Factura A (Cód. 081) emitido por Axion Pilar (PAN AMERICAN ENERGY S.L. Sucursal Arg). Detalle: 35,7601 unidades x 1732,1498 - E15 QUANTIUM = 61.941,85 (alícuota 21%). Se transcribe SUBTOT. IMP. NETO GRAVADO 61.941,85; IVA 21% 13.007,79; '10 - Impuesto interno a nivel ítem' 14.057,25; '09 - IVA RI' 1.858,26, ambos agrupados bajo 'IMPORTE TOTAL OTROS TRIBUTOS' 15.915,51. TOTAL 90.865,15. Aritmética verificada: 61.941,85 + 13.007,79 + 14.057,25 + 1.858,26 = 90.865,15. No hay línea de no gravado ni de exento. La fecha impresa (21/07/2026) es posterior a la actual, posible error de reloj/impresión del equipo; se transcribe tal cual figura. Pago: PayStore, Nro Pago 000000798274, otros medios de pago 90.865,15, vuelto 0,00. Caja 12, cajero Luis Smith, transacción 1498115, registro EPEPAA000025410. CUIT del emisor con dígito verificador válido. Receptor: CVC SOCIEDAD ANONIMA, CUIT 30-58221570-3."
   },
   "extraccion": {
     "legibilidad": "buena",
     "tipo_comprobante": "A",
-    "codigo_afip": "081 (Tique Factura A)",
+    "codigo_afip": "081",
     "razon_social_emisor": "PAN AMERICAN ENERGY, S.L., SUCURSAL ARG",
     "cuit_emisor": "30-69554247-6",
     "digito_verificador_cuit_valido": true,
@@ -80,13 +80,13 @@
     "otros_impuestos": 1858.26,
     "importe_total": 90865.15,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / venta de combustible (AXION - PAN AMERICAN ENERGY)",
+    "rubro_emisor": "Estación de servicio / expendio de combustible (bandera AXION)",
     "categoria_gasto_sugerida": "Combustible",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 35.7601,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique Factura A (Cód. 081) emitido por PAN AMERICAN ENERGY S.L. Sucursal Arg (estación AXION PILAR), CUIT 30-69554247-6, dígito verificador válido. Fecha impresa 21/07/2026 18:01:55, N° 05193-00003191. Detalle: 35,7601 (00) x 1732,1498 E15 QUANTIUM (21)[81,50]. Neto gravado 61.941,85 + IVA 21% 13.007,79 + otros tributos 15.915,51 (Impuesto interno a nivel ítem 14.057,25 + IVA RI 1.858,26) = TOTAL 90.865,15; la suma cierra exactamente. No hay líneas de NO GRAVADO ni EXENTO ni percepciones IIBB. Combustible: 35,7601 litros de E15 QUANTIUM. Pago con PayStore (Nro Pago 000000798274), suma de pagos 90.865,15, vuelto 0,00. Caja 12, transacción 1498115, cajero Luis Smith, registro EPEPAA0000025410. Receptor: CVC SOCIEDAD ANONIMA, CUIT 30-58221570-3, Av. Coronel Díaz 2717, CABA. El comprobante no imprime símbolo/leyenda explícita de moneda; se asume ARS por tratarse de emisor y domicilio argentinos. No se imprime centro de costo."
+    "observaciones": "Tique Factura A (Cód. 081) emitido por Axion Pilar (PAN AMERICAN ENERGY S.L. Sucursal Arg). Detalle: 35,7601 unidades x 1732,1498 - E15 QUANTIUM = 61.941,85 (alícuota 21%). Se transcribe SUBTOT. IMP. NETO GRAVADO 61.941,85; IVA 21% 13.007,79; '10 - Impuesto interno a nivel ítem' 14.057,25; '09 - IVA RI' 1.858,26, ambos agrupados bajo 'IMPORTE TOTAL OTROS TRIBUTOS' 15.915,51. TOTAL 90.865,15. Aritmética verificada: 61.941,85 + 13.007,79 + 14.057,25 + 1.858,26 = 90.865,15. No hay línea de no gravado ni de exento. La fecha impresa (21/07/2026) es posterior a la actual, posible error de reloj/impresión del equipo; se transcribe tal cual figura. Pago: PayStore, Nro Pago 000000798274, otros medios de pago 90.865,15, vuelto 0,00. Caja 12, cajero Luis Smith, transacción 1498115, registro EPEPAA000025410. CUIT del emisor con dígito verificador válido. Receptor: CVC SOCIEDAD ANONIMA, CUIT 30-58221570-3."
   },
   "aritmetica": {
     "calculable": true,

@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/otros/2e2481a8-468f-4bcb-8dae-9657306f2bf2.jpg",
   "archivo_relativo": "otros/2e2481a8-468f-4bcb-8dae-9657306f2bf2.jpg",
-  "procesado_utc": "2026-09-15T03:54:21+00:00",
+  "procesado_utc": "2026-09-15T12:03:45+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 3460,
-    "completion_tokens": 1550,
-    "total_tokens": 5010,
-    "prompt_cache_hit_tokens": 2304,
-    "prompt_cache_miss_tokens": 1156
+    "prompt_tokens": 3668,
+    "completion_tokens": 1472,
+    "total_tokens": 5140,
+    "prompt_cache_hit_tokens": 2560,
+    "prompt_cache_miss_tokens": 1108
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,13 +31,13 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.002221,
+  "costo_usd": 0.002114,
   "resultado": {
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "001",
-    "razon_social_emisor": "FILIPINI MARIA ALEJANDRA (nombre de fantasía: ALTOS DEL PARQUE)",
-    "cuit_emisor": "27-18590742-8",
+    "razon_social_emisor": "ALTOS DEL PARQUE - FILIPINI MARIA ALEJANDRA",
+    "cuit_emisor": "27185907428",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "24/07/26 14:01",
     "nro_factura": "00001-00000080",
@@ -50,22 +50,22 @@
     "impuestos_internos": 0,
     "percepciones_iibb": 0,
     "otros_impuestos": 0,
-    "importe_total": 20240.0,
+    "importe_total": 20240,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Restaurante / gastronomía (renglón MILANESA [MEDIODIA], MESA 4 - MOZO 1)",
+    "rubro_emisor": "Restaurante / gastronómico (renglón MILANESA [MEDIODIA], ticket de mesa y mozo)",
     "categoria_gasto_sugerida": "Restaurante",
     "cantidad_comensales_personas": 1,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A (COD. 001) emitida por FILIPINI MARIA ALEJANDRA, nombre de fantasía 'ALTOS DEL PARQUE', ALBERDI 737, PUEBLO ESTHER - SANTA FE, IVA Responsable Inscripto, IIBB 0213183589, inicio de actividades 01/08/2006. Receptor: CVC SOCIEDAD ANONIMA, PIA, Responsable Inscripto, CUIT 30582215703. Detalle: 1 MILANESA [MEDIODIA] $18.400,00 + 1 RECARGO $1.840,00 = $20.240,00. Se discrimina IVA: NETO SIN IVA $16.727,27 + IVA 21% $3.512,73 = TOTAL $20.240,00; la aritmética cierra. Leyenda 'EXCEPCION COMPUTO IVA CREDITO FISCAL - Motivo Excep.: confer./congresos/eventos'. CAE 86305252540059, vencimiento 03/08/2026. CUB: 1 (un comensal). Fecha impresa en formato DD/MM/AA (24/07/26). El CUIT del emisor cumple el dígito verificador."
+    "observaciones": "Factura 'A' (COD. 001) emitida por FILIPINI MARIA ALEJANDRA (nombre de fantasía 'ALTOS DEL PARQUE'), CUIT 27-18590742-8 (dígito verificador válido), IIBB 0213183589, inicio de actividades 01/08/2006, ALBERDI 737, PUEBLO ESTHER - SANTA FE, IVA Responsable Inscripto. Receptor: CVC SOCIEDAD ANONIMA, CUIT 30-58221570-3, Responsable Inscripto. CAE 86305252540059, vencimiento 03/08/2026. Detalle: MESA 4 - MOZO 1; 1 MILANESA [MEDIODIA] 18400,00 + 1 RECARGO 1840,00 = 20240,00; NETO SIN IVA 16727,27 + IVA 21,00% 3512,73 = TOTAL ARS 20240,00 (la aritmética cierra). Cubiertos: CUB: 1, promedio 20240. No se discriminan percepciones de IIBB ni otros tributos ni importes exentos/no gravados. Línea '000000' antes del receptor y leyenda 'PIA' de significado no claro (probable código interno). Figura la leyenda '* EXCEPCION COMPUTO IVA CREDITO FISCAL * Motivo Excep.: confer./congresos/eventos', dato a considerar por el aprobador. Logo 'BRÜLER' al pie junto al código QR de AFIP."
   },
   "extraccion": {
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "001",
-    "razon_social_emisor": "FILIPINI MARIA ALEJANDRA (nombre de fantasía: ALTOS DEL PARQUE)",
-    "cuit_emisor": "27-18590742-8",
+    "razon_social_emisor": "ALTOS DEL PARQUE - FILIPINI MARIA ALEJANDRA",
+    "cuit_emisor": "27185907428",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "24/07/26 14:01",
     "nro_factura": "00001-00000080",
@@ -78,15 +78,15 @@
     "impuestos_internos": 0,
     "percepciones_iibb": 0,
     "otros_impuestos": 0,
-    "importe_total": 20240.0,
+    "importe_total": 20240,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Restaurante / gastronomía (renglón MILANESA [MEDIODIA], MESA 4 - MOZO 1)",
+    "rubro_emisor": "Restaurante / gastronómico (renglón MILANESA [MEDIODIA], ticket de mesa y mozo)",
     "categoria_gasto_sugerida": "Restaurante",
     "cantidad_comensales_personas": 1,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A (COD. 001) emitida por FILIPINI MARIA ALEJANDRA, nombre de fantasía 'ALTOS DEL PARQUE', ALBERDI 737, PUEBLO ESTHER - SANTA FE, IVA Responsable Inscripto, IIBB 0213183589, inicio de actividades 01/08/2006. Receptor: CVC SOCIEDAD ANONIMA, PIA, Responsable Inscripto, CUIT 30582215703. Detalle: 1 MILANESA [MEDIODIA] $18.400,00 + 1 RECARGO $1.840,00 = $20.240,00. Se discrimina IVA: NETO SIN IVA $16.727,27 + IVA 21% $3.512,73 = TOTAL $20.240,00; la aritmética cierra. Leyenda 'EXCEPCION COMPUTO IVA CREDITO FISCAL - Motivo Excep.: confer./congresos/eventos'. CAE 86305252540059, vencimiento 03/08/2026. CUB: 1 (un comensal). Fecha impresa en formato DD/MM/AA (24/07/26). El CUIT del emisor cumple el dígito verificador."
+    "observaciones": "Factura 'A' (COD. 001) emitida por FILIPINI MARIA ALEJANDRA (nombre de fantasía 'ALTOS DEL PARQUE'), CUIT 27-18590742-8 (dígito verificador válido), IIBB 0213183589, inicio de actividades 01/08/2006, ALBERDI 737, PUEBLO ESTHER - SANTA FE, IVA Responsable Inscripto. Receptor: CVC SOCIEDAD ANONIMA, CUIT 30-58221570-3, Responsable Inscripto. CAE 86305252540059, vencimiento 03/08/2026. Detalle: MESA 4 - MOZO 1; 1 MILANESA [MEDIODIA] 18400,00 + 1 RECARGO 1840,00 = 20240,00; NETO SIN IVA 16727,27 + IVA 21,00% 3512,73 = TOTAL ARS 20240,00 (la aritmética cierra). Cubiertos: CUB: 1, promedio 20240. No se discriminan percepciones de IIBB ni otros tributos ni importes exentos/no gravados. Línea '000000' antes del receptor y leyenda 'PIA' de significado no claro (probable código interno). Figura la leyenda '* EXCEPCION COMPUTO IVA CREDITO FISCAL * Motivo Excep.: confer./congresos/eventos', dato a considerar por el aprobador. Logo 'BRÜLER' al pie junto al código QR de AFIP."
   },
   "aritmetica": {
     "calculable": true,

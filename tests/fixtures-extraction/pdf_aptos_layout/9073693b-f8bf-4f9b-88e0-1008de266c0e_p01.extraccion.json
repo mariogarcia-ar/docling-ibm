@@ -1,12 +1,12 @@
 {
   "origen": "tests/fixtures/pdf_aptos_layout/9073693b-f8bf-4f9b-88e0-1008de266c0e_p01.pdf",
   "archivo_relativo": "pdf_aptos_layout/9073693b-f8bf-4f9b-88e0-1008de266c0e_p01.pdf",
-  "procesado_utc": "2026-09-15T03:51:55+00:00",
+  "procesado_utc": "2026-09-15T11:58:27+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
   "fuente": "api",
-  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_pcat1xl9/pdf_aptos_layout/9073693b-f8bf-4f9b-88e0-1008de266c0e_p01.jpg",
+  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_gpiw991f/pdf_aptos_layout/9073693b-f8bf-4f9b-88e0-1008de266c0e_p01.jpg",
   "pagina": 1,
   "imagen": {
     "bytes": 454223,
@@ -18,13 +18,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 3472,
-    "completion_tokens": 1649,
-    "total_tokens": 5121,
-    "prompt_cache_hit_tokens": 2304,
-    "prompt_cache_miss_tokens": 1168
+    "prompt_tokens": 3680,
+    "completion_tokens": 1258,
+    "total_tokens": 4938,
+    "prompt_cache_hit_tokens": 2560,
+    "prompt_cache_miss_tokens": 1120
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -33,7 +33,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.002343,
+  "costo_usd": 0.001861,
   "resultado": {
     "legibilidad": "buena",
     "tipo_comprobante": null,
@@ -41,10 +41,10 @@
     "razon_social_emisor": "Uber",
     "cuit_emisor": null,
     "digito_verificador_cuit_valido": false,
-    "fecha_emision": "21 ago 2026",
+    "fecha_emision": "21/08/2026",
     "nro_factura": null,
     "moneda": "ARS",
-    "subtotal": 16046.0,
+    "subtotal": 16046,
     "no_gravado": 0,
     "exento": 0,
     "discrimina_impuestos": false,
@@ -52,15 +52,15 @@
     "impuestos_internos": 0,
     "percepciones_iibb": 0,
     "otros_impuestos": 0,
-    "importe_total": 16046.0,
+    "importe_total": 16046,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Transporte de pasajeros / viajes (plataforma Uber)",
+    "rubro_emisor": "Servicio de transporte de pasajeros / viajes (ride-hailing)",
     "categoria_gasto_sugerida": "Transporte",
-    "cantidad_comensales_personas": 0,
-    "cantidad_litros": 0,
+    "cantidad_comensales_personas": null,
+    "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "El documento NO es un comprobante fiscal AFIP/ARCA: es un recibo de viaje de la app Uber (21 ago 2026 21:28), a nombre de AGUSTIN FELIPE. No muestra CUIT, ni punto de venta, ni número de factura, ni discriminación de IVA u otros impuestos; tampoco leyenda de moneda explícita (se asume ARS por el símbolo $ y formato 16.046,00). Total impreso: $ 16.046,00, compuesto por: Tarifa del viaje $ 12.176,00 + Uber Priority $ 3.288,00 + Cuota de solicitud $ 569,00 + Tiempo de espera en destino $ 13,00 = $ 16.046,00 (la suma de los conceptos cierra con el total). Pago: Visa ••••0567 (Agustin Franco) 21/8/26 22:08 por $ 16.046,00. Viaje Priority, 16,04 km, 33 minutos. El propio recibo aclara que las facturas quedan disponibles en la página de solicitud de viaje. Se informa «subtotal» igual al total por no existir desglose fiscal de base imponible e impuestos, por lo que no puede validarse contra una factura AFIP."
+    "observaciones": "El documento es un recibo/resumen de viaje emitido por Uber (app), NO un comprobante fiscal AFIP: no muestra letra A/B/C, ni código AFIP, ni CUIT del emisor, ni número de factura. Fecha/hora de emisión: 21 ago 2026 21:28. Pasajero: AGUSTIN FELIPE. Detalle de conceptos: Tarifa del viaje $12.176,00 + Uber Priority $3.288,00 + Cuota de solicitud $569,00 + Tiempo de espera en destino $13,00 = $16.046,00, que coincide exactamente con el Total impreso (la aritmética cierra). No discrimina IVA ni otros impuestos ni subtotales neto/exento/no gravado, por lo que no hay desglose impositivo que transcribir. Pago: Visa ••••0567 (Agustin Franco) por $16.046,00 el 21/8/26 22:08. Detalles del viaje: Priority, 16,04 kilómetros, 33 minutos. El propio texto indica que las facturas estarán disponibles más adelante ('Visita la página de solicitud de viaje para conocer más y obtener las facturas (cuando estén disponibles)'), por lo que este documento no sirve como comprobante fiscal válido para el gasto. No se verifican cantidad de comensales (categoría no gastronómica) ni litros de combustible (no aplica). El texto es totalmente legible; sin campos ilegibles."
   },
   "extraccion": {
     "legibilidad": "buena",
@@ -69,10 +69,10 @@
     "razon_social_emisor": "Uber",
     "cuit_emisor": null,
     "digito_verificador_cuit_valido": false,
-    "fecha_emision": "21 ago 2026",
+    "fecha_emision": "21/08/2026",
     "nro_factura": null,
     "moneda": "ARS",
-    "subtotal": 16046.0,
+    "subtotal": 16046,
     "no_gravado": 0,
     "exento": 0,
     "discrimina_impuestos": false,
@@ -80,15 +80,15 @@
     "impuestos_internos": 0,
     "percepciones_iibb": 0,
     "otros_impuestos": 0,
-    "importe_total": 16046.0,
+    "importe_total": 16046,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Transporte de pasajeros / viajes (plataforma Uber)",
+    "rubro_emisor": "Servicio de transporte de pasajeros / viajes (ride-hailing)",
     "categoria_gasto_sugerida": "Transporte",
-    "cantidad_comensales_personas": 0,
-    "cantidad_litros": 0,
+    "cantidad_comensales_personas": null,
+    "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "El documento NO es un comprobante fiscal AFIP/ARCA: es un recibo de viaje de la app Uber (21 ago 2026 21:28), a nombre de AGUSTIN FELIPE. No muestra CUIT, ni punto de venta, ni número de factura, ni discriminación de IVA u otros impuestos; tampoco leyenda de moneda explícita (se asume ARS por el símbolo $ y formato 16.046,00). Total impreso: $ 16.046,00, compuesto por: Tarifa del viaje $ 12.176,00 + Uber Priority $ 3.288,00 + Cuota de solicitud $ 569,00 + Tiempo de espera en destino $ 13,00 = $ 16.046,00 (la suma de los conceptos cierra con el total). Pago: Visa ••••0567 (Agustin Franco) 21/8/26 22:08 por $ 16.046,00. Viaje Priority, 16,04 km, 33 minutos. El propio recibo aclara que las facturas quedan disponibles en la página de solicitud de viaje. Se informa «subtotal» igual al total por no existir desglose fiscal de base imponible e impuestos, por lo que no puede validarse contra una factura AFIP."
+    "observaciones": "El documento es un recibo/resumen de viaje emitido por Uber (app), NO un comprobante fiscal AFIP: no muestra letra A/B/C, ni código AFIP, ni CUIT del emisor, ni número de factura. Fecha/hora de emisión: 21 ago 2026 21:28. Pasajero: AGUSTIN FELIPE. Detalle de conceptos: Tarifa del viaje $12.176,00 + Uber Priority $3.288,00 + Cuota de solicitud $569,00 + Tiempo de espera en destino $13,00 = $16.046,00, que coincide exactamente con el Total impreso (la aritmética cierra). No discrimina IVA ni otros impuestos ni subtotales neto/exento/no gravado, por lo que no hay desglose impositivo que transcribir. Pago: Visa ••••0567 (Agustin Franco) por $16.046,00 el 21/8/26 22:08. Detalles del viaje: Priority, 16,04 kilómetros, 33 minutos. El propio texto indica que las facturas estarán disponibles más adelante ('Visita la página de solicitud de viaje para conocer más y obtener las facturas (cuando estén disponibles)'), por lo que este documento no sirve como comprobante fiscal válido para el gasto. No se verifican cantidad de comensales (categoría no gastronómica) ni litros de combustible (no aplica). El texto es totalmente legible; sin campos ilegibles."
   },
   "aritmetica": {
     "calculable": true,

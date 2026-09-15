@@ -1,12 +1,12 @@
 {
   "origen": "tests/fixtures/chicos/b073927b-e9d7-48fc-8f4b-8d2ef0896f97_p01.pdf",
   "archivo_relativo": "chicos/b073927b-e9d7-48fc-8f4b-8d2ef0896f97_p01.pdf",
-  "procesado_utc": "2026-09-15T11:52:25+00:00",
+  "procesado_utc": "2026-09-15T11:58:08+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
   "fuente": "api",
-  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_6ekg21fv/chicos/b073927b-e9d7-48fc-8f4b-8d2ef0896f97_p01.jpg",
+  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_gpiw991f/chicos/b073927b-e9d7-48fc-8f4b-8d2ef0896f97_p01.jpg",
   "pagina": 1,
   "imagen": {
     "bytes": 619367,
@@ -21,10 +21,10 @@
   "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
     "prompt_tokens": 3699,
-    "completion_tokens": 1100,
-    "total_tokens": 4799,
-    "prompt_cache_hit_tokens": 0,
-    "prompt_cache_miss_tokens": 3699
+    "completion_tokens": 1138,
+    "total_tokens": 4837,
+    "prompt_cache_hit_tokens": 3456,
+    "prompt_cache_miss_tokens": 243
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -33,7 +33,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.00243,
+  "costo_usd": 0.001459,
   "resultado": {
     "legibilidad": "buena",
     "tipo_comprobante": "INTERNACIONAL",
@@ -54,13 +54,13 @@
     "otros_impuestos": 0,
     "importe_total": 550.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Servicios informáticos / desarrollo de software (automatización de tablero de gestión integral)",
+    "rubro_emisor": "Servicios de TI / software (automatización de tablero de gestión integral)",
     "categoria_gasto_sugerida": "Servicios informáticos / Software",
-    "cantidad_comensales_personas": null,
-    "cantidad_litros": null,
+    "cantidad_comensales_personas": 0,
+    "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Comprobante emitido por proveedor del exterior (Miami IT Smart Tech LLC, Miami, Florida, EE.UU.): es una INVOICE internacional, sin letra A/B/C ni código AFIP. El \"tax ID\" del emisor figura como 30-1222601- (incompleto y no es CUIT argentino de 11 dígitos), por lo que CUIT_EMISOR queda en null. El \"Customer Tax ID\" 30582215703 corresponde al comprador (CVC S.A., Argentina), no al emisor. Fecha impresa en formato inglés (July/07/2026), transcrita como 07/07/2026. Una única línea: 1 unidad de \"Automatizacion tablero de gestion integral (periodo 07/2026)\" por USD 550,00. Impuestos (TAXES), freight, insurance y discount en USD 0,00; subtotal y total coinciden en USD 550,00. Condiciones de pago: 30 días, vencimiento August/06/2026. Rubro inferido del detalle del servicio (software/servicios IT); la categoría sugerida es orientativa."
+    "observaciones": "Comprobante internacional: 'INVOICE' emitida por Miami IT Smart Tech LLC (Waterford District Dr. 5200 Suite 120, Miami, Florida, EE.UU.), sin letra A/B/C ni código AFIP, por lo que corresponde tipo INTERNACIONAL. N° Z202607070456. Fecha: July/07/2026 (07/07/2026). Moneda USD. Detalle: 1 x 'Automatización tablero de gestión integral (período 07/2026)' USD 550,00. Líneas de importes: SUBTOTAL USD 550,00; TAXES USD 0,00; FREIGHT COST USD 0,00; INSURANCE USD 0,00; DISCOUNT USD 0,00; TOTAL USD 550,00. No discrimina IVA ni otros impuestos (taxes en cero) y no hay líneas de no gravado ni exento. La aritmética cierra: 550,00 + 0 = 550,00. El campo 'Our tax ID: 30-1222601-' figura incompleto y no corresponde a un CUIT argentino (11 dígitos), por lo que cuit_emisor queda en null. El cliente es CVC S.A (Rosario Norte, Santa Fe, Argentina, Customer Tax ID 30582215703) y se indica 'Service provided from: Argentina / Service provided to: Argentina'. Condiciones: 30 days, due date August/06/2026; pago por wire transfer a Seacoast National Bank (ABA 67005158, SWIFT SNBFUS3F)."
   },
   "extraccion": {
     "legibilidad": "buena",
@@ -82,13 +82,13 @@
     "otros_impuestos": 0,
     "importe_total": 550.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Servicios informáticos / desarrollo de software (automatización de tablero de gestión integral)",
+    "rubro_emisor": "Servicios de TI / software (automatización de tablero de gestión integral)",
     "categoria_gasto_sugerida": "Servicios informáticos / Software",
-    "cantidad_comensales_personas": null,
-    "cantidad_litros": null,
+    "cantidad_comensales_personas": 0,
+    "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Comprobante emitido por proveedor del exterior (Miami IT Smart Tech LLC, Miami, Florida, EE.UU.): es una INVOICE internacional, sin letra A/B/C ni código AFIP. El \"tax ID\" del emisor figura como 30-1222601- (incompleto y no es CUIT argentino de 11 dígitos), por lo que CUIT_EMISOR queda en null. El \"Customer Tax ID\" 30582215703 corresponde al comprador (CVC S.A., Argentina), no al emisor. Fecha impresa en formato inglés (July/07/2026), transcrita como 07/07/2026. Una única línea: 1 unidad de \"Automatizacion tablero de gestion integral (periodo 07/2026)\" por USD 550,00. Impuestos (TAXES), freight, insurance y discount en USD 0,00; subtotal y total coinciden en USD 550,00. Condiciones de pago: 30 días, vencimiento August/06/2026. Rubro inferido del detalle del servicio (software/servicios IT); la categoría sugerida es orientativa."
+    "observaciones": "Comprobante internacional: 'INVOICE' emitida por Miami IT Smart Tech LLC (Waterford District Dr. 5200 Suite 120, Miami, Florida, EE.UU.), sin letra A/B/C ni código AFIP, por lo que corresponde tipo INTERNACIONAL. N° Z202607070456. Fecha: July/07/2026 (07/07/2026). Moneda USD. Detalle: 1 x 'Automatización tablero de gestión integral (período 07/2026)' USD 550,00. Líneas de importes: SUBTOTAL USD 550,00; TAXES USD 0,00; FREIGHT COST USD 0,00; INSURANCE USD 0,00; DISCOUNT USD 0,00; TOTAL USD 550,00. No discrimina IVA ni otros impuestos (taxes en cero) y no hay líneas de no gravado ni exento. La aritmética cierra: 550,00 + 0 = 550,00. El campo 'Our tax ID: 30-1222601-' figura incompleto y no corresponde a un CUIT argentino (11 dígitos), por lo que cuit_emisor queda en null. El cliente es CVC S.A (Rosario Norte, Santa Fe, Argentina, Customer Tax ID 30582215703) y se indica 'Service provided from: Argentina / Service provided to: Argentina'. Condiciones: 30 days, due date August/06/2026; pago por wire transfer a Seacoast National Bank (ABA 67005158, SWIFT SNBFUS3F)."
   },
   "aritmetica": {
     "calculable": true,

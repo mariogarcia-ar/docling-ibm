@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/negativos/neg_2026-11_foto_pizarra.jpg",
   "archivo_relativo": "negativos/neg_2026-11_foto_pizarra.jpg",
-  "procesado_utc": "2026-09-15T03:54:15+00:00",
+  "procesado_utc": "2026-09-15T12:03:36+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 2720,
-    "completion_tokens": 771,
-    "total_tokens": 3491,
-    "prompt_cache_hit_tokens": 2304,
-    "prompt_cache_miss_tokens": 416
+    "prompt_tokens": 2928,
+    "completion_tokens": 738,
+    "total_tokens": 3666,
+    "prompt_cache_hit_tokens": 2560,
+    "prompt_cache_miss_tokens": 368
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,7 +31,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.001064,
+  "costo_usd": 0.001011,
   "resultado": {
     "legibilidad": "buena",
     "tipo_comprobante": null,
@@ -58,7 +58,7 @@
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "La imagen NO es un comprobante fiscal. Se trata de una nota interna rotulada «NOTA DE REUNION» con el texto «Pizarra con pendientes del equipo» y la aclaración expresa «Sin datos fiscales - no es comprobante». No hay encabezado de emisor, CUIT, punto de venta, número de factura, fecha, moneda, importes, IVA ni ningún otro dato fiscal o aritmético que transcribir; todos los campos fiscales quedan en null. No se puede inferir tipo de comprobante, rubro del emisor ni categoría de gasto. Documento legible en su totalidad, por lo que no hay campos ilegibles. Se recomienda solicitar el comprobante AFIP/ARCA válido (Factura A/B/C) o el boleto correspondiente antes de aprobar el gasto."
+    "observaciones": "El documento adjunto no es un comprobante fiscal: se trata de una nota interna titulada «NOTA DE REUNION», con el texto «Pizarra con pendientes del equipo» y la aclaración explícita «Sin datos fiscales - no es comprobante». No presenta encabezado de emisor, CUIT, punto de venta, número de factura, fecha, moneda, discriminción de IVA ni importes de ningún tipo, por lo que no hay datos fiscales que transcribir. No corresponde asignarle tipo de comprobante AFIP ni categoría de gasto."
   },
   "extraccion": {
     "legibilidad": "buena",
@@ -86,7 +86,7 @@
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "La imagen NO es un comprobante fiscal. Se trata de una nota interna rotulada «NOTA DE REUNION» con el texto «Pizarra con pendientes del equipo» y la aclaración expresa «Sin datos fiscales - no es comprobante». No hay encabezado de emisor, CUIT, punto de venta, número de factura, fecha, moneda, importes, IVA ni ningún otro dato fiscal o aritmético que transcribir; todos los campos fiscales quedan en null. No se puede inferir tipo de comprobante, rubro del emisor ni categoría de gasto. Documento legible en su totalidad, por lo que no hay campos ilegibles. Se recomienda solicitar el comprobante AFIP/ARCA válido (Factura A/B/C) o el boleto correspondiente antes de aprobar el gasto."
+    "observaciones": "El documento adjunto no es un comprobante fiscal: se trata de una nota interna titulada «NOTA DE REUNION», con el texto «Pizarra con pendientes del equipo» y la aclaración explícita «Sin datos fiscales - no es comprobante». No presenta encabezado de emisor, CUIT, punto de venta, número de factura, fecha, moneda, discriminción de IVA ni importes de ningún tipo, por lo que no hay datos fiscales que transcribir. No corresponde asignarle tipo de comprobante AFIP ni categoría de gasto."
   },
   "aritmetica": {
     "calculable": false,

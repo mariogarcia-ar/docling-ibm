@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/otros/91c70602-5813-4b94-84bf-1199eeb4f8d5.jpg",
   "archivo_relativo": "otros/91c70602-5813-4b94-84bf-1199eeb4f8d5.jpg",
-  "procesado_utc": "2026-09-15T03:54:58+00:00",
+  "procesado_utc": "2026-09-15T12:04:25+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 3460,
-    "completion_tokens": 3561,
-    "total_tokens": 7021,
-    "prompt_cache_hit_tokens": 2304,
-    "prompt_cache_miss_tokens": 1156
+    "prompt_tokens": 3668,
+    "completion_tokens": 2744,
+    "total_tokens": 6412,
+    "prompt_cache_hit_tokens": 2560,
+    "prompt_cache_miss_tokens": 1108
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,12 +31,12 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.004634,
+  "costo_usd": 0.003641,
   "resultado": {
     "legibilidad": "buena",
-    "tipo_comprobante": "B",
+    "tipo_comprobante": "C",
     "codigo_afip": "083",
-    "razon_social_emisor": "LUCIE SABORES S.R.L.",
+    "razon_social_emisor": "LUCIE SABORES S. R. L. (nombre de fantasía: SANTA LUCIA VGG)",
     "cuit_emisor": "30-71816388-5",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "18/08/2026",
@@ -52,19 +52,19 @@
     "otros_impuestos": 0,
     "importe_total": 29400.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Panadería / elaboración de productos de panificación (nombre de fantasía: SANTA LUCIA VGG)",
+    "rubro_emisor": "Panadería / elaboración y venta de productos de panadería",
     "categoria_gasto_sugerida": "Restaurante",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique de controlador fiscal (Cód. 083 - TIQUE), P.V. 00007, Nro. T. 00104416. Emisor LUCIE SABORES S.R.L., CUIT 30-71816388-5 (dígito verificador válido), Ing. Brutos 0215194259, domicilio Chubut 705, (2124) Villa Gobernador Gálvez, inicio de actividades 01/08/2023, IVA Responsable Inscripto, emitido 'A CONSUMIDOR FINAL' (por eso no corresponde discriminación de IVA tipo A). Único ítem: 'PANADERIA (10,50) $29.400,00' (el 10,50 parece ser cantidad/peso en kg, NO comensales). Total $29.400,00, abonado en EFECTIVO $29.400,00. NO discrimina impuestos como línea de venta: informa 'IVA contenido $2.793,67' y 'Otros Impuestos Nacionales Indirectos $0,00' bajo el rótulo TRANSPARENCIA FISCAL; por tratarse de un tique clase B con IVA incluido no discriminado, se cargan los campos impositivos en cero y el subtotal igualado al total (29400 + 0 + 0 + 0 = 29400, la aritmética cierra). No hay línea de no gravado ni exento. Rubro inferido: panadería/panificados (el emisor comercializa productos de panadería), de ahí la categoría sugerida gastronómica, a confirmar por el aprobador. No se observan campos ilegibles; la fecha de emisión figura como 18/08/2026 (año posterior al corriente, se transcribe tal cual está impreso)."
+    "observaciones": "Tique Cód. 083 (TIQUE C) emitido a CONSUMIDOR FINAL por emisor IVA Responsable Inscripto, P.V. 00007 - Nro. T. 00104416, fecha impresa 18/08/2026 13:35:38. Único ítem: PANADERIA, cantidad (10,50) por $29.400,00. No discrimina IVA como línea de impuesto (típico de comprobante C a consumidor final): sólo figura la leyenda 'Transparencia Fiscal - IVA contenido: $2.793,67' y 'Otros Impuestos Nacionales Indirectos: $0,00' con carácter informativo, por lo que NO se carga como IVA discriminado y el subtotal coincide con el total ($29.400,00). La aritmética cierra: subtotal 29.400,00 + no gravado 0 + exento 0 + impuestos 0 = total 29.400,00. Pago en EFECTIVO por $29.400,00. CUIT 30-71816388-5 verificado: dígito verificador 5 correcto. Ing. Brutos 0215194259; domicilio CHUBUT 705, (2124) VILLA GOBERNADOR GALVEZ; inicio de actividades 01/08/2023. La categoría de gasto se sugiere como gastronómica (Restaurante) por el rubro panadería; no hay detalle de comensales ni litros en el ticket. Se advierte que la fecha impresa (18/08/2026) es posterior a la fecha de emisión esperada al momento de la carga; verificar con el empleado."
   },
   "extraccion": {
     "legibilidad": "buena",
-    "tipo_comprobante": "B",
+    "tipo_comprobante": "C",
     "codigo_afip": "083",
-    "razon_social_emisor": "LUCIE SABORES S.R.L.",
+    "razon_social_emisor": "LUCIE SABORES S. R. L. (nombre de fantasía: SANTA LUCIA VGG)",
     "cuit_emisor": "30-71816388-5",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "18/08/2026",
@@ -80,13 +80,13 @@
     "otros_impuestos": 0,
     "importe_total": 29400.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Panadería / elaboración de productos de panificación (nombre de fantasía: SANTA LUCIA VGG)",
+    "rubro_emisor": "Panadería / elaboración y venta de productos de panadería",
     "categoria_gasto_sugerida": "Restaurante",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique de controlador fiscal (Cód. 083 - TIQUE), P.V. 00007, Nro. T. 00104416. Emisor LUCIE SABORES S.R.L., CUIT 30-71816388-5 (dígito verificador válido), Ing. Brutos 0215194259, domicilio Chubut 705, (2124) Villa Gobernador Gálvez, inicio de actividades 01/08/2023, IVA Responsable Inscripto, emitido 'A CONSUMIDOR FINAL' (por eso no corresponde discriminación de IVA tipo A). Único ítem: 'PANADERIA (10,50) $29.400,00' (el 10,50 parece ser cantidad/peso en kg, NO comensales). Total $29.400,00, abonado en EFECTIVO $29.400,00. NO discrimina impuestos como línea de venta: informa 'IVA contenido $2.793,67' y 'Otros Impuestos Nacionales Indirectos $0,00' bajo el rótulo TRANSPARENCIA FISCAL; por tratarse de un tique clase B con IVA incluido no discriminado, se cargan los campos impositivos en cero y el subtotal igualado al total (29400 + 0 + 0 + 0 = 29400, la aritmética cierra). No hay línea de no gravado ni exento. Rubro inferido: panadería/panificados (el emisor comercializa productos de panadería), de ahí la categoría sugerida gastronómica, a confirmar por el aprobador. No se observan campos ilegibles; la fecha de emisión figura como 18/08/2026 (año posterior al corriente, se transcribe tal cual está impreso)."
+    "observaciones": "Tique Cód. 083 (TIQUE C) emitido a CONSUMIDOR FINAL por emisor IVA Responsable Inscripto, P.V. 00007 - Nro. T. 00104416, fecha impresa 18/08/2026 13:35:38. Único ítem: PANADERIA, cantidad (10,50) por $29.400,00. No discrimina IVA como línea de impuesto (típico de comprobante C a consumidor final): sólo figura la leyenda 'Transparencia Fiscal - IVA contenido: $2.793,67' y 'Otros Impuestos Nacionales Indirectos: $0,00' con carácter informativo, por lo que NO se carga como IVA discriminado y el subtotal coincide con el total ($29.400,00). La aritmética cierra: subtotal 29.400,00 + no gravado 0 + exento 0 + impuestos 0 = total 29.400,00. Pago en EFECTIVO por $29.400,00. CUIT 30-71816388-5 verificado: dígito verificador 5 correcto. Ing. Brutos 0215194259; domicilio CHUBUT 705, (2124) VILLA GOBERNADOR GALVEZ; inicio de actividades 01/08/2023. La categoría de gasto se sugiere como gastronómica (Restaurante) por el rubro panadería; no hay detalle de comensales ni litros en el ticket. Se advierte que la fecha impresa (18/08/2026) es posterior a la fecha de emisión esperada al momento de la carga; verificar con el empleado."
   },
   "aritmetica": {
     "calculable": true,

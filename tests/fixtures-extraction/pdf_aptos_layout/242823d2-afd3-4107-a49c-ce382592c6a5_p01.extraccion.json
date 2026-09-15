@@ -1,12 +1,12 @@
 {
   "origen": "tests/fixtures/pdf_aptos_layout/242823d2-afd3-4107-a49c-ce382592c6a5_p01.pdf",
   "archivo_relativo": "pdf_aptos_layout/242823d2-afd3-4107-a49c-ce382592c6a5_p01.pdf",
-  "procesado_utc": "2026-09-15T03:51:45+00:00",
+  "procesado_utc": "2026-09-15T11:58:22+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
   "fuente": "api",
-  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_pcat1xl9/pdf_aptos_layout/242823d2-afd3-4107-a49c-ce382592c6a5_p01.jpg",
+  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_gpiw991f/pdf_aptos_layout/242823d2-afd3-4107-a49c-ce382592c6a5_p01.jpg",
   "pagina": 1,
   "imagen": {
     "bytes": 685037,
@@ -18,13 +18,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 3491,
-    "completion_tokens": 4406,
-    "total_tokens": 7897,
-    "prompt_cache_hit_tokens": 2304,
-    "prompt_cache_miss_tokens": 1187
+    "prompt_tokens": 3699,
+    "completion_tokens": 2294,
+    "total_tokens": 5993,
+    "prompt_cache_hit_tokens": 2560,
+    "prompt_cache_miss_tokens": 1139
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -33,13 +33,13 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.005657,
+  "costo_usd": 0.00311,
   "resultado": {
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "01",
-    "razon_social_emisor": "CARLOS ANDRETICH S.A.",
-    "cuit_emisor": "30684416096",
+    "razon_social_emisor": "CARLOS ANDRETICH S.A. (NEXAND)",
+    "cuit_emisor": "30-68441609-6",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "07/07/2026",
     "nro_factura": "0138-00000236",
@@ -54,20 +54,23 @@
     "otros_impuestos": 0,
     "importe_total": 66222.9,
     "cierra_aritmetica": true,
-    "rubro_emisor": "No verificable",
-    "categoria_gasto_sugerida": "No verificable",
-    "cantidad_comensales_personas": 0,
-    "cantidad_litros": 0,
+    "rubro_emisor": "Comercio/venta de artículos y accesorios para combustibles (bidón para nafta) - marca NEXAND",
+    "categoria_gasto_sugerida": "Otros (no determinable con certeza; el ítem es un bidón/accesorio, no combustible ni gastronomía/hospedaje)",
+    "cantidad_comensales_personas": null,
+    "cantidad_litros": null,
     "centro_de_costo": null,
-    "campos_no_legibles": [],
-    "observaciones": "Factura A. Emisor CARLOS ANDRETICH S.A., CUIT 30684416096 (dígito verificador válido). Fecha de emisión 07/07/2026. Nro 0138-00000236. Moneda ARS. Neto gravado 54.639,36 + IVA 21% 11.474,26 + Percepción IIBB 109,28 = Total 66.222,90. El comprobante discrimina impuestos y la aritmética cierra. La línea I.V.A. 10,5% figura impresa sin importe. El rubro del emisor no es inferible con confianza desde la imagen (ítem: bidón para nafta); categoría de gasto no verificable."
+    "campos_no_legibles": [
+      "Descripción del ítem truncada en la impresión: 'BIDON PARA NAFTA CANADIENSE ROJO PICO VERTEDOR A…'",
+      "Importe de la línea 'I.V.A.: 10,5 %' (impresa sin valor)"
+    ],
+    "observaciones": "Factura A, COD. 01, punto de venta 0138, comprobante 00000236. Emisor CARLOS ANDRETICH S.A. (NEXAND), CUIT 30-68441609-6 (dígito verificador válido). Fecha de emisión 07/07/2026. Receptor: CVC SOCIEDAD ANONIMA, CUIT 30-58221570-3, Resp. Inscripto, Junín. Condición de venta: Cta. Cte. Comprobante origen 0043-000090965-R. Único ítem: DV-BP20-R, 1,00 x $54.639,36, alícuota 21%, descuento 0,00%. La aritmética cierra: NETO 54.639,36 + IVA 21% 11.474,26 + Perc. IIBB 109,28 = TOTAL 66.222,90; el IVA impreso (11.474,26) difiere en $0,01 del cálculo teórico (11.474,27), atribuible a redondeo del emisor. La línea 'I.V.A.: 10,5 %' figura sin importe. Nota al pie con datos de Mercado Pago (NickName GM20260409085145, N° Venta 2000017234667292, N° Pack 2000013830391821) y leyenda '<PERC IIBB ARBA: $109,28>'. CAE 86272811918677, FEC VENC 17/07/2026, ORIGINAL."
   },
   "extraccion": {
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "01",
-    "razon_social_emisor": "CARLOS ANDRETICH S.A.",
-    "cuit_emisor": "30684416096",
+    "razon_social_emisor": "CARLOS ANDRETICH S.A. (NEXAND)",
+    "cuit_emisor": "30-68441609-6",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "07/07/2026",
     "nro_factura": "0138-00000236",
@@ -82,13 +85,16 @@
     "otros_impuestos": 0,
     "importe_total": 66222.9,
     "cierra_aritmetica": true,
-    "rubro_emisor": "No verificable",
-    "categoria_gasto_sugerida": "No verificable",
-    "cantidad_comensales_personas": 0,
-    "cantidad_litros": 0,
+    "rubro_emisor": "Comercio/venta de artículos y accesorios para combustibles (bidón para nafta) - marca NEXAND",
+    "categoria_gasto_sugerida": "Otros (no determinable con certeza; el ítem es un bidón/accesorio, no combustible ni gastronomía/hospedaje)",
+    "cantidad_comensales_personas": null,
+    "cantidad_litros": null,
     "centro_de_costo": null,
-    "campos_no_legibles": [],
-    "observaciones": "Factura A. Emisor CARLOS ANDRETICH S.A., CUIT 30684416096 (dígito verificador válido). Fecha de emisión 07/07/2026. Nro 0138-00000236. Moneda ARS. Neto gravado 54.639,36 + IVA 21% 11.474,26 + Percepción IIBB 109,28 = Total 66.222,90. El comprobante discrimina impuestos y la aritmética cierra. La línea I.V.A. 10,5% figura impresa sin importe. El rubro del emisor no es inferible con confianza desde la imagen (ítem: bidón para nafta); categoría de gasto no verificable."
+    "campos_no_legibles": [
+      "Descripción del ítem truncada en la impresión: 'BIDON PARA NAFTA CANADIENSE ROJO PICO VERTEDOR A…'",
+      "Importe de la línea 'I.V.A.: 10,5 %' (impresa sin valor)"
+    ],
+    "observaciones": "Factura A, COD. 01, punto de venta 0138, comprobante 00000236. Emisor CARLOS ANDRETICH S.A. (NEXAND), CUIT 30-68441609-6 (dígito verificador válido). Fecha de emisión 07/07/2026. Receptor: CVC SOCIEDAD ANONIMA, CUIT 30-58221570-3, Resp. Inscripto, Junín. Condición de venta: Cta. Cte. Comprobante origen 0043-000090965-R. Único ítem: DV-BP20-R, 1,00 x $54.639,36, alícuota 21%, descuento 0,00%. La aritmética cierra: NETO 54.639,36 + IVA 21% 11.474,26 + Perc. IIBB 109,28 = TOTAL 66.222,90; el IVA impreso (11.474,26) difiere en $0,01 del cálculo teórico (11.474,27), atribuible a redondeo del emisor. La línea 'I.V.A.: 10,5 %' figura sin importe. Nota al pie con datos de Mercado Pago (NickName GM20260409085145, N° Venta 2000017234667292, N° Pack 2000013830391821) y leyenda '<PERC IIBB ARBA: $109,28>'. CAE 86272811918677, FEC VENC 17/07/2026, ORIGINAL."
   },
   "aritmetica": {
     "calculable": true,

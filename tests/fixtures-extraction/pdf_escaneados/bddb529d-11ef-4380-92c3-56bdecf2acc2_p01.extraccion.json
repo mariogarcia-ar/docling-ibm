@@ -1,12 +1,12 @@
 {
   "origen": "tests/fixtures/pdf_escaneados/bddb529d-11ef-4380-92c3-56bdecf2acc2_p01.pdf",
   "archivo_relativo": "pdf_escaneados/bddb529d-11ef-4380-92c3-56bdecf2acc2_p01.pdf",
-  "procesado_utc": "2026-09-15T03:52:16+00:00",
+  "procesado_utc": "2026-09-15T11:58:49+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
   "fuente": "api",
-  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_pcat1xl9/pdf_escaneados/bddb529d-11ef-4380-92c3-56bdecf2acc2_p01.jpg",
+  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_gpiw991f/pdf_escaneados/bddb529d-11ef-4380-92c3-56bdecf2acc2_p01.jpg",
   "pagina": 1,
   "imagen": {
     "bytes": 908335,
@@ -18,13 +18,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 3454,
-    "completion_tokens": 1154,
-    "total_tokens": 4608,
-    "prompt_cache_hit_tokens": 2304,
-    "prompt_cache_miss_tokens": 1150
+    "prompt_tokens": 3662,
+    "completion_tokens": 1182,
+    "total_tokens": 4844,
+    "prompt_cache_hit_tokens": 2560,
+    "prompt_cache_miss_tokens": 1102
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -33,13 +33,13 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.001744,
+  "costo_usd": 0.001764,
   "resultado": {
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "001",
     "razon_social_emisor": "VIA CARGO S.A.",
-    "cuit_emisor": "33-71104306-9",
+    "cuit_emisor": "33711043069",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "02/06/2026",
     "nro_factura": "4110-00000107",
@@ -54,20 +54,20 @@
     "otros_impuestos": 0,
     "importe_total": 14000.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Servicio de transporte / encomiendas (logística)",
-    "categoria_gasto_sugerida": "Encomiendas / Logística",
+    "rubro_emisor": "Servicio de encomiendas / logística y transporte de cargas",
+    "categoria_gasto_sugerida": "Envíos / Logística (no verificable con certeza; emisor de transporte de encomiendas)",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A original, Cod. 001, emitida por VIA CARGO S.A. (Blvd. Oroño Nro. 3041, Santa Fe), IVA Responsable Inscripto, CUIT 33-71104306-9 (dígito verificador válido). Receptor: CVC, CUIT 30-58221570-3, IVA Responsable Inscripto, condición de venta Contado. Único ítem: 'Servicio de encomiendas', cant. 1,00 x $14.000,00 = $14.000,00. Desglose de importes al pie: Importe Neto $11.570,25 + IVA $2.429,75 (21%) = Total $14.000,00, aritmética cerrada. Leyenda 'Son pesos argentinos: Catorce mil'. CAE N° 86228021432759, fecha de Vto. de CAE 12/06/2026. No se observan percepciones de IIBB ni otros tributos, no hay línea de no gravado ni exento. Anotación manuscrita al pie: 'ENCOMIENDA CON DOCUMENTACION'. Fecha de emisión impresa en formato DD/MM/AAAA. Nota: la fecha de emisión (02/06/2026) es posterior a la fecha habitual de carga; se transcribe tal cual figura en el comprobante."
+    "observaciones": "Factura A, Cod. 001, ORIGINAL. Emisor VIA CARGO S.A., Blvd. Oroño Nro. 3041, Santa Fe, IVA Responsable Inscripto, IIBB 33711043069. Cliente: CVC, CUIT 30582215703, IVA Responsable Inscripto, condición de venta Contado. Detalle: 1.00 x Servicio de encomiendas, precio unitario $14.000,00. Neto $11.570,25 + IVA $2.429,75 (21%) = Total $14.000,00; la aritmética cierra y el CUIT del emisor (33711043069) tiene dígito verificador válido (9). CAE N° 86228021432759, vto. CAE 12/06/2026. Importe en letras: 'Son pesos argentinos: Catorce mil'. No discrimina percepciones de IIBB ni otros tributos ni no gravado/exento. Nota manuscrita al pie: 'ENCOMIENDA CON DOCUMENTACION'. No figura centro de costo ni cantidad de comensales/litros."
   },
   "extraccion": {
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "001",
     "razon_social_emisor": "VIA CARGO S.A.",
-    "cuit_emisor": "33-71104306-9",
+    "cuit_emisor": "33711043069",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "02/06/2026",
     "nro_factura": "4110-00000107",
@@ -82,13 +82,13 @@
     "otros_impuestos": 0,
     "importe_total": 14000.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Servicio de transporte / encomiendas (logística)",
-    "categoria_gasto_sugerida": "Encomiendas / Logística",
+    "rubro_emisor": "Servicio de encomiendas / logística y transporte de cargas",
+    "categoria_gasto_sugerida": "Envíos / Logística (no verificable con certeza; emisor de transporte de encomiendas)",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A original, Cod. 001, emitida por VIA CARGO S.A. (Blvd. Oroño Nro. 3041, Santa Fe), IVA Responsable Inscripto, CUIT 33-71104306-9 (dígito verificador válido). Receptor: CVC, CUIT 30-58221570-3, IVA Responsable Inscripto, condición de venta Contado. Único ítem: 'Servicio de encomiendas', cant. 1,00 x $14.000,00 = $14.000,00. Desglose de importes al pie: Importe Neto $11.570,25 + IVA $2.429,75 (21%) = Total $14.000,00, aritmética cerrada. Leyenda 'Son pesos argentinos: Catorce mil'. CAE N° 86228021432759, fecha de Vto. de CAE 12/06/2026. No se observan percepciones de IIBB ni otros tributos, no hay línea de no gravado ni exento. Anotación manuscrita al pie: 'ENCOMIENDA CON DOCUMENTACION'. Fecha de emisión impresa en formato DD/MM/AAAA. Nota: la fecha de emisión (02/06/2026) es posterior a la fecha habitual de carga; se transcribe tal cual figura en el comprobante."
+    "observaciones": "Factura A, Cod. 001, ORIGINAL. Emisor VIA CARGO S.A., Blvd. Oroño Nro. 3041, Santa Fe, IVA Responsable Inscripto, IIBB 33711043069. Cliente: CVC, CUIT 30582215703, IVA Responsable Inscripto, condición de venta Contado. Detalle: 1.00 x Servicio de encomiendas, precio unitario $14.000,00. Neto $11.570,25 + IVA $2.429,75 (21%) = Total $14.000,00; la aritmética cierra y el CUIT del emisor (33711043069) tiene dígito verificador válido (9). CAE N° 86228021432759, vto. CAE 12/06/2026. Importe en letras: 'Son pesos argentinos: Catorce mil'. No discrimina percepciones de IIBB ni otros tributos ni no gravado/exento. Nota manuscrita al pie: 'ENCOMIENDA CON DOCUMENTACION'. No figura centro de costo ni cantidad de comensales/litros."
   },
   "aritmetica": {
     "calculable": true,

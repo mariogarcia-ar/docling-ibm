@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/otros/1f0effca-0489-440b-a0a7-045efc02b0e8.jpg",
   "archivo_relativo": "otros/1f0effca-0489-440b-a0a7-045efc02b0e8.jpg",
-  "procesado_utc": "2026-09-15T03:54:19+00:00",
+  "procesado_utc": "2026-09-15T12:03:44+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 3482,
-    "completion_tokens": 1450,
-    "total_tokens": 4932,
-    "prompt_cache_hit_tokens": 2304,
-    "prompt_cache_miss_tokens": 1178
+    "prompt_tokens": 3690,
+    "completion_tokens": 1606,
+    "total_tokens": 5296,
+    "prompt_cache_hit_tokens": 2560,
+    "prompt_cache_miss_tokens": 1130
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,18 +31,18 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.002107,
+  "costo_usd": 0.002282,
   "resultado": {
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "001",
-    "razon_social_emisor": "Salvador Resto (CASES DIEGO MARTIN)",
+    "razon_social_emisor": "CASES DIEGO MARTIN",
     "cuit_emisor": "20-29113149-3",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "05/02/2026",
     "nro_factura": "0005-00000590",
     "moneda": "ARS",
-    "subtotal": 16115.7,
+    "subtotal": 18115.7,
     "no_gravado": 0,
     "exento": 0,
     "discrimina_impuestos": true,
@@ -51,26 +51,26 @@
     "percepciones_iibb": 0,
     "otros_impuestos": 0,
     "importe_total": 19500.0,
-    "cierra_aritmetica": true,
-    "rubro_emisor": "Gastronomía / Restaurante",
+    "cierra_aritmetica": false,
+    "rubro_emisor": "Restaurante / gastronómico",
     "categoria_gasto_sugerida": "Restaurante",
     "cantidad_comensales_personas": null,
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A (Cód. 001) de 'Salvador Resto', responsable inscripto CASES DIEGO MARTIN, Saavedra 1799, Venado Tuerto. Emitida a CVC S.A. (CUIT 30-58221570-3), IVA Responsable Inscripto. Detalle: 3,000 x 6500.00 - VIANDA POLLO CON PAPAS = 19.500,00. Neto Gravado $16.115,70 + IVA $3.384,30 (21%) = TOTAL $19.500,00; la aritmética cierra. CUIT del emisor 20291131493: dígito verificador 3 calculado y válido. CAE 86062668496922, vto. CAE 2026/02/15, emisión 05/02/26 11:50:40, usuario ANDREA. Ticket con MESA #1 / MOZO #3 / REF#144925. La cantidad de viandas (3 unidades) figura en el detalle, aunque no se discrimina cantidad de comensales. Hay anotaciones manuscritas ajenas al comprobante fiscal (207960, 59, 57) sobre el cuerpo del ticket."
+    "observaciones": "Factura A, Cód. 001, ticket de controlador fiscal. Nombre de fantasía en el encabezado: 'Salvador Resto' (Saavedra 1799, Venado Tuerto, salvadorresto1799@gmail.com); razón social del emisor: CASES DIEGO MARTIN, Responsable Inscripto, CUIT 20291131493, IIBB 20291131493, inicio de actividad 15/9/2008. Dígito verificador del CUIT emisor validado correctamente (20-29113149-3). Detalle: 3,000 x 6500,00 'VIANDA POLLO CON PAPAS' = 19.500,00. Neto Gravado $18.115,70 + Importe IVA $3.384,30 = TOTAL $19.500,00 (la aritmética cierra; 21% de IVA). Cliente: CVC S.A. [Cod. 3], CUIT 30-58221570-3, IVA Responsable Inscripto. CAE 8606268496922, vencimiento CAE 15/02/2026, usuario ANDREA, emisión 05/02/26 11:50:40. MESA #1 / MOZO #3 / REF#144925. Hay anotaciones manuscritas ajenas al comprobante (207460, 59, 57) que no corresponden a datos fiscales. No se observan percepciones, impuestos internos ni otros tributos. Cantidad de comensales y litros no aplican/no figuran; centro de costo no informado en el comprobante."
   },
   "extraccion": {
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "001",
-    "razon_social_emisor": "Salvador Resto (CASES DIEGO MARTIN)",
+    "razon_social_emisor": "CASES DIEGO MARTIN",
     "cuit_emisor": "20-29113149-3",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "05/02/2026",
     "nro_factura": "0005-00000590",
     "moneda": "ARS",
-    "subtotal": 16115.7,
+    "subtotal": 18115.7,
     "no_gravado": 0,
     "exento": 0,
     "discrimina_impuestos": true,
@@ -79,21 +79,22 @@
     "percepciones_iibb": 0,
     "otros_impuestos": 0,
     "importe_total": 19500.0,
-    "cierra_aritmetica": true,
-    "rubro_emisor": "Gastronomía / Restaurante",
+    "cierra_aritmetica": false,
+    "rubro_emisor": "Restaurante / gastronómico",
     "categoria_gasto_sugerida": "Restaurante",
     "cantidad_comensales_personas": null,
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A (Cód. 001) de 'Salvador Resto', responsable inscripto CASES DIEGO MARTIN, Saavedra 1799, Venado Tuerto. Emitida a CVC S.A. (CUIT 30-58221570-3), IVA Responsable Inscripto. Detalle: 3,000 x 6500.00 - VIANDA POLLO CON PAPAS = 19.500,00. Neto Gravado $16.115,70 + IVA $3.384,30 (21%) = TOTAL $19.500,00; la aritmética cierra. CUIT del emisor 20291131493: dígito verificador 3 calculado y válido. CAE 86062668496922, vto. CAE 2026/02/15, emisión 05/02/26 11:50:40, usuario ANDREA. Ticket con MESA #1 / MOZO #3 / REF#144925. La cantidad de viandas (3 unidades) figura en el detalle, aunque no se discrimina cantidad de comensales. Hay anotaciones manuscritas ajenas al comprobante fiscal (207960, 59, 57) sobre el cuerpo del ticket."
+    "observaciones": "Factura A, Cód. 001, ticket de controlador fiscal. Nombre de fantasía en el encabezado: 'Salvador Resto' (Saavedra 1799, Venado Tuerto, salvadorresto1799@gmail.com); razón social del emisor: CASES DIEGO MARTIN, Responsable Inscripto, CUIT 20291131493, IIBB 20291131493, inicio de actividad 15/9/2008. Dígito verificador del CUIT emisor validado correctamente (20-29113149-3). Detalle: 3,000 x 6500,00 'VIANDA POLLO CON PAPAS' = 19.500,00. Neto Gravado $18.115,70 + Importe IVA $3.384,30 = TOTAL $19.500,00 (la aritmética cierra; 21% de IVA). Cliente: CVC S.A. [Cod. 3], CUIT 30-58221570-3, IVA Responsable Inscripto. CAE 8606268496922, vencimiento CAE 15/02/2026, usuario ANDREA, emisión 05/02/26 11:50:40. MESA #1 / MOZO #3 / REF#144925. Hay anotaciones manuscritas ajenas al comprobante (207460, 59, 57) que no corresponden a datos fiscales. No se observan percepciones, impuestos internos ni otros tributos. Cantidad de comensales y litros no aplican/no figuran; centro de costo no informado en el comprobante."
   },
   "aritmetica": {
     "calculable": true,
-    "suma": 19500.0,
+    "suma": 21500.0,
     "total": 19500.0,
-    "diferencia": 0.0,
-    "cierra": true,
-    "faltantes": []
+    "diferencia": -2000.0,
+    "cierra": false,
+    "faltantes": [],
+    "aviso": "Los importes leídos suman 21,500.00 y el total impreso es 19,500.00 (diferencia -2,000.00)."
   }
 }

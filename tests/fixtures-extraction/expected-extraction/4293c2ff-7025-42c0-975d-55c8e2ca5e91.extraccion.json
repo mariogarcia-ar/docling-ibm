@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/expected-extraction/4293c2ff-7025-42c0-975d-55c8e2ca5e91.jpg",
-  "archivo_relativo": "4293c2ff-7025-42c0-975d-55c8e2ca5e91.jpg",
-  "procesado_utc": "2026-09-15T02:05:35+00:00",
+  "archivo_relativo": "expected-extraction/4293c2ff-7025-42c0-975d-55c8e2ca5e91.jpg",
+  "procesado_utc": "2026-09-15T11:59:43+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 3017,
-    "completion_tokens": 1505,
-    "total_tokens": 4522,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 201
+    "prompt_tokens": 3225,
+    "completion_tokens": 2205,
+    "total_tokens": 5430,
+    "prompt_cache_hit_tokens": 2560,
+    "prompt_cache_miss_tokens": 665
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,15 +31,15 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.001883,
+  "costo_usd": 0.002861,
   "resultado": {
     "legibilidad": "buena",
     "tipo_comprobante": "A",
-    "codigo_afip": "COD. 01",
+    "codigo_afip": "001",
     "razon_social_emisor": "HOTEL JARDIN SRL",
-    "cuit_emisor": "30-58221570-3",
-    "digito_verificador_cuit_valido": true,
-    "fecha_emision": "14/07/2026",
+    "cuit_emisor": "30-58221350-3",
+    "digito_verificador_cuit_valido": false,
+    "fecha_emision": "04/07/2026",
     "nro_factura": "0003-00015364",
     "moneda": "ARS",
     "subtotal": 36363.64,
@@ -52,24 +52,26 @@
     "otros_impuestos": 0,
     "importe_total": 44000.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Hospedaje / Hotel",
+    "rubro_emisor": "Hotel / alojamiento (Hotel Jardín, Gualeguay, Entre Ríos)",
     "categoria_gasto_sugerida": "Hospedaje",
-    "cantidad_comensales_personas": 0,
-    "cantidad_litros": 0,
+    "cantidad_comensales_personas": null,
+    "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [
-      "cae"
+      "CUIT del receptor (Señor(es) CVC S.A.): se lee '301582215703', cantidad de dígitos inconsistente con un CUIT",
+      "Ingresos Brutos del emisor (número adyacente al CUIT, ilegible con certeza)",
+      "CAE / Fecha de Vencimiento CAE (pie): se lee aproximadamente 'CAE 8523898029851', no verificable con certeza"
     ],
-    "observaciones": "Factura A electrónica (COD. 01) de HOTEL JARDIN SRL, Bartolomé Mitre 1568 - CP 2840 - Gualeguaychú, Entre Ríos, TE 03444-429979. CUIT emisor 30-58221570-3: dígito verificador válido (11-8=3). Fecha de emisión 14/07/2026. Concepto: 'Alquiler Habitación - 6/07/2026 al 13/07/2026 (1/20)'. Única línea de detalle: %IVA 21,00 - CANT 1,00 - IMPORTE 36363,64 - %DESC 0,00 - TOTAL 36363,64. Pie: Subtotal 36363,64 + IVA 21,00% 7636,36 = Total 44000,00; la aritmética cierra. No hay percepciones, otros tributos, exento ni no gravado impresos. Receptor: CVC S.A., ALEM 1107, Capital Federal, Condición IVA Inscripto. Al pie figura línea de tarjeta 'VISA -4367- 715138971' con importe 44.000,03 (parcialmente ilegible, probablemente 44000,00) y 'Fecha Vencimiento 24/07/2026 - CAE 85238990298985' (CAE poco legible, por eso se lista en campos_no_legibles). No se detallan cantidades de personas ni litros."
+    "observaciones": "Factura A (COD. 001) emitida por HOTEL JARDIN SRL, Bartolomé Mitre 168, CP 2840, Gualeguay, Entre Ríos, Tel. 03444-429979. Emisor Responsable Inscripto, Inicio de Actividades 01-05-2015. Concepto: alquiler de habitación del 03/2026 al 13/07/2026 (1/20). Discrimina IVA: Subtotal (neto gravado) 36.363,64 + IVA 21,00% 7.636,36 = Total 44.000,00, la aritmética cierra. La línea de detalle muestra 1,00 unidad por 36.363,64 con 21% de IVA. No hay líneas de No Gravado, Exento, Percepciones de IIBB ni Otros Tributos. Se advierte que el dígito verificador del CUIT del emisor impreso no valida (el cálculo arroja 6 y figura 3), aunque el número se lee con dificultad por la nitidez de la impresión; no se descarta error de lectura. Fecha de emisión 04/07/2026, vencimiento 24/07/2026. Receptor: CVC S.A., ALM. 11037, Capital Federal, Condición IVA Inscripto. Rubro del emisor claramente hotelero, por lo que la categoría sugerida es Hospedaje."
   },
   "extraccion": {
     "legibilidad": "buena",
     "tipo_comprobante": "A",
-    "codigo_afip": "COD. 01",
+    "codigo_afip": "001",
     "razon_social_emisor": "HOTEL JARDIN SRL",
-    "cuit_emisor": "30-58221570-3",
-    "digito_verificador_cuit_valido": true,
-    "fecha_emision": "14/07/2026",
+    "cuit_emisor": "30-58221350-3",
+    "digito_verificador_cuit_valido": false,
+    "fecha_emision": "04/07/2026",
     "nro_factura": "0003-00015364",
     "moneda": "ARS",
     "subtotal": 36363.64,
@@ -82,15 +84,17 @@
     "otros_impuestos": 0,
     "importe_total": 44000.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Hospedaje / Hotel",
+    "rubro_emisor": "Hotel / alojamiento (Hotel Jardín, Gualeguay, Entre Ríos)",
     "categoria_gasto_sugerida": "Hospedaje",
-    "cantidad_comensales_personas": 0,
-    "cantidad_litros": 0,
+    "cantidad_comensales_personas": null,
+    "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [
-      "cae"
+      "CUIT del receptor (Señor(es) CVC S.A.): se lee '301582215703', cantidad de dígitos inconsistente con un CUIT",
+      "Ingresos Brutos del emisor (número adyacente al CUIT, ilegible con certeza)",
+      "CAE / Fecha de Vencimiento CAE (pie): se lee aproximadamente 'CAE 8523898029851', no verificable con certeza"
     ],
-    "observaciones": "Factura A electrónica (COD. 01) de HOTEL JARDIN SRL, Bartolomé Mitre 1568 - CP 2840 - Gualeguaychú, Entre Ríos, TE 03444-429979. CUIT emisor 30-58221570-3: dígito verificador válido (11-8=3). Fecha de emisión 14/07/2026. Concepto: 'Alquiler Habitación - 6/07/2026 al 13/07/2026 (1/20)'. Única línea de detalle: %IVA 21,00 - CANT 1,00 - IMPORTE 36363,64 - %DESC 0,00 - TOTAL 36363,64. Pie: Subtotal 36363,64 + IVA 21,00% 7636,36 = Total 44000,00; la aritmética cierra. No hay percepciones, otros tributos, exento ni no gravado impresos. Receptor: CVC S.A., ALEM 1107, Capital Federal, Condición IVA Inscripto. Al pie figura línea de tarjeta 'VISA -4367- 715138971' con importe 44.000,03 (parcialmente ilegible, probablemente 44000,00) y 'Fecha Vencimiento 24/07/2026 - CAE 85238990298985' (CAE poco legible, por eso se lista en campos_no_legibles). No se detallan cantidades de personas ni litros."
+    "observaciones": "Factura A (COD. 001) emitida por HOTEL JARDIN SRL, Bartolomé Mitre 168, CP 2840, Gualeguay, Entre Ríos, Tel. 03444-429979. Emisor Responsable Inscripto, Inicio de Actividades 01-05-2015. Concepto: alquiler de habitación del 03/2026 al 13/07/2026 (1/20). Discrimina IVA: Subtotal (neto gravado) 36.363,64 + IVA 21,00% 7.636,36 = Total 44.000,00, la aritmética cierra. La línea de detalle muestra 1,00 unidad por 36.363,64 con 21% de IVA. No hay líneas de No Gravado, Exento, Percepciones de IIBB ni Otros Tributos. Se advierte que el dígito verificador del CUIT del emisor impreso no valida (el cálculo arroja 6 y figura 3), aunque el número se lee con dificultad por la nitidez de la impresión; no se descarta error de lectura. Fecha de emisión 04/07/2026, vencimiento 24/07/2026. Receptor: CVC S.A., ALM. 11037, Capital Federal, Condición IVA Inscripto. Rubro del emisor claramente hotelero, por lo que la categoría sugerida es Hospedaje."
   },
   "aritmetica": {
     "calculable": true,

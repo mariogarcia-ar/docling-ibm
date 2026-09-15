@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/expected-extraction/55b39d02-60d6-47b6-8c13-cc74b295107c.jpg",
-  "archivo_relativo": "55b39d02-60d6-47b6-8c13-cc74b295107c.jpg",
-  "procesado_utc": "2026-09-15T02:05:45+00:00",
+  "archivo_relativo": "expected-extraction/55b39d02-60d6-47b6-8c13-cc74b295107c.jpg",
+  "procesado_utc": "2026-09-15T12:00:04+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 3017,
-    "completion_tokens": 4244,
-    "total_tokens": 7261,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 201
+    "prompt_tokens": 3225,
+    "completion_tokens": 4780,
+    "total_tokens": 8005,
+    "prompt_cache_hit_tokens": 2560,
+    "prompt_cache_miss_tokens": 665
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,12 +31,12 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.00517,
+  "costo_usd": 0.005951,
   "resultado": {
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "081",
-    "razon_social_emisor": "Herrero SRL",
+    "razon_social_emisor": "HERRERO SRL",
     "cuit_emisor": "30-51808998-2",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "06/11/2025",
@@ -52,19 +52,19 @@
     "otros_impuestos": 0,
     "importe_total": 34999.92,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / venta de combustible (NAFTA SUPER - YPF)",
+    "rubro_emisor": "Estación de servicio / venta de combustible al público (expende NAFTA SUPER; facturación de combustibles a cuenta y orden de YPF SA)",
     "categoria_gasto_sugerida": "Combustible",
-    "cantidad_comensales_personas": 0,
-    "cantidad_litros": 21.62,
+    "cantidad_comensales_personas": null,
+    "cantidad_litros": 21.82,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique Factura \"A\" (Cód. 081, no 001/011: es el código de tique factura A) N° 00018-00057858, emitido por HERRERO SRL (CUIT 30-51808998-2, IVA Responsable Inscripto, Ing. Brutos 021-093598-9, Córdoba 7898, Santa Fe - Rosario, inicio de actividades 11/11/1966). El CUIT del emisor valida dígito verificador (2). Receptor: CVC SA, CUIT 30-58221570-3. Líneas de importes transcriptas: Subtotal 24199,49 = SUBTOT. IMP. NETO GRAVADO 24199,49 (no hay exento ni no gravado); ALICUOTA 21,00%: 5081,89; ALICUOTA 0,00%: 0,00; 10 - Impuesto interno a nivel ítem: 5718,54 e IMPORTE TOTAL OTROS TRIBUTOS: 5718,54 (se cargó como impuestos internos); TOTAL 34999,92. La aritmética cierra: 24199,49 + 5081,89 + 5718,54 = 34999,92. No hay percepciones de IIBB ni otros tributos. Líneas en 0,00: \"Facturación de comb a cta y orden de YPF SA\", \"Tasa Vial: $387,19\", \"LEY 23.966\" y el ítem de $5033,9445. Detalle del combustible: 21,620 litros x 1604,0000 (NAFTA SUPER) con importe de línea 24199,49; advierto que 21,620 x 1604,0000 = 34678,48, por lo que el importe impreso no reconcilia con el precio unitario leído (posible bonificación o precio/dato mal impreso en el tique). Al pie, Ley 27743 Transparencia Fiscal: IVA Contenido 5081,89 y Otros Impuestos Nac. Indirectos 5331,34 (este último difiere del impuesto interno impreso de 5718,54). Vendedor: FABIANA GORI, Turno 13; anotación manuscrita \"NAFTA MANTENIMIENTO\". No se lee centro de costo ni dato alguno de comensales/personas."
+    "observaciones": "Tique Factura A emitido por controlador fiscal (Cód. 081), N° 00018-00057858, fecha 06/11/2025 15:54:27, emisor HERRERO SRL, Córdoba 7898, Rosario (Santa Fe), IVA Responsable Inscripto, Ing. Brutos 021-093598-9, inicio de actividades 11/11/1966 (CUIT 30-51808998-2: dígito verificador 2 validado correctamente). Receptor: CVC SA (169), CUIT 30-58221570-3, Cond. Vta. Contado; figura como comprobante asociado el mismo Cód. 081 - Tique Factura A 00018-00057858. Detalle: NAFTA SUPER 21,820 x $1604,0000 (alícuota 21%) por un neto de 24199,49; líneas informativas en 0,00 ('Facturación de comb a cta y orden de YPF SA', 'Tasa Vial: $387.19', 'LEY 23.966'). Se transcribe SUBTOT. IMP. NETO GRAVADO 24199,49 (cargado como subtotal, no es el total), ALICUOTA 21,00% = 5081,89, ALICUOTA 0,00% = 0,00, '10 - Impuesto interno a nivel ítem' 5718,54 y 'IMPORTE TOTAL OTROS TRIBUTOS' 5718,54 (mismo importe, se carga una sola vez en impuestos_internos para no duplicar). TOTAL 34999,92. Cierre aritmético verificado: 24199,49 + 5081,89 + 5718,54 = 34999,92. No hay percepciones de IIBB ni otros impuestos discriminados aparte. 'Transparencia Fiscal al Consumidor Ley 27743': IVA Contenido 5081,89; Otros Impuestos Nac. Indirectos 5331,34 (no se cargan como campos por ser leyendas informativas; la diferencia con 5718,54 sería la Tasa Vial de $387,19). No hay monto no gravado ni exento. Pago: Efectivo 34999,92, Su Vuelto 0,00. Vendedor: FABIANA GORI, Turno 13; anotación manuscrita 'NAFTA MANTENIMIENTO'. CANTIDAD_LITROS: se transcribe 21,82 litros según la línea de detalle del combustible; no debe confundirse con la línea '1,0000 (00) x 24199,4876' que corresponde al importe neto. No figura cantidad de comensales/personas ni centro de costo. Todos los importes del comprobante resultaron legibles."
   },
   "extraccion": {
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "081",
-    "razon_social_emisor": "Herrero SRL",
+    "razon_social_emisor": "HERRERO SRL",
     "cuit_emisor": "30-51808998-2",
     "digito_verificador_cuit_valido": true,
     "fecha_emision": "06/11/2025",
@@ -80,13 +80,13 @@
     "otros_impuestos": 0,
     "importe_total": 34999.92,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / venta de combustible (NAFTA SUPER - YPF)",
+    "rubro_emisor": "Estación de servicio / venta de combustible al público (expende NAFTA SUPER; facturación de combustibles a cuenta y orden de YPF SA)",
     "categoria_gasto_sugerida": "Combustible",
-    "cantidad_comensales_personas": 0,
-    "cantidad_litros": 21.62,
+    "cantidad_comensales_personas": null,
+    "cantidad_litros": 21.82,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique Factura \"A\" (Cód. 081, no 001/011: es el código de tique factura A) N° 00018-00057858, emitido por HERRERO SRL (CUIT 30-51808998-2, IVA Responsable Inscripto, Ing. Brutos 021-093598-9, Córdoba 7898, Santa Fe - Rosario, inicio de actividades 11/11/1966). El CUIT del emisor valida dígito verificador (2). Receptor: CVC SA, CUIT 30-58221570-3. Líneas de importes transcriptas: Subtotal 24199,49 = SUBTOT. IMP. NETO GRAVADO 24199,49 (no hay exento ni no gravado); ALICUOTA 21,00%: 5081,89; ALICUOTA 0,00%: 0,00; 10 - Impuesto interno a nivel ítem: 5718,54 e IMPORTE TOTAL OTROS TRIBUTOS: 5718,54 (se cargó como impuestos internos); TOTAL 34999,92. La aritmética cierra: 24199,49 + 5081,89 + 5718,54 = 34999,92. No hay percepciones de IIBB ni otros tributos. Líneas en 0,00: \"Facturación de comb a cta y orden de YPF SA\", \"Tasa Vial: $387,19\", \"LEY 23.966\" y el ítem de $5033,9445. Detalle del combustible: 21,620 litros x 1604,0000 (NAFTA SUPER) con importe de línea 24199,49; advierto que 21,620 x 1604,0000 = 34678,48, por lo que el importe impreso no reconcilia con el precio unitario leído (posible bonificación o precio/dato mal impreso en el tique). Al pie, Ley 27743 Transparencia Fiscal: IVA Contenido 5081,89 y Otros Impuestos Nac. Indirectos 5331,34 (este último difiere del impuesto interno impreso de 5718,54). Vendedor: FABIANA GORI, Turno 13; anotación manuscrita \"NAFTA MANTENIMIENTO\". No se lee centro de costo ni dato alguno de comensales/personas."
+    "observaciones": "Tique Factura A emitido por controlador fiscal (Cód. 081), N° 00018-00057858, fecha 06/11/2025 15:54:27, emisor HERRERO SRL, Córdoba 7898, Rosario (Santa Fe), IVA Responsable Inscripto, Ing. Brutos 021-093598-9, inicio de actividades 11/11/1966 (CUIT 30-51808998-2: dígito verificador 2 validado correctamente). Receptor: CVC SA (169), CUIT 30-58221570-3, Cond. Vta. Contado; figura como comprobante asociado el mismo Cód. 081 - Tique Factura A 00018-00057858. Detalle: NAFTA SUPER 21,820 x $1604,0000 (alícuota 21%) por un neto de 24199,49; líneas informativas en 0,00 ('Facturación de comb a cta y orden de YPF SA', 'Tasa Vial: $387.19', 'LEY 23.966'). Se transcribe SUBTOT. IMP. NETO GRAVADO 24199,49 (cargado como subtotal, no es el total), ALICUOTA 21,00% = 5081,89, ALICUOTA 0,00% = 0,00, '10 - Impuesto interno a nivel ítem' 5718,54 y 'IMPORTE TOTAL OTROS TRIBUTOS' 5718,54 (mismo importe, se carga una sola vez en impuestos_internos para no duplicar). TOTAL 34999,92. Cierre aritmético verificado: 24199,49 + 5081,89 + 5718,54 = 34999,92. No hay percepciones de IIBB ni otros impuestos discriminados aparte. 'Transparencia Fiscal al Consumidor Ley 27743': IVA Contenido 5081,89; Otros Impuestos Nac. Indirectos 5331,34 (no se cargan como campos por ser leyendas informativas; la diferencia con 5718,54 sería la Tasa Vial de $387,19). No hay monto no gravado ni exento. Pago: Efectivo 34999,92, Su Vuelto 0,00. Vendedor: FABIANA GORI, Turno 13; anotación manuscrita 'NAFTA MANTENIMIENTO'. CANTIDAD_LITROS: se transcribe 21,82 litros según la línea de detalle del combustible; no debe confundirse con la línea '1,0000 (00) x 24199,4876' que corresponde al importe neto. No figura cantidad de comensales/personas ni centro de costo. Todos los importes del comprobante resultaron legibles."
   },
   "aritmetica": {
     "calculable": true,

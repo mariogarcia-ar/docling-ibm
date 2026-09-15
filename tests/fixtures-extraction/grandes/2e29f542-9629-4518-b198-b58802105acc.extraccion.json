@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/grandes/2e29f542-9629-4518-b198-b58802105acc.jpg",
   "archivo_relativo": "grandes/2e29f542-9629-4518-b198-b58802105acc.jpg",
-  "procesado_utc": "2026-09-15T03:52:38+00:00",
+  "procesado_utc": "2026-09-15T12:02:21+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 3478,
-    "completion_tokens": 1969,
-    "total_tokens": 5447,
-    "prompt_cache_hit_tokens": 2304,
-    "prompt_cache_miss_tokens": 1174
+    "prompt_tokens": 3686,
+    "completion_tokens": 2056,
+    "total_tokens": 5742,
+    "prompt_cache_hit_tokens": 2560,
+    "prompt_cache_miss_tokens": 1126
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,15 +31,15 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.002729,
+  "costo_usd": 0.00282,
   "resultado": {
     "legibilidad": "buena",
     "tipo_comprobante": "A",
-    "codigo_afip": null,
-    "razon_social_emisor": "PAN & CAFE",
+    "codigo_afip": "001",
+    "razon_social_emisor": "PAN & CAFE (Sofia Martinez)",
     "cuit_emisor": "27362613456",
     "digito_verificador_cuit_valido": true,
-    "fecha_emision": "15/10/2025",
+    "fecha_emision": "15/10/25",
     "nro_factura": "0002-00000091",
     "moneda": "ARS",
     "subtotal": 11644.63,
@@ -52,22 +52,22 @@
     "otros_impuestos": 0,
     "importe_total": 14090.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Panadería / cafetería",
+    "rubro_emisor": "Cafetería / Panadería (PAN & CAFE)",
     "categoria_gasto_sugerida": "Restaurante",
-    "cantidad_comensales_personas": 0,
-    "cantidad_litros": 0,
+    "cantidad_comensales_personas": null,
+    "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A de 'PAN & CAFE' (Saavedra 101, Sofia Martinez), Responsable Inscripto, CUIT 27-36261345-6 (dígito verificador correcto). Fecha 15/10/2025 07:40, P.V. 2, ticket N° 7475, CAE 75426958003850 con vencimiento 25/10/2025. Receptor: Cucsa, CUIT 30582215703. Detalle: 260ml Chipa $3.867,77 + 255ml Bizcochos $3.371,90 + 260g Canasta dulce $4.404,96 = Subtotal (neto gravado) $11.644,63; IVA 21% $2.445,37; TOTAL $14.090,00. La suma cierra (subtotal + IVA = total) y los ítems suman el subtotal. Forma de pago: TARJETA. No se discriminan no gravado, exento, percepciones de IIBB ni otros tributos; no hay COD. AFIP impreso (se infiere tipo A por leyenda 'Factura A'). No indica cantidad de comensales ni litros. El texto 'C00009037' corresponde a la numeración interna del ticket, no al código AFIP."
+    "observaciones": "Factura A electrónica (COD. 001) emitida por PAN & CAFE (Sofia Martinez, CUIT 27-36261345-6, dígito verificador válido), P.V. 2, comprobante N° 0002-00000091, fecha 15/10/25 07:40, ticket N° 7475. Detalle: 260ml Chipa $3.867,77 + 255ml Bizcochos $3.371,90 + 260g Canasta dulce $4.404,96 = SUBTOTAL $11.644,63; IVA $2.445,37; TOTAL $14.090,00. La aritmética cierra (11.644,63 + 2.445,37 = 14.090,00) y el IVA equivale al 21% del neto. Impuesto al 21% (no discriminado por alícuota en el ticket). Moneda ARS. Datos del receptor (Cliente): Razon Social 'Cuesa', CUIT 30-56221570-3, RESPONSABLE INSCRIPTO. CAE 75426958003850, fecha vencimiento 25/10/25. No se observan campos de cantidad de comensales ni litros; el ticket no detalla cubiertos. El código 'C00009037' impreso en el encabezado es un identificador interno del ticket."
   },
   "extraccion": {
     "legibilidad": "buena",
     "tipo_comprobante": "A",
-    "codigo_afip": null,
-    "razon_social_emisor": "PAN & CAFE",
+    "codigo_afip": "001",
+    "razon_social_emisor": "PAN & CAFE (Sofia Martinez)",
     "cuit_emisor": "27362613456",
     "digito_verificador_cuit_valido": true,
-    "fecha_emision": "15/10/2025",
+    "fecha_emision": "15/10/25",
     "nro_factura": "0002-00000091",
     "moneda": "ARS",
     "subtotal": 11644.63,
@@ -80,13 +80,13 @@
     "otros_impuestos": 0,
     "importe_total": 14090.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Panadería / cafetería",
+    "rubro_emisor": "Cafetería / Panadería (PAN & CAFE)",
     "categoria_gasto_sugerida": "Restaurante",
-    "cantidad_comensales_personas": 0,
-    "cantidad_litros": 0,
+    "cantidad_comensales_personas": null,
+    "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A de 'PAN & CAFE' (Saavedra 101, Sofia Martinez), Responsable Inscripto, CUIT 27-36261345-6 (dígito verificador correcto). Fecha 15/10/2025 07:40, P.V. 2, ticket N° 7475, CAE 75426958003850 con vencimiento 25/10/2025. Receptor: Cucsa, CUIT 30582215703. Detalle: 260ml Chipa $3.867,77 + 255ml Bizcochos $3.371,90 + 260g Canasta dulce $4.404,96 = Subtotal (neto gravado) $11.644,63; IVA 21% $2.445,37; TOTAL $14.090,00. La suma cierra (subtotal + IVA = total) y los ítems suman el subtotal. Forma de pago: TARJETA. No se discriminan no gravado, exento, percepciones de IIBB ni otros tributos; no hay COD. AFIP impreso (se infiere tipo A por leyenda 'Factura A'). No indica cantidad de comensales ni litros. El texto 'C00009037' corresponde a la numeración interna del ticket, no al código AFIP."
+    "observaciones": "Factura A electrónica (COD. 001) emitida por PAN & CAFE (Sofia Martinez, CUIT 27-36261345-6, dígito verificador válido), P.V. 2, comprobante N° 0002-00000091, fecha 15/10/25 07:40, ticket N° 7475. Detalle: 260ml Chipa $3.867,77 + 255ml Bizcochos $3.371,90 + 260g Canasta dulce $4.404,96 = SUBTOTAL $11.644,63; IVA $2.445,37; TOTAL $14.090,00. La aritmética cierra (11.644,63 + 2.445,37 = 14.090,00) y el IVA equivale al 21% del neto. Impuesto al 21% (no discriminado por alícuota en el ticket). Moneda ARS. Datos del receptor (Cliente): Razon Social 'Cuesa', CUIT 30-56221570-3, RESPONSABLE INSCRIPTO. CAE 75426958003850, fecha vencimiento 25/10/25. No se observan campos de cantidad de comensales ni litros; el ticket no detalla cubiertos. El código 'C00009037' impreso en el encabezado es un identificador interno del ticket."
   },
   "aritmetica": {
     "calculable": true,

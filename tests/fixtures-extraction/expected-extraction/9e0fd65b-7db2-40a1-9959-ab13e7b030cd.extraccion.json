@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/expected-extraction/9e0fd65b-7db2-40a1-9959-ab13e7b030cd.jpg",
-  "archivo_relativo": "9e0fd65b-7db2-40a1-9959-ab13e7b030cd.jpg",
-  "procesado_utc": "2026-09-15T02:06:05+00:00",
+  "archivo_relativo": "expected-extraction/9e0fd65b-7db2-40a1-9959-ab13e7b030cd.jpg",
+  "procesado_utc": "2026-09-15T12:00:54+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 3017,
-    "completion_tokens": 1966,
-    "total_tokens": 4983,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 201
+    "prompt_tokens": 3225,
+    "completion_tokens": 1830,
+    "total_tokens": 5055,
+    "prompt_cache_hit_tokens": 2560,
+    "prompt_cache_miss_tokens": 665
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,15 +31,15 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.002436,
+  "costo_usd": 0.002411,
   "resultado": {
     "legibilidad": "buena",
     "tipo_comprobante": "C",
     "codigo_afip": "011",
-    "razon_social_emisor": "ALTOS DEL PARQUE",
+    "razon_social_emisor": "ALTOS DEL PARQUE - OPPICI LIA NOEMI",
     "cuit_emisor": "27-38132636-0",
     "digito_verificador_cuit_valido": true,
-    "fecha_emision": "27/02/2026",
+    "fecha_emision": "27/02/26 13:09",
     "nro_factura": "00005-00000171",
     "moneda": "ARS",
     "subtotal": 13469.5,
@@ -52,22 +52,22 @@
     "otros_impuestos": 0,
     "importe_total": 17050.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Restaurante",
+    "rubro_emisor": "Restaurante / gastronómico (mina «MILANESA [MEDIODIA]», mesa y mozo, CUB: 1)",
     "categoria_gasto_sugerida": "Restaurante",
     "cantidad_comensales_personas": 1,
-    "cantidad_litros": null,
+    "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura C (COD. 011) de 'ALTOS DEL PARQUE' (OPPICI LIA NOEMI), CUIT 27-38132636-0, IVA Responsable Monotributo, domicilio Alberdi 737, CP 2126, Pueblo Esther, Santa Fe; IIBB 0214415209; inicio de actividades 01/11/2016. Punto de venta 00005, comprobante 00000171, fecha 27/02/2026 13:09. A Consumidor Final, ticket de restaurante (MESA 19 - MOZO 1). Detalle: 1 Milanesa [Mediodía] 15500,00 + 1 Recargo 1550,00 = 17050,00. Se discrimina 'NETO SIN IVA' 13469,50 e 'IVA 21,00%' 3580,50: la suma cierra exactamente contra el TOTAL ARS 17050,00, pero la alícuota impresa no corresponde al 21% (3580,50 sobre 13469,50 = 26,58%); se transcribe tal como figura impreso. Cubiertos: 1 (PROM: 17050). CAE 86095509033708, vencimiento 09/03/2026. No hay campo de litros (no es ticket de combustible) ni centro de costo informado."
+    "observaciones": "Factura C (COD. 011), punto de venta 00005, número 00000171, a consumidor final, MESA 19 - MOZO 1. Emisor monotributista (IVA RESPONSABLE MONOTRIBUTO), IIBB 0214415209, inicio de actividades 01/11/2016, domicilio ALBERDI 737 CP 2126, PUEBLO ESTHER - SANTA FE. Detalle: 1 MILANESA [MEDIODIA] 15.500,00 + 1 RECARGO 1.550,00 (subtotal de ítems 17.050,00, coincidente con el TOTAL). La aritmética impresa cierra: NETO SIN IVA 13.469,50 + IVA 21,00% 3.580,50 = TOTAL 17.050,00. ANOMALÍA: el IVA impreso (3.580,50) equivale al 21% del total (17.050,00) y no de los ítems netos, y el neto impreso (13.469,50) no surge de restar el IVA al total (17.050/1,21 = 14.090,91); los rótulos de NETO/IVA del ticket son internamente inconsistentes con el detalle, aunque suman el total. CUB (cubiertos): 1, PROM: 17.050. No figura desglose de percepciones ni otros tributos. CANTIDAD_LITROS no aplica. CENTRO_DE_COSTO no figura en el comprobante. CAE: 86095509033708, VENC: 09/03/2026 (formato CAE de 14 dígitos). Dígito verificador del CUIT 27-38132636-0: válido."
   },
   "extraccion": {
     "legibilidad": "buena",
     "tipo_comprobante": "C",
     "codigo_afip": "011",
-    "razon_social_emisor": "ALTOS DEL PARQUE",
+    "razon_social_emisor": "ALTOS DEL PARQUE - OPPICI LIA NOEMI",
     "cuit_emisor": "27-38132636-0",
     "digito_verificador_cuit_valido": true,
-    "fecha_emision": "27/02/2026",
+    "fecha_emision": "27/02/26 13:09",
     "nro_factura": "00005-00000171",
     "moneda": "ARS",
     "subtotal": 13469.5,
@@ -80,13 +80,13 @@
     "otros_impuestos": 0,
     "importe_total": 17050.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Restaurante",
+    "rubro_emisor": "Restaurante / gastronómico (mina «MILANESA [MEDIODIA]», mesa y mozo, CUB: 1)",
     "categoria_gasto_sugerida": "Restaurante",
     "cantidad_comensales_personas": 1,
-    "cantidad_litros": null,
+    "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura C (COD. 011) de 'ALTOS DEL PARQUE' (OPPICI LIA NOEMI), CUIT 27-38132636-0, IVA Responsable Monotributo, domicilio Alberdi 737, CP 2126, Pueblo Esther, Santa Fe; IIBB 0214415209; inicio de actividades 01/11/2016. Punto de venta 00005, comprobante 00000171, fecha 27/02/2026 13:09. A Consumidor Final, ticket de restaurante (MESA 19 - MOZO 1). Detalle: 1 Milanesa [Mediodía] 15500,00 + 1 Recargo 1550,00 = 17050,00. Se discrimina 'NETO SIN IVA' 13469,50 e 'IVA 21,00%' 3580,50: la suma cierra exactamente contra el TOTAL ARS 17050,00, pero la alícuota impresa no corresponde al 21% (3580,50 sobre 13469,50 = 26,58%); se transcribe tal como figura impreso. Cubiertos: 1 (PROM: 17050). CAE 86095509033708, vencimiento 09/03/2026. No hay campo de litros (no es ticket de combustible) ni centro de costo informado."
+    "observaciones": "Factura C (COD. 011), punto de venta 00005, número 00000171, a consumidor final, MESA 19 - MOZO 1. Emisor monotributista (IVA RESPONSABLE MONOTRIBUTO), IIBB 0214415209, inicio de actividades 01/11/2016, domicilio ALBERDI 737 CP 2126, PUEBLO ESTHER - SANTA FE. Detalle: 1 MILANESA [MEDIODIA] 15.500,00 + 1 RECARGO 1.550,00 (subtotal de ítems 17.050,00, coincidente con el TOTAL). La aritmética impresa cierra: NETO SIN IVA 13.469,50 + IVA 21,00% 3.580,50 = TOTAL 17.050,00. ANOMALÍA: el IVA impreso (3.580,50) equivale al 21% del total (17.050,00) y no de los ítems netos, y el neto impreso (13.469,50) no surge de restar el IVA al total (17.050/1,21 = 14.090,91); los rótulos de NETO/IVA del ticket son internamente inconsistentes con el detalle, aunque suman el total. CUB (cubiertos): 1, PROM: 17.050. No figura desglose de percepciones ni otros tributos. CANTIDAD_LITROS no aplica. CENTRO_DE_COSTO no figura en el comprobante. CAE: 86095509033708, VENC: 09/03/2026 (formato CAE de 14 dígitos). Dígito verificador del CUIT 27-38132636-0: válido."
   },
   "aritmetica": {
     "calculable": true,

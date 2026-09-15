@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/otros/886c17f5-f099-41ff-95c5-5713dbf11404.jpg",
   "archivo_relativo": "otros/886c17f5-f099-41ff-95c5-5713dbf11404.jpg",
-  "procesado_utc": "2026-09-15T03:54:55+00:00",
+  "procesado_utc": "2026-09-15T12:04:22+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 3438,
-    "completion_tokens": 1959,
-    "total_tokens": 5397,
-    "prompt_cache_hit_tokens": 2304,
-    "prompt_cache_miss_tokens": 1134
+    "prompt_tokens": 3646,
+    "completion_tokens": 1595,
+    "total_tokens": 5241,
+    "prompt_cache_hit_tokens": 2560,
+    "prompt_cache_miss_tokens": 1086
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,15 +31,15 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.002705,
+  "costo_usd": 0.002255,
   "resultado": {
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "001",
-    "razon_social_emisor": "BRUNETTI FRANCO (Antartida)",
+    "razon_social_emisor": "Antartida - Brunetti Franco",
     "cuit_emisor": "20-29397499-4",
     "digito_verificador_cuit_valido": true,
-    "fecha_emision": "14/07/26",
+    "fecha_emision": "14/07/2026",
     "nro_factura": "00005-00008956",
     "moneda": "ARS",
     "subtotal": 11735.53,
@@ -52,22 +52,22 @@
     "otros_impuestos": 0,
     "importe_total": 14200.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Gastronómico / restaurante (menú, mesa, mozo)",
+    "rubro_emisor": "Gastronomía / Restaurante",
     "categoria_gasto_sugerida": "Restaurante",
     "cantidad_comensales_personas": null,
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A, COD. 001, punto de venta 00005, nro. 00008956, fecha 14/07/26 12:49. Emisor: Antartida - Brunetti Franco, CUIT 20-29397499-4 (dígito verificador 4 validado correctamente), IVA Responsable Inscripto, Ing. Brutos 021-317113-9, Eva Perón 7902 (EX 8302), inicio act. 01/06/2002. Receptor: CVC SA, CUIT 30582215703, Responsable Inscripto. Detalle: 1 MENU MERLUZA 13900,00; 1 CAFE MENU 0,00; 1 ADIC PAPAS o ENSA MENU 300,00; 1 AQUARIUS POMELO MENU 0,00 (los precios de línea están con IVA incluido; la suma de líneas es 14200,00). Desglose: NETO SIN IVA 11735,53 + IVA 21,00% 2464,47 = TOTAL ARS 14200,00; la aritmética cierra. No hay no gravado, exento, percepciones ni otros tributos. Leyenda: EXCEPCION COMPUTO IVA CREDITO FISCAL, motivo Confer./Congresos/Eventos. CAE 86283825198382, vencimiento 24/07/2026. Mesa 29 - Mozo 1. El ticket no indica cantidad de comensales/cubiertos, por lo que ese dato no es verificable desde el comprobante."
+    "observaciones": "Factura A (COD. 001) emitida por Brunetti Franco (nombre de fantasía 'Antartida'), CUIT 20-29397499-4 (dígito verificador válido), IVA Responsable Inscripto, domicilio Eva Perón 7902 (ex 8302), inicio act. 01/06/2002, Ing. Brutos 021-317113-9. Receptor: CVC SA, CUIT 30582215703, Responsable Inscripto. Fecha impresa 14/07/26 12:49. Detalle: MESA 29 - MOZO 1. Ítems: MENU MERLUZA 13900,00; CAFE MENU 0,00; ADIC PAPAS o ENSA MENU 300,00; AQUARIUS POMELO MENU 0,00. Líneas de importe: NETO SIN IVA 11735,53 (cargado como subtotal/neto gravado) + IVA 21,00% 2464,47 = TOTAL ARS 14200,00. La aritmética cierra. Sin percepciones ni otros tributos informados. Emitido en Rosario - S. Fe. Leyenda: '*' EXCEPCION COMPUTO IVA CREDITO FISCAL '*', Motivo Excep.: confer./congresos/eventos (importante: el IVA no sería computable como crédito fiscal). CAE: 86283825198382, VENC: 24/07/2026. No se observan líneas de NO GRAVADO ni EXENTO. Cantidad de comensales no está impresa en el comprobante (solo número de mesa); los ítems listados corresponderían a 1 menú principal + adicionales. No hay datos de litros (no es combustible). Centro de costo no informado en el ticket."
   },
   "extraccion": {
     "legibilidad": "buena",
     "tipo_comprobante": "A",
     "codigo_afip": "001",
-    "razon_social_emisor": "BRUNETTI FRANCO (Antartida)",
+    "razon_social_emisor": "Antartida - Brunetti Franco",
     "cuit_emisor": "20-29397499-4",
     "digito_verificador_cuit_valido": true,
-    "fecha_emision": "14/07/26",
+    "fecha_emision": "14/07/2026",
     "nro_factura": "00005-00008956",
     "moneda": "ARS",
     "subtotal": 11735.53,
@@ -80,13 +80,13 @@
     "otros_impuestos": 0,
     "importe_total": 14200.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Gastronómico / restaurante (menú, mesa, mozo)",
+    "rubro_emisor": "Gastronomía / Restaurante",
     "categoria_gasto_sugerida": "Restaurante",
     "cantidad_comensales_personas": null,
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A, COD. 001, punto de venta 00005, nro. 00008956, fecha 14/07/26 12:49. Emisor: Antartida - Brunetti Franco, CUIT 20-29397499-4 (dígito verificador 4 validado correctamente), IVA Responsable Inscripto, Ing. Brutos 021-317113-9, Eva Perón 7902 (EX 8302), inicio act. 01/06/2002. Receptor: CVC SA, CUIT 30582215703, Responsable Inscripto. Detalle: 1 MENU MERLUZA 13900,00; 1 CAFE MENU 0,00; 1 ADIC PAPAS o ENSA MENU 300,00; 1 AQUARIUS POMELO MENU 0,00 (los precios de línea están con IVA incluido; la suma de líneas es 14200,00). Desglose: NETO SIN IVA 11735,53 + IVA 21,00% 2464,47 = TOTAL ARS 14200,00; la aritmética cierra. No hay no gravado, exento, percepciones ni otros tributos. Leyenda: EXCEPCION COMPUTO IVA CREDITO FISCAL, motivo Confer./Congresos/Eventos. CAE 86283825198382, vencimiento 24/07/2026. Mesa 29 - Mozo 1. El ticket no indica cantidad de comensales/cubiertos, por lo que ese dato no es verificable desde el comprobante."
+    "observaciones": "Factura A (COD. 001) emitida por Brunetti Franco (nombre de fantasía 'Antartida'), CUIT 20-29397499-4 (dígito verificador válido), IVA Responsable Inscripto, domicilio Eva Perón 7902 (ex 8302), inicio act. 01/06/2002, Ing. Brutos 021-317113-9. Receptor: CVC SA, CUIT 30582215703, Responsable Inscripto. Fecha impresa 14/07/26 12:49. Detalle: MESA 29 - MOZO 1. Ítems: MENU MERLUZA 13900,00; CAFE MENU 0,00; ADIC PAPAS o ENSA MENU 300,00; AQUARIUS POMELO MENU 0,00. Líneas de importe: NETO SIN IVA 11735,53 (cargado como subtotal/neto gravado) + IVA 21,00% 2464,47 = TOTAL ARS 14200,00. La aritmética cierra. Sin percepciones ni otros tributos informados. Emitido en Rosario - S. Fe. Leyenda: '*' EXCEPCION COMPUTO IVA CREDITO FISCAL '*', Motivo Excep.: confer./congresos/eventos (importante: el IVA no sería computable como crédito fiscal). CAE: 86283825198382, VENC: 24/07/2026. No se observan líneas de NO GRAVADO ni EXENTO. Cantidad de comensales no está impresa en el comprobante (solo número de mesa); los ítems listados corresponderían a 1 menú principal + adicionales. No hay datos de litros (no es combustible). Centro de costo no informado en el ticket."
   },
   "aritmetica": {
     "calculable": true,

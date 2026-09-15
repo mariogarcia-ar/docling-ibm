@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/otros/4be3d157-7c0c-491d-bfe0-abf8fe755a7b.jpg",
   "archivo_relativo": "otros/4be3d157-7c0c-491d-bfe0-abf8fe755a7b.jpg",
-  "procesado_utc": "2026-09-15T03:54:33+00:00",
+  "procesado_utc": "2026-09-15T12:03:58+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 3478,
+    "prompt_tokens": 3686,
     "completion_tokens": 2073,
-    "total_tokens": 5551,
-    "prompt_cache_hit_tokens": 2304,
-    "prompt_cache_miss_tokens": 1174
+    "total_tokens": 5759,
+    "prompt_cache_hit_tokens": 2560,
+    "prompt_cache_miss_tokens": 1126
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,7 +31,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.002854,
+  "costo_usd": 0.002841,
   "resultado": {
     "legibilidad": "buena",
     "tipo_comprobante": "C",
@@ -39,7 +39,7 @@
     "razon_social_emisor": "ALTOS DEL PARQUE - OPPICI LIA NOEMI",
     "cuit_emisor": "27-38132636-0",
     "digito_verificador_cuit_valido": true,
-    "fecha_emision": "29/05/26",
+    "fecha_emision": "29/05/2026 (impreso como 29/05/26 13:37)",
     "nro_factura": "00005-00000368",
     "moneda": "ARS",
     "subtotal": 15207.5,
@@ -50,15 +50,15 @@
     "impuestos_internos": 0,
     "percepciones_iibb": 0,
     "otros_impuestos": 0,
-    "importe_total": 19250,
+    "importe_total": 19250.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Gastronómico / Restaurante (menú del día, mesa y mozo)",
+    "rubro_emisor": "Gastronómico / Restaurante (ticket de mesa con mozo, menú del día)",
     "categoria_gasto_sugerida": "Restaurante",
     "cantidad_comensales_personas": 1,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura C (COD. 011) emitida por ALTOS DEL PARQUE - OPPICI LIA NOEMI, CUIT 27-38132636-0, domicilio Alberdi 737, CP 2126, Pueblo Esther, Santa Fe; condición IVA: Responsable Monotributo. Dígito verificador del CUIT emisor validado: correcto. La aritmética cierra: NETO SIN IVA 15207,50 + IVA 21,00% 4042,50 = TOTAL ARS 19250,00. Detalle: 1 MENU DEL DIA MEDIODIA 17500,00 + 1 RECARGO 1750,00. Anomalías detectadas: (a) el comprobante es Factura C de monotributista pero discrimina IVA, lo que no es habitual en esa condición; (b) el IVA informado (4042,50) no corresponde al 21% de la base declarada (21% de 15207,50 sería 3193,58), aunque la suma de las líneas impresas sí cierra con el total; (c) CUB: 1 (un cubierto), PROM: 19250. Datos del receptor: CVC SOCIEDAD ANONIMA, PIA, RESPONSABLE INSCRIPTO, CUIT 30-58221570-3. CAE 86227459946956, vencimiento 08/06/2026. Sin percepciones, impuestos internos ni otros tributos discriminados; no hay líneas de exento ni no gravado. Centro de costo no informado en el comprobante (no controlado por aprobadores)."
+    "observaciones": "Factura C (COD. 011) emitida por ALTOS DEL PARQUE - OPPICI LIA NOEMI, CUIT 27-38132636-0, IVA RESPONSABLE MONOTRIBUTO, Alberdi 737 CP 2126, Pueblo Esther, Santa Fe. Domicilio del receptor: CVC SOCIEDAD ANONIMA, PIA, RESPONSABLE INSCRIPTO, CUIT 30-58221570-3. Detalle: 1 MENU DEL DIA MEDIODIA 17.500,00 + 1 RECARGO 1.750,00 = 19.250,00. Líneas de importes: NETO SIN IVA 15.207,50 e IVA 21,00% 4.042,50, que suman exactamente el TOTAL ARS 19.250,00 (la aritmética cierra). Se aclara que el campo 'subtotal' se cargó con el NETO SIN IVA (15.207,50) y no con el total. Observación de auditoría: el IVA impreso (4.042,50) no equivale al 21% del neto declarado (21% de 15.207,50 = 3.193,58) ni el neto surge de dividir el total por 1,21 (19.250/1,21 = 15.909,09); el 21% tampoco coincide con la alícuota aplicada sobre el neto implícito. No obstante, la suma de las líneas impresas coincide con el total. Adicionalmente, siendo un comprobante C de monotributista, la discriminación de IVA es formalmente improcedente (no genera crédito fiscal). Cubiertos: CUB 1, PROM 19.250 (consistente con 1 comensal). CAE 86227459946956 con vencimiento 08/06/2026 (fuera del alcance de la transcripción). No se visualiza Centro de Costo en el comprobante (dato no controlado por aprobadores). No hay campos ilegibles."
   },
   "extraccion": {
     "legibilidad": "buena",
@@ -67,7 +67,7 @@
     "razon_social_emisor": "ALTOS DEL PARQUE - OPPICI LIA NOEMI",
     "cuit_emisor": "27-38132636-0",
     "digito_verificador_cuit_valido": true,
-    "fecha_emision": "29/05/26",
+    "fecha_emision": "29/05/2026 (impreso como 29/05/26 13:37)",
     "nro_factura": "00005-00000368",
     "moneda": "ARS",
     "subtotal": 15207.5,
@@ -78,15 +78,15 @@
     "impuestos_internos": 0,
     "percepciones_iibb": 0,
     "otros_impuestos": 0,
-    "importe_total": 19250,
+    "importe_total": 19250.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Gastronómico / Restaurante (menú del día, mesa y mozo)",
+    "rubro_emisor": "Gastronómico / Restaurante (ticket de mesa con mozo, menú del día)",
     "categoria_gasto_sugerida": "Restaurante",
     "cantidad_comensales_personas": 1,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura C (COD. 011) emitida por ALTOS DEL PARQUE - OPPICI LIA NOEMI, CUIT 27-38132636-0, domicilio Alberdi 737, CP 2126, Pueblo Esther, Santa Fe; condición IVA: Responsable Monotributo. Dígito verificador del CUIT emisor validado: correcto. La aritmética cierra: NETO SIN IVA 15207,50 + IVA 21,00% 4042,50 = TOTAL ARS 19250,00. Detalle: 1 MENU DEL DIA MEDIODIA 17500,00 + 1 RECARGO 1750,00. Anomalías detectadas: (a) el comprobante es Factura C de monotributista pero discrimina IVA, lo que no es habitual en esa condición; (b) el IVA informado (4042,50) no corresponde al 21% de la base declarada (21% de 15207,50 sería 3193,58), aunque la suma de las líneas impresas sí cierra con el total; (c) CUB: 1 (un cubierto), PROM: 19250. Datos del receptor: CVC SOCIEDAD ANONIMA, PIA, RESPONSABLE INSCRIPTO, CUIT 30-58221570-3. CAE 86227459946956, vencimiento 08/06/2026. Sin percepciones, impuestos internos ni otros tributos discriminados; no hay líneas de exento ni no gravado. Centro de costo no informado en el comprobante (no controlado por aprobadores)."
+    "observaciones": "Factura C (COD. 011) emitida por ALTOS DEL PARQUE - OPPICI LIA NOEMI, CUIT 27-38132636-0, IVA RESPONSABLE MONOTRIBUTO, Alberdi 737 CP 2126, Pueblo Esther, Santa Fe. Domicilio del receptor: CVC SOCIEDAD ANONIMA, PIA, RESPONSABLE INSCRIPTO, CUIT 30-58221570-3. Detalle: 1 MENU DEL DIA MEDIODIA 17.500,00 + 1 RECARGO 1.750,00 = 19.250,00. Líneas de importes: NETO SIN IVA 15.207,50 e IVA 21,00% 4.042,50, que suman exactamente el TOTAL ARS 19.250,00 (la aritmética cierra). Se aclara que el campo 'subtotal' se cargó con el NETO SIN IVA (15.207,50) y no con el total. Observación de auditoría: el IVA impreso (4.042,50) no equivale al 21% del neto declarado (21% de 15.207,50 = 3.193,58) ni el neto surge de dividir el total por 1,21 (19.250/1,21 = 15.909,09); el 21% tampoco coincide con la alícuota aplicada sobre el neto implícito. No obstante, la suma de las líneas impresas coincide con el total. Adicionalmente, siendo un comprobante C de monotributista, la discriminación de IVA es formalmente improcedente (no genera crédito fiscal). Cubiertos: CUB 1, PROM 19.250 (consistente con 1 comensal). CAE 86227459946956 con vencimiento 08/06/2026 (fuera del alcance de la transcripción). No se visualiza Centro de Costo en el comprobante (dato no controlado por aprobadores). No hay campos ilegibles."
   },
   "aritmetica": {
     "calculable": true,

@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/grandes/1f28e080-d797-4453-96fb-f7ea27b6621d.jpg",
   "archivo_relativo": "grandes/1f28e080-d797-4453-96fb-f7ea27b6621d.jpg",
-  "procesado_utc": "2026-09-15T03:52:34+00:00",
+  "procesado_utc": "2026-09-15T12:02:14+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 3478,
-    "completion_tokens": 17935,
-    "total_tokens": 21413,
-    "prompt_cache_hit_tokens": 2304,
-    "prompt_cache_miss_tokens": 1174
+    "prompt_tokens": 3686,
+    "completion_tokens": 4888,
+    "total_tokens": 8574,
+    "prompt_cache_hit_tokens": 2560,
+    "prompt_cache_miss_tokens": 1126
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,7 +31,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.021888,
+  "costo_usd": 0.006219,
   "resultado": {
     "legibilidad": "buena",
     "tipo_comprobante": "A",
@@ -49,16 +49,16 @@
     "iva": 7751.2,
     "impuestos_internos": 0,
     "percepciones_iibb": 235.65,
-    "otros_impuestos": 10220.28,
+    "otros_impuestos": 0,
     "importe_total": 55117.59,
-    "cierra_aritmetica": false,
-    "rubro_emisor": "Estación de servicio / venta de combustible",
+    "cierra_aritmetica": true,
+    "rubro_emisor": "Estación de servicio / venta de combustible (Nafta Super)",
     "categoria_gasto_sugerida": "Combustible",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 36.7349,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A Original (COD. 001) de estación de servicio (combustible). Emisor (encabezado): Operadora de Estaciones de Servicios S.A., CUIT 30-67877449-5 (dígito verificador validado: correcto). Receptor: CUC SOCIEDAD ANONIMA, CUIT 30582215703 (no es el emisor). Ítem: Mafta Super XXI, 36,7349 litros x 1004,7793 = 36910,47 (neto gravado). Discrimina IVA 21% = 7751,20. Conceptos no gravados = 10220,27. Percepción IIBB Bs As 0,5% Part. = 235,65. Total = 55117,59. El TOTAL impreso cierra exactamente con: Neto 36910,47 + No Gravado 10220,27 + IVA 7751,20 + Percepción 235,65 = 55117,59. Los 'OTROS IMPUESTOS NACIONALES' detallados (Imp. Comb. Líq. 9630,35 + Imp. Diox. Carb. 589,93 = 10220,28) coinciden con los CONCEPTOS NO GRAVADOS y ya están incluidos dentro del total, por lo que NO deben sumarse nuevamente; es por eso que la suma de todos los campos de importe transcritos (65337,87) no da el total. Pago: Visa 55117,59, vuelto 0,00. CAE 75375584534237, vto 20/09/2025. Operador: TRIVIÑO SOFIA. TK 641985, terminal 06."
+    "observaciones": "Factura A Original (COD. 001) de estación de servicio. Emisor Operadora de Estaciones de Servicios S.A., CUIT 30-67877449-5 (dígito verificador válido). Receptor CUC SOCIEDAD ANONIMA, CUIT 30582215703. NRO.COMP 07246-00053120, fecha 10/09/2025 09:50:05, terminal 06. Detalle: Nafta Super XXI (21%) 36,7349 L x 1004,7793 = 36910,47 (1 ITC: 262,1580). El neto gravado (36910,47) coincide con 'SUBTOTAL 21%'. IVA 21% = 7751,20 discriminado. 'CONCEPTOS NO GRAVADOS' = 10220,27, que coincide con el desglose informativo 'OTROS IMPUESTOS NACIONALES' (Imp. Diox. Carb 589,93 + Imp. Comb. Liq 9630,35 = 10220,28, diferencia de 0,01 por redondeo); se registra una sola vez dentro de no_gravado para no duplicar en la aritmética. Percepciones IIBB Bs As 0,5% Part. = 235,65. Verificación: 36910,47 + 10220,27 + 7751,20 + 235,65 = 55117,59 = TOTAL. Pago con Visa 55117,59. CAE 75375584534237, vto. 20250920. Nota al pie: 'Venta combustible por cuenta y orden YPF'."
   },
   "extraccion": {
     "legibilidad": "buena",
@@ -77,24 +77,23 @@
     "iva": 7751.2,
     "impuestos_internos": 0,
     "percepciones_iibb": 235.65,
-    "otros_impuestos": 10220.28,
+    "otros_impuestos": 0,
     "importe_total": 55117.59,
-    "cierra_aritmetica": false,
-    "rubro_emisor": "Estación de servicio / venta de combustible",
+    "cierra_aritmetica": true,
+    "rubro_emisor": "Estación de servicio / venta de combustible (Nafta Super)",
     "categoria_gasto_sugerida": "Combustible",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 36.7349,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A Original (COD. 001) de estación de servicio (combustible). Emisor (encabezado): Operadora de Estaciones de Servicios S.A., CUIT 30-67877449-5 (dígito verificador validado: correcto). Receptor: CUC SOCIEDAD ANONIMA, CUIT 30582215703 (no es el emisor). Ítem: Mafta Super XXI, 36,7349 litros x 1004,7793 = 36910,47 (neto gravado). Discrimina IVA 21% = 7751,20. Conceptos no gravados = 10220,27. Percepción IIBB Bs As 0,5% Part. = 235,65. Total = 55117,59. El TOTAL impreso cierra exactamente con: Neto 36910,47 + No Gravado 10220,27 + IVA 7751,20 + Percepción 235,65 = 55117,59. Los 'OTROS IMPUESTOS NACIONALES' detallados (Imp. Comb. Líq. 9630,35 + Imp. Diox. Carb. 589,93 = 10220,28) coinciden con los CONCEPTOS NO GRAVADOS y ya están incluidos dentro del total, por lo que NO deben sumarse nuevamente; es por eso que la suma de todos los campos de importe transcritos (65337,87) no da el total. Pago: Visa 55117,59, vuelto 0,00. CAE 75375584534237, vto 20/09/2025. Operador: TRIVIÑO SOFIA. TK 641985, terminal 06."
+    "observaciones": "Factura A Original (COD. 001) de estación de servicio. Emisor Operadora de Estaciones de Servicios S.A., CUIT 30-67877449-5 (dígito verificador válido). Receptor CUC SOCIEDAD ANONIMA, CUIT 30582215703. NRO.COMP 07246-00053120, fecha 10/09/2025 09:50:05, terminal 06. Detalle: Nafta Super XXI (21%) 36,7349 L x 1004,7793 = 36910,47 (1 ITC: 262,1580). El neto gravado (36910,47) coincide con 'SUBTOTAL 21%'. IVA 21% = 7751,20 discriminado. 'CONCEPTOS NO GRAVADOS' = 10220,27, que coincide con el desglose informativo 'OTROS IMPUESTOS NACIONALES' (Imp. Diox. Carb 589,93 + Imp. Comb. Liq 9630,35 = 10220,28, diferencia de 0,01 por redondeo); se registra una sola vez dentro de no_gravado para no duplicar en la aritmética. Percepciones IIBB Bs As 0,5% Part. = 235,65. Verificación: 36910,47 + 10220,27 + 7751,20 + 235,65 = 55117,59 = TOTAL. Pago con Visa 55117,59. CAE 75375584534237, vto. 20250920. Nota al pie: 'Venta combustible por cuenta y orden YPF'."
   },
   "aritmetica": {
     "calculable": true,
-    "suma": 65337.87,
+    "suma": 55117.59,
     "total": 55117.59,
-    "diferencia": -10220.28,
-    "cierra": false,
-    "faltantes": [],
-    "aviso": "Los importes leídos suman 65,337.87 y el total impreso es 55,117.59 (diferencia -10,220.28)."
+    "diferencia": -0.0,
+    "cierra": true,
+    "faltantes": []
   }
 }

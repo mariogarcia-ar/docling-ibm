@@ -1,12 +1,12 @@
 {
   "origen": "tests/fixtures/golden/9dfc597f-34c5-41ec-99ae-cf35544c7af8_p01.pdf",
   "archivo_relativo": "golden/9dfc597f-34c5-41ec-99ae-cf35544c7af8_p01.pdf",
-  "procesado_utc": "2026-09-15T03:51:34+00:00",
+  "procesado_utc": "2026-09-15T11:58:09+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
   "fuente": "api",
-  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_pcat1xl9/golden/9dfc597f-34c5-41ec-99ae-cf35544c7af8_p01.jpg",
+  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_gpiw991f/golden/9dfc597f-34c5-41ec-99ae-cf35544c7af8_p01.jpg",
   "pagina": 1,
   "imagen": {
     "bytes": 1396072,
@@ -18,13 +18,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 3491,
-    "completion_tokens": 1962,
-    "total_tokens": 5453,
-    "prompt_cache_hit_tokens": 2304,
-    "prompt_cache_miss_tokens": 1187
+    "prompt_tokens": 3699,
+    "completion_tokens": 3337,
+    "total_tokens": 7036,
+    "prompt_cache_hit_tokens": 2560,
+    "prompt_cache_miss_tokens": 1139
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -33,7 +33,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.002724,
+  "costo_usd": 0.004361,
   "resultado": {
     "legibilidad": "buena",
     "tipo_comprobante": "090",
@@ -54,13 +54,13 @@
     "otros_impuestos": 0,
     "importe_total": 31700,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Transporte de pasajeros - servicio público de larga distancia (empresa R. U. y otros - UTE, Colón, Entre Ríos)",
+    "rubro_emisor": "Transporte de pasajeros (ómnibus de larga distancia)",
     "categoria_gasto_sugerida": "Transporte / Pasajes",
-    "cantidad_comensales_personas": null,
-    "cantidad_litros": null,
+    "cantidad_comensales_personas": 0,
+    "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Boleto de pasaje de colectivo (no factura AFIP): no se imprime código AFIP ni desglose de impuestos, por lo que se transcribe como tipo 090. Emisor del servicio: 'R. U. y otros - UTE', Alte. Brown 215, Colón, C.P. 3280, Entre Ríos, IVA Responsable Inscripto, CUIT 30-71674544-5 (dígito verificador 5: válido); C.M. 908-30716744545. Pasajero: ALONSO, LUCAS - DNI 37295063. Origen: Rosario Terminal - Dirección Cafferata 702; Destino: Venado Tuerto - Terminal, Quintana 865. Butaca 56, Categoría Común Cama - Semi-Cama, Plataforma 35A. Salida: viernes 28/08/2026 15:00 hs (arribo estimado 28/08/2026 18:23). Importe $ 31.700,00 abonado con Tarjeta de Crédito (N° 175587040190). Fecha de venta/emisión: 25/08/2026 14:58 hs (vendedor CDP) — la única fecha de emisión legible; la fecha de viaje es 28/08/2026. Identificador SUV-34071269-255671438. Sin discriminación de IVA ni otros tributos: subtotal = total = $ 31.700,00; la aritmética cierra. Campo 'fecha_emision' tomado de la fecha de venta impresa; no hay otro dato de emisión. Centro de costo no informado en el comprobante."
+    "observaciones": "Boleto de ómnibus (Otros Comprobantes, sin código AFIP ni letra A/B/C): Rosario Terminal -> Venado Tuerto, servicio 28/08/2026 15:00, butaca 56, pasajero ALONSO, LUCAS - DNI 37295063. Importe único impreso $ 31.700,00 abonado con Tarjeta de Crédito (175587040190); no discrimina IVA ni otros impuestos, por lo que subtotal = total = 31.700,00 y la aritmética cierra. Fecha de emisión/venta: 25/08/2026 14:58 (Vendedor CDP); la fecha de viaje/salida es 28/08/2026. CUIT 30-71674544-5 (Resp. Inscripto) con dígito verificador 5 válido. Identificador: SUV-34071269-255671438; contacto clientesdcentraldepasajes.com.ar. El emisor no surge con total claridad del encabezado: la única razón social/CUIT impresos son 'R. U. y otros - UTE' (Almirante Brown 215, Colón, C.P. 3280, Entre Ríos); el vendedor figura como 'CDP'. No hay campos ilegibles."
   },
   "extraccion": {
     "legibilidad": "buena",
@@ -82,13 +82,13 @@
     "otros_impuestos": 0,
     "importe_total": 31700,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Transporte de pasajeros - servicio público de larga distancia (empresa R. U. y otros - UTE, Colón, Entre Ríos)",
+    "rubro_emisor": "Transporte de pasajeros (ómnibus de larga distancia)",
     "categoria_gasto_sugerida": "Transporte / Pasajes",
-    "cantidad_comensales_personas": null,
-    "cantidad_litros": null,
+    "cantidad_comensales_personas": 0,
+    "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Boleto de pasaje de colectivo (no factura AFIP): no se imprime código AFIP ni desglose de impuestos, por lo que se transcribe como tipo 090. Emisor del servicio: 'R. U. y otros - UTE', Alte. Brown 215, Colón, C.P. 3280, Entre Ríos, IVA Responsable Inscripto, CUIT 30-71674544-5 (dígito verificador 5: válido); C.M. 908-30716744545. Pasajero: ALONSO, LUCAS - DNI 37295063. Origen: Rosario Terminal - Dirección Cafferata 702; Destino: Venado Tuerto - Terminal, Quintana 865. Butaca 56, Categoría Común Cama - Semi-Cama, Plataforma 35A. Salida: viernes 28/08/2026 15:00 hs (arribo estimado 28/08/2026 18:23). Importe $ 31.700,00 abonado con Tarjeta de Crédito (N° 175587040190). Fecha de venta/emisión: 25/08/2026 14:58 hs (vendedor CDP) — la única fecha de emisión legible; la fecha de viaje es 28/08/2026. Identificador SUV-34071269-255671438. Sin discriminación de IVA ni otros tributos: subtotal = total = $ 31.700,00; la aritmética cierra. Campo 'fecha_emision' tomado de la fecha de venta impresa; no hay otro dato de emisión. Centro de costo no informado en el comprobante."
+    "observaciones": "Boleto de ómnibus (Otros Comprobantes, sin código AFIP ni letra A/B/C): Rosario Terminal -> Venado Tuerto, servicio 28/08/2026 15:00, butaca 56, pasajero ALONSO, LUCAS - DNI 37295063. Importe único impreso $ 31.700,00 abonado con Tarjeta de Crédito (175587040190); no discrimina IVA ni otros impuestos, por lo que subtotal = total = 31.700,00 y la aritmética cierra. Fecha de emisión/venta: 25/08/2026 14:58 (Vendedor CDP); la fecha de viaje/salida es 28/08/2026. CUIT 30-71674544-5 (Resp. Inscripto) con dígito verificador 5 válido. Identificador: SUV-34071269-255671438; contacto clientesdcentraldepasajes.com.ar. El emisor no surge con total claridad del encabezado: la única razón social/CUIT impresos son 'R. U. y otros - UTE' (Almirante Brown 215, Colón, C.P. 3280, Entre Ríos); el vendedor figura como 'CDP'. No hay campos ilegibles."
   },
   "aritmetica": {
     "calculable": true,

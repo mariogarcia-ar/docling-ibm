@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/chicos/bab5e67d-a778-4237-ad5c-fe8c230875bc.jpeg",
-  "archivo_relativo": "bab5e67d-a778-4237-ad5c-fe8c230875bc.jpeg",
-  "procesado_utc": "2026-09-15T03:46:37+00:00",
+  "archivo_relativo": "chicos/bab5e67d-a778-4237-ad5c-fe8c230875bc.jpeg",
+  "procesado_utc": "2026-09-15T11:58:56+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 2681,
-    "completion_tokens": 1335,
-    "total_tokens": 4016,
-    "prompt_cache_hit_tokens": 2432,
-    "prompt_cache_miss_tokens": 249
+    "prompt_tokens": 2889,
+    "completion_tokens": 1592,
+    "total_tokens": 4481,
+    "prompt_cache_hit_tokens": 2560,
+    "prompt_cache_miss_tokens": 329
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,7 +31,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.001691,
+  "costo_usd": 0.002024,
   "resultado": {
     "legibilidad": "buena",
     "tipo_comprobante": null,
@@ -45,7 +45,7 @@
     "subtotal": 0,
     "no_gravado": 0,
     "exento": 0,
-    "discrimina_impuestos": true,
+    "discrimina_impuestos": false,
     "iva": 0,
     "impuestos_internos": 0,
     "percepciones_iibb": 0,
@@ -53,12 +53,12 @@
     "importe_total": 72.0,
     "cierra_aritmetica": true,
     "rubro_emisor": "no verificable",
-    "categoria_gasto_sugerida": null,
-    "cantidad_comensales_personas": null,
-    "cantidad_litros": null,
+    "categoria_gasto_sugerida": "Impuestos/Tasas",
+    "cantidad_comensales_personas": 0,
+    "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "La imagen no es una factura AFIP: es un detalle/registro de conceptos (encabezado 'Conceptos TLPP') con una única línea de importe. Se lee: fecha 27/03/2026, concepto 'Impuesto de Sellos' por $ 72,00. No hay CUIT, razón social del emisor, punto de venta, número de comprobante, código AFIP, ni leyenda de tipo de comprobante (A/B/C) ni de moneda explícita (el símbolo '$' sugiere pesos, se asume ARS). Por eso tipo_comprobante, codigo_afip, razon_social_emisor, cuit_emisor y nro_factura van en null. Tampoco se discrimina IVA, neto gravado, no gravado ni exento: el único tributo visible es el Impuesto de Sellos, que se carga en 'otros_impuestos'; el total de $ 72,00 coincide con ese importe y la aritmética cierra (0 + 0 + 0 + 72,00 = 72,00). El rubro del emisor no es inferible con la información disponible. No se observan campos impresos ilegibles, solo campos ausentes por tratarse de un detalle parcial y no de un comprobante fiscal completo."
+    "observaciones": "La imagen NO es un comprobante fiscal AFIP/ARCA: es un recorte de una pantalla/listado de conceptos (encabezado 'Conceptos TLPP') con una única línea: fecha 27/03/2026, concepto 'Impuesto de Sellos' por $ 72,00. No hay emisor, CUIT, punto de venta, número de comprobante, letra A/B/C, código AFIP, ni leyenda de IVA u otros tributos. El único importe legible es 72,00, correspondiente al concepto 'Impuesto de Sellos' (tributo), transcripto en otros_impuestos e importe_total; no hay subtotal, neto gravado, exento ni no gravado impresos. La aritmética cierra sólo por ese único importe. La moneda se infiere como ARS por el símbolo $ y el idioma, pero no hay leyenda explícita. Todo el encabezado fiscal del emisor queda como dato faltante, no como campo ilegible (no está impreso en el recorte). Se recomienda solicitar el comprobante completo (factura o instrumento donde conste el impuesto de sellos) antes de aprobar."
   },
   "extraccion": {
     "legibilidad": "buena",
@@ -73,7 +73,7 @@
     "subtotal": 0,
     "no_gravado": 0,
     "exento": 0,
-    "discrimina_impuestos": true,
+    "discrimina_impuestos": false,
     "iva": 0,
     "impuestos_internos": 0,
     "percepciones_iibb": 0,
@@ -81,12 +81,12 @@
     "importe_total": 72.0,
     "cierra_aritmetica": true,
     "rubro_emisor": "no verificable",
-    "categoria_gasto_sugerida": null,
-    "cantidad_comensales_personas": null,
-    "cantidad_litros": null,
+    "categoria_gasto_sugerida": "Impuestos/Tasas",
+    "cantidad_comensales_personas": 0,
+    "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "La imagen no es una factura AFIP: es un detalle/registro de conceptos (encabezado 'Conceptos TLPP') con una única línea de importe. Se lee: fecha 27/03/2026, concepto 'Impuesto de Sellos' por $ 72,00. No hay CUIT, razón social del emisor, punto de venta, número de comprobante, código AFIP, ni leyenda de tipo de comprobante (A/B/C) ni de moneda explícita (el símbolo '$' sugiere pesos, se asume ARS). Por eso tipo_comprobante, codigo_afip, razon_social_emisor, cuit_emisor y nro_factura van en null. Tampoco se discrimina IVA, neto gravado, no gravado ni exento: el único tributo visible es el Impuesto de Sellos, que se carga en 'otros_impuestos'; el total de $ 72,00 coincide con ese importe y la aritmética cierra (0 + 0 + 0 + 72,00 = 72,00). El rubro del emisor no es inferible con la información disponible. No se observan campos impresos ilegibles, solo campos ausentes por tratarse de un detalle parcial y no de un comprobante fiscal completo."
+    "observaciones": "La imagen NO es un comprobante fiscal AFIP/ARCA: es un recorte de una pantalla/listado de conceptos (encabezado 'Conceptos TLPP') con una única línea: fecha 27/03/2026, concepto 'Impuesto de Sellos' por $ 72,00. No hay emisor, CUIT, punto de venta, número de comprobante, letra A/B/C, código AFIP, ni leyenda de IVA u otros tributos. El único importe legible es 72,00, correspondiente al concepto 'Impuesto de Sellos' (tributo), transcripto en otros_impuestos e importe_total; no hay subtotal, neto gravado, exento ni no gravado impresos. La aritmética cierra sólo por ese único importe. La moneda se infiere como ARS por el símbolo $ y el idioma, pero no hay leyenda explícita. Todo el encabezado fiscal del emisor queda como dato faltante, no como campo ilegible (no está impreso en el recorte). Se recomienda solicitar el comprobante completo (factura o instrumento donde conste el impuesto de sellos) antes de aprobar."
   },
   "aritmetica": {
     "calculable": true,

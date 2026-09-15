@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/expected-extraction/37f06866-280a-45ed-88a4-52220611d6c2.jpg",
-  "archivo_relativo": "37f06866-280a-45ed-88a4-52220611d6c2.jpg",
-  "procesado_utc": "2026-09-15T02:05:32+00:00",
+  "archivo_relativo": "expected-extraction/37f06866-280a-45ed-88a4-52220611d6c2.jpg",
+  "procesado_utc": "2026-09-15T11:59:31+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 3064,
-    "completion_tokens": 4194,
-    "total_tokens": 7258,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 248
+    "prompt_tokens": 3272,
+    "completion_tokens": 2456,
+    "total_tokens": 5728,
+    "prompt_cache_hit_tokens": 2560,
+    "prompt_cache_miss_tokens": 712
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,15 +31,15 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.005124,
+  "costo_usd": 0.003176,
   "resultado": {
     "legibilidad": "buena",
     "tipo_comprobante": "090",
     "codigo_afip": "090",
-    "razon_social_emisor": "Empresa del Sur y Media Agua S.A.",
+    "razon_social_emisor": "EMPRESA DEL SUR Y MEDIA AGUA S.A.",
     "cuit_emisor": null,
     "digito_verificador_cuit_valido": false,
-    "fecha_emision": "21/07/26",
+    "fecha_emision": "21/07/26 17:42:50",
     "nro_factura": "039-20080",
     "moneda": "ARS",
     "subtotal": 28800,
@@ -52,25 +52,24 @@
     "otros_impuestos": 0,
     "importe_total": 28800,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Transporte de pasajeros de larga distancia (ómnibus/micro)",
-    "categoria_gasto_sugerida": "Transporte (pasajes de micro/ómnibus)",
+    "rubro_emisor": "Empresa de transporte de pasajeros de larga distancia (ómnibus)",
+    "categoria_gasto_sugerida": "Transporte / Pasajes",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [
-      "etiqueta_del_importe_0,00 (linea inferior izquierda, rotulo cortado por el borde)",
-      "cuit_emisor (no impreso en la porcion visible del boleto)"
+      "CUIT del emisor (no figura impreso en la imagen)"
     ],
-    "observaciones": "Boleto de micro 'Otros Comprobantes' (circulo 90) de Empresa del Sur y Media Agua S.A. Nro. 039-20080. Pasajero: Zvicer Marcelo, doc. 20358219. Origen: Venado Tuerto (Term) - Destino: Rosario (Term). Servicio Cama Ejecutivo, asiento 54, Cod. Servicio 18. Fecha de viaje: 22/07/26 3:10 hs. Emision impresa: 21/07/26 17:42:50 hs. Importes: Tarifa $36.000,00; Descuento 20% (promo VISA - Venado Tuerto) -$7.200,00; TOTAL $28.800,00. El boleto no discrimina IVA ni otros impuestos (no hay linea de neto gravado ni de IVA), por lo que subtotal y total coinciden en $28.800,00; la diferencia entre tarifa y total corresponde al descuento comercial impreso, no a un impuesto. Linea parcialmente visible en el margen izquierdo con importe '0,00' (rotulo ilegible por recorte) y leyenda 'Normativa 684', sin incidencia en el total. No se visualiza CUIT del emisor en la imagen. Leyendas: 'Es obligatorio viajar con el documento declarado en este pasaje' / 'NO VALIDO PARA VIAJAR (CHOFER)' en el talon izquierdo y 'VALIDO PARA VIAJAR' en el cuerpo. No se observan datos de cantidad de personas ni litros."
+    "observaciones": "Boleto de ómnibus de larga distancia (Otros Comprobantes, COD. 090 - '90' en círculo). Emisor: EMPRESA DEL SUR Y MEDIA AGUA S.A. Origen VENADO TUERTO (TERM) - Destino ROSARIO (TERM). Fecha de viaje 22/07/26 3:10, asiento 54, servicio 18, categoría CAMA EJECUTIVO. Pasajero: Zvicer Marcelo (20358219). Pesos: tarifa $36.000,00 menos descuento 20% de -$7.200,00 = total $28.800,00 (pago con VISA). Línea 'transporte' (Normativa 684) por 0,00. Timestamp de emisión 21/07/26 17:42:50. El '90' esCOD. 090 (Otros Comprobantes); no discrimina IVA ni otros impuestos, por lo que subtotal y total coinciden en 28.800,00 y los campos de impuestos van en cero. La aritmética cierra: 28.800,00 = 28.800,00. El CUIT del emisor no es visible en la imagen. Se muestran dos talones (NO VÁLIDO PARA VIAJAR / VÁLIDO PARA VIAJAR) con idénticos importes."
   },
   "extraccion": {
     "legibilidad": "buena",
     "tipo_comprobante": "090",
     "codigo_afip": "090",
-    "razon_social_emisor": "Empresa del Sur y Media Agua S.A.",
+    "razon_social_emisor": "EMPRESA DEL SUR Y MEDIA AGUA S.A.",
     "cuit_emisor": null,
     "digito_verificador_cuit_valido": false,
-    "fecha_emision": "21/07/26",
+    "fecha_emision": "21/07/26 17:42:50",
     "nro_factura": "039-20080",
     "moneda": "ARS",
     "subtotal": 28800,
@@ -83,16 +82,15 @@
     "otros_impuestos": 0,
     "importe_total": 28800,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Transporte de pasajeros de larga distancia (ómnibus/micro)",
-    "categoria_gasto_sugerida": "Transporte (pasajes de micro/ómnibus)",
+    "rubro_emisor": "Empresa de transporte de pasajeros de larga distancia (ómnibus)",
+    "categoria_gasto_sugerida": "Transporte / Pasajes",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [
-      "etiqueta_del_importe_0,00 (linea inferior izquierda, rotulo cortado por el borde)",
-      "cuit_emisor (no impreso en la porcion visible del boleto)"
+      "CUIT del emisor (no figura impreso en la imagen)"
     ],
-    "observaciones": "Boleto de micro 'Otros Comprobantes' (circulo 90) de Empresa del Sur y Media Agua S.A. Nro. 039-20080. Pasajero: Zvicer Marcelo, doc. 20358219. Origen: Venado Tuerto (Term) - Destino: Rosario (Term). Servicio Cama Ejecutivo, asiento 54, Cod. Servicio 18. Fecha de viaje: 22/07/26 3:10 hs. Emision impresa: 21/07/26 17:42:50 hs. Importes: Tarifa $36.000,00; Descuento 20% (promo VISA - Venado Tuerto) -$7.200,00; TOTAL $28.800,00. El boleto no discrimina IVA ni otros impuestos (no hay linea de neto gravado ni de IVA), por lo que subtotal y total coinciden en $28.800,00; la diferencia entre tarifa y total corresponde al descuento comercial impreso, no a un impuesto. Linea parcialmente visible en el margen izquierdo con importe '0,00' (rotulo ilegible por recorte) y leyenda 'Normativa 684', sin incidencia en el total. No se visualiza CUIT del emisor en la imagen. Leyendas: 'Es obligatorio viajar con el documento declarado en este pasaje' / 'NO VALIDO PARA VIAJAR (CHOFER)' en el talon izquierdo y 'VALIDO PARA VIAJAR' en el cuerpo. No se observan datos de cantidad de personas ni litros."
+    "observaciones": "Boleto de ómnibus de larga distancia (Otros Comprobantes, COD. 090 - '90' en círculo). Emisor: EMPRESA DEL SUR Y MEDIA AGUA S.A. Origen VENADO TUERTO (TERM) - Destino ROSARIO (TERM). Fecha de viaje 22/07/26 3:10, asiento 54, servicio 18, categoría CAMA EJECUTIVO. Pasajero: Zvicer Marcelo (20358219). Pesos: tarifa $36.000,00 menos descuento 20% de -$7.200,00 = total $28.800,00 (pago con VISA). Línea 'transporte' (Normativa 684) por 0,00. Timestamp de emisión 21/07/26 17:42:50. El '90' esCOD. 090 (Otros Comprobantes); no discrimina IVA ni otros impuestos, por lo que subtotal y total coinciden en 28.800,00 y los campos de impuestos van en cero. La aritmética cierra: 28.800,00 = 28.800,00. El CUIT del emisor no es visible en la imagen. Se muestran dos talones (NO VÁLIDO PARA VIAJAR / VÁLIDO PARA VIAJAR) con idénticos importes."
   },
   "aritmetica": {
     "calculable": true,

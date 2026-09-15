@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/expected-extraction/757f0acc-59c9-4830-932e-a4db7b2376fb.jpg",
-  "archivo_relativo": "757f0acc-59c9-4830-932e-a4db7b2376fb.jpg",
-  "procesado_utc": "2026-09-15T02:05:55+00:00",
+  "archivo_relativo": "expected-extraction/757f0acc-59c9-4830-932e-a4db7b2376fb.jpg",
+  "procesado_utc": "2026-09-15T12:00:39+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 3017,
-    "completion_tokens": 1444,
-    "total_tokens": 4461,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 201
+    "prompt_tokens": 3225,
+    "completion_tokens": 1107,
+    "total_tokens": 4332,
+    "prompt_cache_hit_tokens": 2560,
+    "prompt_cache_miss_tokens": 665
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,7 +31,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.00181,
+  "costo_usd": 0.001543,
   "resultado": {
     "legibilidad": "buena",
     "tipo_comprobante": "A",
@@ -42,23 +42,23 @@
     "fecha_emision": "17/09/2025",
     "nro_factura": "0008-00031820",
     "moneda": "ARS",
-    "subtotal": 55000,
+    "subtotal": 55000.0,
     "no_gravado": 0,
     "exento": 0,
     "discrimina_impuestos": true,
-    "iva": 11550,
+    "iva": 11550.0,
     "impuestos_internos": 0,
     "percepciones_iibb": 0,
     "otros_impuestos": 0,
-    "importe_total": 66550,
+    "importe_total": 66550.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Cartelería / publicidad gráfica (fabricación de carteles)",
-    "categoria_gasto_sugerida": "Publicidad",
+    "rubro_emisor": "Cartelería / Publicidad (venta de carteles publicitarios)",
+    "categoria_gasto_sugerida": "Publicidad / Marketing",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A de MOLAR SRL (CUIT 30-66561976-8, IVA Responsable Inscripto, Junín BS AS), Código 01, N° 0008-00031820, fecha 17/09/2025. Detalle: 5 CARTELES DE 40CMX40CM a $55.000,00 c/u. Líneas de importes: Bruto (Neto Gravado) $55.000,00; IVA 21% $11.550,00; IVA 10,5% $0,00; Total $66.550,00. La aritmética cierra: 55.000 + 11.550 = 66.550. No se imprimen líneas de No Gravado, Exento, Percepciones ni Otros Tributos. Dígito verificador del CUIT del emisor (30-66561976-8) validado correctamente (suma de verificación = 190, resto 3, DV 8). Se usa el símbolo $ sin leyenda explícita de moneda; se asume ARS. Receptor: CVC SA, CUIT 30-58221570-3, Ruta 7 Km 262, Responsable Inscripto. CAE 75388481916621, vencimiento CAE 27/09/2025, Original. Rubro del emisor inferido por el detalle (carteles) — categoría sugerida Publicidad; no verificable con certeza absoluta la actividad declarada del emisor."
+    "observaciones": "Factura A, Código 01, N° 0008-00031820. Emisor MOLAR SRL, CUIT 30-66561976-8, IVA Responsable Inscripto, domicilio Bto. de Miguel 280, (6000) Junín (BS AS), inicio de actividades 05/1997. Receptor: CVC SA, RUTA 7 KM 262, CUIT 30-58221570-3 (dígito verificador no controlado por estar fuera de alcance). Detalle: '5 CARTELES DE 40CMX40CM', P.Unit $55.000,00 x Cant 1 = $55.000,00. Líneas de importes: Subtotal $55.000,00; IVA 21% $11.550,00; IVA 10,5% $0,00; Total $66.550,00. La aritmética cierra: 55.000,00 + 11.550,00 = 66.550,00. Dígito verificador del CUIT del emisor validado (módulo 11: correcto). CAE 75388481916621, vencimiento CAE 27/09/2025. Comprobante Original. No figura centro de costo ni cantidad de personas/litros en el ticket."
   },
   "extraccion": {
     "legibilidad": "buena",
@@ -70,23 +70,23 @@
     "fecha_emision": "17/09/2025",
     "nro_factura": "0008-00031820",
     "moneda": "ARS",
-    "subtotal": 55000,
+    "subtotal": 55000.0,
     "no_gravado": 0,
     "exento": 0,
     "discrimina_impuestos": true,
-    "iva": 11550,
+    "iva": 11550.0,
     "impuestos_internos": 0,
     "percepciones_iibb": 0,
     "otros_impuestos": 0,
-    "importe_total": 66550,
+    "importe_total": 66550.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Cartelería / publicidad gráfica (fabricación de carteles)",
-    "categoria_gasto_sugerida": "Publicidad",
+    "rubro_emisor": "Cartelería / Publicidad (venta de carteles publicitarios)",
+    "categoria_gasto_sugerida": "Publicidad / Marketing",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A de MOLAR SRL (CUIT 30-66561976-8, IVA Responsable Inscripto, Junín BS AS), Código 01, N° 0008-00031820, fecha 17/09/2025. Detalle: 5 CARTELES DE 40CMX40CM a $55.000,00 c/u. Líneas de importes: Bruto (Neto Gravado) $55.000,00; IVA 21% $11.550,00; IVA 10,5% $0,00; Total $66.550,00. La aritmética cierra: 55.000 + 11.550 = 66.550. No se imprimen líneas de No Gravado, Exento, Percepciones ni Otros Tributos. Dígito verificador del CUIT del emisor (30-66561976-8) validado correctamente (suma de verificación = 190, resto 3, DV 8). Se usa el símbolo $ sin leyenda explícita de moneda; se asume ARS. Receptor: CVC SA, CUIT 30-58221570-3, Ruta 7 Km 262, Responsable Inscripto. CAE 75388481916621, vencimiento CAE 27/09/2025, Original. Rubro del emisor inferido por el detalle (carteles) — categoría sugerida Publicidad; no verificable con certeza absoluta la actividad declarada del emisor."
+    "observaciones": "Factura A, Código 01, N° 0008-00031820. Emisor MOLAR SRL, CUIT 30-66561976-8, IVA Responsable Inscripto, domicilio Bto. de Miguel 280, (6000) Junín (BS AS), inicio de actividades 05/1997. Receptor: CVC SA, RUTA 7 KM 262, CUIT 30-58221570-3 (dígito verificador no controlado por estar fuera de alcance). Detalle: '5 CARTELES DE 40CMX40CM', P.Unit $55.000,00 x Cant 1 = $55.000,00. Líneas de importes: Subtotal $55.000,00; IVA 21% $11.550,00; IVA 10,5% $0,00; Total $66.550,00. La aritmética cierra: 55.000,00 + 11.550,00 = 66.550,00. Dígito verificador del CUIT del emisor validado (módulo 11: correcto). CAE 75388481916621, vencimiento CAE 27/09/2025. Comprobante Original. No figura centro de costo ni cantidad de personas/litros en el ticket."
   },
   "aritmetica": {
     "calculable": true,

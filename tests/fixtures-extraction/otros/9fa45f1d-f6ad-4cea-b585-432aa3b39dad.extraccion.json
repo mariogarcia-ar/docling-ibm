@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/otros/9fa45f1d-f6ad-4cea-b585-432aa3b39dad.jpg",
   "archivo_relativo": "otros/9fa45f1d-f6ad-4cea-b585-432aa3b39dad.jpg",
-  "procesado_utc": "2026-09-15T03:55:05+00:00",
+  "procesado_utc": "2026-09-15T12:04:36+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 3478,
-    "completion_tokens": 2831,
-    "total_tokens": 6309,
-    "prompt_cache_hit_tokens": 2304,
-    "prompt_cache_miss_tokens": 1174
+    "prompt_tokens": 3686,
+    "completion_tokens": 2667,
+    "total_tokens": 6353,
+    "prompt_cache_hit_tokens": 2560,
+    "prompt_cache_miss_tokens": 1126
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,7 +31,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.003763,
+  "costo_usd": 0.003554,
   "resultado": {
     "legibilidad": "buena",
     "tipo_comprobante": "A",
@@ -52,13 +52,13 @@
     "otros_impuestos": 0,
     "importe_total": 100000.01,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / venta de combustible (expendio YPF, Infinia Diesel)",
+    "rubro_emisor": "Estación de servicio / venta de combustible (gasoil INFINIA DIESEL, facturación a cuenta y orden de YPF SA)",
     "categoria_gasto_sugerida": "Combustible",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 53.171,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique Factura A (Cód. 081) emitido por HERRERO SRL, CUIT 30-51808998-2 (dígito verificador válido; también válido el del receptor CVC SA 30-58221570-3). N° 00018-00054806, fecha 06/08/2025 18:58:09. Detalle: INFINIA DIESEL 53,171 L x $1.583,0000 (alícuota 21%) = $72.670,05. Subtotal/Neto gravado 72.670,05 + IVA 21% 15.260,71 + Impuesto interno a nivel ítem 12.069,25 = TOTAL 100.000,01; la aritmética cierra exactamente. Sin percepciones IIBB ni exentos ni no gravados. Forma de pago: otros medios (VISA), 100.000,01. Observación: la línea de transparencia 'Otros Impuestos Nac. Indirectos' informa 10.906,53, que no coincide con el impuesto interno de 12.069,25 del cuerpo del ticket (solo divulgación Ley 27.743, no afecta el total). Rubro combustible claramente inferible; sin datos de centro de costo."
+    "observaciones": "Tique Factura A (Cód. 081) emitido por HERRERO SRL, CUIT 30-51808998-2 (dígito verificador válido), IVA Responsable Inscripto, domicilio Córdoba 7898, Rosario (Santa Fe). N° 00018-00054806, fecha 06/08/2025, hora 18:58:09. Receptor: CVC SA, CUIT 30-58221570-3. Comprobante asociado: Cód. 081 - 00018-00054806. Detalle: INFINIA DIESEL 53.171 x $1583.0000 (21)[85,75] = 72.670,05; línea 'Facturación de comb. a cta y orden de YPF SA' 0,00; Tasa Vial $1162.72 0,00; LEY 23.966 0,00. Subtot. Imp. Neto Gravado 72.670,05; IVA 21% 15.260,71; Alicuota 0,00% 0,00; Impuesto interno a nivel ítem 12.069,25; Importe Total Otros Tributos 12.069,25. TOTAL 100.000,01. Cierra aritméticamente: 72.670,05 + 15.260,71 + 12.069,25 = 100.000,01. El rótulo 'IMPORTE TOTAL OTROS TRIBUTOS' (12.069,25) coincide con el impuesto interno a nivel ítem ya cargado, por lo que no se duplica en 'otros_impuestos'. Leyenda Transparencia Fiscal 27743: IVA Contenido 15.260,71; Otros Impuestos Nac. Indirectos 10.906,53 (no se cargan como rubros separados para no duplicar). Pago: VISA / Otros medios de Pago 100.000,01; suma de pagos 100.000,01; vuelto 0,00. Vendedor: SERGIO MOREYRA, Turno 13. Registro EPEPAA000011499. INCLUYE TASA VIAL. Observación: la cantidad de litros (53.171) surge de la línea de detalle del combustible, pero el producto con el precio unitario impreso ($1583,0000) no coincide con el importe de la línea; se transcribe el valor tal como figura impreso. No se discrimina percepción de IIBB. Emisor de rubro combustible, consistente con categoría 'Combustible'."
   },
   "extraccion": {
     "legibilidad": "buena",
@@ -80,13 +80,13 @@
     "otros_impuestos": 0,
     "importe_total": 100000.01,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / venta de combustible (expendio YPF, Infinia Diesel)",
+    "rubro_emisor": "Estación de servicio / venta de combustible (gasoil INFINIA DIESEL, facturación a cuenta y orden de YPF SA)",
     "categoria_gasto_sugerida": "Combustible",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 53.171,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique Factura A (Cód. 081) emitido por HERRERO SRL, CUIT 30-51808998-2 (dígito verificador válido; también válido el del receptor CVC SA 30-58221570-3). N° 00018-00054806, fecha 06/08/2025 18:58:09. Detalle: INFINIA DIESEL 53,171 L x $1.583,0000 (alícuota 21%) = $72.670,05. Subtotal/Neto gravado 72.670,05 + IVA 21% 15.260,71 + Impuesto interno a nivel ítem 12.069,25 = TOTAL 100.000,01; la aritmética cierra exactamente. Sin percepciones IIBB ni exentos ni no gravados. Forma de pago: otros medios (VISA), 100.000,01. Observación: la línea de transparencia 'Otros Impuestos Nac. Indirectos' informa 10.906,53, que no coincide con el impuesto interno de 12.069,25 del cuerpo del ticket (solo divulgación Ley 27.743, no afecta el total). Rubro combustible claramente inferible; sin datos de centro de costo."
+    "observaciones": "Tique Factura A (Cód. 081) emitido por HERRERO SRL, CUIT 30-51808998-2 (dígito verificador válido), IVA Responsable Inscripto, domicilio Córdoba 7898, Rosario (Santa Fe). N° 00018-00054806, fecha 06/08/2025, hora 18:58:09. Receptor: CVC SA, CUIT 30-58221570-3. Comprobante asociado: Cód. 081 - 00018-00054806. Detalle: INFINIA DIESEL 53.171 x $1583.0000 (21)[85,75] = 72.670,05; línea 'Facturación de comb. a cta y orden de YPF SA' 0,00; Tasa Vial $1162.72 0,00; LEY 23.966 0,00. Subtot. Imp. Neto Gravado 72.670,05; IVA 21% 15.260,71; Alicuota 0,00% 0,00; Impuesto interno a nivel ítem 12.069,25; Importe Total Otros Tributos 12.069,25. TOTAL 100.000,01. Cierra aritméticamente: 72.670,05 + 15.260,71 + 12.069,25 = 100.000,01. El rótulo 'IMPORTE TOTAL OTROS TRIBUTOS' (12.069,25) coincide con el impuesto interno a nivel ítem ya cargado, por lo que no se duplica en 'otros_impuestos'. Leyenda Transparencia Fiscal 27743: IVA Contenido 15.260,71; Otros Impuestos Nac. Indirectos 10.906,53 (no se cargan como rubros separados para no duplicar). Pago: VISA / Otros medios de Pago 100.000,01; suma de pagos 100.000,01; vuelto 0,00. Vendedor: SERGIO MOREYRA, Turno 13. Registro EPEPAA000011499. INCLUYE TASA VIAL. Observación: la cantidad de litros (53.171) surge de la línea de detalle del combustible, pero el producto con el precio unitario impreso ($1583,0000) no coincide con el importe de la línea; se transcribe el valor tal como figura impreso. No se discrimina percepción de IIBB. Emisor de rubro combustible, consistente con categoría 'Combustible'."
   },
   "aritmetica": {
     "calculable": true,

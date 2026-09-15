@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/expected-extraction/312cc3c2-42b7-4bdf-85d1-1857a01402e5.jpg",
-  "archivo_relativo": "312cc3c2-42b7-4bdf-85d1-1857a01402e5.jpg",
-  "procesado_utc": "2026-09-15T02:05:15+00:00",
+  "archivo_relativo": "expected-extraction/312cc3c2-42b7-4bdf-85d1-1857a01402e5.jpg",
+  "procesado_utc": "2026-09-15T11:59:17+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 3017,
-    "completion_tokens": 3980,
-    "total_tokens": 6997,
-    "prompt_cache_hit_tokens": 2816,
-    "prompt_cache_miss_tokens": 201
+    "prompt_tokens": 3225,
+    "completion_tokens": 17180,
+    "total_tokens": 20405,
+    "prompt_cache_hit_tokens": 2560,
+    "prompt_cache_miss_tokens": 665
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,10 +31,10 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.004853,
+  "costo_usd": 0.020831,
   "resultado": {
     "legibilidad": "buena",
-    "tipo_comprobante": "No encuadra en A/B/C/090/099: es un TIQUE de controlador fiscal",
+    "tipo_comprobante": "B",
     "codigo_afip": "083",
     "razon_social_emisor": "LUCIE SABORES S.R.L. (nombre de fantasía: SANTA LUCIA VGG)",
     "cuit_emisor": "30-71816388-5",
@@ -42,7 +42,7 @@
     "fecha_emision": "03/12/2025",
     "nro_factura": "00007-00079492",
     "moneda": "ARS",
-    "subtotal": 24600.0,
+    "subtotal": 24600,
     "no_gravado": 0,
     "exento": 0,
     "discrimina_impuestos": false,
@@ -50,19 +50,19 @@
     "impuestos_internos": 0,
     "percepciones_iibb": 0,
     "otros_impuestos": 0,
-    "importe_total": 24600.0,
+    "importe_total": 24600,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Panadería / comercio minorista de productos de panificación (el ticket detalla el concepto 'PANADERIA')",
-    "categoria_gasto_sugerida": "Supermercado / compra de alimentos (panadería)",
+    "rubro_emisor": "Panadería / elaboración y venta de productos de panificación",
+    "categoria_gasto_sugerida": "Supermercado (compra de productos de panadería)",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique de controlador fiscal (Cod. 083 - TIQUE), P.V. 00007 - Nro. T. 00079492, emitido a CONSUMIDOR FINAL por LUCIE SABORES S.R.L. (fantasía SANTA LUCIA VGG), CUIT 30-71816388-5 (dígito verificador válido), IVA Responsable Inscripto, Ing. Brutos 0215194259, Chubut 705, (2124) Villa Gobernador Gálvez, inicio de actividades 01/08/2023. Fecha 03/12/2025, hora 12:49:59. Único ítem: PANADERIA (10,50) $24.600,00. TOTAL $24.600,00, abonado en EFECTIVO $24.600,00. No hay discriminación de impuestos (ni neto gravado, ni exento, ni no gravado, ni percepciones). El ticket incluye la leyenda 'TRANSPARENCIA FISCAL: IVA contenido $2.337,56' y 'Otros Impuestos Nacionales Indirectos $0,00': el IVA contenido es informativo (está incluido dentro del precio y no se discrimina), por lo que no se cargó en el campo de IVA y no se suma al total; la aritmética cierra (subtotal = total = $24.600,00). Los $2.337,56 no deben tomarse como IVA discriminado. No hay datos de comensales ni litros. Pie: SESHRA0000013673, V: 1.02."
+    "observaciones": "Tique de controlador fiscal (impreso como 'Cod. 083 - TIQUE') emitido por LUCIE SABORES S.R.L. (fantasía 'SANTA LUCIA VGG'), CUIT 30-71816388-5 (dígito verificador válido: 5), Ing. Brutos 0215194259, domicilio CHUBUT 705, (2124) VILLA GOBERNADOR GALVEZ, inicio de actividades 01/08/2023, IVA RESPONSABLE INSCRIPTO, 'A CONSUMIDOR FINAL'. P.V. Nro. 00007 - Nro. T. 00079492. Fecha 03/12/2025, hora 12:49:59. Única línea: 'PANADERIA' con alícuota 10,50% por $24.600,00; TOTAL $24.600,00 abonado en EFECTIVO. El comprobante NO discrimina neto ni IVA (por eso subtotal = total, sin desglose de impuestos). Se imprime por régimen de transparencia fiscal 'IVA contenido: $2.337,56' (que corresponde exactamente a la alícuota 10,50% incluida en el total) y 'Otros Impuestos Nacionales Indirectos: $0,00'; ambos son informativos e incluidos, no se suman al total. Aclaración de auditoría: el código impreso '083' figura en el nomenclador AFIP como 'Tique Factura C', pero el emisor es Responsable Inscripto que factura a Consumidor Final con IVA contenido (propio de un comprobante clase B), por lo que se transcribe como B y se sugiere verificar el mapeo del código. Rubro del emisor: panadería (coherente con la alícuota reducida 10,5%). No se imprimen datos de comensales, litros ni centro de costo."
   },
   "extraccion": {
     "legibilidad": "buena",
-    "tipo_comprobante": "No encuadra en A/B/C/090/099: es un TIQUE de controlador fiscal",
+    "tipo_comprobante": "B",
     "codigo_afip": "083",
     "razon_social_emisor": "LUCIE SABORES S.R.L. (nombre de fantasía: SANTA LUCIA VGG)",
     "cuit_emisor": "30-71816388-5",
@@ -70,7 +70,7 @@
     "fecha_emision": "03/12/2025",
     "nro_factura": "00007-00079492",
     "moneda": "ARS",
-    "subtotal": 24600.0,
+    "subtotal": 24600,
     "no_gravado": 0,
     "exento": 0,
     "discrimina_impuestos": false,
@@ -78,15 +78,15 @@
     "impuestos_internos": 0,
     "percepciones_iibb": 0,
     "otros_impuestos": 0,
-    "importe_total": 24600.0,
+    "importe_total": 24600,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Panadería / comercio minorista de productos de panificación (el ticket detalla el concepto 'PANADERIA')",
-    "categoria_gasto_sugerida": "Supermercado / compra de alimentos (panadería)",
+    "rubro_emisor": "Panadería / elaboración y venta de productos de panificación",
+    "categoria_gasto_sugerida": "Supermercado (compra de productos de panadería)",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique de controlador fiscal (Cod. 083 - TIQUE), P.V. 00007 - Nro. T. 00079492, emitido a CONSUMIDOR FINAL por LUCIE SABORES S.R.L. (fantasía SANTA LUCIA VGG), CUIT 30-71816388-5 (dígito verificador válido), IVA Responsable Inscripto, Ing. Brutos 0215194259, Chubut 705, (2124) Villa Gobernador Gálvez, inicio de actividades 01/08/2023. Fecha 03/12/2025, hora 12:49:59. Único ítem: PANADERIA (10,50) $24.600,00. TOTAL $24.600,00, abonado en EFECTIVO $24.600,00. No hay discriminación de impuestos (ni neto gravado, ni exento, ni no gravado, ni percepciones). El ticket incluye la leyenda 'TRANSPARENCIA FISCAL: IVA contenido $2.337,56' y 'Otros Impuestos Nacionales Indirectos $0,00': el IVA contenido es informativo (está incluido dentro del precio y no se discrimina), por lo que no se cargó en el campo de IVA y no se suma al total; la aritmética cierra (subtotal = total = $24.600,00). Los $2.337,56 no deben tomarse como IVA discriminado. No hay datos de comensales ni litros. Pie: SESHRA0000013673, V: 1.02."
+    "observaciones": "Tique de controlador fiscal (impreso como 'Cod. 083 - TIQUE') emitido por LUCIE SABORES S.R.L. (fantasía 'SANTA LUCIA VGG'), CUIT 30-71816388-5 (dígito verificador válido: 5), Ing. Brutos 0215194259, domicilio CHUBUT 705, (2124) VILLA GOBERNADOR GALVEZ, inicio de actividades 01/08/2023, IVA RESPONSABLE INSCRIPTO, 'A CONSUMIDOR FINAL'. P.V. Nro. 00007 - Nro. T. 00079492. Fecha 03/12/2025, hora 12:49:59. Única línea: 'PANADERIA' con alícuota 10,50% por $24.600,00; TOTAL $24.600,00 abonado en EFECTIVO. El comprobante NO discrimina neto ni IVA (por eso subtotal = total, sin desglose de impuestos). Se imprime por régimen de transparencia fiscal 'IVA contenido: $2.337,56' (que corresponde exactamente a la alícuota 10,50% incluida en el total) y 'Otros Impuestos Nacionales Indirectos: $0,00'; ambos son informativos e incluidos, no se suman al total. Aclaración de auditoría: el código impreso '083' figura en el nomenclador AFIP como 'Tique Factura C', pero el emisor es Responsable Inscripto que factura a Consumidor Final con IVA contenido (propio de un comprobante clase B), por lo que se transcribe como B y se sugiere verificar el mapeo del código. Rubro del emisor: panadería (coherente con la alícuota reducida 10,5%). No se imprimen datos de comensales, litros ni centro de costo."
   },
   "aritmetica": {
     "calculable": true,

@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/golden/66e6e0ea-e910-41f4-9037-13f0309812c1.jpg",
   "archivo_relativo": "golden/66e6e0ea-e910-41f4-9037-13f0309812c1.jpg",
-  "procesado_utc": "2026-09-15T03:52:23+00:00",
+  "procesado_utc": "2026-09-15T12:01:57+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 3478,
-    "completion_tokens": 3178,
-    "total_tokens": 6656,
-    "prompt_cache_hit_tokens": 2304,
-    "prompt_cache_miss_tokens": 1174
+    "prompt_tokens": 3686,
+    "completion_tokens": 5541,
+    "total_tokens": 9227,
+    "prompt_cache_hit_tokens": 2560,
+    "prompt_cache_miss_tokens": 1126
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,7 +31,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.00418,
+  "costo_usd": 0.007002,
   "resultado": {
     "legibilidad": "buena",
     "tipo_comprobante": "A",
@@ -52,13 +52,13 @@
     "otros_impuestos": 0,
     "importe_total": 70299.04,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / venta de combustible (NAFTA SUPER)",
+    "rubro_emisor": "Estación de servicio",
     "categoria_gasto_sugerida": "Combustible",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 33.7187,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique Factura A (Cód. 081) emitido por KALPA GROUP S.A., CUIT 30-71548265-3 (dígito verificador válido), IVA Responsable Inscripto, Ruta 7 Km 261.5, Junín, Bs. As. N° 00059-00003856, fecha 18/06/2026 08:39:24. Receptor: CVC SA (100134), CUIT 30-58221570-3, contado, Av. Circunvalación, Pideyro - Buenos Aires. Detalle: 33,7187 l x 1.439,9334 de NAFTA SUPER. Importes: SUBTOT. IMP. NETO GRAVADO 48.552,68; IVA ALICUOTA 21,00% 10.196,06; Impuesto interno a nivel ítem (cód. 10) 11.251,28; IIBB Bs.As. ARBA General (cód. 07) 299,02; IMPORTE TOTAL OTROS TRIBUTOS 11.550,30; TOTAL 70.299,04. La aritmética cierra: 48.552,68 + 10.196,06 + 11.550,30 = 70.299,04. No se imprimen líneas de NO GRAVADO ni EXENTO. No hay símbolo ni leyenda de moneda impresa; se asume ARS por contexto (importes con coma decimal, IVA 21%). Dentro del ítem aparecen las leyendas 'Impuestos I - 321,08' y 'Otros Impue - 12.600 (21)[81,18]' que no impactan en los totales del pie. Pago con VISA ELEC., 1 cuota, recibi/mos."
+    "observaciones": "Ticket Factura A (Cód. 081). Emisor KALPA GROUP S.A., CUIT 30-71548265-3 (dígito verificador válido). Fecha 18/06/2026. N° 00059-00003856. Neto gravado 48552,68; IVA 21% 10196,06; Impuesto interno a nivel ítem 11251,28; IIBB ARBA 299,02; Total otros tributos 11550,30; Total 70299,04. La suma cierra. Cantidad de litros 33,7187. Rubro: estación de servicio. No hay datos cargados para comparar."
   },
   "extraccion": {
     "legibilidad": "buena",
@@ -80,13 +80,13 @@
     "otros_impuestos": 0,
     "importe_total": 70299.04,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / venta de combustible (NAFTA SUPER)",
+    "rubro_emisor": "Estación de servicio",
     "categoria_gasto_sugerida": "Combustible",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 33.7187,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique Factura A (Cód. 081) emitido por KALPA GROUP S.A., CUIT 30-71548265-3 (dígito verificador válido), IVA Responsable Inscripto, Ruta 7 Km 261.5, Junín, Bs. As. N° 00059-00003856, fecha 18/06/2026 08:39:24. Receptor: CVC SA (100134), CUIT 30-58221570-3, contado, Av. Circunvalación, Pideyro - Buenos Aires. Detalle: 33,7187 l x 1.439,9334 de NAFTA SUPER. Importes: SUBTOT. IMP. NETO GRAVADO 48.552,68; IVA ALICUOTA 21,00% 10.196,06; Impuesto interno a nivel ítem (cód. 10) 11.251,28; IIBB Bs.As. ARBA General (cód. 07) 299,02; IMPORTE TOTAL OTROS TRIBUTOS 11.550,30; TOTAL 70.299,04. La aritmética cierra: 48.552,68 + 10.196,06 + 11.550,30 = 70.299,04. No se imprimen líneas de NO GRAVADO ni EXENTO. No hay símbolo ni leyenda de moneda impresa; se asume ARS por contexto (importes con coma decimal, IVA 21%). Dentro del ítem aparecen las leyendas 'Impuestos I - 321,08' y 'Otros Impue - 12.600 (21)[81,18]' que no impactan en los totales del pie. Pago con VISA ELEC., 1 cuota, recibi/mos."
+    "observaciones": "Ticket Factura A (Cód. 081). Emisor KALPA GROUP S.A., CUIT 30-71548265-3 (dígito verificador válido). Fecha 18/06/2026. N° 00059-00003856. Neto gravado 48552,68; IVA 21% 10196,06; Impuesto interno a nivel ítem 11251,28; IIBB ARBA 299,02; Total otros tributos 11550,30; Total 70299,04. La suma cierra. Cantidad de litros 33,7187. Rubro: estación de servicio. No hay datos cargados para comparar."
   },
   "aritmetica": {
     "calculable": true,

@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/otros/ca40d927-193d-49bb-b399-8e86be519af2.jpg",
   "archivo_relativo": "otros/ca40d927-193d-49bb-b399-8e86be519af2.jpg",
-  "procesado_utc": "2026-09-15T03:55:15+00:00",
+  "procesado_utc": "2026-09-15T12:04:41+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 3478,
-    "completion_tokens": 8034,
-    "total_tokens": 11512,
-    "prompt_cache_hit_tokens": 2304,
-    "prompt_cache_miss_tokens": 1174
+    "prompt_tokens": 3686,
+    "completion_tokens": 6939,
+    "total_tokens": 10625,
+    "prompt_cache_hit_tokens": 2560,
+    "prompt_cache_miss_tokens": 1126
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,13 +31,13 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.010007,
+  "costo_usd": 0.00868,
   "resultado": {
     "legibilidad": "buena",
-    "tipo_comprobante": "C",
-    "codigo_afip": "003",
-    "razon_social_emisor": "GESTION Y PROYECTOS LATINOS S.A. (LEY PRIMERA PILAR)",
-    "cuit_emisor": "33715473003",
+    "tipo_comprobante": "090",
+    "codigo_afip": "009",
+    "razon_social_emisor": "GESTION Y PROYECTOS LATINOS S.A. (LEV PRIMERA PILAR)",
+    "cuit_emisor": "33-71547330-9",
     "digito_verificador_cuit_valido": false,
     "fecha_emision": "01/06/2026",
     "nro_factura": "00003-00350541",
@@ -52,20 +52,23 @@
     "otros_impuestos": 0,
     "importe_total": 65992.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Restaurante / gastronomía (menú fijo, cubiertos)",
+    "rubro_emisor": "Restaurante / gastronómico (menú fijo, cubierto, mesa y mozo)",
     "categoria_gasto_sugerida": "Restaurante",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
-    "campos_no_legibles": [],
-    "observaciones": "Ticket de controlador fiscal 'Cód. 003 - TIQUE' (equivalente a Tique Factura C) emitido 'A CONSUMIDOR FINAL' por GESTION Y PROYECTOS LATINOS S.A. (nombre de fantasía 'LEY PRIMERA PILAR'), restaurante en Panamericana Km. 50,5, C.P. 1629, Pilar, Buenos Aires. Inicio de actividades 01/06/2021, IVA Responsable Inscripto, Ing. Brutos 33-71547303-9. Fecha/hora: 01/06/2026 23:08:43. P.V. 00003 - Nro. 00350541. Ítems: CUBIERTO (21,00%) $0,00 + MENU FIJO (21,00%) $65.992,00 = TOTAL $65.992,00. NO discrimina IVA: solo informa 'IVA contenido $11.453,15' (21% incluido en el precio) por el Régimen de Transparencia Fiscal al Consumidor (Ley 27.743), por lo que el subtotal coincide con el total y los campos de impuestos se transcriben en cero; la línea impresa 'Otros Impuestos Nac. Indirectos: 0,00' se carga en otros_impuestos. Pago: recibido $65.992,00, saldo $0,00. No figura cantidad de comensales/cubiertos ni litros. CUIT impreso 33715473003: 11 dígitos, pero el dígito verificador no valida (para la base 71547303 con prefijo 33 el verificador correcto sería 3, es decir 33-71547303-3); puede tratarse de un error de impresión del emisor o de una lectura dudosa del último dígito por el reflejo de luz sobre el papel. Centro de costo no informado en el comprobante."
+    "campos_no_legibles": [
+      "Importe de la línea «Saldo» (impresión poco nítida: podría ser 0.00)",
+      "Porcentaje/alícuota impreso entre paréntesis en los ítems ((21.30))"
+    ],
+    "observaciones": "Ticket no fiscal («Cód. 009 - TIQUE») a CONSUMIDOR FINAL, emitido por GESTION Y PROYECTOS LATINOS S.A. (nombre de fantasía LEV PRIMERA PILAR), Panamericana Km. 50,5 - C.P. 1629 - Pilar, Buenos Aires. IVA Responsable Inscripto, inicio de actividades 01/03/2021. Items: CUBIERTO 0.00 y MENU FIJO 65992.00; TOTAL 65992.00; RECIBIDOS 65992.00. No discrimina neto ni IVA como líneas separadas: el precio incluye IVA y el ticket sólo informa de manera informativa «IVA contenido: 11453.15» y «Otros Impuestos Nac. Indirectos: 0.00» (Régimen de Transparencia Fiscal al Consumidor, Ley 27.743), por lo que los campos de impuestos quedan en 0 y subtotal = total = 65992.00 (sin desglose de neto gravado). La aritmética cierra. El dígito verificador del CUIT impreso (33-71547330-9) no coincide con el cálculo estándar (dígito esperado 0); se transcribe tal como figura en el comprobante. Mesa 5, Mozo 19; no se detalla cantidad de comensales/cubiertos. Centro de costo no informado en el comprobante. Moneda inferida por contexto (comprobante argentino en pesos, sin símbolo explícito legible)."
   },
   "extraccion": {
     "legibilidad": "buena",
-    "tipo_comprobante": "C",
-    "codigo_afip": "003",
-    "razon_social_emisor": "GESTION Y PROYECTOS LATINOS S.A. (LEY PRIMERA PILAR)",
-    "cuit_emisor": "33715473003",
+    "tipo_comprobante": "090",
+    "codigo_afip": "009",
+    "razon_social_emisor": "GESTION Y PROYECTOS LATINOS S.A. (LEV PRIMERA PILAR)",
+    "cuit_emisor": "33-71547330-9",
     "digito_verificador_cuit_valido": false,
     "fecha_emision": "01/06/2026",
     "nro_factura": "00003-00350541",
@@ -80,13 +83,16 @@
     "otros_impuestos": 0,
     "importe_total": 65992.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Restaurante / gastronomía (menú fijo, cubiertos)",
+    "rubro_emisor": "Restaurante / gastronómico (menú fijo, cubierto, mesa y mozo)",
     "categoria_gasto_sugerida": "Restaurante",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
-    "campos_no_legibles": [],
-    "observaciones": "Ticket de controlador fiscal 'Cód. 003 - TIQUE' (equivalente a Tique Factura C) emitido 'A CONSUMIDOR FINAL' por GESTION Y PROYECTOS LATINOS S.A. (nombre de fantasía 'LEY PRIMERA PILAR'), restaurante en Panamericana Km. 50,5, C.P. 1629, Pilar, Buenos Aires. Inicio de actividades 01/06/2021, IVA Responsable Inscripto, Ing. Brutos 33-71547303-9. Fecha/hora: 01/06/2026 23:08:43. P.V. 00003 - Nro. 00350541. Ítems: CUBIERTO (21,00%) $0,00 + MENU FIJO (21,00%) $65.992,00 = TOTAL $65.992,00. NO discrimina IVA: solo informa 'IVA contenido $11.453,15' (21% incluido en el precio) por el Régimen de Transparencia Fiscal al Consumidor (Ley 27.743), por lo que el subtotal coincide con el total y los campos de impuestos se transcriben en cero; la línea impresa 'Otros Impuestos Nac. Indirectos: 0,00' se carga en otros_impuestos. Pago: recibido $65.992,00, saldo $0,00. No figura cantidad de comensales/cubiertos ni litros. CUIT impreso 33715473003: 11 dígitos, pero el dígito verificador no valida (para la base 71547303 con prefijo 33 el verificador correcto sería 3, es decir 33-71547303-3); puede tratarse de un error de impresión del emisor o de una lectura dudosa del último dígito por el reflejo de luz sobre el papel. Centro de costo no informado en el comprobante."
+    "campos_no_legibles": [
+      "Importe de la línea «Saldo» (impresión poco nítida: podría ser 0.00)",
+      "Porcentaje/alícuota impreso entre paréntesis en los ítems ((21.30))"
+    ],
+    "observaciones": "Ticket no fiscal («Cód. 009 - TIQUE») a CONSUMIDOR FINAL, emitido por GESTION Y PROYECTOS LATINOS S.A. (nombre de fantasía LEV PRIMERA PILAR), Panamericana Km. 50,5 - C.P. 1629 - Pilar, Buenos Aires. IVA Responsable Inscripto, inicio de actividades 01/03/2021. Items: CUBIERTO 0.00 y MENU FIJO 65992.00; TOTAL 65992.00; RECIBIDOS 65992.00. No discrimina neto ni IVA como líneas separadas: el precio incluye IVA y el ticket sólo informa de manera informativa «IVA contenido: 11453.15» y «Otros Impuestos Nac. Indirectos: 0.00» (Régimen de Transparencia Fiscal al Consumidor, Ley 27.743), por lo que los campos de impuestos quedan en 0 y subtotal = total = 65992.00 (sin desglose de neto gravado). La aritmética cierra. El dígito verificador del CUIT impreso (33-71547330-9) no coincide con el cálculo estándar (dígito esperado 0); se transcribe tal como figura en el comprobante. Mesa 5, Mozo 19; no se detalla cantidad de comensales/cubiertos. Centro de costo no informado en el comprobante. Moneda inferida por contexto (comprobante argentino en pesos, sin símbolo explícito legible)."
   },
   "aritmetica": {
     "calculable": true,

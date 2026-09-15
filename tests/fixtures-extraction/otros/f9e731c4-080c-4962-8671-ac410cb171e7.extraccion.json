@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/otros/f9e731c4-080c-4962-8671-ac410cb171e7.jpg",
   "archivo_relativo": "otros/f9e731c4-080c-4962-8671-ac410cb171e7.jpg",
-  "procesado_utc": "2026-09-15T03:55:19+00:00",
+  "procesado_utc": "2026-09-15T12:04:42+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 3478,
-    "completion_tokens": 2038,
-    "total_tokens": 5516,
-    "prompt_cache_hit_tokens": 2304,
-    "prompt_cache_miss_tokens": 1174
+    "prompt_tokens": 3686,
+    "completion_tokens": 1929,
+    "total_tokens": 5615,
+    "prompt_cache_hit_tokens": 2560,
+    "prompt_cache_miss_tokens": 1126
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,7 +31,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.002812,
+  "costo_usd": 0.002668,
   "resultado": {
     "legibilidad": "buena",
     "tipo_comprobante": "A",
@@ -52,13 +52,13 @@
     "otros_impuestos": 0,
     "importe_total": 46187.85,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / combustible (expendio por cuenta y orden de YPF S.A.)",
+    "rubro_emisor": "Estación de servicio / combustible (expendio de combustibles líquidos YPF)",
     "categoria_gasto_sugerida": "Combustible",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 27.0353,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique Factura A (Cod. 001) emitido por COMBUSTIBLES NICOLLS S.A. (CUIT 30-70937771-6, dígito verificador válido, calculado = 6). Fecha de emisión 13/01/2026, hora 14:06:22. Cliente: CVC SA, CUIT 30-56221570-3, tarjeta de crédito. Detalle: 27,0353 u x 1286,3461 = 34776,75; DTO. POR REDONDEO -0,08; SUBTOT. IMP. NETO GRAVADO 34776,67; ALICUOTA 21,00% = 7303,10; Impuesto interno a nivel ítem (cód. 10) = 3934,20; IIBB ARBA (cód. 07) = 173,88; IMPORTE TOTAL OTROS TRIBUTOS 4108,08. La aritmética cierra: 34776,67 + 7303,10 + 3934,20 + 173,88 = 46187,85 = TOTAL impreso. No hay líneas de NO GRAVADO ni de SUBTOT. IMP. EXENTO (van en 0). La cantidad 27,0353 está expresada como 'u' (unidades/litros) por precio unitario 1286,3461, por lo que se transcribe como litros de combustible. Observación: el pago con tarjeta figura por 46187,88 y 'Su vuelto' 0,03, es decir 0,03 por encima del TOTAL impreso (46187,85); se trata de una diferencia de redondeo del medio de pago, no de un importe del comprobante. Datos adicionales al pie: 'SON POR CUENTA Y ORDEN DE YPF SA', FT A 0011 00049773 AUT: 9671, @LPEDIDO 203566, REGISTRO EPEPAA000017607, V: 1.02 Jano. No se imprimen litros en línea separada ni cantidad de comensales/personas. No hay campos ilegibles."
+    "observaciones": "Ticket Factura A (Cod. 001), N° 00011-00041910, emitido por COMBUSTIBLES NICOLLS S.A. (CUIT 30-70937771-6, dígito verificador válido) el 13/01/2026 a las 14:06:22. Discrimina IVA 21% ($7.303,10) sobre neto gravado $34.776,67. Además incluye Impuesto interno a nivel ítem ($3.934,20, cód. 10) e IIBB ARBA ($173,88, cód. 07), que totalizan 'IMPORTE TOTAL OTROS TRIBUTOS' $4.108,08. La aritmética cierra: 34.776,67 + 7.303,10 + 4.108,08 = 46.187,85. Se observa un descuento por redondeo de -$0,08 ya reflejado en el neto gravado (detalle: SUPER 34.776,75 menos DTO. POR REDONDEO 0,08). Cantidad de producto: 27,0353 u x $1.286,3461 (combustible, en litros/unidades). Pago con Tarjeta de Crédito por $46.187,88, con vuelto de $0,03. Emitido por cuenta y orden de YPF S.A.; incluye pie con FT A 0011 00049773 AUT 9671, @bPEDIDO 203566 y REGISTRO EPEPAA000017607. No figura centro de costo."
   },
   "extraccion": {
     "legibilidad": "buena",
@@ -80,13 +80,13 @@
     "otros_impuestos": 0,
     "importe_total": 46187.85,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / combustible (expendio por cuenta y orden de YPF S.A.)",
+    "rubro_emisor": "Estación de servicio / combustible (expendio de combustibles líquidos YPF)",
     "categoria_gasto_sugerida": "Combustible",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 27.0353,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique Factura A (Cod. 001) emitido por COMBUSTIBLES NICOLLS S.A. (CUIT 30-70937771-6, dígito verificador válido, calculado = 6). Fecha de emisión 13/01/2026, hora 14:06:22. Cliente: CVC SA, CUIT 30-56221570-3, tarjeta de crédito. Detalle: 27,0353 u x 1286,3461 = 34776,75; DTO. POR REDONDEO -0,08; SUBTOT. IMP. NETO GRAVADO 34776,67; ALICUOTA 21,00% = 7303,10; Impuesto interno a nivel ítem (cód. 10) = 3934,20; IIBB ARBA (cód. 07) = 173,88; IMPORTE TOTAL OTROS TRIBUTOS 4108,08. La aritmética cierra: 34776,67 + 7303,10 + 3934,20 + 173,88 = 46187,85 = TOTAL impreso. No hay líneas de NO GRAVADO ni de SUBTOT. IMP. EXENTO (van en 0). La cantidad 27,0353 está expresada como 'u' (unidades/litros) por precio unitario 1286,3461, por lo que se transcribe como litros de combustible. Observación: el pago con tarjeta figura por 46187,88 y 'Su vuelto' 0,03, es decir 0,03 por encima del TOTAL impreso (46187,85); se trata de una diferencia de redondeo del medio de pago, no de un importe del comprobante. Datos adicionales al pie: 'SON POR CUENTA Y ORDEN DE YPF SA', FT A 0011 00049773 AUT: 9671, @LPEDIDO 203566, REGISTRO EPEPAA000017607, V: 1.02 Jano. No se imprimen litros en línea separada ni cantidad de comensales/personas. No hay campos ilegibles."
+    "observaciones": "Ticket Factura A (Cod. 001), N° 00011-00041910, emitido por COMBUSTIBLES NICOLLS S.A. (CUIT 30-70937771-6, dígito verificador válido) el 13/01/2026 a las 14:06:22. Discrimina IVA 21% ($7.303,10) sobre neto gravado $34.776,67. Además incluye Impuesto interno a nivel ítem ($3.934,20, cód. 10) e IIBB ARBA ($173,88, cód. 07), que totalizan 'IMPORTE TOTAL OTROS TRIBUTOS' $4.108,08. La aritmética cierra: 34.776,67 + 7.303,10 + 4.108,08 = 46.187,85. Se observa un descuento por redondeo de -$0,08 ya reflejado en el neto gravado (detalle: SUPER 34.776,75 menos DTO. POR REDONDEO 0,08). Cantidad de producto: 27,0353 u x $1.286,3461 (combustible, en litros/unidades). Pago con Tarjeta de Crédito por $46.187,88, con vuelto de $0,03. Emitido por cuenta y orden de YPF S.A.; incluye pie con FT A 0011 00049773 AUT 9671, @bPEDIDO 203566 y REGISTRO EPEPAA000017607. No figura centro de costo."
   },
   "aritmetica": {
     "calculable": true,

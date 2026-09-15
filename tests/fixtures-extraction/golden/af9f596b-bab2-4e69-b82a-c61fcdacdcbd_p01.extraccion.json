@@ -1,12 +1,12 @@
 {
   "origen": "tests/fixtures/golden/af9f596b-bab2-4e69-b82a-c61fcdacdcbd_p01.pdf",
   "archivo_relativo": "golden/af9f596b-bab2-4e69-b82a-c61fcdacdcbd_p01.pdf",
-  "procesado_utc": "2026-09-15T03:51:34+00:00",
+  "procesado_utc": "2026-09-15T11:58:15+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
   "fuente": "api",
-  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_pcat1xl9/golden/af9f596b-bab2-4e69-b82a-c61fcdacdcbd_p01.jpg",
+  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_gpiw991f/golden/af9f596b-bab2-4e69-b82a-c61fcdacdcbd_p01.jpg",
   "pagina": 1,
   "imagen": {
     "bytes": 720266,
@@ -18,13 +18,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 3491,
-    "completion_tokens": 5572,
-    "total_tokens": 9063,
-    "prompt_cache_hit_tokens": 2304,
-    "prompt_cache_miss_tokens": 1187
+    "prompt_tokens": 3699,
+    "completion_tokens": 1273,
+    "total_tokens": 4972,
+    "prompt_cache_hit_tokens": 2560,
+    "prompt_cache_miss_tokens": 1139
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -33,11 +33,11 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.007056,
+  "costo_usd": 0.001885,
   "resultado": {
     "legibilidad": "buena",
     "tipo_comprobante": "A",
-    "codigo_afip": "001",
+    "codigo_afip": "1",
     "razon_social_emisor": "CORREDORES VIALES S.A.",
     "cuit_emisor": "30-71580481-2",
     "digito_verificador_cuit_valido": true,
@@ -54,18 +54,18 @@
     "otros_impuestos": 0,
     "importe_total": 5033.52,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Concesionaria de peajes / autopistas (Corredores Viales S.A.)",
+    "rubro_emisor": "Concesionaria de autopistas / peaje (Corredores Viales S.A.)",
     "categoria_gasto_sugerida": "Peaje",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A (Cód. 001) de CORREDORES VIALES S.A., Responsable Inscripto, CUIT 30-71580481-2 (dígito verificador válido). Receptor: CORDOBA SEBASTIAN, CUIT 20-31437792-4, Monotributista. Detalle: 2 PASCOS CARCARAÑA - AUTOVÍA ROSARIO-CÓRDOBA KM 366 ($2.079,97) y 2 PASCOS LAGOS - RUTA 9 KM 272 ($2.079,97). Neto gravado $4.159,94 + IVA 21% $873,58 = Importe Total $5.033,52. La aritmética cierra (4.159,94 + 873,58 = 5.033,52). En el pie figura 'IVA Contenido: $873,58' y 'Otros impuestos Nacionales indirectos: $0,00'. CAE N° 86051801935012, vencimiento 08/02/2026. Comprobante íntegramente legible, sin campos ilegibles ni monto no gravado/exento/percepciones impresos."
+    "observaciones": "Factura A (COD. 001) emitida por CORREDORES VIALES S.A., CUIT 30-71580481-2 (dígito verificador válido). Emisor Responsable Inscripto. Detalle: 2 pasos Carcarañá - Autovía Rosario-Córdoba km 356 ($2.079,97) y 2 pasos Lagos - Ruta 9 km 272 ($2.079,97); neto gravado $4.159,94 + IVA 21% $873,58 = total $5.033,52 (la aritmética cierra). IVA discriminado como 'IVA Contenido'; 'Otros impuestos Nacionales indirectos: $0,00'. No hay líneas de no gravado ni exento. Receptor: Córdoba Sebastián, CUIT 20-31437792-4, Monotributista, domicilio en Rosario (Santa Fe). CAE N° 86051801935012, vto. 08/02/2026. Origen: régimen de transparencia fiscal al consumidor (Ley 27.743). El rubro del emisor (concesión vial/peaje) es claro en la imagen."
   },
   "extraccion": {
     "legibilidad": "buena",
     "tipo_comprobante": "A",
-    "codigo_afip": "001",
+    "codigo_afip": "1",
     "razon_social_emisor": "CORREDORES VIALES S.A.",
     "cuit_emisor": "30-71580481-2",
     "digito_verificador_cuit_valido": true,
@@ -82,13 +82,13 @@
     "otros_impuestos": 0,
     "importe_total": 5033.52,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Concesionaria de peajes / autopistas (Corredores Viales S.A.)",
+    "rubro_emisor": "Concesionaria de autopistas / peaje (Corredores Viales S.A.)",
     "categoria_gasto_sugerida": "Peaje",
     "cantidad_comensales_personas": 0,
     "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A (Cód. 001) de CORREDORES VIALES S.A., Responsable Inscripto, CUIT 30-71580481-2 (dígito verificador válido). Receptor: CORDOBA SEBASTIAN, CUIT 20-31437792-4, Monotributista. Detalle: 2 PASCOS CARCARAÑA - AUTOVÍA ROSARIO-CÓRDOBA KM 366 ($2.079,97) y 2 PASCOS LAGOS - RUTA 9 KM 272 ($2.079,97). Neto gravado $4.159,94 + IVA 21% $873,58 = Importe Total $5.033,52. La aritmética cierra (4.159,94 + 873,58 = 5.033,52). En el pie figura 'IVA Contenido: $873,58' y 'Otros impuestos Nacionales indirectos: $0,00'. CAE N° 86051801935012, vencimiento 08/02/2026. Comprobante íntegramente legible, sin campos ilegibles ni monto no gravado/exento/percepciones impresos."
+    "observaciones": "Factura A (COD. 001) emitida por CORREDORES VIALES S.A., CUIT 30-71580481-2 (dígito verificador válido). Emisor Responsable Inscripto. Detalle: 2 pasos Carcarañá - Autovía Rosario-Córdoba km 356 ($2.079,97) y 2 pasos Lagos - Ruta 9 km 272 ($2.079,97); neto gravado $4.159,94 + IVA 21% $873,58 = total $5.033,52 (la aritmética cierra). IVA discriminado como 'IVA Contenido'; 'Otros impuestos Nacionales indirectos: $0,00'. No hay líneas de no gravado ni exento. Receptor: Córdoba Sebastián, CUIT 20-31437792-4, Monotributista, domicilio en Rosario (Santa Fe). CAE N° 86051801935012, vto. 08/02/2026. Origen: régimen de transparencia fiscal al consumidor (Ley 27.743). El rubro del emisor (concesión vial/peaje) es claro en la imagen."
   },
   "aritmetica": {
     "calculable": true,

@@ -1,12 +1,12 @@
 {
   "origen": "tests/fixtures/pdf_escaneados/9b7a423c-189c-4b9b-8ab1-23b38d4518b4_p01.pdf",
   "archivo_relativo": "pdf_escaneados/9b7a423c-189c-4b9b-8ab1-23b38d4518b4_p01.pdf",
-  "procesado_utc": "2026-09-15T03:52:09+00:00",
+  "procesado_utc": "2026-09-15T11:58:46+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
   "fuente": "api",
-  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_pcat1xl9/pdf_escaneados/9b7a423c-189c-4b9b-8ab1-23b38d4518b4_p01.jpg",
+  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_gpiw991f/pdf_escaneados/9b7a423c-189c-4b9b-8ab1-23b38d4518b4_p01.jpg",
   "pagina": 1,
   "imagen": {
     "bytes": 740920,
@@ -18,13 +18,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 3491,
-    "completion_tokens": 2546,
-    "total_tokens": 6037,
-    "prompt_cache_hit_tokens": 2304,
-    "prompt_cache_miss_tokens": 1187
+    "prompt_tokens": 3699,
+    "completion_tokens": 2070,
+    "total_tokens": 5769,
+    "prompt_cache_hit_tokens": 2560,
+    "prompt_cache_miss_tokens": 1139
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -33,7 +33,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.003425,
+  "costo_usd": 0.002841,
   "resultado": {
     "legibilidad": "buena",
     "tipo_comprobante": "A",
@@ -54,13 +54,13 @@
     "otros_impuestos": 1816.07,
     "importe_total": 75306.21,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Supermercado / autoservicio mayorista (La Anónima Sucursal 67, Venado Tuerto)",
+    "rubro_emisor": "Supermercado / autoservicio minorista de alimentos y artículos de librería",
     "categoria_gasto_sugerida": "Supermercado",
-    "cantidad_comensales_personas": null,
-    "cantidad_litros": null,
+    "cantidad_comensales_personas": 0,
+    "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A, ORIGINAL Codigo 001, emitida por La Anónima (S.A. Importadora y Exportadora de la Patagonia), Sucursal 67, Av. Cazón 799, Venado Tuerto, Santa Fe. Fecha 19-08-26, hora 11:45, Caja 012 - Oper 051. Nro. T. 04928-00054475 (punto de venta 04928). Cliente: CYC SOCIEDAD ANONIMA, CUIT 30582215703; receptor Carolina Andrea Vinciguerra (Cliente 37813604). CUIT del emisor 30-50673003-8 con dígito verificador válido (calculado 8). Comprobante discrimina impuestos: Subtotal sin descuentos / Total Neto $60.535,54 + IVA 21% $12.712,46 + Percep.Bs.As. $242,14 + Percep.IVA $1.816,07 = TOTAL $75.306,21; la aritmética cierra. Pago con VISA. CAE 86338984422527, vencimiento 2026-08-29, fecha de proceso 2026-08-19 11:47:02. Detalle de items de almacén y no comestibles visible. Se interpreta Fecha de emisión en formato DD-MM-AA (19/08/2026). No se imprimen cantidad de comensales ni litros. No figura centro de costo."
+    "observaciones": "Factura A, Código 001, ORIGINAL. Emisor: S.A. Importadora y Exportadora de la Patagonia (La Anónima), Sucursal 67, Av Casey 799, Venado Tuerto, Santa Fe; CUIT 30-50673003-8 (dígito verificador válido), IVA Responsable Inscripto. Fecha 19-08-26, hora 11:45, caja 012, oper. 051. Comprobante Nro. T. 04928-00054475. Receptor: CYC SOCIEDAD ANONIMA, CUIT 30582215703, Paraguay 660, CABA (cliente 37813604, Carolina Andrea Vinciguerra). Detalle: SUBTOTAL SIN DESCUENTOS $60.535,54 (neto gravado a 21%); IVA 21% $12.712,46; Percep. Bs.As. $242,14 (percepción de Ingresos Brutos, cargada en percepciones_iibb); Percep. IVA $1.816,07 (percepción de IVA, cargada en otros_impuestos por no tener categoría propia). TOTAL $75.306,21, pagado con VISA. La aritmética cierra: 60.535,54 + 12.712,46 + 242,14 + 1.816,07 = 75.306,21. No se observan líneas de no gravado ni exento. No hay datos de litros ni de comensales en el ticket. CAE 86338984422527 (vto. 2026-08-29), proceso 2026-08-19 11:47:02. Ítems: café, bizcochos, yerba, leche, azúcar y artículos de librería (folios), consistente con rubro supermercado."
   },
   "extraccion": {
     "legibilidad": "buena",
@@ -82,13 +82,13 @@
     "otros_impuestos": 1816.07,
     "importe_total": 75306.21,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Supermercado / autoservicio mayorista (La Anónima Sucursal 67, Venado Tuerto)",
+    "rubro_emisor": "Supermercado / autoservicio minorista de alimentos y artículos de librería",
     "categoria_gasto_sugerida": "Supermercado",
-    "cantidad_comensales_personas": null,
-    "cantidad_litros": null,
+    "cantidad_comensales_personas": 0,
+    "cantidad_litros": 0,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Factura A, ORIGINAL Codigo 001, emitida por La Anónima (S.A. Importadora y Exportadora de la Patagonia), Sucursal 67, Av. Cazón 799, Venado Tuerto, Santa Fe. Fecha 19-08-26, hora 11:45, Caja 012 - Oper 051. Nro. T. 04928-00054475 (punto de venta 04928). Cliente: CYC SOCIEDAD ANONIMA, CUIT 30582215703; receptor Carolina Andrea Vinciguerra (Cliente 37813604). CUIT del emisor 30-50673003-8 con dígito verificador válido (calculado 8). Comprobante discrimina impuestos: Subtotal sin descuentos / Total Neto $60.535,54 + IVA 21% $12.712,46 + Percep.Bs.As. $242,14 + Percep.IVA $1.816,07 = TOTAL $75.306,21; la aritmética cierra. Pago con VISA. CAE 86338984422527, vencimiento 2026-08-29, fecha de proceso 2026-08-19 11:47:02. Detalle de items de almacén y no comestibles visible. Se interpreta Fecha de emisión en formato DD-MM-AA (19/08/2026). No se imprimen cantidad de comensales ni litros. No figura centro de costo."
+    "observaciones": "Factura A, Código 001, ORIGINAL. Emisor: S.A. Importadora y Exportadora de la Patagonia (La Anónima), Sucursal 67, Av Casey 799, Venado Tuerto, Santa Fe; CUIT 30-50673003-8 (dígito verificador válido), IVA Responsable Inscripto. Fecha 19-08-26, hora 11:45, caja 012, oper. 051. Comprobante Nro. T. 04928-00054475. Receptor: CYC SOCIEDAD ANONIMA, CUIT 30582215703, Paraguay 660, CABA (cliente 37813604, Carolina Andrea Vinciguerra). Detalle: SUBTOTAL SIN DESCUENTOS $60.535,54 (neto gravado a 21%); IVA 21% $12.712,46; Percep. Bs.As. $242,14 (percepción de Ingresos Brutos, cargada en percepciones_iibb); Percep. IVA $1.816,07 (percepción de IVA, cargada en otros_impuestos por no tener categoría propia). TOTAL $75.306,21, pagado con VISA. La aritmética cierra: 60.535,54 + 12.712,46 + 242,14 + 1.816,07 = 75.306,21. No se observan líneas de no gravado ni exento. No hay datos de litros ni de comensales en el ticket. CAE 86338984422527 (vto. 2026-08-29), proceso 2026-08-19 11:47:02. Ítems: café, bizcochos, yerba, leche, azúcar y artículos de librería (folios), consistente con rubro supermercado."
   },
   "aritmetica": {
     "calculable": true,

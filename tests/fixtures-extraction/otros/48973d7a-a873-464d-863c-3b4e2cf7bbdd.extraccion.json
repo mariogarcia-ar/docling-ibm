@@ -1,7 +1,7 @@
 {
   "origen": "tests/fixtures/otros/48973d7a-a873-464d-863c-3b4e2cf7bbdd.jpg",
   "archivo_relativo": "otros/48973d7a-a873-464d-863c-3b4e2cf7bbdd.jpg",
-  "procesado_utc": "2026-09-15T03:54:29+00:00",
+  "procesado_utc": "2026-09-15T12:03:55+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
@@ -16,13 +16,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 3478,
-    "completion_tokens": 3673,
-    "total_tokens": 7151,
-    "prompt_cache_hit_tokens": 2304,
-    "prompt_cache_miss_tokens": 1174
+    "prompt_tokens": 3686,
+    "completion_tokens": 8182,
+    "total_tokens": 11868,
+    "prompt_cache_hit_tokens": 2560,
+    "prompt_cache_miss_tokens": 1126
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -31,7 +31,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.004774,
+  "costo_usd": 0.010172,
   "resultado": {
     "legibilidad": "buena",
     "tipo_comprobante": "A",
@@ -50,15 +50,15 @@
     "impuestos_internos": 0,
     "percepciones_iibb": 0,
     "otros_impuestos": 0,
-    "importe_total": 49300,
+    "importe_total": 49300.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Restaurante / servicio gastronómico (ticket con Mesa 21, Mozo, ítem 'CENA')",
+    "rubro_emisor": "Restaurante",
     "categoria_gasto_sugerida": "Restaurante",
-    "cantidad_comensales_personas": 0,
-    "cantidad_litros": 0,
+    "cantidad_comensales_personas": null,
+    "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique Factura A (Cód. 081) emitido por controlador fiscal (REGISTRO: EPEPAA0000040113, V: 1.03 Neptuno), N° 00021-00005658, fecha 10/11/2025 22:11:49. Encabezado emisor: AYAM MARCELO ROBERTO, CUIT 23-25435587-9 (dígito verificador válido), Ing. Brutos 23-25435587-9, Domicilio Las Magnolias 754 Local 1166, C.P. 1629, Pilar / Pcia. de Buenos Aires, Inicio de Actividades 28/01/2013, IVA Responsable Inscripto. Se consigna Mesa 21 y Mozo (110) 421-Guadalupe. Detalle: 1,0000 (00) x 40743,8017 CENA (21) 40743,80. Subtotal Imp. Neto Gravado 40.743,80 + IVA 21,00% 8.556,20 = TOTAL 49.300,00 (cierra aritméticamente). No hay líneas de no gravado, exento, percepciones ni otros tributos. Pago: Cuenta Corriente 49.300,00, suma de pagos 49.300,00, vuelto 0,00. Cantidad de unidades 00000001,0000. Se observa un segundo bloque con 'CVC S.A. - C.U.I.T. Nro.: 30-58221570-3' (dígito verificador válido) junto a 'COMPROBANTES ASOCIADOS: Cód. 081 - Tique Factura A 00021-00005658'; por la ubicación en el ticket correspondería a datos del receptor/cliente o referencia del comprobante asociado, no al emisor. No se discrimina cantidad de comensales/cubiertos, sólo el número de mesa. No figura símbolo de moneda impreso; se asume ARS por tratarse de comprobante AFIP local. No se informa centro de costo."
+    "observaciones": "Tique Factura A (Cód. 081) emitido por AYAM MARCELO ROBERTO (CUIT 23-25435587-9, dígito verificador válido), domicilio Las Magnolias 754 Local 1166, C.P. (1629) Pilar, Pcia. de Buenos Aires, inicio de actividades 28/01/2013, IVA Responsable Inscripto. Mesa 21, mozo (110) 421-Guadalupe. Receptor/cliente: CVC S.A. (CUIT 30-58221570-3, dígito verificador válido), IVA Responsable Inscripto. Comprobantes asociados: Cód. 081 - Tique Factura A 00021-00005658. Ítem: 1,0000 (00) x 40.743,8017 CENA. Neto gravado 40.743,80 + IVA 21% 8.556,20 = Total 49.300,00; la aritmética cierra. No se discriminan percepciones de IIBB, impuestos internos ni otros tributos. No hay leyenda de moneda impresa, pero los importes están en formato de pesos argentinos. No se imprime detalle de comensales ni litros. Pago: Cuenta Corriente 49.300,00, suma de pagos 49.300,00, vuelto 0,00. Registro: EPEPAA0000040113, V 1.03 Neptuno."
   },
   "extraccion": {
     "legibilidad": "buena",
@@ -78,15 +78,15 @@
     "impuestos_internos": 0,
     "percepciones_iibb": 0,
     "otros_impuestos": 0,
-    "importe_total": 49300,
+    "importe_total": 49300.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Restaurante / servicio gastronómico (ticket con Mesa 21, Mozo, ítem 'CENA')",
+    "rubro_emisor": "Restaurante",
     "categoria_gasto_sugerida": "Restaurante",
-    "cantidad_comensales_personas": 0,
-    "cantidad_litros": 0,
+    "cantidad_comensales_personas": null,
+    "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "Tique Factura A (Cód. 081) emitido por controlador fiscal (REGISTRO: EPEPAA0000040113, V: 1.03 Neptuno), N° 00021-00005658, fecha 10/11/2025 22:11:49. Encabezado emisor: AYAM MARCELO ROBERTO, CUIT 23-25435587-9 (dígito verificador válido), Ing. Brutos 23-25435587-9, Domicilio Las Magnolias 754 Local 1166, C.P. 1629, Pilar / Pcia. de Buenos Aires, Inicio de Actividades 28/01/2013, IVA Responsable Inscripto. Se consigna Mesa 21 y Mozo (110) 421-Guadalupe. Detalle: 1,0000 (00) x 40743,8017 CENA (21) 40743,80. Subtotal Imp. Neto Gravado 40.743,80 + IVA 21,00% 8.556,20 = TOTAL 49.300,00 (cierra aritméticamente). No hay líneas de no gravado, exento, percepciones ni otros tributos. Pago: Cuenta Corriente 49.300,00, suma de pagos 49.300,00, vuelto 0,00. Cantidad de unidades 00000001,0000. Se observa un segundo bloque con 'CVC S.A. - C.U.I.T. Nro.: 30-58221570-3' (dígito verificador válido) junto a 'COMPROBANTES ASOCIADOS: Cód. 081 - Tique Factura A 00021-00005658'; por la ubicación en el ticket correspondería a datos del receptor/cliente o referencia del comprobante asociado, no al emisor. No se discrimina cantidad de comensales/cubiertos, sólo el número de mesa. No figura símbolo de moneda impreso; se asume ARS por tratarse de comprobante AFIP local. No se informa centro de costo."
+    "observaciones": "Tique Factura A (Cód. 081) emitido por AYAM MARCELO ROBERTO (CUIT 23-25435587-9, dígito verificador válido), domicilio Las Magnolias 754 Local 1166, C.P. (1629) Pilar, Pcia. de Buenos Aires, inicio de actividades 28/01/2013, IVA Responsable Inscripto. Mesa 21, mozo (110) 421-Guadalupe. Receptor/cliente: CVC S.A. (CUIT 30-58221570-3, dígito verificador válido), IVA Responsable Inscripto. Comprobantes asociados: Cód. 081 - Tique Factura A 00021-00005658. Ítem: 1,0000 (00) x 40.743,8017 CENA. Neto gravado 40.743,80 + IVA 21% 8.556,20 = Total 49.300,00; la aritmética cierra. No se discriminan percepciones de IIBB, impuestos internos ni otros tributos. No hay leyenda de moneda impresa, pero los importes están en formato de pesos argentinos. No se imprime detalle de comensales ni litros. Pago: Cuenta Corriente 49.300,00, suma de pagos 49.300,00, vuelto 0,00. Registro: EPEPAA0000040113, V 1.03 Neptuno."
   },
   "aritmetica": {
     "calculable": true,

@@ -1,12 +1,12 @@
 {
   "origen": "tests/fixtures/pdf_escaneados/3ac5a2ec-d129-47c0-947a-4680c7e25f06_p01.pdf",
   "archivo_relativo": "pdf_escaneados/3ac5a2ec-d129-47c0-947a-4680c7e25f06_p01.pdf",
-  "procesado_utc": "2026-09-15T03:52:03+00:00",
+  "procesado_utc": "2026-09-15T11:58:34+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
   "fuente": "api",
-  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_pcat1xl9/pdf_escaneados/3ac5a2ec-d129-47c0-947a-4680c7e25f06_p01.jpg",
+  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_gpiw991f/pdf_escaneados/3ac5a2ec-d129-47c0-947a-4680c7e25f06_p01.jpg",
   "pagina": 1,
   "imagen": {
     "bytes": 185140,
@@ -18,13 +18,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 3491,
-    "completion_tokens": 3571,
-    "total_tokens": 7062,
-    "prompt_cache_hit_tokens": 2304,
-    "prompt_cache_miss_tokens": 1187
+    "prompt_tokens": 3699,
+    "completion_tokens": 2177,
+    "total_tokens": 5876,
+    "prompt_cache_hit_tokens": 2560,
+    "prompt_cache_miss_tokens": 1139
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -33,7 +33,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.004655,
+  "costo_usd": 0.002969,
   "resultado": {
     "legibilidad": "buena",
     "tipo_comprobante": null,
@@ -54,13 +54,13 @@
     "otros_impuestos": 0,
     "importe_total": 6400.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / combustible (Shell)",
+    "rubro_emisor": "Estación de servicio (combustible)",
     "categoria_gasto_sugerida": "Combustible",
-    "cantidad_comensales_personas": 0,
-    "cantidad_litros": 0,
+    "cantidad_comensales_personas": null,
+    "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "El comprobante es un ticket de pago con tarjeta emitido por Fiserv (terminal de cobro), NO una factura AFIP: no exhibe tipo/código de comprobante, ni punto de venta ni número de factura, ni discriminación de IVA u otros tributos. Encabezado: 'fiserv. TICKET VENTA', fecha 10/03/2026 9:11 a.m. Emisor/comercio: 'E S SHELL EL CICLON', dirección 'PASO 7580 CI 925', CUIT impreso '20 06044320 4' (20-06044320-4), cuyo dígito verificador calculado es 4, por lo que resulta válido. Pago: VISA 3387, SIN CONTACTO, CUOTAS: 1, único importe impreso 'VENTA $ 6.400,00' (no hay desglose de subtotal, neto, exento, no gravado ni impuestos: al no discriminar, el subtotal coincide con el total). Datos de operación: COM 07977290, REF ZZ YA5PHT HZM82, AUT 516161, AID A0000000031010, CUPON 5902 / N° LOTE 115, TR 69430501. No se observan litros ni cantidad de cubiertos/titulares. Al ser un cupón de terminal de pago y no un comprobante fiscal, no es posible validar tipo de comprobante ni numeración AFIP."
+    "observaciones": "El comprobante es un TICKET DE VENTA de tarjeta (procesado por fiserv), no una factura fiscal AFIP: no exhibe letra A/B/C ni COD. 001/006/011, por lo que no se consigna tipo_comprobante ni codigo_afip. No hay línea de número de factura (solo CUPON 5902 / N° LOTE 45 / TR 69430501), por eso nro_factura queda null. No discrimina IVA ni otros impuestos: el único importe impreso es 'VENTA $ 6.400,00', que se transcribió como importe_total; se cargó el mismo valor en subtotal por ausencia de discriminación de impuestos (neto = total). El CUIT 20-06044320-4 es legible y su dígito verificador es válido. Emisor: 'E S SHELL EL CICLON', PASO 7580 GL 925. Pago: VISA 3387 SIN CONTACTO, CUOTAS: 1, AUT: 516161, COM: 07977290. No se imprimen litros cargados ni cantidad de personas. La línea 'AID: A0000000031010 / VERIFICACIÓN DE' está parcialmente ilegible en su leyenda final, pero no afecta los importes."
   },
   "extraccion": {
     "legibilidad": "buena",
@@ -82,13 +82,13 @@
     "otros_impuestos": 0,
     "importe_total": 6400.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Estación de servicio / combustible (Shell)",
+    "rubro_emisor": "Estación de servicio (combustible)",
     "categoria_gasto_sugerida": "Combustible",
-    "cantidad_comensales_personas": 0,
-    "cantidad_litros": 0,
+    "cantidad_comensales_personas": null,
+    "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "El comprobante es un ticket de pago con tarjeta emitido por Fiserv (terminal de cobro), NO una factura AFIP: no exhibe tipo/código de comprobante, ni punto de venta ni número de factura, ni discriminación de IVA u otros tributos. Encabezado: 'fiserv. TICKET VENTA', fecha 10/03/2026 9:11 a.m. Emisor/comercio: 'E S SHELL EL CICLON', dirección 'PASO 7580 CI 925', CUIT impreso '20 06044320 4' (20-06044320-4), cuyo dígito verificador calculado es 4, por lo que resulta válido. Pago: VISA 3387, SIN CONTACTO, CUOTAS: 1, único importe impreso 'VENTA $ 6.400,00' (no hay desglose de subtotal, neto, exento, no gravado ni impuestos: al no discriminar, el subtotal coincide con el total). Datos de operación: COM 07977290, REF ZZ YA5PHT HZM82, AUT 516161, AID A0000000031010, CUPON 5902 / N° LOTE 115, TR 69430501. No se observan litros ni cantidad de cubiertos/titulares. Al ser un cupón de terminal de pago y no un comprobante fiscal, no es posible validar tipo de comprobante ni numeración AFIP."
+    "observaciones": "El comprobante es un TICKET DE VENTA de tarjeta (procesado por fiserv), no una factura fiscal AFIP: no exhibe letra A/B/C ni COD. 001/006/011, por lo que no se consigna tipo_comprobante ni codigo_afip. No hay línea de número de factura (solo CUPON 5902 / N° LOTE 45 / TR 69430501), por eso nro_factura queda null. No discrimina IVA ni otros impuestos: el único importe impreso es 'VENTA $ 6.400,00', que se transcribió como importe_total; se cargó el mismo valor en subtotal por ausencia de discriminación de impuestos (neto = total). El CUIT 20-06044320-4 es legible y su dígito verificador es válido. Emisor: 'E S SHELL EL CICLON', PASO 7580 GL 925. Pago: VISA 3387 SIN CONTACTO, CUOTAS: 1, AUT: 516161, COM: 07977290. No se imprimen litros cargados ni cantidad de personas. La línea 'AID: A0000000031010 / VERIFICACIÓN DE' está parcialmente ilegible en su leyenda final, pero no afecta los importes."
   },
   "aritmetica": {
     "calculable": true,

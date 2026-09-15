@@ -1,12 +1,12 @@
 {
   "origen": "tests/fixtures/negativos/neg_2026-07_resumen_tarjeta_p01.pdf",
   "archivo_relativo": "negativos/neg_2026-07_resumen_tarjeta_p01.pdf",
-  "procesado_utc": "2026-09-15T03:51:40+00:00",
+  "procesado_utc": "2026-09-15T11:58:17+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
   "fuente": "api",
-  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_pcat1xl9/negativos/neg_2026-07_resumen_tarjeta_p01.jpg",
+  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_gpiw991f/negativos/neg_2026-07_resumen_tarjeta_p01.jpg",
   "pagina": 1,
   "imagen": {
     "bytes": 130044,
@@ -18,13 +18,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 3491,
-    "completion_tokens": 795,
-    "total_tokens": 4286,
-    "prompt_cache_hit_tokens": 2304,
-    "prompt_cache_miss_tokens": 1187
+    "prompt_tokens": 3699,
+    "completion_tokens": 900,
+    "total_tokens": 4599,
+    "prompt_cache_hit_tokens": 2560,
+    "prompt_cache_miss_tokens": 1139
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -33,7 +33,7 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.001324,
+  "costo_usd": 0.001437,
   "resultado": {
     "legibilidad": "buena",
     "tipo_comprobante": null,
@@ -60,7 +60,7 @@
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "El documento adjunto NO es un comprobante fiscal AFIP/ARCA: se trata de un 'RESUMEN DE TARJETA DE CREDITO' (listado de consumos y vencimientos del período), que el propio texto aclara: 'El resumen no es el comprobante emitido por el comercio'. No contiene encabezado de emisor, CUIT, punto de venta, número de factura, fecha de emisión, discriminación de IVA/impuestos ni importes fiscales. La imagen está bien legible pero sólo muestra el título y esas dos leyendas, sin listado de consumos ni totales visibles. No hay datos fiscales que transcribir; se requiere el comprobante emitido por el comercio (factura A/B/C o ticket) para poder validar el gasto."
+    "observaciones": "El documento adjunto NO es un comprobante fiscal: es la portada de un 'RESUMEN DE TARJETA DE CREDITO' (listado de consumos y vencimientos del período), que el propio texto aclara: 'El resumen no es el comprobante emitido por el comercio'. No contiene ningún dato fiscal transcribible: no hay tipo/letra de comprobante ni código AFIP, razón social ni CUIT de emisor, fecha de emisión, número de factura, moneda, ni líneas de importes (subtotal, neto gravado, no gravado, exento, IVA, percepciones, total). No se identifican emisor, rubro ni categoría de gasto. Se recomienda solicitar al empleado la factura del comercio correspondiente al consumo."
   },
   "extraccion": {
     "legibilidad": "buena",
@@ -88,7 +88,7 @@
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "El documento adjunto NO es un comprobante fiscal AFIP/ARCA: se trata de un 'RESUMEN DE TARJETA DE CREDITO' (listado de consumos y vencimientos del período), que el propio texto aclara: 'El resumen no es el comprobante emitido por el comercio'. No contiene encabezado de emisor, CUIT, punto de venta, número de factura, fecha de emisión, discriminación de IVA/impuestos ni importes fiscales. La imagen está bien legible pero sólo muestra el título y esas dos leyendas, sin listado de consumos ni totales visibles. No hay datos fiscales que transcribir; se requiere el comprobante emitido por el comercio (factura A/B/C o ticket) para poder validar el gasto."
+    "observaciones": "El documento adjunto NO es un comprobante fiscal: es la portada de un 'RESUMEN DE TARJETA DE CREDITO' (listado de consumos y vencimientos del período), que el propio texto aclara: 'El resumen no es el comprobante emitido por el comercio'. No contiene ningún dato fiscal transcribible: no hay tipo/letra de comprobante ni código AFIP, razón social ni CUIT de emisor, fecha de emisión, número de factura, moneda, ni líneas de importes (subtotal, neto gravado, no gravado, exento, IVA, percepciones, total). No se identifican emisor, rubro ni categoría de gasto. Se recomienda solicitar al empleado la factura del comercio correspondiente al consumo."
   },
   "aritmetica": {
     "calculable": false,
