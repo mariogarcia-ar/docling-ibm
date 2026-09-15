@@ -17,6 +17,26 @@ from __future__ import annotations
 
 from typing import Any
 
+from ..schemas.evidence import ClaseDocumento
+
+#: Vocabulario cerrado de ``es_comprobante`` en el lab: el **mismo** del gate de
+#: F2 (:class:`~voucherflow.validation.qween.VeredictoGate`) y del contrato F0
+#: (:class:`~voucherflow.schemas.evidence.ClaseDocumento`).
+#:
+#: ⚠️ Se importa de ``schemas`` y **no** se copia: con dos listas, el lab podría
+#: emitir un valor que el pipeline no conoce y la comparación de las dos puntas
+#: fallaría en silencio (o peor, compararía vocabularios distintos creyendo que
+#: son el mismo). ``schemas/evidence.py`` no importa ningún módulo del pipeline,
+#: así que no hay ciclo.
+#:
+#: ⚠️ Los valores van en **minúsculas** (``no_comprobante``), a diferencia del
+#: vocabulario de ``tipo_comprobante`` (``A``/``B``/``INTERNACIONAL``): es el
+#: valor del gate, no una letra impresa en el papel. El normalizador de
+#: vocabulario de la extracción pasa a MAYÚSCULAS, así que este campo **no** usa
+#: esa regla (ver ``NORM_CLASE_DOCUMENTO`` en ``extraction/key_value.py``).
+CLASES_DOCUMENTO: tuple[str, ...] = tuple(clase.value for clase in ClaseDocumento)
+
+
 # --------------------------------------------------------------------------- #
 # Esquemas (JSON Schema para la **validación local** de la respuesta)
 # --------------------------------------------------------------------------- #
@@ -246,6 +266,19 @@ def esquema_extraccion() -> dict[str, Any]:
     """
     return _obj(
         {
+            "es_comprobante": {
+                "type": "string",
+                "enum": [clase.value for clase in ClaseDocumento],
+                "description": (
+                    "Clase documental: si el documento ES un comprobante fiscal/"
+                    "comercial ('comprobante'), si NO lo es ('no_comprobante': un "
+                    "DNI, un memo, una foto de pizarra, una captura de pantalla "
+                    "que solo muestra un pago, un presupuesto, un resumen de "
+                    "tarjeta), o si no alcanza para decidirlo ('indeterminado': "
+                    "imagen ilegible o cortada). NO dice qué comprobante es (eso "
+                    "es 'tipo_comprobante') ni si sirve para el gasto."
+                ),
+            },
             "legibilidad": {
                 "type": "string",
                 "enum": ["buena", "parcial", "mala"],

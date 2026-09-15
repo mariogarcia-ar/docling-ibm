@@ -359,6 +359,36 @@ Cada salida guarda el **hash del prompt efectivo** (después de adaptarlo): es l
 que permite auditar con qué prompt se generó cada lectura. Hashear el texto crudo
 identificaría como iguales dos corridas que mandaron prompts distintos.
 
+### El campo `es_comprobante`
+
+Además de los campos del comprobante, cada lectura trae **qué es** el documento:
+si es un comprobante (`comprobante`), si **no** lo es (`no_comprobante`) o si la
+imagen no alcanza para decidirlo (`indeterminado`).
+
+| Valor | Qué significa |
+|---|---|
+| `comprobante` | Lo emitió el proveedor/vendedor y acredita la operación |
+| `no_comprobante` | No es un comprobante: un DNI, un memo, una foto de pizarra, un presupuesto, un resumen de tarjeta, una captura que solo muestra un pago |
+| `indeterminado` | La imagen no alcanza (borrosa, cortada, ilegible) |
+
+⚠️ **Es una lectura, no una decisión.** Dice *qué es* el documento, no si el
+comprobante *sirve* para el gasto. Existe porque el corpus trae documentos que no
+son facturas ni notas («GASTOS VARIOS, FALTA FACTURA», un remito): sin este campo
+el modelo forzaba una letra A/B/C o dejaba todo en `null`, y la lectura —que era
+correcta— quedaba irrecuperable.
+
+⚠️ **El pipeline publica el mismo campo** desde el gate (`validation/qween.py`),
+con el mismo vocabulario (`schemas.evidence.ClaseDocumento`). Es a propósito: si
+las dos puntas usaran vocabularios distintos, compararlas daría «difiere» en
+todos los casos sin que nada fallara.
+
+⚠️ **Este campo no entra al `diff`.** El evaluador compara contra los datos
+cargados y `es_comprobante` no se compara contra nada: lo resuelve el gate. Por
+eso la guía de este campo viaja en la adaptación de `extraer` y **no** entre las
+15 reglas del `system` — el esquema del modo `validar` no lo tiene, y pedirle al
+modelo un dato que su esquema no admite lo hace devolver un JSON inválido (y el
+núcleo repregunta, que se paga).
+
 ---
 
 ## Banderas

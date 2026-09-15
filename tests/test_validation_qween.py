@@ -43,7 +43,12 @@ from typing import Any
 import pytest
 
 from voucherflow.models.docling import ProcessedDocument
-from voucherflow.schemas.evidence import EvidenceField, Fuente, SourceEvidence
+from voucherflow.schemas.evidence import (
+    ClaseDocumento,
+    EvidenceField,
+    Fuente,
+    SourceEvidence,
+)
 from voucherflow.settings.config import cargar_settings
 from voucherflow.validation import (
     CAMPO_GATE,
@@ -201,6 +206,24 @@ class TestPromptQween:
         # Fix de falsos positivos (caso 2926bed9) — define qué es/no es
         # comprobante.
         assert VERSION_PROMPT_QWEEN == "qween-gate@2"
+
+    def test_el_vocabulario_del_gate_es_el_del_contrato_f0(self):
+        """⚠️ El mismo campo y el mismo vocabulario lo emiten dos módulos.
+
+        El **laboratorio** de LLM externos (``voucherflow-lab``) lee el campo
+        ``es_comprobante`` para poder decir que un documento no encuadra como
+        factura/nota (ver ``llm/esquemas.py``), y el **gate** decide lo mismo
+        antes de extraer. Si los dos vocabularios divergieran, la comparación
+        lab ↔ pipeline compararía dos cosas distintas **sin fallar**: el
+        reporte diría «difiere» en todos los casos, o peor, coincidiría por
+        casualidad.
+
+        Por eso los valores viven en el contrato congelado
+        (:class:`~voucherflow.schemas.evidence.ClaseDocumento`) y acá se fija
+        que ``VeredictoGate`` no se despegue.
+        """
+        assert [v.value for v in VeredictoGate] == [c.value for c in ClaseDocumento]
+        assert CAMPO_GATE == "es_comprobante"
 
     def test_system_prompt_pide_las_tres_salidas_y_define_limites(self):
         # qween.md §1: prompt corto, decisión orientada, tres salidas.

@@ -81,6 +81,11 @@ Compara cada extracción contra los datos cargados, con las **15 reglas de
 negocio** implementadas en código —no le pregunta al modelo si los números
 coinciden—. Es determinístico y auditable, y no toca la red.
 
+⚠️ El evaluador cubre las 15 reglas **de comparación** contra los datos
+cargados; `es_comprobante` (la «regla 0», arriba) no entra ahí porque no se
+compara contra nada: dice qué es el documento, y eso lo resuelve el
+[gate del pipeline](#el-campo-es_comprobante-la-regla-0).
+
 | Estado | Qué significa |
 |---|---|
 | `OK` | Todos los campos verificables coinciden. |
@@ -155,6 +160,41 @@ que el vocabulario cerrado marca como inválido— y `"E"`.
 ⚠️ **Un `INTERNACIONAL` no se constata en el padrón ARCA**: el emisor no es un
 contribuyente argentino, así que la búsqueda de evidencia adicional no se dispara
 para ese caso (el gap se sigue reportando, pero como no buscable).
+
+### El campo `es_comprobante` (la «regla 0»)
+
+Es el campo que responde **qué es** el documento, antes de *qué dice*: si es un
+comprobante (`comprobante`), si **no** lo es (`no_comprobante`) o si la imagen no
+alcanza para decidirlo (`indeterminado`).
+
+| Valor | Qué significa |
+|---|---|
+| `comprobante` | Lo emitió el proveedor/vendedor y acredita la operación |
+| `no_comprobante` | No es un comprobante: DNI, memo, foto de pizarra, presupuesto, resumen de tarjeta, captura que solo muestra un pago |
+| `indeterminado` | La imagen no alcanza para decidirlo (borrosa, cortada, ilegible) |
+
+⚠️ **No es una decisión de negocio, es una lectura.** No dice si el comprobante
+*sirve* para el gasto (eso es `comprobante_valido`, que resuelve la conclusión y
+sigue fuera del contrato) ni *qué* comprobante es (eso es `tipo_comprobante`).
+Existe porque el corpus real trae documentos que **no son facturas ni notas**
+—una captura con «GASTOS VARIOS, FALTA FACTURA», un remito, un resumen de
+tarjeta— y sin este campo el modelo improvisaba la respuesta sobre
+`tipo_comprobante`: `null` (el dato se perdía), texto libre (que el vocabulario
+cerrado marca inválido) o una letra A/B/C que el papel no tiene.
+
+⚠️ **Es el mismo campo y el mismo vocabulario que usa el gate del pipeline**
+(`voucherflow/validation/qween.py`, `CAMPO_GATE`), y los dos salen de
+`schemas.evidence.ClaseDocumento`: el pipeline decide con el gate antes de
+extraer y publica ese veredicto como dato de `programa`; el lab lo lee para poder
+decir qué documento no encuadra. Con dos definiciones, la comparación lab ↔
+pipeline compararía vocabularios distintos **sin fallar**.
+
+⚠️ **Su guía vive en la adaptación de `extraer`, no en las 15 reglas del YAML.**
+El `system` se manda siempre, pero el esquema del modo `validar` no tiene el
+campo: pedirle al modelo un dato que su esquema no admite lo hace devolver un
+JSON inválido y el núcleo **repregunta** (cada intento se paga). Por eso la guía
+está en `INSTRUCCIONES_SISTEMA_EXTRACCION` (`llm/prompts.py`), que reemplaza el
+cierre de comparación solo en modo `extraer`.
 
 Dos modos de armado:
 

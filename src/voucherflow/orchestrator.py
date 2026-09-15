@@ -68,6 +68,8 @@ from .schemas.evidence import (
     Certeza,
     CombinedEvidence,
     EstadoResultado,
+    EvidenceField,
+    Fuente,
     Origen,
     SourceEvidence,
 )
@@ -651,7 +653,18 @@ class PipelineOrchestrator:
         }
 
         # --- 4. combinación por campo (F4/T-404) --------------------------
-        evidencia = self.combinar(documento_id, extraccion.evidencias)
+        # El veredicto del gate entra a la combinación como dato de **programa**:
+        # es la clase documental del caso ("¿esto es un comprobante?"), que el
+        # código ya resolvió antes de extraer. Sin esto, el dato **desaparecía**
+        # del run aprobado: se perdía la única respuesta a "¿qué es este
+        # documento?" justo en los casos que sí pasaron el gate, y el
+        # laboratorio (que sí lo emite) quedaba sin contraparte con la que
+        # compararse. Va como `programa` —no como lectura— porque lo determinó
+        # el código, y `programa` tiene precedencia sobre vlm/llm: ninguna
+        # lectura discute lo que el gate ya decidió.
+        evidencia = self.combinar(
+            documento_id, [*extraccion.evidencias, *_fuente_de_clase(gate)]
+        )
         etapas.append(ETAPA_COMBINACION)
 
         # --- 5. clasificación contable opcional (F3/T-304) ----------------
@@ -867,6 +880,78 @@ class PipelineOrchestrator:
             settings=self.settings,
             **kwargs,
         ).resultados
+
+
+def _fuente_de_clase(gate: Any) -> list[SourceEvidence]:
+    """Publica la **clase documental** del gate como dato de ``programa``.
+
+    El gate (F2/T-202) ya respondió "¿esto es un comprobante?" antes de gastar en
+    extracción, pero esa respuesta vivía solo en el ``detalle`` de la corrida: el
+    ``CaseRecord`` de un caso **aprobado** la perdía, y el laboratorio de LLM
+    externos —que emite el mismo campo— quedaba sin contraparte. Acá se convierte
+    en un ``SourceEvidence`` de fuente :data:`Fuente.programa` para que entre a la
+    combinación y llegue al resultado y a la traza.
+
+    Por qué ``programa`` y no ``vlm``/``llm``
+    -----------------------------------------
+    1. **No es una lectura, es una decisión del código**: el veredicto lo produjo
+       el gate sobre una vista, y lo que se publica es la **conclusión** de esa
+       etapa (``veredicto_final``), no lo que un modelo dijo en una pasada. Como
+       ``programa`` tiene precedencia sobre las dos lecturas, la clase documental
+       no se discute campo a campo con la extracción.
+    2. **Evita pisar un slot de lectura**: ``vlm`` y ``llm`` los ocupan las dos
+       fuentes de extracción; publicar el gate ahí habría sobrescrito una de las
+       dos evidencias (``_indexar`` indexa por ``Fuente``, así que la última gana)
+       y se habría perdido una lectura real.
+
+    El ``fragmento_sustento`` cita la vista y la pasada que decidieron, para que
+    el dato sea auditable como cualquier otro (ADR-001): sin él, la evidencia se
+    marcaría como incompleta (``RAW_CAMPO``) y el auditor no podría reconstruir de
+    dónde salió el veredicto.
+
+    Devuelve lista vacía si el caso no pasó por el gate (``gate is None``) o si el
+    veredicto no está disponible: no se inventa una clase documental que nadie
+    determinó.
+    """
+    from .validation.qween import CAMPO_GATE
+
+    veredicto = getattr(getattr(gate, "veredicto_final", None), "value", None)
+    if not veredicto:
+        return []
+
+    pasadas = list(getattr(gate, "pasadas", []) or [])
+    ultima = pasadas[-1] if pasadas else None
+    vista = getattr(ultima, "vista_usada", None) or "desconocida"
+    confianza = getattr(ultima, "confianza_fuente", None) or "media"
+    n_pasadas = len(pasadas)
+
+    campo = EvidenceField(
+        campo=CAMPO_GATE,
+        valor=veredicto,
+        fuente=Fuente.programa,
+        fragmento_sustento=(
+            f"gate qween (F2/T-202): veredicto final {veredicto!r} sobre la vista "
+            f"{vista!r}"
+            + (
+                f", tras {n_pasadas} pasada(s)."
+                if n_pasadas
+                else " (no quedó registrada la pasada)."
+            )
+        ),
+        confianza_fuente=confianza,
+        meta={
+            "etapa": ETAPA_VALIDATION,
+            "vista": vista,
+            "pasadas": n_pasadas,
+            "nota": (
+                "Es la decisión del gate, no una lectura: se publica como "
+                "`programa` para que la clase documental del caso no se pierda en "
+                "un run aprobado (el campo del lab es el mismo, "
+                f"{CAMPO_GATE!r})."
+            ),
+        },
+    )
+    return [SourceEvidence(fuente=Fuente.programa, campos={CAMPO_GATE: campo})]
 
 
 def _fuentes_del_gate(gate: Any) -> list[SourceEvidence]:

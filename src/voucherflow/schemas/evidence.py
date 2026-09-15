@@ -100,6 +100,42 @@ class EstadoResultado(str, Enum):
     revision = "revision"
 
 
+class ClaseDocumento(str, Enum):
+    """Clase **documental** de un archivo: qué es, antes de qué dice.
+
+    Es la respuesta a «¿esto es un comprobante?» con las **tres salidas del gate
+    qween** (E-QWE-1, ``validation/prompt_qween.py``): un comprobante fiscal/
+    comercial, un documento que no lo es (DNI, memo, captura de pantalla, foto
+    de pizarra) o una lectura que no alcanza para decidirlo.
+
+    Por qué vive acá y no en cada módulo
+    ------------------------------------
+    El valor ya era el de :data:`~voucherflow.validation.qween.CAMPO_GATE`
+    (``es_comprobante``) en el pipeline, y el laboratorio de LLM externos
+    (``voucherflow-lab``) necesitaba el **mismo** campo para poder decir qué es
+    un documento que no encuadra como factura/nota. Con dos definiciones, el
+    mismo nombre significaría dos cosas y la comparación lab ↔ pipeline
+    compararía vocabularios distintos sin fallar.
+
+    Este es el módulo del **contrato congelado** (ADR-001) y no importa ningún
+    módulo del pipeline, así que puede ser el dueño del vocabulario sin crear un
+    ciclo: lo consumen ``validation`` (gate) y ``llm`` (lab). Un test verifica
+    que los valores de ``VeredictoGate`` sigan siendo exactamente estos.
+
+    ⚠️ **No confundir con** :class:`TipoComprobante`: la letra ``A``/``B``/``C``
+    dice *qué* comprobante es; esto dice *si* lo es. Un documento puede ser
+    ``comprobante`` con ``tipo_comprobante = None`` (una INVOICE sin letra
+    AFIP) y ``no_comprobante`` con tipo ``None`` (un DNI). Y ``indeterminado``
+    **no** es un sinónimo de ``no_comprobante``: significa "no se pudo decidir",
+    que es justamente lo que el gate usa para pedir una segunda pasada con una
+    vista mejor.
+    """
+
+    comprobante = "comprobante"
+    no_comprobante = "no_comprobante"
+    indeterminado = "indeterminado"
+
+
 class TipoComprobante(str, Enum):
     """Letras/tipos de comprobante que el sistema clasifica (E-CLAS-1).
 
@@ -410,6 +446,7 @@ __all__ = [
     "Certeza",
     "Origen",
     "EstadoResultado",
+    "ClaseDocumento",
     "TipoComprobante",
     "EvidenceField",
     "SourceEvidence",

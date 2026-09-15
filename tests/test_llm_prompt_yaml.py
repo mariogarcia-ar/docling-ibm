@@ -215,5 +215,12 @@ class TestElYamlReconstruyeElTemplate:
         # y el modelo improvisaba (`null`, texto libre, o "E"). Las corridas
         # anteriores al cambio quedan registradas con el hash viejo — es lo que
         # el registro de auditoría debe poder distinguir.
+        #
+        # ⚠️ El de **extraer** se actualizó al agregar 'es_comprobante' (regla 0,
+        # 2026-09-15): el lab no tenía cómo decir que un documento no es un
+        # comprobante, y el modelo lo improvisaba sobre `tipo_comprobante`. El de
+        # **validar** NO cambió a propósito: ese modo no tiene el campo en su
+        # esquema y pedírselo haría que el modelo devolviera un JSON inválido
+        # (repregunta paga).
         assert hash_prompt(*para_validar) == "sha256:60b92df8beb84472"
-        assert hash_prompt(*para_extraer) == "sha256:0d7ffc3dc25de2fe"
+        assert hash_prompt(*para_extraer) == "sha256:f319ce3e9e6d63bd"

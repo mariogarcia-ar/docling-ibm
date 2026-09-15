@@ -19,8 +19,7 @@ forma**:
 
 | Clave | Qué es | Cuándo llega al modelo |
 |---|---|---|
-| `system` | Las 15 reglas de negocio y los criterios del auditor | **Siempre** |
-| `user` | El pedido + el **template** del JSON de entrada | Siempre, con los datos reales **sustituidos** |
+| `system` | Las 15 reglas de negocio y los criterios del auditor | **Siempre** || `user` | El pedido + el **template** del JSON de entrada | Siempre, con los datos reales **sustituidos** |
 | `ejemplo_salida` | El formato de la respuesta | Según el proveedor (ver abajo) |
 
 ⚠️ **Los valores del `user` son un template, no datos.** El bloque `{…}` se
@@ -80,6 +79,37 @@ hasta descartar que esté justificada*.
 
 Y tres criterios que ordenan el juicio: **«no legible» ≠ inventar** un valor;
 priorizar discrepancias de **monto** sobre las cosméticas; **nunca inventar**.
+
+---
+
+## El campo `es_comprobante` (la «regla 0»)
+
+Es el campo que responde **qué es** el documento, antes de *qué dice*. Existe
+porque el corpus real trae documentos que **no son facturas ni notas** —una
+captura con «GASTOS VARIOS, FALTA FACTURA», un remito, un resumen de tarjeta— y
+sin este campo el modelo improvisaba la respuesta sobre `tipo_comprobante`:
+`null` (el dato se perdía), texto libre (que el vocabulario cerrado marca
+inválido) o forzando una letra A/B/C que el papel no tiene.
+
+| Valor | Qué significa |
+|---|---|
+| `comprobante` | Lo emitió el proveedor/vendedor y acredita la operación |
+| `no_comprobante` | No es un comprobante: DNI, memo, foto de pizarra, presupuesto, resumen de tarjeta, captura que solo muestra un pago |
+| `indeterminado` | La imagen no alcanza para decidirlo |
+
+⚠️ **No es una decisión de negocio, es una lectura.** No dice si el comprobante
+*sirve* para el gasto (eso es `comprobante_valido`, que resuelve F5 y sigue
+fuera del contrato) ni qué comprobante es (eso es `tipo_comprobante`). Es la
+misma pregunta que el **gate** de F2 le hace a una vista barata antes de gastar
+en extracción, y por eso los dos usan el **mismo** campo y el **mismo**
+vocabulario (`schemas.evidence.ClaseDocumento`).
+
+⚠️ **Va en el cierre de extracción, no en las 15 reglas.** El `system` del YAML
+se manda siempre, pero el esquema del modo `validar` no tiene este campo: un
+modelo al que se le pide un dato que su esquema no admite devuelve un JSON
+inválido y el núcleo **repregunta** (y cada intento se paga). Por eso la guía
+vive en `INSTRUCCIONES_SISTEMA_EXTRACCION` (`prompts.py`), que reemplaza el
+cierre de comparación **solo** en modo `extraer`.
 
 ---
 

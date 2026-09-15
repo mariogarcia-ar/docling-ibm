@@ -449,6 +449,43 @@ class TestOrquestador:
         assert resultado.caso.resultado.estado.value == "rechazado"
         assert resultado.caso.quien_decidio.value == "programa"
 
+    def test_la_clase_documental_llega_al_resultado_del_run_aprobado(self, documento: Path):
+        """⚠️ El veredicto del gate **no** se pierde cuando el caso pasa.
+
+        El gate respondió "¿esto es un comprobante?" antes de extraer, pero esa
+        respuesta vivía solo en el ``detalle`` de la corrida: el resultado y el
+        ``CaseRecord`` de un caso aprobado no la tenían. Es justo el dato que el
+        laboratorio de LLM externos emite (``es_comprobante``), así que sin esto
+        las dos puntas no se podían comparar — y la única respuesta a "¿qué es
+        este documento?" desaparecía en los casos que sí importan.
+        """
+        resultado = _orquestador().ejecutar(documento)
+        campos = resultado.resultado.campos_extraidos
+
+        assert campos.get("es_comprobante") == "comprobante"
+        # Y viaja con su fuente: la decidió el **código**, no una lectura.
+        combinado = resultado.evidencia.campos["es_comprobante"]
+        assert combinado.fuente.value == "programa"
+        assert combinado.valor == "comprobante"
+        # El sostén cita la vista y la pasada que decidieron (auditable, ADR-001).
+        assert "gate qween" in combinado.programa.fragmento_sustento
+
+    def test_la_clase_documental_la_decide_el_programa_no_una_lectura(self, documento: Path):
+        """La lectura **no** puede pisar el veredicto del gate.
+
+        El modelo de extracción devuelve sus campos, pero la clase documental la
+        resolvió el código: si una lectura pudiera ganar ese campo, el veredicto
+        del gate se discutiría con una opinión (ADR-002: lo comprobado manda).
+        """
+        resultado = _orquestador(campos={"es_comprobante": "no_comprobante"}).ejecutar(documento)
+
+        combinado = resultado.evidencia.campos["es_comprobante"]
+        assert combinado.fuente.value == "programa"
+        assert combinado.valor == "comprobante"
+        # La lectura que discrepó queda registrada, no borrada (combinar no descarta).
+        assert combinado.llm is not None
+        assert combinado.llm.valor == "no_comprobante"
+
     def test_documento_ilegible_declara_el_error(self, tmp_path: Path):
         resultado = _orquestador().ejecutar(tmp_path / "no-existe.jpg")
         assert resultado.ok is False

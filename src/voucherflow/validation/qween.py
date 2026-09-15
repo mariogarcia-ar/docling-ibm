@@ -36,7 +36,13 @@ from typing import Any
 
 from ..models.docling import ProcessedDocument
 from ..models.ollama import OllamaClient
-from ..schemas.evidence import EvidenceField, Fuente, SourceEvidence, nueva_meta
+from ..schemas.evidence import (
+    ClaseDocumento,
+    EvidenceField,
+    Fuente,
+    SourceEvidence,
+    nueva_meta,
+)
 from ..settings.config import Settings, cargar_settings
 from .prompt_qween import VERSION_PROMPT_QWEEN, construir_messages_gate
 from .vistas import (
@@ -48,11 +54,19 @@ from .vistas import (
 
 
 class VeredictoGate(str, Enum):
-    """Salida de la decisión binaria barata "¿es comprobante?" (E-QWE-1)."""
+    """Salida de la decisión binaria barata "¿es comprobante?" (E-QWE-1).
 
-    comprobante = "comprobante"
-    no_comprobante = "no_comprobante"
-    indeterminado = "indeterminado"
+    ⚠️ **Los valores están atados a** :class:`~voucherflow.schemas.evidence.ClaseDocumento`
+    (contrato F0): el mismo vocabulario lo emite el **laboratorio** de LLM
+    externos para el mismo campo (``es_comprobante``), así que las dos puntas
+    tienen que decir exactamente lo mismo o la comparación lab ↔ pipeline
+    compararía vocabularios distintos **sin fallar**. Lo verifica
+    ``tests/test_validation_qween.py``.
+    """
+
+    comprobante = ClaseDocumento.comprobante.value
+    no_comprobante = ClaseDocumento.no_comprobante.value
+    indeterminado = ClaseDocumento.indeterminado.value
 
 
 @dataclass

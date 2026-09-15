@@ -28,6 +28,11 @@ from voucherflow.llm.esquema import (
     _validador_jsonschema,
     normalizar_por_esquema,
 )
+from voucherflow.llm.esquemas import (
+    CLASES_DOCUMENTO,
+    esquema_extraccion,
+    esquema_validacion,
+)
 from voucherflow.llm.prompts import (
     INSTRUCCIONES_SISTEMA_EXTRACCION,
     ejemplo_desde_esquema,
@@ -286,3 +291,89 @@ class TestTipoCompatible:
         assert _tipo_compatible(esquema, "x")
         assert _tipo_compatible(esquema, None)
         assert _tipo_compatible(esquema, 1)
+
+
+# ---------------------------------------------------------------------------
+# El campo `es_comprobante` (la «regla 0» del lab)
+# ---------------------------------------------------------------------------
+
+
+class TestCampoEsComprobante:
+    """El campo responde *qué es* el documento, antes de *qué dice*.
+
+    Existe porque el corpus real trae documentos que **no son** facturas ni
+    notas, y sin este campo el modelo improvisaba la respuesta sobre
+    `tipo_comprobante` (`null`, texto libre, o una letra que el papel no tiene).
+    """
+
+    def test_el_esquema_de_extraccion_lo_pide(self):
+        esquema = esquema_extraccion()
+        assert "es_comprobante" in esquema["properties"]
+        # Obligatorio: un campo opcional se omite y la ausencia se lee como "no
+        # lo pudo leer", que es otra cosa.
+        assert "es_comprobante" in esquema["required"]
+
+    def test_el_modo_validar_no_lo_pide(self):
+        """⚠️ Pedirlo en `validar` haría que el modelo devuelva un JSON inválido.
+
+        El esquema de `validar` es estricto: una clave de más lo rechaza, el
+        núcleo **repregunta** y cada intento se paga. La guía del campo tiene que
+        viajar solo en la adaptación de `extraer` (es lo que verifica el test de
+        abajo).
+        """
+        assert "es_comprobante" not in esquema_validacion()["properties"]
+
+    def test_los_valores_son_los_del_contrato_no_un_vocabulario_propio(self):
+        """⚠️ El lab y el gate tienen que decir exactamente lo mismo.
+
+        El pipeline publica el mismo campo desde su gate
+        (`validation/qween.py`), con los valores de
+        `schemas.evidence.ClaseDocumento`. Si el lab trajera su propia lista, la
+        comparación de las dos puntas compararía vocabularios distintos **sin
+        fallar**: el reporte diría «difiere» siempre, o coincidiría por azar.
+        """
+        enum = esquema_extraccion()["properties"]["es_comprobante"]["enum"]
+        assert enum == list(CLASES_DOCUMENTO)
+        assert set(enum) == {"comprobante", "no_comprobante", "indeterminado"}
+
+    def test_el_ejemplo_generado_lo_incluye(self):
+        # El ejemplo se genera del esquema que valida: si el campo se agrega al
+        # esquema, el modelo lo ve sin que nadie escriba el ejemplo a mano.
+        ejemplo = json.loads(ejemplo_desde_esquema(esquema_extraccion()))
+        assert "es_comprobante" in ejemplo
+
+    def test_la_guia_viaja_en_la_adaptacion_de_extraer(self):
+        """La guía no está en las 15 reglas del `system`: está en el cierre.
+
+        El `system` del YAML se manda **siempre** (también en `validar`, cuyo
+        esquema no tiene el campo). La guía de `es_comprobante` va en
+        `INSTRUCCIONES_SISTEMA_EXTRACCION`, que reemplaza el cierre de
+        comparación solo en modo `extraer`.
+        """
+        assert "es_comprobante" in INSTRUCCIONES_SISTEMA_EXTRACCION
+        # Y explica los tres casos, no solo el positivo: sin los negativos el
+        # modelo no sabe que "no_comprobante" es una respuesta válida.
+        assert "no_comprobante" in INSTRUCCIONES_SISTEMA_EXTRACCION
+        assert "indeterminado" in INSTRUCCIONES_SISTEMA_EXTRACCION
+
+    def test_la_guia_no_se_cuela_en_el_prompt_de_validar(self):
+        """La contracara: en `validar` el prompt efectivo **no** menciona el campo.
+
+        Si la guía se colara ahí, el modelo devolvería una clave que el esquema
+        estricto rechaza → repregunta pagada. Se verifica sobre el prompt
+        **efectivo** de los dos modos, no sobre las constantes.
+        """
+        from voucherflow.llm.prompts import armar_prompt_efectivo
+
+        def _prompt(modo: str) -> str:
+            sistema, user = armar_prompt_efectivo(
+                modo,
+                "Sos un auditor experto en comprobantes.",
+                "Comprobante adjunto: [IMAGEN]\n\nDatos cargados:\n{}",
+                {"tipo_comprobante": "A"} if modo == "validar" else None,
+                incluir_ejemplo=False,
+            )
+            return f"{sistema}\n{user}"
+
+        assert "no_comprobante" not in _prompt("validar")
+        assert "no_comprobante" in _prompt("extraer")
