@@ -1,12 +1,12 @@
 {
   "origen": "tests/fixtures/chicos/b073927b-e9d7-48fc-8f4b-8d2ef0896f97_p01.pdf",
-  "archivo_relativo": "b073927b-e9d7-48fc-8f4b-8d2ef0896f97_p01.pdf",
-  "procesado_utc": "2026-09-15T03:46:32+00:00",
+  "archivo_relativo": "chicos/b073927b-e9d7-48fc-8f4b-8d2ef0896f97_p01.pdf",
+  "procesado_utc": "2026-09-15T11:52:25+00:00",
   "modelo": "deepseek-flash",
   "modo": "extraer",
   "version_prompt": "mendel-validacion@1",
   "fuente": "api",
-  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_zw1uqns7/b073927b-e9d7-48fc-8f4b-8d2ef0896f97_p01.jpg",
+  "imagen_origen": "/var/folders/9s/s195wcs90cv2s8m3t1h3pgbr0000gn/T/lab_pdf_6ekg21fv/chicos/b073927b-e9d7-48fc-8f4b-8d2ef0896f97_p01.jpg",
   "pagina": 1,
   "imagen": {
     "bytes": 619367,
@@ -18,13 +18,13 @@
     ],
     "tokens_estimados": 1024
   },
-  "prompt_hash": "sha256:a0cd908fe067fb3c",
+  "prompt_hash": "sha256:62f07862b9dd7d4c",
   "uso": {
-    "prompt_tokens": 3491,
-    "completion_tokens": 1217,
-    "total_tokens": 4708,
-    "prompt_cache_hit_tokens": 3328,
-    "prompt_cache_miss_tokens": 163
+    "prompt_tokens": 3699,
+    "completion_tokens": 1100,
+    "total_tokens": 4799,
+    "prompt_cache_hit_tokens": 0,
+    "prompt_cache_miss_tokens": 3699
   },
   "esquema_validado": true,
   "precios_usd_1m": {
@@ -33,13 +33,13 @@
     "entrada_cache": 0.006,
     "origen": "referencia"
   },
-  "costo_usd": 0.001529,
+  "costo_usd": 0.00243,
   "resultado": {
     "legibilidad": "buena",
-    "tipo_comprobante": "INVOICE (no es comprobante AFIP: no corresponde a A/B/C/090/099)",
+    "tipo_comprobante": "INTERNACIONAL",
     "codigo_afip": null,
     "razon_social_emisor": "Miami IT Smart Tech LLC",
-    "cuit_emisor": "30-1222601-",
+    "cuit_emisor": null,
     "digito_verificador_cuit_valido": false,
     "fecha_emision": "07/07/2026",
     "nro_factura": "Z202607070456",
@@ -54,20 +54,20 @@
     "otros_impuestos": 0,
     "importe_total": 550.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Servicios de tecnología / software (automatización de tablero de gestión)",
-    "categoria_gasto_sugerida": "Servicios Informáticos / Software",
+    "rubro_emisor": "Servicios informáticos / desarrollo de software (automatización de tablero de gestión integral)",
+    "categoria_gasto_sugerida": "Servicios informáticos / Software",
     "cantidad_comensales_personas": null,
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "El documento NO es un comprobante fiscal argentino (AFIP/ARCA): se trata de una INVOICE comercial emitida por Miami IT Smart Tech LLC (Waterford District Dr. 5200 Suite 120, Miami, Florida), sin código AFIP, sin tipo A/B/C y sin discriminación de IVA ni otros tributos argentinos. Moneda USD. Detalle: QTY 1 – '(682, Automatización tablero de gestión integral (periodo 07/2026)' – Unit value USD 550,00 – Total value USD 550,00. Totales: SUBTOTAL USD 550,00; TAXES USD 0,00; FREIGHT COST USD 0,00; INSURANCE USD 0,00; DISCOUNT USD 0,00; TOTAL USD 550,00. Cierra aritméticamente (550 + 0 impuestos = 550). 'Our tax ID' del emisor figura incompleto/truncado ('30-1222601-'), formato de EIN de EE.UU., no validable como CUIT argentino (11 dígitos). Datos del receptor: CVC S.A, Av. de Circunvalación Bis 1245, Rosario Norte, Santa Fe, Argentina, Customer Tax ID 30582215703. Vencimiento: August/06/2026. Pago por transferencia bancaria (Seacoast National Bank). No hay datos cargados por el empleado en esta pasada; sólo se transcribe."
+    "observaciones": "Comprobante emitido por proveedor del exterior (Miami IT Smart Tech LLC, Miami, Florida, EE.UU.): es una INVOICE internacional, sin letra A/B/C ni código AFIP. El \"tax ID\" del emisor figura como 30-1222601- (incompleto y no es CUIT argentino de 11 dígitos), por lo que CUIT_EMISOR queda en null. El \"Customer Tax ID\" 30582215703 corresponde al comprador (CVC S.A., Argentina), no al emisor. Fecha impresa en formato inglés (July/07/2026), transcrita como 07/07/2026. Una única línea: 1 unidad de \"Automatizacion tablero de gestion integral (periodo 07/2026)\" por USD 550,00. Impuestos (TAXES), freight, insurance y discount en USD 0,00; subtotal y total coinciden en USD 550,00. Condiciones de pago: 30 días, vencimiento August/06/2026. Rubro inferido del detalle del servicio (software/servicios IT); la categoría sugerida es orientativa."
   },
   "extraccion": {
     "legibilidad": "buena",
-    "tipo_comprobante": "INVOICE (no es comprobante AFIP: no corresponde a A/B/C/090/099)",
+    "tipo_comprobante": "INTERNACIONAL",
     "codigo_afip": null,
     "razon_social_emisor": "Miami IT Smart Tech LLC",
-    "cuit_emisor": "30-1222601-",
+    "cuit_emisor": null,
     "digito_verificador_cuit_valido": false,
     "fecha_emision": "07/07/2026",
     "nro_factura": "Z202607070456",
@@ -82,13 +82,13 @@
     "otros_impuestos": 0,
     "importe_total": 550.0,
     "cierra_aritmetica": true,
-    "rubro_emisor": "Servicios de tecnología / software (automatización de tablero de gestión)",
-    "categoria_gasto_sugerida": "Servicios Informáticos / Software",
+    "rubro_emisor": "Servicios informáticos / desarrollo de software (automatización de tablero de gestión integral)",
+    "categoria_gasto_sugerida": "Servicios informáticos / Software",
     "cantidad_comensales_personas": null,
     "cantidad_litros": null,
     "centro_de_costo": null,
     "campos_no_legibles": [],
-    "observaciones": "El documento NO es un comprobante fiscal argentino (AFIP/ARCA): se trata de una INVOICE comercial emitida por Miami IT Smart Tech LLC (Waterford District Dr. 5200 Suite 120, Miami, Florida), sin código AFIP, sin tipo A/B/C y sin discriminación de IVA ni otros tributos argentinos. Moneda USD. Detalle: QTY 1 – '(682, Automatización tablero de gestión integral (periodo 07/2026)' – Unit value USD 550,00 – Total value USD 550,00. Totales: SUBTOTAL USD 550,00; TAXES USD 0,00; FREIGHT COST USD 0,00; INSURANCE USD 0,00; DISCOUNT USD 0,00; TOTAL USD 550,00. Cierra aritméticamente (550 + 0 impuestos = 550). 'Our tax ID' del emisor figura incompleto/truncado ('30-1222601-'), formato de EIN de EE.UU., no validable como CUIT argentino (11 dígitos). Datos del receptor: CVC S.A, Av. de Circunvalación Bis 1245, Rosario Norte, Santa Fe, Argentina, Customer Tax ID 30582215703. Vencimiento: August/06/2026. Pago por transferencia bancaria (Seacoast National Bank). No hay datos cargados por el empleado en esta pasada; sólo se transcribe."
+    "observaciones": "Comprobante emitido por proveedor del exterior (Miami IT Smart Tech LLC, Miami, Florida, EE.UU.): es una INVOICE internacional, sin letra A/B/C ni código AFIP. El \"tax ID\" del emisor figura como 30-1222601- (incompleto y no es CUIT argentino de 11 dígitos), por lo que CUIT_EMISOR queda en null. El \"Customer Tax ID\" 30582215703 corresponde al comprador (CVC S.A., Argentina), no al emisor. Fecha impresa en formato inglés (July/07/2026), transcrita como 07/07/2026. Una única línea: 1 unidad de \"Automatizacion tablero de gestion integral (periodo 07/2026)\" por USD 550,00. Impuestos (TAXES), freight, insurance y discount en USD 0,00; subtotal y total coinciden en USD 550,00. Condiciones de pago: 30 días, vencimiento August/06/2026. Rubro inferido del detalle del servicio (software/servicios IT); la categoría sugerida es orientativa."
   },
   "aritmetica": {
     "calculable": true,
