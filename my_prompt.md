@@ -5,7 +5,11 @@
 
 
 
- voucherflow-lab tests/fixtures/chicos -M extraer -p deepseek --workers 4 -o tests/ixtures-extraction/chicos 
+ voucherflow-lab tests/fixtures/chicos -M extraer -p deepseek --workers 4 -o tests/ixtures-extraction/chicos
+
+
+python scripts/operacion/pdf-a-imagen.py tests/fixtures/chicos --dry-run
+
 
 
 
