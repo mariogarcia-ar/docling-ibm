@@ -44,9 +44,10 @@ buscarlas y el motivo del fallo. Un documento sin extracción se muestra en gris
 con el comando exacto para generarla.
 
 **En la ficha**, cada extracción muestra: banderas arriba (lo que se mira primero:
-legibilidad, tipo, CUIT, total, si cierra la aritmética), la tabla de los 26 campos
-con su clave cruda del JSON al lado, la procedencia (modelo, prompt, costo, tokens,
-la aritmética recalculada en código) y el JSON crudo plegable.
+la clase documental, legibilidad, tipo, CUIT, total, si cierra la aritmética), la
+tabla de los 27 campos con su clave cruda del JSON al lado, la procedencia (modelo,
+prompt, costo, tokens, la aritmética recalculada en código) y el JSON crudo
+plegable.
 
 Un PDF multipágina pagó **una extracción por página**: la ficha apila un bloque por
 página y el documento queda **fijo** en su columna al hacer scroll, para poder
@@ -137,6 +138,8 @@ rompe alguna, deja de estar en silencio: aparece el bloque de huérfanas.
   real (`src/voucherflow/llm/esquemas.py`, `esquema_extraccion`); si el esquema
   cambia, es el archivo a mirar. Un campo nuevo del laboratorio **no desaparece**:
   cae al final con su clave cruda como etiqueta.
+- **Un vocabulario cerrado con tres estados no es un texto ni un booleano.** Ver
+  `es_comprobante`, abajo.
 - **El tema oscuro es el default** y el claro se activa con `prefers-color-scheme`.
   Contrastar una factura clara contra un fondo oscuro es más cómodo y evita el
   flash blanco al abrir.
@@ -150,6 +153,44 @@ rompe alguna, deja de estar en silencio: aparece el bloque de huérfanas.
   «no permitido» filtraría información del disco). `Cache-Control: no-cache` +
   `ETag`, porque los `.extraccion.json` **se regeneran** y una copia sin revalidar
   mostraría una lectura vieja.
+
+### El campo `es_comprobante` (la clase documental)
+
+Es el campo que responde **qué es** el documento antes de *qué dice*, y tiene tres
+estados que **no** son un sí/no:
+
+| Valor | En la ficha | En el listado | Tono |
+|---|---|---|---|
+| `comprobante` | sí | *(se omite)* | verde |
+| `no_comprobante` | no | no es comprobante | rojo |
+| `indeterminado` | no se pudo decidir | no se pudo decidir | **ámbar** |
+
+Decisiones que no son de estilo:
+
+- **Va primero, en las banderas y en la tabla.** Todas las demás banderas (tipo,
+  CUIT, total, aritmética) presuponen que el documento es un comprobante. Ponerlo
+  al final obligaba a leer seis banderas vacías para llegar a la que explica por
+  qué están vacías.
+- **`indeterminado` es ámbar, no rojo.** `no_comprobante` es una **respuesta
+  firme** —el documento no acredita la operación— y no un error de la herramienta.
+  `indeterminado` es distinto: la imagen no alcanzó y **pide una acción** (volver a
+  mirar el documento), así que es el único de los tres que no debería pasar sin que
+  alguien lo vea. Es el primer uso real de `--medio`, que estaba declarado en el CSS
+  sin consumidores.
+- **El texto del listado no es el de la ficha.** En la ficha el valor va debajo del
+  rótulo «Es un comprobante», así que un «no» se lee solo. En el listado va suelto
+  en una columna: ahí dice **«no es comprobante»**, porque un «no» pelado no dice
+  *no qué*. Son dos columnas de la **misma** tabla, para que no puedan divergir.
+- **El resumen del listado lo antepone.** Sin eso, una fila de un negativo mostraba
+  el texto libre de las observaciones, que empieza igual en todos: había que abrir
+  la ficha para saber que la respuesta era «no es un comprobante».
+- **Un valor fuera del vocabulario no se colorea.** Si el modelo devuelve algo que
+  no está en los tres estados, se muestra crudo y sin tono: pintarlo de verde o de
+  rojo afirmaría algo que no se sabe.
+
+⚠️ **El vocabulario es el del contrato** (`schemas.evidence.ClaseDocumento`), el
+mismo que usa el gate del pipeline. Si acá se inventara una traducción distinta, el
+visor mentiría sobre el dato que compara el resto del sistema.
 
 ### El alto del encabezado se mide, no se adivina
 

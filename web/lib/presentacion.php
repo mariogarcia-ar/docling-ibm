@@ -19,12 +19,20 @@ declare(strict_types=1);
 /**
  * Campos de la extracción: clave → [etiqueta, tipo].
  *
- * `tipo` decide el formato: `texto` | `numero` | `booleano` | `lista` | `largo`.
- * `largo` es para lo que no entra en una fila (la observación del modelo).
+ * `tipo` decide el formato: `texto` | `numero` | `booleano` | `lista` | `largo` |
+ * `clase_documento`. `largo` es para lo que no entra en una fila (la observación
+ * del modelo). `clase_documento` es un vocabulario cerrado con su propio color,
+ * porque sus tres valores no son sí/no ni texto libre (ver
+ * `presentacion_clase_documento`).
  */
 function presentacion_campos(): array
 {
     return [
+        // Va PRIMERO a propósito: es la pregunta que encuadra a todas las demás
+        // («¿esto es un comprobante?») y el orden de esta tabla es el de la
+        // pantalla. El esquema lo pide primero por la misma razón
+        // (`llm/prompts.py`, `INSTRUCCIONES_SISTEMA_EXTRACCION`).
+        'es_comprobante' => ['Es un comprobante', 'clase_documento'],
         'legibilidad' => ['Legibilidad de la imagen', 'texto'],
         'tipo_comprobante' => ['Tipo / letra', 'texto'],
         'codigo_afip' => ['Código AFIP', 'texto'],
@@ -58,6 +66,10 @@ function presentacion_campos(): array
 function presentacion_banderas(): array
 {
     return [
+        // La clase documental va primera: si el documento no es un comprobante,
+        // TODO lo que sigue (tipo, CUIT, total, aritmética) no aplica, y verlo
+        // después de seis banderas vacías obliga a releer la fila entera.
+        'es_comprobante',
         'legibilidad',
         'tipo_comprobante',
         'cuit_emisor',
@@ -66,6 +78,48 @@ function presentacion_banderas(): array
         'cierra_aritmetica',
         'discrimina_impuestos',
     ];
+}
+
+/**
+ * Vocabulario cerrado de `es_comprobante` → [texto, tono, texto para el listado].
+ *
+ * El campo tiene **tres** estados y ninguno es un booleano:
+ *
+ * - `comprobante` — lo que se espera ver (tono `si`).
+ * - `no_comprobante` — una respuesta **firme**: el documento no acredita la
+ *   operación. No es un error de la herramienta ni algo «a revisar» (tono `no`).
+ * - `indeterminado` — no alcanzó la imagen para decidirlo. ⚠️ Es el estado que
+ *   **pide una acción** (volver a mirar el documento), así que va en tono
+ *   `medio`: ni bien ni mal, y es el único de los tres que no debería pasar sin
+ *   que alguien lo vea.
+ *
+ * ⚠️ El texto se escribe con las palabras del dominio y **no** con el valor crudo
+ * (`no_comprobante`): junto al rótulo «Es un comprobante» se lee de un vistazo, y
+ * el valor crudo ya está en la columna de la clave del JSON.
+ *
+ * ⚠️ La **tercera** columna es para el listado, donde el texto va suelto y sin el
+ * rótulo al lado: un «no» pelado en una columna no dice *no qué*. Ahí se lee la
+ * frase entera. Es una sola tabla a propósito: dos listas de textos divergirían y
+ * una de las dos pantallas mentiría.
+ *
+ * Es este vocabulario y no otro porque es el del contrato
+ * (`schemas.evidence.ClaseDocumento`), compartido con el gate del pipeline: si
+ * acá se inventara una traducción distinta, el visor mentiría sobre el dato que
+ * compara el resto del sistema.
+ */
+function presentacion_clase_documento(): array
+{
+    return [
+        'comprobante' => ['sí', 'si', 'es comprobante'],
+        'no_comprobante' => ['no', 'no', 'no es comprobante'],
+        'indeterminado' => ['no se pudo decidir', 'medio', 'no se pudo decidir'],
+    ];
+}
+
+/** Texto del valor para el **listado** (sin rótulo al lado, frase entera). */
+function presentacion_clase_documento_resumen(mixed $valor): string
+{
+    return presentacion_clase_documento()[(string) $valor][2] ?? (string) $valor;
 }
 
 /**
@@ -139,6 +193,10 @@ function presentacion_valor(mixed $valor, string $tipo): string
     if ($valor === null) {
         return 'sin dato';
     }
+    if ($tipo === 'clase_documento') {
+        return presentacion_clase_documento()[(string) $valor][0]
+            ?? (string) $valor;  // valor fuera del vocabulario: se muestra crudo
+    }
     if (is_bool($valor)) {
         return $valor ? 'sí' : 'no';
     }
@@ -161,11 +219,21 @@ function presentacion_valor(mixed $valor, string $tipo): string
  *
  * `cero` es explícito y no `numero`: un 0 de importe es una lectura, y merece
  * verse igual que las demás (lo que se apaga es el `null`).
+ *
+ * ⚠️ `es_comprobante` se resuelve **por valor**, no por tipo: sus tres estados
+ * tienen tres tonos distintos (`si` / `no` / `medio`) y el tipo por sí solo no
+ * los distingue. Un valor fuera del vocabulario no se colorea: pintarlo de verde
+ * o de rojo afirmaría algo que no se sabe.
  */
 function presentacion_clase(mixed $valor, string $tipo): string
 {
     if (!presentacion_leido($valor, $tipo)) {
         return 'valor valor-vacio';
+    }
+    if ($tipo === 'clase_documento') {
+        $tono = presentacion_clase_documento()[(string) $valor][1] ?? null;
+
+        return $tono === null ? 'valor valor-clase' : "valor valor-{$tono}";
     }
     if (is_bool($valor)) {
         return 'valor ' . ($valor ? 'valor-si' : 'valor-no');
@@ -208,10 +276,20 @@ function presentacion_bytes(int $bytes): string
  *
  * Prioriza lo que identifica al comprobante; si no hay nada de eso (un negativo,
  * por ejemplo) cae al motivo, que suele ser la parte útil de esa lectura.
+ *
+ * ⚠️ Si el documento **no es un comprobante**, el resumen arranca diciéndolo. Sin
+ * eso, una fila de un negativo mostraba «tipo · emisor · $ total» vacío y caía al
+ * texto libre de las observaciones, que empieza igual en todos los negativos:
+ * había que abrir la ficha para saber que la respuesta era «no es un comprobante»
+ * — que es justamente el dato que la fila tiene que adelantar.
  */
 function presentacion_resumen(array $campos): string
 {
     $partes = [];
+    $clase = $campos['es_comprobante'] ?? null;
+    if ($clase !== null && $clase !== 'comprobante') {
+        $partes[] = presentacion_clase_documento_resumen($clase);
+    }
     if (presentacion_leido($campos['tipo_comprobante'] ?? null)) {
         $partes[] = 'tipo ' . $campos['tipo_comprobante'];
     }

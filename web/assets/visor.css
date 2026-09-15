@@ -325,6 +325,7 @@ code, pre, .ruta { font-family: var(--mono); }
 .banderas .valor-vacio .bandera-valor { color: var(--texto-tenue); font-style: italic; }
 .banderas .valor-si .bandera-valor { color: var(--ok); }
 .banderas .valor-no .bandera-valor { color: var(--no); }
+.banderas .valor-medio .bandera-valor { color: var(--medio); }
 
 /* --- Tabla de campos ----------------------------------------------------- */
 
@@ -376,6 +377,11 @@ code, pre, .ruta { font-family: var(--mono); }
 .valor-vacio { color: var(--texto-tenue); font-style: italic; }
 .valor-si { color: var(--ok); }
 .valor-no { color: var(--no); }
+/* Tono intermedio: hoy solo lo usa `es_comprobante` = `indeterminado`, que es el
+   único estado que PIDE una acción (volver a mirar el documento). Ni bien ni mal,
+   pero no tiene que pasar desapercibido como el texto común. */
+.valor-medio { color: var(--medio); }
+.valor-clase { font-weight: 600; }
 .valor-numero { font-variant-numeric: tabular-nums; font-family: var(--mono); font-size: 13px; }
 .valor-largo p { margin: 0; white-space: pre-wrap; }
 
