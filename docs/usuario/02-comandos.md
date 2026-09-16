@@ -126,8 +126,23 @@ voucherflow process var/files -o var/procesados            # 2ª: saltea lo hech
 voucherflow process var/files -o var/procesados --force    # rehace todo
 ```
 
-**Código de salida**: `0` siempre que haya procesado algo (o que todo ya estuviera
-hecho); `1` si no encontró documentos procesables.
+**Un documento que falla no corta el lote.** Un archivo que no parece un documento
+(una foto con relación de aspecto extrema, un PDF ilegible) se anota, se declara en
+el log y la corrida **sigue** con el resto. Al final imprime cuántos fallaron,
+agrupados por motivo, y con `-o DIR` deja el detalle por archivo en `DIR/fallos.json`
+— que es la lista de **qué reintentar**:
+
+```
+1 documento(s) fallaron (no se escribió su markdown):
+         1 × La imagen 'pagina.jpg' no superó el gate de procesabilidad (T-102)
+     detalle: var/procesados/fallos.json
+```
+
+Los que fallaron se reintentan solos en la corrida siguiente (no dejan markdown, así
+que no quedan "hechos"). Si querés rehacerlos ya, `--force`.
+
+**Código de salida**: `0` si todo salió bien (o todo ya estaba hecho); `1` si algún
+documento falló o no se encontró ninguno procesable.
 
 > **Nunca sobrescribe el documento de entrada.** Si el archivo de origen es un
 > `.md` y el destino sería el mismo archivo, se escribe `<doc>.processed.md`. Por

@@ -280,6 +280,27 @@ class PipelineOrchestrator:
         self.settings = settings
         self.cola = cola
         self._etapas: list[str] = []
+        #: Convertidor Docling construido de forma **perezosa y una sola vez**.
+        #: ⚠️ Sin cachear, cada documento creaba su propio `DoclingConverter` y con él
+        #: sus modelos de OCR: medido sobre el corpus real, 18 cargas de pesos para 19
+        #: documentos, y el lote caía a ~8,5 documentos/min (≈7 h para los 3.729
+        #: pendientes) en vez de pagar la carga una vez y quedarse con el motor vivo.
+        self._converter_cache: Any = None
+
+    def converter_efectivo(self) -> Any:
+        """El convertidor Docling de la corrida: se construye **una vez** y se reusa.
+
+        Es el mismo objeto para todos los documentos del lote, y se construye en la
+        primera llamada (no al crear el orquestador) para que importar el módulo no
+        cargue Docling ni sus modelos.
+        """
+        if self.converter is not None:
+            return self.converter
+        if self._converter_cache is None:
+            from .models.docling import DoclingConverter
+
+            self._converter_cache = DoclingConverter()
+        return self._converter_cache
 
     # ------------------------------------------------------------------
     # Registro de etapas (contrato de F0, se conserva)
@@ -347,7 +368,7 @@ class PipelineOrchestrator:
 
         documento = procesar_documento(
             origen,
-            converter=self.converter,
+            converter=self.converter_efectivo(),
             modo_motor=modo_motor,
             docling_raw=docling_raw,
         )
@@ -385,7 +406,7 @@ class PipelineOrchestrator:
             self._cliente(),
             modelo=modelo,
             settings=self._settings(),
-            converter=self.converter,
+            converter=self.converter_efectivo(),
         )
 
     def extraer(

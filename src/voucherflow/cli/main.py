@@ -44,7 +44,7 @@ from ..orchestrator import (
     identificador_de_archivo,
     iterar_documentos,
 )
-from ..persistencia import escribir_atomico, ya_escrito
+from ..persistencia import escribir_atomico, escribir_json_atomico, ya_escrito
 
 #: Subcomandos que expone el CLI (el contrato de E-CLI-1 + ``extract-detect`` y
 #: los de auditoría de `ORCH-CLI.md` §3, + ``corpus`` y ``pdf``).
@@ -87,6 +87,11 @@ MARCA_DETECT = "detect"
 #: A partir de este tamaño (bytes) la salida de ``extract`` por ``stdout`` se
 #: declara en el log: no cambia el contrato, avisa del costo de leerla.
 LIMITE_STDOUT_BYTES = 1_000_000
+
+#: Nombre del archivo donde ``process -o DIR`` deja los documentos que fallaron.
+#: ⚠️ No es ``*.md`` a propósito: un markdown ahí sería un documento de entrada
+#: (``iterar_documentos``) y la corrida siguiente lo reprocesaría como si fuera una fuente.
+NOMBRE_FALLOS = "fallos.json"
 
 
 def _reusables_de_extract(
@@ -540,6 +545,16 @@ def _cmd_process(args: argparse.Namespace, entorno: EntornoCLI) -> int:
     ``--orientation`` (o ``--raw``), el destino ya escrito se reutiliza. Se
     **declara** en el log cuántos se saltearon para que el cambio de opciones sin
     ``--force`` no pase inadvertido.
+
+    **Un documento que falla no corta el lote.** Es la regla de ``corpus``, ``pdf`` y
+    ``extract``, y acá es más crítica que en ellos: ``processing`` rechaza lo que no
+    parece un documento (una foto con relación de aspecto extrema, un archivo
+    ilegible) con :class:`~voucherflow.api.DocumentoNoProcesableError`, y esa excepción
+    **no** la capturaba el comando — abortaba la corrida entera con un traceback. Medido
+    sobre el corpus real: un solo archivo con aspecto 4,92 tumbaba los 3.729 pendientes
+    después de haber recorrido 117. Ahora el fallo se anota, se declara y la corrida
+    sigue; los que fallaron van a un archivo para reintentarlos con ``--forzar`` y el
+    código de salida es ``1`` (igual que ``extract``).
     """
     raiz = entorno.ruta(args.origen)
     documentos = iterar_documentos(raiz, extensiones=_extensiones_de_proceso())
@@ -569,6 +584,8 @@ def _cmd_process(args: argparse.Namespace, entorno: EntornoCLI) -> int:
         _declarar_fuera_de_la_raiz(documentos, raiz_efectiva, motivo, entorno)
 
     reanudados = 0
+    fallos = 0
+    fallos_detalle: list[dict[str, str]] = []
     for ruta in documentos:
         destino = _destino_markdown(ruta, salida, raiz_efectiva, raw=args.raw)
         # ⚠️ El skip va ANTES de procesar: el punto es no pagar la conversión.
@@ -576,9 +593,18 @@ def _cmd_process(args: argparse.Namespace, entorno: EntornoCLI) -> int:
             reanudados += 1
             entorno.log(f"· saltado: {destino} (ya existía; usá --force)")
             continue
-        documento = entorno.orch().procesar(
-            ruta, docling_raw=args.raw, orientation=args.orientation
-        )[0]
+        try:
+            documento = entorno.orch().procesar(
+                ruta, docling_raw=args.raw, orientation=args.orientation
+            )[0]
+        except Exception as exc:  # noqa: BLE001 - un documento no tumba el lote
+            # ⚠️ NO se atrapa `Exception` por comodidad: `processing` rechaza lo que no
+            # parece un documento, y sin esto una sola foto rara abortaba la corrida
+            # entera (con traceback y sin haber escrito nada de lo pendiente).
+            fallos += 1
+            fallos_detalle.append({"archivo": str(ruta), "error": str(exc)})
+            entorno.log(f"ERROR: {ruta}: {exc}")
+            continue
         # La escritura es atómica (igual que `corpus` y `pdf`): un markdown a medio
         # escribir con el nombre final rompería la reanudación de la próxima
         # corrida, que lo daría por bueno.
@@ -590,7 +616,43 @@ def _cmd_process(args: argparse.Namespace, entorno: EntornoCLI) -> int:
             f"{reanudados} documento(s) salteado(s) por estar ya procesados "
             "(--force para rehacerlos)."
         )
-    return 0
+    if fallos:
+        _escribir_fallos(fallos_detalle, salida, entorno)
+    return 1 if fallos else 0
+
+
+def _escribir_fallos(
+    fallos: list[dict[str, str]], salida: Path | None, entorno: EntornoCLI
+) -> None:
+    """Declara los documentos que fallaron, y los deja en un archivo si hay ``-o``.
+
+    ⚠️ El archivo no es un detalle de comodidad: es la lista de **qué reintentar**. La
+    reanudación saltea lo que **existe**, así que un fallo simplemente no deja markdown
+    y la próxima corrida lo vuelve a intentar sola; pero saber *cuáles* son y *por qué*
+    es lo que permite decidir si conviene arreglar algo antes (por ejemplo, si los
+    rechazos son todos "relación de aspecto extrema", el problema es el corpus, no el
+    comando). Se escribe con nombre propio (``fallos.json``) para no confundirlo con un
+    markdown y que ``iterar_documentos`` no lo tome como entrada.
+    """
+    por_motivo: dict[str, int] = {}
+    for fallo in fallos:
+        # El motivo se agrupa por su forma general, no por el archivo: es lo que
+        # convierte 40 líneas en un diagnóstico.
+        clave = fallo["error"].split("(")[0].strip()[:160]
+        por_motivo[clave] = por_motivo.get(clave, 0) + 1
+    entorno.log(f"{len(fallos)} documento(s) fallaron (no se escribió su markdown):")
+    for motivo, cantidad in sorted(por_motivo.items(), key=lambda kv: -kv[1]):
+        entorno.log(f"     {cantidad:>5} × {motivo}")
+    if salida is None:
+        entorno.log(
+            "     (con -o DIR el detalle por archivo queda en 'fallos.json')"
+        )
+        return
+    destino = salida / NOMBRE_FALLOS
+    escribir_json_atomico(
+        destino, {"version": VERSION_CLI, "total": len(fallos), "fallos": fallos}
+    )
+    entorno.log(f"     detalle: {destino}")
 
 
 def _declarar_fuera_de_la_raiz(

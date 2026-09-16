@@ -50,6 +50,7 @@ from voucherflow.api import run as api_run
 from voucherflow.cli.main import (
     COMANDOS,
     DESPACHO,
+    NOMBRE_FALLOS,
     EntornoCLI,
     construir_parser,
     main,
@@ -419,6 +420,51 @@ class TestContratoCLI:
 
 
 class TestOrquestador:
+    def test_el_convertidor_se_construye_una_sola_vez(self):
+        """⚠️ Un `DoclingConverter` por documento cargaba los modelos de OCR cada vez.
+
+        Medido sobre el corpus real: 18 cargas de pesos para 19 documentos (≈1 por
+        documento) y el lote a ~8,5 documentos/min. La causa era que `procesar_*`
+        construía `DoclingConverter()` cuando no le pasaban uno, y el orquestador le
+        pasaba `None`. Ahora el orquestador lo cachea: **una** construcción por
+        corrida, y el motor queda vivo entre documentos.
+
+        Es el mismo patrón que `batch` ya usaba por worker (`_WORKER["orquestador"]`).
+        """
+        import voucherflow.models.docling as docling
+        import voucherflow.orchestrator as orq
+
+        construidos: list[int] = []
+        original = docling.DoclingConverter
+
+        class Espia(original):  # type: ignore[misc,valid-type]
+            def __init__(self, *args: Any, **kwargs: Any) -> None:
+                construidos.append(1)
+                super().__init__(*args, **kwargs)
+
+        # `procesar_*` importa el símbolo dentro del módulo `orchestrator`.
+        monkeypatch = pytest.MonkeyPatch()
+        monkeypatch.setattr(docling, "DoclingConverter", Espia)
+        try:
+            orch = orq.PipelineOrchestrator()
+            convertidores = [orch.converter_efectivo() for _ in range(3)]
+        finally:
+            monkeypatch.undo()
+
+        assert len(construidos) == 1, (
+            f"se construyeron {len(construidos)} convertidores: los modelos de OCR "
+            "se cargarían una vez por documento"
+        )
+        assert convertidores[0] is convertidores[1] is convertidores[2]
+
+    def test_un_converter_inyectado_gana_y_no_se_reemplaza(self):
+        """El doble de la suite manda: el orquestador no lo pisa con el real."""
+        doble = FakeConverter()
+        orch = PipelineOrchestrator(
+            cliente=FakeLector(), converter=doble, settings=_settings()
+        )
+        assert orch.converter_efectivo() is doble
+
     def test_corrida_completa_encadena_las_etapas(self, documento: Path):
         resultado = _orquestador().ejecutar(documento)
         assert resultado.ok is True
@@ -785,6 +831,113 @@ class TestComandos:
 
         encontrados = [p.name for p in iterar_documentos(tmp_path)]
         assert encontrados == ["doc.jpg"]
+
+    def test_process_un_documento_no_procesable_no_aborta_el_lote(self, tmp_path: Path):
+        """⚠️ Una sola foto rara abortaba los 3.729 pendientes del corpus real.
+
+        `processing` rechaza lo que no parece un documento (relación de aspecto
+        extrema, archivo ilegible) con `DocumentoNoProcesableError`, y esa excepción no
+        la capturaba el comando: subía hasta `main()` y cortaba la corrida con
+        traceback. Medido: 117 saltados, 0 escritos, y el resto perdido.
+
+        Es la regla que `corpus` y `pdf` ya aplicaban (un fallo no tumba el lote). El
+        caso se reproduce con un documento cuyo markdown el orquestador no puede
+        producir, que es la única forma de disparar el rechazo con los dobles.
+        """
+        class ConverterQueRechaza(FakeConverter):
+            def convert(self, origen: str) -> Any:
+                if "raro" in str(origen):
+                    from voucherflow.api import DocumentoNoProcesableError
+
+                    raise DocumentoNoProcesableError(
+                        "La imagen 'raro.jpg' no superó el gate de procesabilidad "
+                        "(T-102): Ratio de aspecto extremo (4.92)"
+                    )
+                return super().convert(origen)
+
+        entrada = tmp_path / "entrada"
+        entrada.mkdir()
+        for nombre in ("uno.md", "raro.md", "dos.md"):
+            (entrada / nombre).write_text(f"FACTURA A\n{nombre}\n", encoding="utf-8")
+
+        entorno_lote = EntornoCLI(
+            orquestador=PipelineOrchestrator(
+                cliente=FakeLector(), converter=ConverterQueRechaza(), settings=_settings()
+            ),
+            stdout=io.StringIO(),
+            stderr=io.StringIO(),
+            cwd=tmp_path,
+        )
+        salida = tmp_path / "out"
+        codigo = main(["process", str(entrada), "-o", str(salida)], entorno=entorno_lote)
+
+        assert codigo == 1, "el lote siguió, pero hubo un fallo → código 1"
+        assert _log(entorno_lote).count("OK:") == 2, "los dos buenos se escribieron"
+        assert (salida / "uno.md").is_file()
+        assert (salida / "dos.md").is_file(), "el fallo del medio no cortó el lote"
+        assert not (salida / "raro.md").exists()
+        assert "1 documento(s) fallaron" in _log(entorno_lote)
+
+    def test_process_deja_los_fallos_en_un_archivo(self, tmp_path: Path):
+        """⚠️ La lista de fallos es lo que dice **qué reintentar** y por qué.
+
+        La reanudación saltea lo que existe, así que un fallo se reintenta solo en la
+        corrida siguiente; pero saber cuáles son y agrupados por motivo es lo que
+        permite decidir si hay que arreglar algo del corpus antes de insistir.
+        """
+        class ConverterQueRechaza(FakeConverter):
+            def convert(self, origen: str) -> Any:
+                from voucherflow.api import DocumentoNoProcesableError
+
+                raise DocumentoNoProcesableError("no parece un documento (E-DOC-2)")
+
+        entrada = tmp_path / "entrada"
+        entrada.mkdir()
+        (entrada / "a.md").write_text("FACTURA A\n", encoding="utf-8")
+
+        entorno_lote = EntornoCLI(
+            orquestador=PipelineOrchestrator(
+                cliente=FakeLector(), converter=ConverterQueRechaza(), settings=_settings()
+            ),
+            stdout=io.StringIO(),
+            stderr=io.StringIO(),
+            cwd=tmp_path,
+        )
+        salida = tmp_path / "out"
+        assert main(["process", str(entrada), "-o", str(salida)], entorno=entorno_lote) == 1
+
+        fallos = json.loads((salida / NOMBRE_FALLOS).read_text(encoding="utf-8"))
+        assert fallos["total"] == 1
+        assert fallos["fallos"][0]["archivo"].endswith("a.md")
+        assert "no parece un documento" in fallos["fallos"][0]["error"]
+        # Y no deja un `.md` que la corrida siguiente tomaría como documento de entrada.
+        assert not list(salida.glob("*.md"))
+
+    def test_process_un_markdown_ilegible_no_aborta_el_lote(self, tmp_path: Path):
+        """La otra cara: un error inesperado de `processing` tampoco corta la corrida."""
+        class ConverterQueExplota(FakeConverter):
+            def convert(self, origen: str) -> Any:
+                if "roto" in str(origen):
+                    raise OSError("el archivo no se puede leer")
+                return super().convert(origen)
+
+        entrada = tmp_path / "entrada"
+        entrada.mkdir()
+        for nombre in ("ok.md", "roto.md"):
+            (entrada / nombre).write_text("FACTURA A\n", encoding="utf-8")
+
+        entorno_lote = EntornoCLI(
+            orquestador=PipelineOrchestrator(
+                cliente=FakeLector(), converter=ConverterQueExplota(), settings=_settings()
+            ),
+            stdout=io.StringIO(),
+            stderr=io.StringIO(),
+            cwd=tmp_path,
+        )
+        salida = tmp_path / "out"
+        assert main(["process", str(entrada), "-o", str(salida)], entorno=entorno_lote) == 1
+        assert (salida / "ok.md").is_file()
+        assert "ERROR:" in _log(entorno_lote)
 
     def test_process_reanuda_y_saltea_lo_ya_hecho(
         self, entorno: EntornoCLI, corpus_proceso: Path, tmp_path: Path
