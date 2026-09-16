@@ -18,8 +18,19 @@ Todos los comandos comparten la convención:
 |---|---|
 | `0` | El comando hizo su trabajo |
 | `1` | El comando corrió pero el resultado no es "todo bien" (ver cada comando) |
-| `2` | Error de uso: falta un argumento, una bandera inválida |
+| `2` | Error de uso: falta un argumento, una bandera inválida, o le pasaste una carpeta a un comando que necesita **un** archivo |
 | `130` | Interrumpido por el usuario (Ctrl-C) |
+
+> **`2` también cubre "le pasaste una carpeta a un comando de un solo documento".**
+> `run`, `ask` y `arca` necesitan **un** archivo; si les pasás una carpeta, lo dicen
+> y sugieren qué usar en su lugar (por ejemplo, `batch`). Es la misma clase de error
+> que una bandera mal escrita: el comando no llegó a correr, así que no es un `1`.
+>
+> ```bash
+> $ voucherflow run var/files
+> ERROR DE USO: 'run' necesita un **archivo**, y var/files es una carpeta.
+> Para un lote, usá `batch <carpeta>` (workers, reanudación y agregado).
+> ```
 
 **El dato va a `stdout` y el progreso a `stderr`.** Eso permite encadenar el
 comando en un script sin que el progreso contamine la salida:
@@ -211,11 +222,12 @@ cualquier documento (si no es texto, lo procesa primero).
 voucherflow classify factura.md
 voucherflow classify factura.md --condicion-impositiva 27
 voucherflow classify factura.md -o clasificacion.json
+voucherflow classify var/files/2025-08 -o imputacion.json    # toda una carpeta
 ```
 
 | Bandera | Qué hace |
 |---|---|
-| `origen` | Archivo markdown/OCR (o cualquier documento) |
+| `origen` | Archivo markdown/OCR **o carpeta** (recursiva) |
 | `--condicion-impositiva` | `21` (default) · `10_5` · `27` · `2_5` · `exento_no_gravado` |
 | `--model MODEL` | Modelo de la cadena |
 | `-o, --output` | Archivo JSON de salida (default: stdout) |
@@ -223,10 +235,16 @@ voucherflow classify factura.md -o clasificacion.json
 **Qué imprime**: tipo/letra, certeza, reglas aplicadas, la clasificación contable
 y el detalle de la cadena.
 
+**Con una carpeta** devuelve un resultado por documento. Igual que en `validate`, la
+forma de la salida depende de la **cantidad**: con uno es un objeto, con varios una
+lista.
+
 **Qué genera además**: un checkpoint `<doc>_classification.json` junto al
 documento, que permite **reanudar** la cadena sin repetir los pasos ya resueltos.
 
-**Código de salida**: `0` si la cadena contable terminó, `1` si falló algún paso.
+**Código de salida**: con un archivo, `0` si la cadena contable terminó y `1` si
+falló algún paso. Con una carpeta, `0` si **todas** las cadenas terminaron y `1` si
+alguna falló.
 
 ---
 
@@ -320,7 +338,7 @@ voucherflow run factura.pdf --clasificar-contable      # + cadena contable
 
 | Bandera | Qué hace |
 |---|---|
-| `origen` | Documento a procesar |
+| `origen` | Documento a procesar (**un archivo**; para una carpeta, `batch`) |
 | `-o, --output` | Archivo JSON del resultado (default: stdout) |
 | `--cases DIR` | Guarda el **registro auditable** del caso (sidecar + índice) |
 | `--clasificar-contable` | Corre además la cadena contable (tres llamadas al modelo) |
@@ -393,7 +411,7 @@ voucherflow ask factura.pdf -q "¿Quién es el emisor?" --model qwen2.5vl:3b
 
 | Bandera | Qué hace |
 |---|---|
-| `origen` | Documento a consultar |
+| `origen` | Documento a consultar (**un archivo**) |
 | `-q, --question` | **Obligatoria**: la pregunta |
 | `--model MODEL` | Modelo a usar |
 
@@ -418,7 +436,7 @@ voucherflow arca check factura.pdf --cuit 20123456789 --url https://… --token 
 | Bandera | Qué hace |
 |---|---|
 | `accion` | `check` |
-| `origen` | Documento a constatar |
+| `origen` | Documento a constatar (**un archivo**) |
 | `--cuit`, `--url`, `--token` | Credenciales y endpoint |
 | `--timeout` | Timeout de la consulta (default: 15 s) |
 | `--condicion-impositiva`, `--model` | Como en los otros comandos |
@@ -657,6 +675,51 @@ la reanudación funcione.
 **Código de salida**: `0` si todo salió bien, `1` si alguna página falló, `2` si
 los argumentos no son válidos (por ejemplo un rango de páginas que deja el plan
 vacío, o una ruta sin ningún PDF).
+
+---
+
+## `stop` — frenar una corrida y sus subprocesos
+
+Frena los comandos largos que estén corriendo (`process`, `batch`, `corpus`, `pdf`),
+incluidos **sus subprocesos**.
+
+```bash
+voucherflow stop                  # frena todo lo que esté corriendo
+voucherflow stop --id 12345       # solo esa corrida
+voucherflow stop --force          # SIGKILL directo, sin esperar
+voucherflow stop --espera 60      # 60 s de gracia antes de escalar
+voucherflow stop --json           # salida para un script
+```
+
+**Por qué existe.** Un lote es un **árbol** de procesos: el comando y los workers de su
+pool. Ctrl-C sirve si la corrida está en primer plano, pero si la lanzaste con `&` o con
+`nohup` no hay atajo, y matar solo al proceso padre deja los **workers vivos y
+trabajando** (que es lo que usa CPU durante horas).
+
+**Cómo lo hace**: cada comando largo se anota al arrancar en `var/run` (con su PID, su
+grupo de procesos y su hora de arranque), y `stop` señala al **grupo** entero.
+
+| Bandera | Qué hace |
+|---|---|
+| `--force` | SIGKILL directo: no espera a que termine el documento en curso |
+| `--espera S` | Segundos de gracia tras el SIGTERM antes de escalar (default: `15`) |
+| `--id ID` | Una corrida puntual (el id lo muestra `stop` sin argumentos) |
+| `--json` | Salida JSON |
+
+**Sin `--force`** manda SIGTERM, espera `--espera` segundos y, **si sigue viva, escala a
+SIGKILL**: un SIGTERM que nadie atiende no puede dejarte el árbol corriendo. Ese es el
+sentido de que la escalada no sea opcional.
+
+**Lo que ya escribió no se pierde**: la reanudación saltea lo hecho, así que después de
+un `stop` volvés a lanzar el mismo comando y sigue donde quedó.
+
+> **`stop` no mata nada que no sea suyo.** Antes de señalar un proceso verifica que sea
+> el que se anotó (hora de arranque y línea de comando): una entrada vieja —de un corte
+> de luz, o con un PID que el sistema reasignó a otro programa— se reporta como
+> **obsoleta** y se limpia sin tocar nada.
+
+**Código de salida**: `0` si no había nada corriendo o si todo se frenó; `1` si alguna
+corrida siguió viva. Un `stop` que no logró parar algo **no** puede salir en `0`.
 
 ---
 

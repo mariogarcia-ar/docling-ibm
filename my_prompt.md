@@ -58,6 +58,19 @@ voucherflow pdf tests/fixtures -o var/paginas
 python scripts/operacion/pdf-a-imagen.py tests/fixtures/chicos --dry-run
 
 
+# refactorizacion
+no hacer sobre ingenieria 
+- procesar con workers y con stop 
+- cada accion deberia poder aplicarse a un archivo o carpeta
+- hay que hacer el flujo primario y luego meter todo lo que es ingenieria
+
+
+tengo varios archivos (imagenes, pdf, etc)
+el pdf si es con texto nos conviene simplificar con pdftotext o similar
+si el pdf es solo imagen conviene exportarla a imagen 
+las imagenes luego las redimensionamos (pero lo mas importante es el dpi)
+
+
 
 
 # revisar

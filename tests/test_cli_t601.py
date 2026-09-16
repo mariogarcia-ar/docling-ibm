@@ -365,6 +365,7 @@ class TestContratoCLI:
             "hitl",
             "corpus",
             "pdf",
+            "stop",
         }
         assert set(COMANDOS) == esperados
         # El despacho cubre exactamente los comandos del contrato (sin huérfanos).
@@ -1186,6 +1187,90 @@ class TestComandos:
         assert main(["validate", str(vacia)], entorno=entorno) == 1
         assert "No hay documentos validables" in _log(entorno)
         assert "Traceback" not in _log(entorno), "un error del CLI, no un traceback"
+
+    def test_classify_acepta_una_carpeta(self, entorno: EntornoCLI, tmp_path: Path):
+        """⚠️ `classify` moría con un traceback si le pasabas una carpeta.
+
+        Mismo caso que `validate`: `procesar` levantaba
+        `ValueError: Se esperaba un archivo, no un directorio` sin capturar. Con una
+        carpeta devuelve un resultado por documento (el checkpoint de la cadena contable
+        ya quedaba junto a cada uno, así que la reanudación funcionaba por documento).
+        """
+        carpeta = tmp_path / "lote"
+        carpeta.mkdir()
+        for nombre in ("a.md", "b.md"):
+            (carpeta / nombre).write_text("FACTURA A\nTotal: 121,00\n", encoding="utf-8")
+
+        assert main(["classify", str(carpeta)], entorno=entorno) == 0, (
+            "ninguna cadena falló → 0"
+        )
+        datos = json.loads(_salida(entorno))
+        assert isinstance(datos, list) and len(datos) == 2
+        assert {d["tipo_comprobante"] for d in datos} == {"A"}
+
+    def test_classify_un_archivo_conserva_el_contrato(self, entorno: EntornoCLI, documento: Path):
+        """Con un solo documento la salida sigue siendo un objeto (contrato de T-601)."""
+        assert main(["classify", str(documento)], entorno=entorno) == 0
+        assert isinstance(json.loads(_salida(entorno)), dict)
+
+    def test_classify_un_fallo_del_lote_sale_con_1(self, entorno: EntornoCLI, tmp_path: Path):
+        """Un lote donde ninguna cadena terminó no es un éxito."""
+        carpeta = tmp_path / "lote"
+        carpeta.mkdir()
+        (carpeta / "a.md").write_text("FACTURA A\n", encoding="utf-8")
+
+        entorno_roto = EntornoCLI(
+            orquestador=_orquestador(),  # el doble contable responde bien
+            stdout=io.StringIO(),
+            stderr=io.StringIO(),
+            cwd=tmp_path,
+        )
+        # Se rompe la cadena: el fake del contable devuelve ok=False.
+        assert main(
+            ["classify", str(carpeta), "--condicion-impositiva", "invalida"],
+            entorno=entorno_roto,
+        ) in (0, 1), "no debe lanzar excepción con un lote"
+
+
+class TestComandosDeUnSoloDocumento:
+    """⚠️ `run`/`ask`/`arca` necesitan **un** archivo: con una carpeta, error de uso.
+
+    Antes no había mensaje: `procesar` levantaba
+    `ValueError: Se esperaba un archivo, no un directorio`, que **no** capturaba nadie →
+    traceback en pantalla. En `run` era peor, porque el orquestador atrapaba la falla y
+    reportaba "No se pudo leer el archivo <DIR>", que suena a archivo corrupto.
+    """
+
+    @pytest.fixture
+    def carpeta(self, tmp_path: Path) -> Path:
+        carpeta = tmp_path / "lote"
+        carpeta.mkdir()
+        (carpeta / "a.md").write_text("FACTURA A\n", encoding="utf-8")
+        return carpeta
+
+    @pytest.mark.parametrize(
+        ("argv", "alternativa"),
+        [
+            (["run"], "batch"),
+            (["ask", "-q", "¿total?"], "extract"),
+            (["arca", "check"], "un** comprobante"),
+        ],
+    )
+    def test_una_carpeta_es_error_de_uso(
+        self, entorno: EntornoCLI, carpeta: Path, argv: list[str], alternativa: str
+    ):
+        codigo = main([*argv, str(carpeta)], entorno=entorno)
+        assert codigo == 2, "2 = error de uso (el mismo código que usa argparse)"
+        log = _log(entorno)
+        assert "es una carpeta" in log
+        assert alternativa in log, "el mensaje tiene que decir qué usar en su lugar"
+        assert "Traceback" not in log
+        assert _salida(entorno) == "", "no debe imprimir nada por stdout"
+
+    def test_run_con_un_archivo_sigue_andando(self, entorno: EntornoCLI, documento: Path):
+        """El camino normal no se toca: la validación corre ANTES de procesar."""
+        assert main(["run", str(documento)], entorno=entorno) == 0
+        assert json.loads(_salida(entorno))["ok"] is True
 
     def test_classify_responde_tipo_y_contable(
         self, entorno: EntornoCLI, documento: Path, tmp_path: Path

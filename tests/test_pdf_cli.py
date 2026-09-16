@@ -46,6 +46,7 @@ COMANDOS_ESPERADOS = {
     "hitl",
     "corpus",
     "pdf",
+    "stop",
 }
 
 
@@ -102,7 +103,7 @@ class TestContrato:
 
     def test_son_trece_y_estan_todos(self):
         assert set(COMANDOS) == COMANDOS_ESPERADOS
-        assert len(COMANDOS) == 13
+        assert len(COMANDOS) == 14
 
     def test_el_despacho_cubre_los_comandos(self):
         assert set(DESPACHO) == COMANDOS_ESPERADOS

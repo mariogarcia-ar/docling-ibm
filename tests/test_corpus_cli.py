@@ -21,7 +21,8 @@ from voucherflow.corpus.cli import EntornoCorpus
 from voucherflow.corpus.cli import main as main_corpus
 
 #: Lo que el contrato debe seguir diciendo: los 11 de siempre + ``corpus`` (12.º)
-#: + ``pdf`` (13.º, del script ``scripts/operacion/pdf-a-imagen.py`` que se retiró).
+#: + ``pdf`` (13.º, del script ``scripts/operacion/pdf-a-imagen.py`` que se retiró)
+#: + ``stop`` (14.º, para frenar las corridas y sus subprocesos).
 COMANDOS_ESPERADOS = {
     "process",
     "validate",
@@ -36,6 +37,7 @@ COMANDOS_ESPERADOS = {
     "hitl",
     "corpus",
     "pdf",
+    "stop",
 }
 
 
@@ -78,11 +80,11 @@ def _parsear(argv: list[str]):
 
 
 class TestContrato:
-    """El contrato de subcomandos, con el 12.º y el 13.º declarados a propósito."""
+    """El contrato de subcomandos, con el 12.º, 13.º y 14.º declarados a propósito."""
 
-    def test_son_trece_y_estan_todos(self):
+    def test_son_catorce_y_estan_todos(self):
         assert set(COMANDOS) == COMANDOS_ESPERADOS
-        assert len(COMANDOS) == 13
+        assert len(COMANDOS) == 14
 
     def test_el_despacho_cubre_los_comandos(self):
         assert set(DESPACHO) == COMANDOS_ESPERADOS

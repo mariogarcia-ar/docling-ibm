@@ -31,13 +31,16 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Iterator, Sequence
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, TextIO
 
 from ..corpus.recorrido import esta_dentro, raiz_espejado, salida_de
+from ..corridas import ESPERA_DEFECTO
 from ..orchestrator import (
     PipelineOrchestrator,
     PipelineResult,
@@ -62,6 +65,7 @@ COMANDOS: tuple[str, ...] = (
     "hitl",
     "corpus",
     "pdf",
+    "stop",
 )
 
 #: Condición impositiva por defecto de la cadena contable (F3/T-304).
@@ -209,6 +213,38 @@ class ErrorCLI(RuntimeError):
     """Error de uso o de la corrida que el CLI reporta con código ≠ 0."""
 
 
+class ErrorDeUsoCLI(ErrorCLI):
+    """Error de **uso** (código ``2``), no de la corrida.
+
+    ⚠️ La distinción no es cosmética: ``2`` es el código que ``argparse`` ya usa para
+    "escribiste mal el comando", y un script que encadena comandos decide con él si
+    vale la pena reintentar. Pasar una carpeta a un comando que necesita **un** archivo
+    es un error de quien invoca —no una falla de la corrida— y cuando salía como
+    ``1`` (o peor, como un ``ValueError`` sin capturar con traceback) el operador no
+    podía distinguirlo de un documento ilegible.
+    """
+
+
+def exigir_archivo(ruta: Path, *, comando: str, alternativa: str) -> None:
+    """Valida que ``ruta`` sea un archivo, con un error de uso que dice qué hacer.
+
+    ⚠️ Existe porque pasar una **carpeta** a los comandos de un solo documento
+    (``run``/``ask``/``arca``) no fallaba con un mensaje: ``procesar`` levantaba
+    ``ValueError: Se esperaba un archivo, no un directorio``, que **no** capturaba
+    nadie y salía por pantalla como traceback (lo peor: en ``run`` el orquestador
+    atrapaba el error y reportaba "No se pudo leer el archivo <DIR>", que hace pensar
+    en un archivo corrupto y no en un directorio).
+
+    El mensaje nombra la alternativa real del comando —cada uno tiene una— en vez de un
+    "ingresá un archivo" genérico.
+    """
+    if ruta.is_dir():
+        raise ErrorDeUsoCLI(
+            f"'{comando}' necesita un **archivo**, y {ruta} es una carpeta. "
+            f"{alternativa}"
+        )
+
+
 # ---------------------------------------------------------------------------
 # Construcción del parser
 # ---------------------------------------------------------------------------
@@ -329,8 +365,19 @@ def construir_parser() -> argparse.ArgumentParser:
     )
     p.add_argument("--model", default=None, help="Modelo del gate (default: rol vlm).")
 
-    p = sub.add_parser("classify", help="Tipo/letra + cadena contable sobre un markdown (F3).")
-    p.add_argument("origen", help="Archivo markdown/OCR (o cualquier documento: se procesa con F1).")
+    p = sub.add_parser(
+        "classify",
+        help="Tipo/letra + cadena contable sobre un markdown (F3).",
+        description=(
+            "Determina el tipo de comprobante y corre la cadena contable. Acepta un "
+            "archivo o una **carpeta** (recursiva): con una carpeta devuelve un "
+            "resultado por documento."
+        ),
+    )
+    p.add_argument(
+        "origen",
+        help="Archivo markdown/OCR, o carpeta (recursiva). Cualquier documento: se procesa con F1.",
+    )
     p.add_argument("--condicion-impositiva", default=CONDICION_DEFAULT)
     p.add_argument("--model", default=None)
     p.add_argument(
@@ -353,7 +400,7 @@ def construir_parser() -> argparse.ArgumentParser:
     _agregar_comunes(p)
 
     p = sub.add_parser("run", help="Pipeline completo de un archivo (F6).")
-    p.add_argument("origen")
+    p.add_argument("origen", help="Documento a procesar (un archivo; para una carpeta, `batch`).")
     p.add_argument("-o", "--output", default=None, help="Archivo JSON del resultado (default: stdout).")
     p.add_argument("--cases", default=None, metavar="DIR", help="Persiste el CaseRecord (sidecar + índice, F5/T-506).")
     p.add_argument("--clasificar-contable", action="store_true", help="Corre la cadena contable 01→02→03 (tres llamadas al modelo).")
@@ -412,13 +459,13 @@ def construir_parser() -> argparse.ArgumentParser:
     _agregar_comunes(p)
 
     p = sub.add_parser("ask", help="Pregunta puntual sobre un documento (equivale a el cliente de preguntas original).")
-    p.add_argument("origen")
+    p.add_argument("origen", help="Documento a consultar (un archivo).")
     p.add_argument("-q", "--question", required=True, help="Pregunta a responder.")
     p.add_argument("--model", default=None)
 
     p = sub.add_parser("arca", help="Consulta el padrón ARCA/WSCDC (opcional, ADR-003).")
     p.add_argument("accion", choices=["check"], help="Acción a ejecutar.")
-    p.add_argument("origen", help="Documento cuyo comprobante se quiere constatar.")
+    p.add_argument("origen", help="Documento cuyo comprobante se quiere constatar (un archivo).")
     p.add_argument("--cuit", default=None, help="CUIT del emisor para la autenticación (si aplica).")
     p.add_argument("--url", default=None, help="URL del WSCDC (default: la de la configuración).")
     p.add_argument("--token", default=None, help="Token de autorización (flujo WSAA; fuera del MVP).")
@@ -452,6 +499,48 @@ def construir_parser() -> argparse.ArgumentParser:
     _cmd_corpus_parser(sub)
 
     _cmd_pdf_parser(sub)
+
+    p = sub.add_parser(
+        "stop",
+        help="Para las corridas que están en curso (y sus subprocesos).",
+        description=(
+            "Frena los comandos largos que estén corriendo (process/batch/corpus/pdf): "
+            "manda SIGTERM al grupo de procesos, espera y, si no muere, escala a SIGKILL. "
+            "Sin argumentos los para todos."
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=(
+            "Sin --force le da a la corrida la chance de terminar el documento en curso\n"
+            "(lo que ya escribió queda y la próxima corrida lo saltea). Con --force va\n"
+            "directo al SIGKILL.\n"
+        ),
+    )
+    p.add_argument(
+        "--force",
+        action="store_true",
+        help="SIGKILL directo, sin esperar a que termine el documento en curso.",
+    )
+    p.add_argument(
+        "--espera",
+        type=float,
+        default=None,
+        metavar="S",
+        help=(
+            "Segundos a esperar tras el SIGTERM antes de escalar a SIGKILL "
+            f"(default: {ESPERA_DEFECTO:g})."
+        ),
+    )
+    p.add_argument(
+        "--id",
+        default=None,
+        metavar="ID",
+        help="Para una corrida puntual (el id lo lista `stop` sin argumentos).",
+    )
+    p.add_argument(
+        "--json",
+        action="store_true",
+        help="Salida JSON (default: texto legible).",
+    )
 
     return parser
 
@@ -583,60 +672,61 @@ def _cmd_process(args: argparse.Namespace, entorno: EntornoCLI) -> int:
             "pdf/imagen/office/texto."
         )
 
-    salida = entorno.ruta(args.output) if args.output else None
-    if salida is not None:
-        # La salida no puede ser su propia entrada: si ``-o`` cae dentro de la
-        # entrada, un ``.md`` recién escrito sería un documento procesable en la
-        # corrida siguiente (misma guarda que ``corpus``, que la aplica siempre).
-        documentos = [d for d in documentos if not esta_dentro(d, salida)]
-        if not documentos:
-            raise ErrorCLI(
-                f"Todos los documentos de {raiz} están dentro de la salida "
-                f"({salida}): no hay nada que procesar fuera de ella."
+    with _corrida_anotada(entorno, "process"):
+        salida = entorno.ruta(args.output) if args.output else None
+        if salida is not None:
+            # La salida no puede ser su propia entrada: si ``-o`` cae dentro de la
+            # entrada, un ``.md`` recién escrito sería un documento procesable en la
+            # corrida siguiente (misma guarda que ``corpus``, que la aplica siempre).
+            documentos = [d for d in documentos if not esta_dentro(d, salida)]
+            if not documentos:
+                raise ErrorCLI(
+                    f"Todos los documentos de {raiz} están dentro de la salida "
+                    f"({salida}): no hay nada que procesar fuera de ella."
+                )
+
+        raiz_explicita = entorno.ruta(str(args.raiz)) if args.raiz else None
+        raiz_efectiva, motivo = raiz_espejado([raiz], raiz_explicita, salida)
+        if salida is not None:
+            entorno.log(f"raíz de espejado : {raiz_efectiva}   [{motivo}]")
+            entorno.log(f"salida           : {salida}")
+            _declarar_fuera_de_la_raiz(documentos, raiz_efectiva, motivo, entorno)
+
+        reanudados = 0
+        fallos = 0
+        fallos_detalle: list[dict[str, str]] = []
+        for ruta in documentos:
+            destino = _destino_markdown(ruta, salida, raiz_efectiva, raw=args.raw)
+            # ⚠️ El skip va ANTES de procesar: el punto es no pagar la conversión.
+            if not args.force and ya_escrito(destino):
+                reanudados += 1
+                entorno.log(f"· saltado: {destino} (ya existía; usá --force)")
+                continue
+            try:
+                documento = entorno.orch().procesar(
+                    ruta, docling_raw=args.raw, orientation=args.orientation
+                )[0]
+            except Exception as exc:  # noqa: BLE001 - un documento no tumba el lote
+                # ⚠️ NO se atrapa `Exception` por comodidad: `processing` rechaza lo que
+                # no parece un documento, y sin esto una sola foto rara abortaba la
+                # corrida entera (con traceback y sin escribir nada de lo pendiente).
+                fallos += 1
+                fallos_detalle.append({"archivo": str(ruta), "error": str(exc)})
+                entorno.log(f"ERROR: {ruta}: {exc}")
+                continue
+            # La escritura es atómica (igual que `corpus` y `pdf`): un markdown a medio
+            # escribir con el nombre final rompería la reanudación de la próxima
+            # corrida, que lo daría por bueno.
+            escribir_atomico(destino, documento.markdown or "")
+            entorno.log(f"OK: {destino} (orientación={documento.orientacion})")
+
+        if reanudados:
+            entorno.log(
+                f"{reanudados} documento(s) salteado(s) por estar ya procesados "
+                "(--force para rehacerlos)."
             )
-
-    raiz_explicita = entorno.ruta(str(args.raiz)) if args.raiz else None
-    raiz_efectiva, motivo = raiz_espejado([raiz], raiz_explicita, salida)
-    if salida is not None:
-        entorno.log(f"raíz de espejado : {raiz_efectiva}   [{motivo}]")
-        entorno.log(f"salida           : {salida}")
-        _declarar_fuera_de_la_raiz(documentos, raiz_efectiva, motivo, entorno)
-
-    reanudados = 0
-    fallos = 0
-    fallos_detalle: list[dict[str, str]] = []
-    for ruta in documentos:
-        destino = _destino_markdown(ruta, salida, raiz_efectiva, raw=args.raw)
-        # ⚠️ El skip va ANTES de procesar: el punto es no pagar la conversión.
-        if not args.force and ya_escrito(destino):
-            reanudados += 1
-            entorno.log(f"· saltado: {destino} (ya existía; usá --force)")
-            continue
-        try:
-            documento = entorno.orch().procesar(
-                ruta, docling_raw=args.raw, orientation=args.orientation
-            )[0]
-        except Exception as exc:  # noqa: BLE001 - un documento no tumba el lote
-            # ⚠️ NO se atrapa `Exception` por comodidad: `processing` rechaza lo que no
-            # parece un documento, y sin esto una sola foto rara abortaba la corrida
-            # entera (con traceback y sin haber escrito nada de lo pendiente).
-            fallos += 1
-            fallos_detalle.append({"archivo": str(ruta), "error": str(exc)})
-            entorno.log(f"ERROR: {ruta}: {exc}")
-            continue
-        # La escritura es atómica (igual que `corpus` y `pdf`): un markdown a medio
-        # escribir con el nombre final rompería la reanudación de la próxima
-        # corrida, que lo daría por bueno.
-        escribir_atomico(destino, documento.markdown or "")
-        entorno.log(f"OK: {destino} (orientación={documento.orientacion})")
-
-    if reanudados:
-        entorno.log(
-            f"{reanudados} documento(s) salteado(s) por estar ya procesados "
-            "(--force para rehacerlos)."
-        )
-    if fallos:
-        _escribir_fallos(fallos_detalle, salida, entorno)
+        if fallos:
+            _escribir_fallos(fallos_detalle, salida, entorno)
     return 1 if fallos else 0
 
 
@@ -857,40 +947,80 @@ def _salida_lote_o_objeto(
 
 
 def _cmd_classify(args: argparse.Namespace, entorno: EntornoCLI) -> int:
-    """``classify``: tipo/letra + cadena contable (F3) sobre el markdown del archivo."""
-    ruta = entorno.ruta(args.origen)
-    if ruta.suffix.lower() in EXTENSIONES_TEXTO:
-        markdown = ruta.read_text(encoding="utf-8")
-    else:
-        markdown = entorno.orch().procesar(ruta)[0].markdown
+    """``classify``: tipo/letra + cadena contable (F3) sobre un archivo o una carpeta.
+
+    Con una carpeta devuelve un resultado por documento (tipo, certeza y cadena
+    contable), que es el uso natural del comando sobre un lote ya procesado. El
+    checkpoint de la cadena contable queda **junto a cada documento** (T-304), así que
+    la reanudación ya funcionaba por documento sin que el comando lo supiera.
+
+    ⚠️ El código de salida de un lote separa los dos casos que no son lo mismo:
+    ``0`` si **todas** las cadenas contables terminaron, ``1`` si alguna falló. Con un
+    archivo se conserva el contrato de siempre (``0``/``1`` según ``detalle_contable``).
+    """
+    raiz = entorno.ruta(args.origen)
+    documentos = iterar_documentos(raiz, extensiones=_extensiones_de_proceso())
+    if not documentos:
+        raise ErrorCLI(
+            f"No hay documentos clasificables en {raiz}. Formatos soportados: "
+            "pdf/imagen/office/texto."
+        )
 
     from ..classification.tipo_comprobante import clasificar_tipo_comprobante
     from ..rules.contexto import ContextoTipoComprobante
 
-    tipo = clasificar_tipo_comprobante(ContextoTipoComprobante(texto_encabezado_llm=markdown))
-    clasificacion, detalle_contable = entorno.orch().clasificar_contable(
-        markdown,
-        condicion_impositiva=args.condicion_impositiva,
-        documento=ruta,
-        modelo=args.model,
-    )
-    _json_salida(
-        {
-            "archivo": str(ruta),
-            "tipo_comprobante": tipo.letra,
-            "certeza": tipo.certeza,
-            "origen": tipo.origen,
-            "reglas_aplicadas": list(tipo.reglas_aplicadas),
-            "campos_desconocidos": list(tipo.campos_desconocidos),
-            "clasificacion_contable": (
-                clasificacion.model_dump(mode="json") if clasificacion else None
-            ),
-            "detalle_contable": detalle_contable,
-        },
-        args.output,
-        entorno,
-    )
-    return 0 if detalle_contable.get("ok") else 1
+    salidas: list[dict[str, Any]] = []
+    fallos = 0
+    for ruta in documentos:
+        try:
+            if ruta.suffix.lower() in EXTENSIONES_TEXTO:
+                # El checkpoint de la cadena contable vive junto al documento, así que
+                # un `.md` ya procesado se lee como texto (no se vuelve a convertir).
+                markdown = ruta.read_text(encoding="utf-8")
+            else:
+                markdown = entorno.orch().procesar(ruta)[0].markdown
+
+            tipo = clasificar_tipo_comprobante(
+                ContextoTipoComprobante(texto_encabezado_llm=markdown)
+            )
+            clasificacion, detalle_contable = entorno.orch().clasificar_contable(
+                markdown,
+                condicion_impositiva=args.condicion_impositiva,
+                documento=ruta,
+                modelo=args.model,
+            )
+            if not detalle_contable.get("ok"):
+                fallos += 1
+            salidas.append(
+                {
+                    "archivo": str(ruta),
+                    "tipo_comprobante": tipo.letra,
+                    "certeza": tipo.certeza,
+                    "origen": tipo.origen,
+                    "reglas_aplicadas": list(tipo.reglas_aplicadas),
+                    "campos_desconocidos": list(tipo.campos_desconocidos),
+                    "clasificacion_contable": (
+                        clasificacion.model_dump(mode="json") if clasificacion else None
+                    ),
+                    "detalle_contable": detalle_contable,
+                }
+            )
+            entorno.log(f"OK: {ruta} → letra {tipo.letra!r}")
+        except Exception as exc:  # noqa: BLE001 - un documento no tumba el lote
+            fallos += 1
+            salidas.append({"archivo": str(ruta), "error": str(exc)})
+            entorno.log(f"ERROR: {ruta}: {exc}")
+
+    # Con UN documento, la salida mantiene la forma de siempre (un objeto), igual que en
+    # `validate`: es el contrato de T-601 y hay consumidores que leen de la raíz.
+    payload: Any = salidas[0] if len(documentos) == 1 else salidas
+    _salida_lote_o_objeto(payload, salidas, args.output, entorno)
+
+    if len(documentos) == 1:
+        return 0 if not fallos else 1
+    if fallos:
+        entorno.log(f"{fallos} de {len(documentos)} documento(s) fallaron.")
+    return 1 if fallos else 0
 
 
 def _cmd_extract(args: argparse.Namespace, entorno: EntornoCLI) -> int:
@@ -1136,8 +1266,18 @@ def _cmd_run(args: argparse.Namespace, entorno: EntornoCLI) -> int:
     documento suelto no tiene lote del cual reanudar. El flag se declara así en la
     traza en vez de fingir un efecto (la reanudación por checkpoint es del lote,
     T-602).
+
+    ⚠️ Con una **carpeta**, acá se cortaba con un error engañoso: el orquestador atrapa
+    la falla y devuelve ``ok=False`` con "No se pudo leer el archivo <DIR>", que suena
+    a archivo corrupto cuando el problema es que es un directorio. Ahora es un error de
+    **uso** (código 2) que nombra `batch`.
     """
     ruta = entorno.ruta(args.origen)
+    exigir_archivo(
+        ruta,
+        comando="run",
+        alternativa="Para un lote, usá `batch <carpeta>` (workers, reanudación y agregado).",
+    )
     resultado = entorno.orch().ejecutar(
         ruta,
         persistir=bool(args.cases),
@@ -1179,18 +1319,22 @@ def _cmd_batch(args: argparse.Namespace, entorno: EntornoCLI) -> int:
     from ..batch import ejecutar_lote
 
     politica = _politica_cooling(args, entorno)
-    resultado_lote = ejecutar_lote(
-        raiz,
-        orquestador=entorno.orch(),
-        max_workers=args.workers,
-        force=args.force,
-        persistir=bool(args.cases),
-        dir_salida=args.cases,
-        cooling=politica,
-        checkpoints=None if not args.no_checkpoints else _CheckpointsDesactivados(),
-        settings=entorno.orch().settings_efectivos(),
-        **_opciones_pipeline(args),
-    )
+    # ⚠️ El `with` envuelve al lote ENTERO (no solo el armado): es el comando que más
+    # necesita poder frenarse, porque levanta un pool de procesos y `kill -9` al padre
+    # deja los workers vivos (medido).
+    with _corrida_anotada(entorno, "batch"):
+        resultado_lote = ejecutar_lote(
+            raiz,
+            orquestador=entorno.orch(),
+            max_workers=args.workers,
+            force=args.force,
+            persistir=bool(args.cases),
+            dir_salida=args.cases,
+            cooling=politica,
+            checkpoints=None if not args.no_checkpoints else _CheckpointsDesactivados(),
+            settings=entorno.orch().settings_efectivos(),
+            **_opciones_pipeline(args),
+        )
     resultados = resultado_lote.resultados
     traza = resultado_lote.traza
 
@@ -1280,11 +1424,24 @@ class _CheckpointsDesactivados:
 
 
 def _cmd_ask(args: argparse.Namespace, entorno: EntornoCLI) -> int:
-    """``ask``: pregunta puntual (equivalente a el cliente de preguntas original)."""
+    """``ask``: pregunta puntual (equivalente a el cliente de preguntas original).
+
+    ⚠️ Con una carpeta, `api.ask` levantaba `ValueError` sin capturar → traceback en
+    pantalla. Es un error de uso: no hay forma de "preguntar a una carpeta".
+    """
     from ..api import ask as api_ask
 
+    ruta = entorno.ruta(args.origen)
+    exigir_archivo(
+        ruta,
+        comando="ask",
+        alternativa=(
+            "Para preguntar sobre varios documentos, corré el comando por archivo "
+            "(o usá `extract` para sacar los campos de todos)."
+        ),
+    )
     respuesta = api_ask(
-        str(entorno.ruta(args.origen)),
+        str(ruta),
         args.question,
         modelo=args.model,
         cliente=entorno.orch().cliente,
@@ -1308,6 +1465,13 @@ def _cmd_arca(args: argparse.Namespace, entorno: EntornoCLI) -> int:
     from ..rules.gaps import PresupuestoBusqueda, detectar_gaps
 
     ruta = entorno.ruta(args.origen)
+    exigir_archivo(
+        ruta,
+        comando="arca check",
+        alternativa=(
+            "La constatación es de **un** comprobante: corré el comando por archivo."
+        ),
+    )
     orch = entorno.orch()
     documento, _ = orch.procesar(ruta)
     gate = orch.validar(documento, modelo=args.model)
@@ -1359,6 +1523,130 @@ def _cmd_arca(args: argparse.Namespace, entorno: EntornoCLI) -> int:
         )
     )
     return 0 if disponible else 1
+
+
+def _cmd_stop(args: argparse.Namespace, entorno: EntornoCLI) -> int:
+    """``stop``: para las corridas en curso y sus subprocesos.
+
+    **Por qué existe como comando y no como "acordate del Ctrl-C".** Un lote largo es un
+    árbol de procesos (padre + workers del pool de ``batch``). Medido antes de escribirlo:
+    ``kill -9`` al padre deja los workers **vivos y trabajando**, y un SIGINT directo al
+    PID del padre no lo mata (``shutdown(wait=True)`` espera a los workers). Ctrl-C sirve
+    solo si la corrida está en primer plano; una lanzada con ``&`` o ``nohup`` no tiene
+    forma cómoda de frenarse.
+
+    Sin argumentos para **todas** las corridas anotadas; con ``--id``, una. La lista de
+    "qué está corriendo" sale del registro (``var/run``), y cada entrada se verifica
+    contra el proceso real antes de señalarla: una entrada vieja (o un PID reciclado) se
+    reporta como obsoleta y **no se mata nada**.
+    """
+    from ..corridas import ESPERA_DEFECTO, parar_todas
+
+    var = _var_de_datos(entorno)
+    espera = ESPERA_DEFECTO if args.espera is None else max(0.0, args.espera)
+
+    # ── Sin --force y sin nada corriendo: informar y salir en 0 (no es un error) ──
+    from ..corridas import leer, limpiar_obsoletas
+
+    estado = leer(var)
+    if not estado.vivas:
+        obsoletas = limpiar_obsoletas(var, estado)
+        if args.json:
+            entorno.dato(
+                json.dumps(
+                    {"paradas": [], "obsoletas": [c.id for c in obsoletas]},
+                    ensure_ascii=False,
+                    indent=2,
+                )
+            )
+        else:
+            entorno.dato("No hay ninguna corrida de voucherflow en curso.")
+            if obsoletas:
+                entorno.log(
+                    f"Se limpiaron {len(obsoletas)} entrada(s) obsoleta(s) del registro "
+                    f"({', '.join(c.id for c in obsoletas)})."
+                )
+        return 0
+
+    try:
+        resultados = parar_todas(var, force=args.force, espera=espera, solo_id=args.id)
+    except ValueError as exc:
+        raise ErrorDeUsoCLI(str(exc)) from exc
+
+    if args.json:
+        entorno.dato(
+            json.dumps(
+                {"paradas": [r.como_dict() for r in resultados]},
+                ensure_ascii=False,
+                indent=2,
+            )
+        )
+    else:
+        for r in resultados:
+            estado_txt = "parada" if r.termino else "NO se pudo parar"
+            entorno.dato(
+                f"{estado_txt}: {r.corrida.comando} (id {r.corrida.id}, "
+                f"pid {r.corrida.pid}) — {r.senal_enviada} a {r.destino}"
+            )
+            if r.motivo:
+                entorno.log(f"   {r.motivo}")
+
+    # ⚠️ Un `stop` que corrió pero no logró parar algo NO puede salir en 0: el operador
+    # necesita saber que el árbol sigue vivo (misma lógica que un fallo por documento).
+    fallidos = [r for r in resultados if not r.termino]
+    if fallidos:
+        entorno.log(
+            f"⚠  {len(fallidos)} corrida(s) siguen vivas. Probá de nuevo; si el proceso "
+            "está en un estado que no acepta señales, hace falta `kill -9` a mano."
+        )
+        return 1
+    return 0
+
+
+def _var_de_datos(entorno: EntornoCLI) -> Path:
+    """La raíz ``var/`` de datos, para el registro de corridas (``var/run``).
+
+    Se resuelve por la configuración (``paths.var``) y **no** por un literal, para que
+    una instalación con las rutas movidas siga teniendo un solo registro.
+    """
+    try:
+        from ..settings.config import cargar_settings
+
+        return cargar_settings().paths.resolver("var", entorno.cwd)
+    except Exception:  # noqa: BLE001 - sin configuración legible, el default del repo
+        return entorno.cwd / "var"
+
+
+@contextmanager
+def _corrida_anotada(
+    entorno: EntornoCLI, comando: str
+) -> Iterator[None]:
+    """Anota la corrida en el registro mientras dura el ``with``.
+
+    Hace las tres cosas que necesita un comando largo para poder ser frenado:
+
+    1. **Sesión propia** (:func:`corridas.preparar_sesion`): le da al proceso un grupo
+       propio. ⚠️ Es lo que hace **seguro** señalar el grupo — sin esto, el grupo es el del
+       shell del operador y un ``killpg`` mataría su terminal (pasó durante el desarrollo
+       de ``stop``).
+    2. **Anotar** la entrada en ``var/run`` con pid, pgid e identidad (hora de arranque).
+    3. **Desanotar** al salir, incluso por señal: si no, cada Ctrl-C dejaría una entrada
+       (que el chequeo de identidad salva de matar a nadie, pero ensucia el registro).
+
+    El id es el PID: dos corridas simultáneas no comparten entrada, y el operador puede
+    referirse a una con ``stop --id <pid>``.
+    """
+    from ..corridas import anotar, desanotar, instalar_limpieza, preparar_sesion
+
+    var = _var_de_datos(entorno)
+    preparar_sesion()
+    id_corrida = str(os.getpid())
+    anotar(var, id=id_corrida, comando=comando)
+    instalar_limpieza(var, id_corrida)
+    try:
+        yield
+    finally:
+        desanotar(var, id_corrida)
 
 
 def _cmd_case(args: argparse.Namespace, entorno: EntornoCLI) -> int:
@@ -1489,10 +1777,11 @@ def _cmd_corpus(args: argparse.Namespace, entorno: EntornoCLI) -> int:
     from ..corpus.cli import EntornoCorpus
     from ..corpus.cli import main as main_corpus
 
-    return main_corpus(
-        args,
-        entorno=EntornoCorpus(stdout=entorno.stdout, stderr=entorno.stderr),
-    )
+    with _corrida_anotada(entorno, "corpus"):
+        return main_corpus(
+            args,
+            entorno=EntornoCorpus(stdout=entorno.stdout, stderr=entorno.stderr),
+        )
 
 
 def _cmd_pdf_parser(sub: argparse._SubParsersAction) -> None:
@@ -1511,10 +1800,11 @@ def _cmd_pdf(args: argparse.Namespace, entorno: EntornoCLI) -> int:
     from ..pdf.cli import EntornoPdf
     from ..pdf.cli import main as main_pdf
 
-    return main_pdf(
-        args,
-        entorno=EntornoPdf(stdout=entorno.stdout, stderr=entorno.stderr),
-    )
+    with _corrida_anotada(entorno, "pdf"):
+        return main_pdf(
+            args,
+            entorno=EntornoPdf(stdout=entorno.stdout, stderr=entorno.stderr),
+        )
 
 
 DESPACHO: dict[str, Callable[[argparse.Namespace, EntornoCLI], int]] = {
@@ -1532,6 +1822,7 @@ DESPACHO: dict[str, Callable[[argparse.Namespace, EntornoCLI], int]] = {
     "hitl": _cmd_hitl,
     "corpus": _cmd_corpus,
     "pdf": _cmd_pdf,
+    "stop": _cmd_stop,
 }
 
 
@@ -1561,6 +1852,11 @@ def main(argv: Sequence[str] | None = None, entorno: EntornoCLI | None = None) -
 
     try:
         return despacho(args, ctx)
+    except ErrorDeUsoCLI as exc:
+        # ⚠️ ANTES que `ErrorCLI`: es una subclase, y el orden de las ramas es lo que
+        # distingue "lo invocaste mal" (2) de "la corrida falló" (1).
+        ctx.log(f"ERROR DE USO: {exc}")
+        return 2
     except ErrorCLI as exc:
         ctx.log(f"ERROR: {exc}")
         return 1
