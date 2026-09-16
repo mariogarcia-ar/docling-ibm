@@ -1,3 +1,29 @@
+# FlowBoss 
+Preparacion:
+  - pdf: clasificarlas por texto o imagen. Si es imagen, exportarlas
+  - imagenes: procesarlas para ajsutar dpi y peso 
+
+Extraccion 
+  - 
+
+Clasificacion
+
+Procesamiento
+
+hay 2 flujos principales
+- OCR (usando regexp, patrones, etc): 
+  - extraer texto desde archivos (imagen/pdf)
+  - aplicar motor de clasificacion (es/no es comprobante)
+  - aplicar motor de reglas basado en texto 
+  - control sobre resultados basado en trazabilidad de los motores
+- MoE - imagen (usando prompts, vlm, etc)
+  - aplicar motor de clasificacion (es/no es comprobante)
+  - aplicar motor de reglas basado en prompts
+  - control sobre resultados basado en trazabilidad de los motores
+
+
+
+
 # Flujo 
 
 - preparar los archivos
@@ -69,6 +95,9 @@ tengo varios archivos (imagenes, pdf, etc)
 el pdf si es con texto nos conviene simplificar con pdftotext o similar
 si el pdf es solo imagen conviene exportarla a imagen 
 las imagenes luego las redimensionamos (pero lo mas importante es el dpi)
+
+motor reglas: entrenar y ajustar el motor 
+
 
 
 
