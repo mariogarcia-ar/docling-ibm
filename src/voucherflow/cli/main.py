@@ -305,9 +305,28 @@ def construir_parser() -> argparse.ArgumentParser:
     p.add_argument("--raw", action="store_true", help="Markdown crudo de Docling (equivale a el modo crudo).")
     _agregar_comunes(p)
 
-    p = sub.add_parser("validate", help="Gate '¿es comprobante?' doble paso (F2).")
-    p.add_argument("origen")
+    p = sub.add_parser(
+        "validate",
+        help="Gate '¿es comprobante?' doble paso (F2).",
+        description=(
+            "Decide si un documento es un comprobante válido para rendición. "
+            "Acepta un archivo o una **carpeta** (recursiva): con una carpeta "
+            "devuelve un veredicto por documento, que es el uso de filtrar un "
+            "corpus antes de procesarlo."
+        ),
+    )
+    p.add_argument("origen", help="Archivo o carpeta (recursiva).")
     p.add_argument("--quick", action="store_true", help="Reservado: hoy el gate siempre hace doble paso (F2/T-203).")
+    p.add_argument(
+        "-o",
+        "--output",
+        default=None,
+        metavar="SALIDA.json",
+        help=(
+            "Archivo JSON de salida (default: stdout). Con una carpeta conviene: "
+            "la salida trae un veredicto por documento."
+        ),
+    )
     p.add_argument("--model", default=None, help="Modelo del gate (default: rol vlm).")
 
     p = sub.add_parser("classify", help="Tipo/letra + cadena contable sobre un markdown (F3).")
@@ -741,31 +760,100 @@ def _es_la_entrada(destino: Path, ruta: Path) -> bool:
 
 
 def _cmd_validate(args: argparse.Namespace, entorno: EntornoCLI) -> int:
-    """``validate``: gate doble paso (F2). Sale con ≠ 0 si no es comprobante."""
-    ruta = entorno.ruta(args.origen)
-    resultado = entorno.orch().validar(
-        entorno.orch().procesar(ruta)[0], modelo=args.model
-    )
-    entorno.dato(
-        json.dumps(
-            {
-                "archivo": str(ruta),
-                "veredicto_final": resultado.veredicto_final.value,
-                "vista_fiel_preparada": resultado.vista_fiel is not None,
-                "pasadas": [
-                    {
-                        "vista": p.vista_usada,
-                        "veredicto": p.veredicto.value,
-                        "confianza": p.confianza_fuente,
-                    }
-                    for p in resultado.pasadas
-                ],
-            },
-            ensure_ascii=False,
-            indent=2,
+    """``validate``: gate doble paso (F2) sobre un archivo o una carpeta.
+
+    Con una **carpeta** (o varios documentos) devuelve un veredicto por documento y sale
+    con ≠ 0 solo si **ningún** documento es comprobante: es la forma de filtrar un
+    corpus antes de gastar la extracción, que es justo lo que la guía documentaba y el
+    comando no hacía (pasaba la carpeta a `procesar` y moría con un `ValueError`
+    crudo — el traceback sin capturar que se veía era ese).
+
+    ⚠️ El código de salida separa dos cosas que no son lo mismo:
+
+    * **un archivo** → ``0`` si es comprobante, ``1`` si no (contrato original, T-601);
+    * **un lote** → ``0`` si *alguno* lo es, ``1`` si **ninguno** lo es (y ``1`` si hubo
+      fallos). Devolver ``1`` cuando *alguno* era válido haría que un `&&` en un script
+      cortara el flujo por buenos documentos; y devolver ``0`` con **todos** rechazados
+      obligaría a parsear la salida para enterarse de que el corpus no sirve.
+    """
+    raiz = entorno.ruta(args.origen)
+    documentos = iterar_documentos(raiz, extensiones=_extensiones_de_proceso())
+    if not documentos:
+        raise ErrorCLI(
+            f"No hay documentos validables en {raiz}. Formatos soportados: "
+            "pdf/imagen/office/texto."
         )
-    )
-    return 0 if resultado.veredicto_final.value == "comprobante" else 1
+
+    salidas: list[dict[str, Any]] = []
+    fallos = 0
+    comprobantes = 0
+    for ruta in documentos:
+        try:
+            resultado = entorno.orch().validar(
+                entorno.orch().procesar(ruta)[0], modelo=args.model
+            )
+            veredicto = resultado.veredicto_final.value
+            if veredicto == "comprobante":
+                comprobantes += 1
+            salidas.append(
+                {
+                    "archivo": str(ruta),
+                    "veredicto_final": veredicto,
+                    "vista_fiel_preparada": resultado.vista_fiel is not None,
+                    "pasadas": [
+                        {
+                            "vista": p.vista_usada,
+                            "veredicto": p.veredicto.value,
+                            "confianza": p.confianza_fuente,
+                        }
+                        for p in resultado.pasadas
+                    ],
+                }
+            )
+            entorno.log(f"OK: {ruta} → {veredicto}")
+        except Exception as exc:  # noqa: BLE001 - un documento no tumba el lote
+            # Misma regla que `process`: un documento que no se puede leer se declara y
+            # la corrida sigue (antes acá el fallo subía hasta `main` como traceback).
+            fallos += 1
+            salidas.append({"archivo": str(ruta), "error": str(exc)})
+            entorno.log(f"ERROR: {ruta}: {exc}")
+
+    # Con UN documento la salida mantiene la forma de siempre (un objeto, no una lista):
+    # es el contrato de T-601 y hay scripts que leen `veredicto_final` de la raíz.
+    payload: Any = salidas[0] if len(documentos) == 1 else salidas
+    _salida_lote_o_objeto(payload, salidas, args.output, entorno)
+
+    if len(documentos) == 1:
+        return 0 if comprobantes else 1
+    if fallos:
+        entorno.log(f"{fallos} documento(s) fallaron.")
+    if not comprobantes:
+        entorno.log("Ningún documento del lote resultó comprobante.")
+        return 1
+    entorno.log(f"{comprobantes} de {len(documentos)} documento(s) son comprobante.")
+    return 0
+
+
+def _salida_lote_o_objeto(
+    payload: Any, salidas: list[dict[str, Any]], destino: str | None, entorno: EntornoCLI
+) -> None:
+    """Escribe el resultado del lote (o del documento único) con el aviso de tamaño.
+
+    El aviso es el mismo criterio que ``extract``: el contrato de ``stdout`` no cambia,
+    pero un lote grande por ``stdout`` se declara (el detalle por pasada no es lo que se
+    mira cuando se filtra un corpus, y con ``-o`` queda en un archivo).
+    """
+    if destino:
+        _json_salida(payload, destino, entorno)
+        entorno.log(f"{len(salidas)} documento(s) en {destino}")
+        return
+    texto = json.dumps(payload, ensure_ascii=False, indent=2)
+    if len(texto) > LIMITE_STDOUT_BYTES:
+        entorno.log(
+            f"⚠  {len(salidas)} documento(s) → {len(texto) / 1e6:.1f} MB por stdout. "
+            "Con -o ARCHIVO.json el detalle va a un archivo."
+        )
+    entorno.dato(texto)
 
 
 def _cmd_classify(args: argparse.Namespace, entorno: EntornoCLI) -> int:

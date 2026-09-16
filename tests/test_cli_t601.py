@@ -1076,6 +1076,117 @@ class TestComandos:
         assert main(["validate", str(documento)], entorno=entorno) == 1
         assert json.loads(_salida(entorno))["veredicto_final"] == "no_comprobante"
 
+    def test_validate_acepta_una_carpeta(self, entorno: EntornoCLI, tmp_path: Path):
+        """⚠️ `validate` no tomaba una carpeta: moría con un traceback crudo.
+
+        La guía del operador prometía usarlo para *"filtrar una carpeta antes de
+        procesarla"*, pero `_cmd_validate` le pasaba el directorio a `procesar`, que
+        levanta `ValueError: Se esperaba un archivo, no un directorio` — y esa excepción
+        no la capturaba nadie, así que salía por pantalla un traceback en vez de un
+        error del CLI.
+
+        Con una carpeta la salida es un **veredicto por documento**.
+        """
+        carpeta = tmp_path / "lote"
+        carpeta.mkdir()
+        for nombre in ("a.md", "b.md"):
+            (carpeta / nombre).write_text(f"FACTURA A\n{nombre}\n", encoding="utf-8")
+
+        assert main(["validate", str(carpeta)], entorno=entorno) == 0
+        datos = json.loads(_salida(entorno))
+        assert isinstance(datos, list) and len(datos) == 2, "un veredicto por documento"
+        assert {Path(f["archivo"]).name for f in datos} == {"a.md", "b.md"}
+        assert "2 de 2 documento(s) son comprobante" in _log(entorno)
+
+    def test_validate_carpeta_sin_ninguno_sale_con_1(self, tmp_path: Path):
+        """Devuelve 0 si ALGUNO es comprobante, 1 si NINGUNO lo es.
+
+        ⚠️ La distinción importa para encadenar en un script: devolver 1 cuando alguno
+        era válido cortaría el flujo por buenos documentos, y devolver 0 con todos
+        rechazados obligaría a parsear la salida para saber que el corpus no sirve.
+
+        ⚠️ Se usan **dos** documentos a propósito: con uno solo la salida es el objeto
+        de siempre (contrato de T-601) y no se imprime el resumen del lote. El borde está
+        fijado en `test_validate_carpeta_con_un_solo_documento`.
+        """
+        carpeta = tmp_path / "lote"
+        carpeta.mkdir()
+        for nombre in ("a.md", "b.md"):
+            (carpeta / nombre).write_text("FACTURA A\n", encoding="utf-8")
+
+        entorno_lote = EntornoCLI(
+            orquestador=_orquestador(gate="no_comprobante"),
+            stdout=io.StringIO(),
+            stderr=io.StringIO(),
+            cwd=tmp_path,
+        )
+        assert main(["validate", str(carpeta)], entorno=entorno_lote) == 1
+        assert "Ningún documento del lote resultó comprobante" in _log(entorno_lote)
+        assert isinstance(json.loads(_salida(entorno_lote)), list)
+
+    def test_validate_carpeta_con_un_solo_documento(self, entorno: EntornoCLI, tmp_path: Path):
+        """⚠️ El borde: una carpeta con **un** documento sale como objeto, no como lista.
+
+        La forma de la salida se decide por cuántos documentos hay, no por si la entrada
+        era archivo o carpeta: con uno solo el contrato de T-601 se conserva (y es lo
+        único razonable, porque el consumidor no puede saber de antemano cuántos
+        archivos tiene la carpeta).
+        """
+        carpeta = tmp_path / "lote"
+        carpeta.mkdir()
+        (carpeta / "solo.md").write_text("FACTURA A\n", encoding="utf-8")
+
+        assert main(["validate", str(carpeta)], entorno=entorno) == 0
+        datos = json.loads(_salida(entorno))
+        assert isinstance(datos, dict), "un solo documento → objeto"
+        assert datos["veredicto_final"] == "comprobante"
+
+    def test_validate_un_archivo_conserva_el_contrato(self, entorno: EntornoCLI, documento: Path):
+        """⚠️ Con UN documento la salida sigue siendo un objeto, no una lista.
+
+        Es el contrato de T-601 y hay consumidores que leen `veredicto_final` de la raíz:
+        cambiarlo a lista rompería a quien ya lo usaba.
+        """
+        assert main(["validate", str(documento)], entorno=entorno) == 0
+        datos = json.loads(_salida(entorno))
+        assert isinstance(datos, dict), "un archivo → un objeto (contrato de T-601)"
+        assert datos["veredicto_final"] == "comprobante"
+
+    def test_validate_un_documento_ilegible_no_aborta_el_lote(self, tmp_path: Path):
+        """La regla de `process`: un archivo ilegible se declara y la corrida sigue."""
+        carpeta = tmp_path / "lote"
+        carpeta.mkdir()
+        for nombre in ("ok.md", "roto.md"):
+            (carpeta / nombre).write_text("FACTURA A\n", encoding="utf-8")
+
+        class ConverterQueExplota(FakeConverter):
+            def convert(self, origen: str) -> Any:
+                if "roto" in str(origen):
+                    raise OSError("el archivo no se puede leer")
+                return super().convert(origen)
+
+        entorno_lote = EntornoCLI(
+            orquestador=PipelineOrchestrator(
+                cliente=FakeLector(), converter=ConverterQueExplota(), settings=_settings()
+            ),
+            stdout=io.StringIO(),
+            stderr=io.StringIO(),
+            cwd=tmp_path,
+        )
+        assert main(["validate", str(carpeta)], entorno=entorno_lote) == 0, (
+            "el otro documento sí es comprobante → 0, aunque uno fallara"
+        )
+        datos = json.loads(_salida(entorno_lote))
+        assert any("error" in fila for fila in datos)
+        assert any(fila.get("veredicto_final") == "comprobante" for fila in datos)
+
+    def test_validate_carpeta_vacia_es_error_de_cli(self, entorno: EntornoCLI, tmp_path: Path):
+        vacia = tmp_path / "vacia"
+        vacia.mkdir()
+        assert main(["validate", str(vacia)], entorno=entorno) == 1
+        assert "No hay documentos validables" in _log(entorno)
+        assert "Traceback" not in _log(entorno), "un error del CLI, no un traceback"
+
     def test_classify_responde_tipo_y_contable(
         self, entorno: EntornoCLI, documento: Path, tmp_path: Path
     ):

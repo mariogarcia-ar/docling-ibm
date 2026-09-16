@@ -164,18 +164,38 @@ por qué un documento fue rechazado.
 ```bash
 voucherflow validate factura.pdf
 voucherflow validate factura.pdf --model qwen2.5vl:3b
+voucherflow validate var/files/2025-08 -o validados.json     # toda una carpeta
 ```
 
 | Bandera | Qué hace |
 |---|---|
-| `origen` | Archivo a validar |
+| `origen` | Archivo **o carpeta** (recursiva) |
 | `--quick` | Reservado (hoy el gate siempre hace el doble paso) |
+| `-o, --output` | Archivo JSON de salida (default: stdout) |
 | `--model MODEL` | Modelo del gate |
 
 **Qué imprime**: un JSON con el veredicto (`comprobante` / `no_comprobante` /
 `indeterminado`), las pasadas que hizo y si preparó la vista para extraer.
 
-**Código de salida**: `0` si es comprobante, `1` si no lo es.
+**Con una carpeta** devuelve **un veredicto por documento** (una lista), que es el
+uso de filtrar un corpus antes de gastar la extracción. Un documento ilegible se
+declara y la corrida sigue.
+
+> **La forma de la salida depende de cuántos documentos haya, no de si la entrada
+> era archivo o carpeta**: con **uno** es un objeto (el contrato de siempre); con
+> **varios**, una lista. No se puede saber de antemano cuántos hay adentro de una
+> carpeta, así que la regla es por cantidad.
+
+**Código de salida**:
+
+| Entrada | Código |
+|---|---|
+| Un archivo | `0` si es comprobante · `1` si no lo es |
+| Una carpeta | `0` si **alguno** es comprobante · `1` si **ninguno** lo es |
+
+La distinción importa para encadenar: devolver `1` con una carpeta que tenía
+documentos válidos cortaría un `&&` por buenos documentos, y devolver `0` con todo
+rechazado obligaría a parsear la salida para saber que el corpus no sirve.
 
 ---
 
